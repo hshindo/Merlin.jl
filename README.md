@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 
-## TensorNet.jl
+## Merlin.jl
 Deep Learning Library for Julia Language.
 
 - **Documentation:** <http://hshindo.github.io/Merlin.jl>
