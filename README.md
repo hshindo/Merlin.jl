@@ -1,15 +1,15 @@
-[![Build Status](https://travis-ci.org/hshindo/TensorNet.jl.svg?branch=master)](https://travis-ci.org/hshindo/TensorNet.jl)
+[![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 
 ## TensorNet.jl
 Deep Learning Library for Julia Language.
 
-- **Documentation:** <http://hshindo.github.io/TensorNet.jl>
+- **Documentation:** <http://hshindo.github.io/Merlin.jl>
 
 ## Requirements
 
 ## Install
 ```julia
-julia> Pkg.clone("https://github.com/hshindo/TensorNet.jl.git")
+julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 ```
 
 ## Basic Usage
