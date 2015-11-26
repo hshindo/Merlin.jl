@@ -23,21 +23,20 @@ function sequencial(funs::Functor...)
   g
 end
 
-function apply(g::Graph, var::Variable)
-  input = var.data
-  l = filter(i -> length(g.tails[i]) == 0, 1:length(g.funs)) # must be rewrited
+function apply(g::Graph, vars::Vector{Variable})
   outputs = Array(Any, length(g.funs))
   k = 1
   for i = 1:length(g.funs)
     f, tails = g.funs[i], g.tails[i]
     if length(tails) == 0
-      output = length(l) == 1 ? apply(f, input) : apply(f, input[k])
+      outputs[i] = apply(f, vars[k])
       k += 1
+    elseif length(tails) == 1
+      outputs[i] = apply(f, outputs[tails[1]])
     else
-      input = length(tails) == 1 ? outputs[tails[1]] : map(id -> outputs[id], tails)
-      output = apply(f, input)
+      input = map(id -> outputs[id], tails)
+      outputs[i] = apply(f, input)
     end
-    outputs[i] = output
   end
-  Variable(outputs[end])
+  Variable(outputs[end], outputs)
 end

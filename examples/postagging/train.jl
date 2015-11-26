@@ -41,7 +41,7 @@ function train(path)
       padtoks = [padt; padt; toks...; padt; padt]
       words = map(t -> t.word, padtoks)
       chars = map(t -> [' ', ' ', t.chars..., ' ', ' '], padtoks)
-      node = (words, chars) |> Variable |> model
+      node = [Variable(words), Variable(chars)] |> model
 
       append!(preds, maxrows(node.data))
       tagids = map(t -> t.catid, toks)

@@ -7,7 +7,7 @@ function posmodel(path)
   charembed = Lookup(Char, T, 10)
   charfun = sequencial(charembed, Window1D(50, 10, 0), Linear(T, 50, 50), Pooling())
   w = push!(g, wordembed)
-  c = push!(g, Map(charfun), Concat(2))
+  c = push!(g, MapReduce(charfun, Concat(2)))
   push!(g, [w, c], Concat(1), Window1D(750, 150, 0), Linear(T, 750, 300), ReLU(), Linear(T, 300, 45))
   g
 end

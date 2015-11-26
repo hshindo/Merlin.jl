@@ -5,7 +5,7 @@ abstract Optimizer
 
 export Variable
 export Concat, CrossEntropy, Identity, Linear, Lookup, Pooling, ReLU, Window1D
-export Graph, Map, sequencial
+export Graph, MapReduce, sequencial
 #export Add, Mult
 export AdaGrad, Adam, SGD
 
@@ -17,7 +17,7 @@ include("functors/graph.jl")
 include("functors/identity.jl")
 include("functors/linear.jl")
 include("functors/lookup.jl")
-include("functors/map.jl")
+include("functors/mapreduce.jl")
 #include("functors/math.jl")
 include("functors/pooling.jl")
 include("functors/relu.jl")
