@@ -2,32 +2,6 @@ type Concat <: Functor
   dim::Int
 end
 
-function apply(fun::Concat, vars::Vector{Variable})
-  input = map(v -> v.data, vars)
-  sum = 0
-  for x in input
-    sum += size(x, fun.dim)
-  end
-  outsize = [size(input[1])...]
-  outsize[fun.dim] = sum
-  data = Array(eltype(input[1]), outsize...)
-
-  range = map(s -> 1:s, outsize)
-  index = 1
-  for x in input
-    s = size(x, fun.dim)
-    range[fun.dim] = index:(index + s - 1)
-    data[range...] = x
-    index += s
-  end
-  Variable(data)
-end
-
-function diff(fun::Concat, tails::Vector{Variable}, head::Variable)
-  head.data, head.work
-end
-
-#####
 function apply(fun::Concat, input::Vector)
   sum = 0
   for x in input
@@ -45,7 +19,7 @@ function apply(fun::Concat, input::Vector)
     output[range...] = x
     index += s
   end
-  (output,)
+  output
 end
 
 function diff(fun::Concat, input::Vector, gradout::Array)

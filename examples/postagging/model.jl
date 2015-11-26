@@ -3,12 +3,17 @@ using Merlin
 function posmodel(path)
   T = Float32
   g = Graph()
-  wordembed = Lookup(UTF8String, T, 100)
-  charembed = Lookup(Char, T, 10)
-  charfun = sequencial(charembed, Window1D(50, 10, 0), Linear(T, 50, 50), Pooling())
-  w = push!(g, wordembed)
-  c = push!(g, MapReduce(charfun, Concat(2)))
-  push!(g, [w, c], Concat(1), Window1D(750, 150, 0), Linear(T, 750, 300), ReLU(), Linear(T, 300, 45))
+  wordfun = Lookup(UTF8String, T, 100)
+  charfun = sequencial(Lookup(Char, T, 10), Window1D(50, 10, 0), Linear(T, 50, 50), Pooling())
+  function fff(data::Vector)
+    y = map(data) do t
+      w = Variable(t[1]) |> wordfun
+      c = (Variable(t[2]),) |> charfun
+      [w, c] |> Concat(1)
+    end
+    y |> Concat(2)
+  end
+  push!(g, Custom(fff), Window1D(750, 150, 0), Linear(T, 750, 300), ReLU(), Linear(T, 300, 45))
   g
 end
 

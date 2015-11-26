@@ -33,7 +33,7 @@ function apply{T}(l::Linear{T}, input::Matrix)
   output = Array(T, size(l.weight, 1), size(input)[2:end]...)
   gemm!('N', 'N', T(1.0), l.weight, input, T(0.0), output)
   broadcast!(+, output, l.bias, output)
-  (output,)
+  output
 end
 
 function diff{T}(l::Linear{T}, input::Matrix, gradout::Matrix)

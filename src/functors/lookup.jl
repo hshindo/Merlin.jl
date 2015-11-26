@@ -62,7 +62,7 @@ function apply{K,V}(fun::Lookup{K,V}, input::Vector{K})
     end
     output[:, i] = fun.weights[id]
   end
-  (output,)
+  output
 end
 
 mat(a::Array) = reshape(a, size(a, 1), prod(size(a)[2:end]))

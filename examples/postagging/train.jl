@@ -39,9 +39,12 @@ function train(path)
       ref = toks[1]
       padt = Token(ref.dicts, "PADDING", [' '], -1)
       padtoks = [padt; padt; toks...; padt; padt]
-      words = map(t -> t.word, padtoks)
-      chars = map(t -> [' ', ' ', t.chars..., ' ', ' '], padtoks)
-      node = [Variable(words), Variable(chars)] |> model
+      vars = map(padtoks) do t
+        c = [' ', ' ', t.chars..., ' ', ' ']
+        v = ([t.word], c)
+        Variable(v)
+      end
+      node = (vars,) |> model
 
       append!(preds, maxrows(node.data))
       tagids = map(t -> t.catid, toks)

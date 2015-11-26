@@ -1,11 +1,11 @@
 github_path = "C:/Users/shindo/Documents/GitHub"
 push!(LOAD_PATH, github_path)
 push!(LOAD_PATH, "$(github_path)/Merlin.jl/examples/postagging")
-push!(LOAD_PATH, "/Users/hshindo/.julia/v0.4/Merlin.jl/examples/postagging")
+push!(LOAD_PATH, "C:/Users/shindo/.julia/v0.4/Merlin.jl/examples/postagging")
 workspace()
 using Merlin
 using POSTagging
-path = "/Users/hshindo/Dropbox/tagging"
+path = "C:/Users/shindo/Dropbox/tagging"
 
 g = POSTagging.posmodel(path)
 dicts = (Dict(), Dict(), Dict())

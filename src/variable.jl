@@ -1,25 +1,21 @@
 type Variable
-  data
+  value
   work
   fun
   tails::Vector{Variable}
 end
 
-Variable(data, work) = Variable(data, work, nothing, Variable[])
-Variable(data) = Variable(data, nothing)
+Variable(value) = Variable(value, nothing, nothing, Variable[])
 
 function Base.|>(var::Variable, fun::Functor)
-  h = apply(fun, var)
-  h.fun = fun
-  h.tails = [var]
-  h
+  y = apply(fun, var.value)
+  typeof(y) <: Tuple ? Variable(y[1], y[2], fun, [var]) : Variable(y, nothing, fun, [var])
 end
 
 function Base.|>(vars::Vector{Variable}, fun::Functor)
-  h = apply(fun, vars)
-  h.fun = fun
-  h.tails = vars
-  h
+  x = map(v -> v.value, vars)
+  y = apply(fun, x)
+  typeof(y) <: Tuple ? Variable(y[1], y[2], fun, vars) : Variable(y, nothing, fun, vars)
 end
 
 function diff!(var::Variable)

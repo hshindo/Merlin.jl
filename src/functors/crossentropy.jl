@@ -1,6 +1,5 @@
 type CrossEntropy <: Functor
   param::Array
-  logp::Array
 end
 
 CrossEntropy(param::Array) = CrossEntropy(param, eltype(param)[])

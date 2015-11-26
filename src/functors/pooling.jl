@@ -21,7 +21,7 @@ function apply(fun::Pooling, input::Matrix)
     m = maximum(input, 2) # inefficient
     output[:] = m[:]
   end
-  (output,)
+  output
 end
 
 function diff(fun::Pooling, input::Matrix, gradout::Matrix)

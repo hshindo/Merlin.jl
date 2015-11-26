@@ -20,7 +20,7 @@ function apply(fun::ReLU, input::Array)
     x = input[i]
     output[i] = x > 0.0 ? x : fun.alpha * x
   end
-  (output,)
+  output
 end
 
 function diff(fun::ReLU, input::Array, gradout::Array)

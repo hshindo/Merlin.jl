@@ -20,21 +20,12 @@ function outsize(fun::Window1D, input)
   fun.winsize, n
 end
 
-function apply(fun::Window1D, var::Variable)
-  input = var.data
-  output = Array(Float32, outsize(fun, input))
-  ccall(WINDOW1D_FWD_F32_HANDLE, Void,
-    (Ptr{Float32}, Ptr{Float32}, Cint, Cint, Cint, Cint),
-    input, output, length(input), fun.winsize, fun.stride, fun.padsize)
-  Variable(output)
-end
-
 function apply(fun::Window1D, input::Array{Float32})
   output = Array(Float32, outsize(fun, input))
   ccall(WINDOW1D_FWD_F32_HANDLE, Void,
     (Ptr{Float32}, Ptr{Float32}, Cint, Cint, Cint, Cint),
     input, output, length(input), fun.winsize, fun.stride, fun.padsize)
-  (output,)
+  output
 end
 
 function diff(fun::Window1D, input::Array{Float32}, gradout::Array{Float32})
