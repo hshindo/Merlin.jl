@@ -22,21 +22,14 @@ end
 
 mat(a::Array) = reshape(a, size(a, 1), prod(size(a)[2:end]))
 
-function apply{T}(l::Linear{T}, var::Variable)
-  data = Array(T, size(l.weight, 1), size(var.data)[2:end]...)
-  gemm!('N', 'N', T(1.0), l.weight, var.data, T(0.0), data)
-  broadcast!(+, data, l.bias, data)
-  Variable(data)
-end
-
-function apply{T}(l::Linear{T}, input::Matrix)
+function apply{T}(l::Linear{T}, input::Matrix{T})
   output = Array(T, size(l.weight, 1), size(input)[2:end]...)
   gemm!('N', 'N', T(1.0), l.weight, input, T(0.0), output)
   broadcast!(+, output, l.bias, output)
-  output
+  output, nothing
 end
 
-function diff{T}(l::Linear{T}, input::Matrix, gradout::Matrix)
+function diff{T}(l::Linear{T}, input::Matrix{T}, gradout::Matrix{T})
   gradin = similar(input)
   gemm!('T', 'N', T(1.0), l.weight, gradout, T(0.0), gradin) # d gradout / d input = weight^T * gradout
   gemm!('N', 'T', T(1.0), gradout, input, T(1.0), l.gradweight) # d gradout / d weight = gradout * input^T

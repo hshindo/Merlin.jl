@@ -3,33 +3,41 @@ type Variable
   work
   fun
   tails::Vector{Variable}
+  grad
 end
 
-Variable(value) = Variable(value, nothing, nothing, Variable[])
+Variable(value) = Variable(value, nothing, nothing, Variable[], nothing)
 
 function Base.|>(var::Variable, fun::Functor)
-  y = apply(fun, var.value)
-  typeof(y) <: Tuple ? Variable(y[1], y[2], fun, [var]) : Variable(y, nothing, fun, [var])
+  value, work = apply(fun, var.value)
+  Variable(value, work, fun, [var], nothing)
 end
 
 function Base.|>(vars::Vector{Variable}, fun::Functor)
-  x = map(v -> v.value, vars)
-  y = apply(fun, x)
-  typeof(y) <: Tuple ? Variable(y[1], y[2], fun, vars) : Variable(y, nothing, fun, vars)
+  inputs = map(v -> v.value, vars)
+  value, work = apply(fun, inputs)
+  Variable(value, work, fun, vars, nothing)
+end
+
+function Base.|>(var::Variable, funs::Vector{Functor})
+  for fun in funs
+    var = var |> fun
+  end
+  var
 end
 
 function diff!(var::Variable)
-  var.grad = ones(var.data[1])
+  var.grad = ones(var.value)
   sorted = topdown(var)
-  for v in var
+  for v in sorted
     length(v.tails) == 0 && continue
     if length(v.tails) == 1
       tail = v.tails[1]
-      gradin = diff(v.fun, tail.data[1], v.grad)
+      gradin = v.work == nothing ? diff(v.fun, tail.value, v.grad) : diff(v.fun, tail.value, v.work, v.grad)
       tail.grad == nothing ? tail.grad = gradin : tail.grad += gradin
     else
-      inputs = map(t -> t.data, v.tails)
-      gradins = diff(v.fun, inputs, v.grad)
+      inputs = map(t -> t.value, v.tails)
+      gradins = v.work == nothing ? diff(v.fun, inputs, v.grad) : diff(v.fun, inputs, v.work, v.grad)
       for i = 1:length(inputs)
         gradin, tail = gradins[i], v.tails[i]
         tail.grad == nothing ? tail.grad = gradin : tail.grad += gradin
@@ -52,4 +60,10 @@ function topdown(var::Variable)
   end
   visit(var)
   sorted
+end
+
+function optimize!(opt::Optimizer, funs::Vector{Functor})
+  for fun in funs
+    applicable(optimize!, opt, fun) && optimize!(opt, fun)
+  end
 end

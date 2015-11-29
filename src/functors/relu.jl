@@ -4,29 +4,19 @@ end
 
 ReLU() = ReLU(0.0)
 
-function apply(fun::ReLU, var::Variable)
-  input = var.data
+function apply{T,N}(fun::ReLU, input::Array{T,N})
   output = similar(input)
   for i = 1:length(input)
     x = input[i]
-    output[i] = x > 0.0 ? x : fun.alpha * x
+    output[i] = x > T(0.0) ? x : T(fun.alpha) * x
   end
-  Variable(output)
+  output, nothing
 end
 
-function apply(fun::ReLU, input::Array)
-  output = similar(input)
-  for i = 1:length(input)
-    x = input[i]
-    output[i] = x > 0.0 ? x : fun.alpha * x
-  end
-  output
-end
-
-function diff(fun::ReLU, input::Array, gradout::Array)
+function diff{T}(fun::ReLU, input::Array{T}, gradout::Array{T})
   gradin = similar(input)
   for i = 1:length(input)
-    d = input[i] > 0.0 ? 1.0 : fun.alpha
+    d = input[i] > T(0.0) ? T(1.0) : T(fun.alpha)
     gradin[i] = gradout[i] * d
   end
   gradin

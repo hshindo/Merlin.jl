@@ -1,7 +1,8 @@
 type LogSoftmax
 end
 
-function apply(fun::LogSoftmax)
+function apply(fun::LogSoftmax, input)
+  input = var.value
   output = similar(input)
   max = maximum(input, 1)
   for j = 1:size(input, 2)
@@ -14,9 +15,9 @@ function apply(fun::LogSoftmax)
       output[i, j] = input[i, j] - max[j] - logz
     end
   end
-  output
+  Variable(output)
 end
 
 function diff()
-  
+
 end

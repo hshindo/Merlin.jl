@@ -1,30 +1,18 @@
 type Pooling <: Functor
 end
 
-function apply(fun::Pooling, var::Variable)
-  input = var.data
-  output = Array(eltype(input), size(input, 1), 1)
+function apply{T}(fun::Pooling, input::Matrix{T})
+  output = Array(T, size(input, 1), 1)
   if size(input, 2) == 1
     output[:] = input[:]
   else
     m = maximum(input, 2) # inefficient
     output[:] = m[:]
   end
-  Variable(output)
+  output, nothing
 end
 
-function apply(fun::Pooling, input::Matrix)
-  output = Array(eltype(input), size(input, 1), 1)
-  if size(input, 2) == 1
-    output[:] = input[:]
-  else
-    m = maximum(input, 2) # inefficient
-    output[:] = m[:]
-  end
-  output
-end
-
-function diff(fun::Pooling, input::Matrix, gradout::Matrix)
+function diff{T}(fun::Pooling, input::Matrix{T}, gradout::Matrix{T})
   gradin = similar(input)
   if size(input, 2) == 1
     gradin[:] = gradout[:]

@@ -21,10 +21,10 @@ end
 function train(path)
   dicts = (Dict(), Dict(), Dict())
   traindata = readCoNLL("$(path)/wsj_00-18.conll", dicts)
-  traindata = traindata[1:5000]
+  #traindata = traindata[1:5000]
   testdata = readCoNLL("$(path)/wsj_22-24.conll", dicts)
   #ls = LayerSet(path)
-  model = posmodel(path)
+  model = POSModel("$(path)/nyt.100")
   opt = SGD(0.0075)
 
   for iter = 1:10
@@ -36,35 +36,31 @@ function train(path)
       toks = traindata[i]
       append!(golds, toks)
 
-      ref = toks[1]
-      padt = Token(ref.dicts, "PADDING", [' '], -1)
-      padtoks = [padt; padt; toks...; padt; padt]
-      vars = map(padtoks) do t
-        c = [' ', ' ', t.chars..., ' ', ' ']
-        v = ([t.word], c)
-        Variable(v)
-      end
-      node = (vars,) |> model
+      #ref = toks[1]
+      #padt = Token(ref.dicts, "PADDING", [' '], -1)
+      #padtoks = [padt; padt; toks...; padt; padt]
+      #w = map(t -> t.word, padtoks) |> Variable
+      #c = map(t -> Variable([' ', ' ', t.chars..., ' ', ' ']), padtoks)
+      #node = (w, c) |> model
+      node = forward(model, toks)
 
-      append!(preds, maxrows(node.data))
+      append!(preds, maxrows(node.value))
       tagids = map(t -> t.catid, toks)
-      target = zeros(node.data)
+      target = zeros(node.value)
       for j = 1:length(tagids)
         target[tagids[j], j] = 1.0
       end
       node = node |> CrossEntropy(target)
-      loss += sum(node.data)
-      #diff!(node)
-      #optimize!(opt, ls.wordembed)
-      #optimize!(opt, ls.charembed)
-      #optimize!(opt, ls.l1)
-      #optimize!(opt, ls.l2)
-      #optimize!(opt, ls.l3)
+      loss += sum(node.value)
+      diff!(node)
+      optimize!(opt, model.wordfun)
+      optimize!(opt, model.charfun)
+      optimize!(opt, model.sentfun)
     end
     println("loss: $(loss)")
     acc = eval(golds, preds)
     println("train acc: $(acc)")
-    #decode(testdata, ls)
+    decode(model, testdata)
     println("")
   end
   println("finish")

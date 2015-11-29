@@ -16,8 +16,9 @@ chars = map(cs -> [' ', ' ', cs..., ' ', ' '], chars)
 TensorNet.apply(g, (words, chars))
 
 function bench()
-  for i = 1:10000
-    TensorNet.apply(g, chars)
+  for i = 1:100000
+    #a = (1,2)
+    a = VBF(1,2)
     #for j = 1:length(tokens)
     #  TensorNet.apply(g, chars2[j])
     #end

@@ -1,35 +1,30 @@
 using Merlin
 
-function posmodel(path)
-  T = Float32
-  g = Graph()
-  wordfun = Lookup(UTF8String, T, 100)
-  charfun = sequencial(Lookup(Char, T, 10), Window1D(50, 10, 0), Linear(T, 50, 50), Pooling())
-  function fff(data::Vector)
-    y = map(data) do t
-      w = Variable(t[1]) |> wordfun
-      c = (Variable(t[2]),) |> charfun
-      [w, c] |> Concat(1)
-    end
-    y |> Concat(2)
-  end
-  push!(g, Custom(fff), Window1D(750, 150, 0), Linear(T, 750, 300), ReLU(), Linear(T, 300, 45))
-  g
-end
+#function posmodel(path)
+#  T = Float32
+#  g = Graph()
+#  wordfun = Lookup(UTF8String, T, 100)
+#  charfun = Sequence(Lookup(Char, T, 10), Window1D(50, 10, 0), Linear(T, 50, 50), Pooling())
+#  charfun = MapReduce(charfun, Concat(2))
+#  w = push!(g, wordfun)
+#  c = push!(g, charfun)
+#  push!(g, [w, c], Concat(1), Window1D(750, 150, 0), Linear(T, 750, 300), ReLU(), Linear(T, 300, 45))
+#  g
+#end
 
 type POSModel
-  wordembed
-  charseq
-  sentseq
+  wordfun
+  charfun
+  sentfun
 end
 
 function POSModel(path)
   T = Float32
-  wordembed = Lookup(UTF8String, T, 100)
-  charseq = Functor[Lookup(Char, T, 10), Window1D(50, 10, 0), Linear(T, 50, 50), Pooling()]
-  charsseq = [wordembed, Map(charseq)] |> Concat(1)
-  sentseq = Functor[Window1D(750, 150, 0), Linear(T, 750, 300), ReLU(), Linear(T, 300, 45)]
-  POSModel(wordembed, charseq, sentseq)
+  #wordfun = Lookup(UTF8String, T, 100)
+  wordfun = Lookup(path, UTF8String, T)
+  charfun = Functor[Lookup(Char, T, 10), Window1D(50, 10, 0), Linear(T, 50, 50), Pooling()]
+  sentfun = Functor[Window1D(750, 150, 0), Linear(T, 750, 300), ReLU(), Linear(T, 300, 45)]
+  POSModel(wordfun, charfun, sentfun)
 end
 
 function forward(m::POSModel, tokens::Vector{Token})
@@ -37,14 +32,23 @@ function forward(m::POSModel, tokens::Vector{Token})
   padt = Token(ref.dicts, "PADDING", [' '], -1)
   tokens = [padt; padt; tokens...; padt; padt]
   words = map(t -> t.word, tokens)
-  wordmat = Node(words) |> m.wordembed
-  charmat = map(tokens) do t
+  wordmat = Variable(words) |> m.wordfun
+  charvecs = map(tokens) do t
     chars = [' '; ' '; t.chars...; ' '; ' ']
-    Node(chars) |> m.charseq
+    Variable(chars) |> m.charfun
   end
-  charmat = charmat |> Concat(2)
-  [wordmat, charmat] |> Concat(1) |> m.sentseq
+  charmat = charvecs |> Concat(2)
+  [wordmat, charmat] |> Concat(1) |> m.sentfun
 end
 
-type LayerSet
+function decode(m::POSModel, data::Vector{Vector{Token}})
+  golds, preds = Token[], Int[]
+  for i = 1:length(data)
+    toks = data[i]
+    append!(golds, toks)
+    node = forward(m, toks)
+    append!(preds, maxrows(node.value))
+  end
+  acc = eval(golds, preds)
+  println("test acc: $(acc)")
 end
