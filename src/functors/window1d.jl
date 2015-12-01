@@ -20,7 +20,8 @@ function outsize(fun::Window1D, input)
   fun.winsize, n
 end
 
-function apply(fun::Window1D, input::Array{Float32})
+function apply(fun::Window1D, inputs::Tuple{Array{Float32}})
+  input = inputs[1]
   output = Array(Float32, outsize(fun, input))
   ccall(WINDOW1D_FWD_F32_HANDLE, Void,
     (Ptr{Float32}, Ptr{Float32}, Cint, Cint, Cint, Cint),
@@ -28,12 +29,13 @@ function apply(fun::Window1D, input::Array{Float32})
   output, nothing
 end
 
-function diff(fun::Window1D, input::Array{Float32}, gradout::Array{Float32})
+function diff(fun::Window1D, inputs::Tuple{Array{Float32}}, work, gradout::Array{Float32})
+  input = inputs[1]
   gradin = similar(input)
   ccall(WINDOW1D_BWD_F32_HANDLE, Void,
     (Ptr{Float32}, Ptr{Float32}, Ptr{Float32}, Cint, Cint, Cint, Cint),
     input, gradout, gradin, length(input), fun.winsize, fun.stride, fun.padsize)
-  gradin
+  tuple(gradin)
 end
 
 ##### old #####

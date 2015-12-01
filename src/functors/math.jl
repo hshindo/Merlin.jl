@@ -6,9 +6,7 @@ end
 import Base.+
 +(v1::Variable, v2::Variable) = (v1, v2) |> Add()
 
-function apply(fun::Add, input::Tuple{Array,Array})
-  input[1] + input[2]
-end
+apply{T,N}(fun::Add, x1::Array{T,N}, x2::Array{T,N}) = x1 + x2
 
 function diff(fun::Add, input::Tuple{Array,Array}, gradout::Array)
   gradout, gradout
@@ -20,15 +18,13 @@ end
 import Base.*
 *(v1::Variable, v2::Variable) = (v1, v2) |> Mult()
 
-function apply(fun::Mult, input::Tuple{Matrix,Matrix})
-  x1, x2 = input
-  y = Array(eltype(x1), size(x1, 1), size(x2, 2))
+function apply{T}(fun::Mult, x1::Matrix{T}, x2::Matrix{T})
+  y = Array(T, size(x1, 1), size(x2, 2))
   gemm!('N', 'N', 1.0, x1, x2, 0.0, y)
   y
 end
 
-function diff(fun::Mult, inputs::Tuple{Matrix,Matrix}, gradout::Matrix)
-  T = eltype(x1)
+function diff{T}(fun::Mult, inputs::Tuple{Matrix{T},Matrix{T}}, gradout::Matrix{T})
   grad1 = similar(x1)
   grad2 = similar(x2)
   gemm!('T', 'N', 1.0, x1, gradout, 0.0, x2)

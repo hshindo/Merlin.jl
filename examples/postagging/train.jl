@@ -21,7 +21,7 @@ end
 function train(path)
   dicts = (Dict(), Dict(), Dict())
   traindata = readCoNLL("$(path)/wsj_00-18.conll", dicts)
-  #traindata = traindata[1:5000]
+  traindata = traindata[1:5000]
   testdata = readCoNLL("$(path)/wsj_22-24.conll", dicts)
   #ls = LayerSet(path)
   model = POSModel("$(path)/nyt.100")
@@ -52,15 +52,15 @@ function train(path)
       end
       node = node |> CrossEntropy(target)
       loss += sum(node.value)
-      diff!(node)
-      optimize!(opt, model.wordfun)
-      optimize!(opt, model.charfun)
-      optimize!(opt, model.sentfun)
+      #diff!(node)
+      #optimize!(opt, model.wordfun)
+      #optimize!(opt, model.charfun)
+      #optimize!(opt, model.sentfun)
     end
     println("loss: $(loss)")
     acc = eval(golds, preds)
     println("train acc: $(acc)")
-    decode(model, testdata)
+    #decode(model, testdata)
     println("")
   end
   println("finish")

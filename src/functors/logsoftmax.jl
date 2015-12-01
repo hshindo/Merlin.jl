@@ -1,8 +1,7 @@
 type LogSoftmax
 end
 
-function apply(fun::LogSoftmax, input)
-  input = var.value
+function apply{T}(fun::LogSoftmax, inputs::Tuple{Matrix{T}})
   output = similar(input)
   max = maximum(input, 1)
   for j = 1:size(input, 2)
@@ -15,7 +14,7 @@ function apply(fun::LogSoftmax, input)
       output[i, j] = input[i, j] - max[j] - logz
     end
   end
-  Variable(output)
+  output, nothing
 end
 
 function diff()

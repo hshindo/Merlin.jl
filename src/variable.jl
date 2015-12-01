@@ -1,47 +1,36 @@
 type Variable
+  fun
+  args::Tuple
+end
+
+type Variable
   value
   work
-  fun
-  tails::Vector{Variable}
   grad
+  fun
+  tails::Tuple
 end
 
-Variable(value) = Variable(value, nothing, nothing, Variable[], nothing)
+Variable(value) = Variable(value, nothing, nothing, nothing, ())
 
-function Base.|>(var::Variable, fun::Functor)
-  value, work = apply(fun, var.value)
-  Variable(value, work, fun, [var], nothing)
-end
-
-function Base.|>(vars::Vector{Variable}, fun::Functor)
+function apply(fun::Functor, vars::Tuple{Vararg{Variable}})
   inputs = map(v -> v.value, vars)
-  value, work = apply(fun, inputs)
-  Variable(value, work, fun, vars, nothing)
+  output, work = apply(fun, inputs)
+  Variable(output, work, nothing, fun, vars)
 end
 
-function Base.|>(var::Variable, funs::Vector{Functor})
-  for fun in funs
-    var = var |> fun
-  end
-  var
-end
+Base.|>(var::Variable, fun::Functor) = apply(fun, tuple(var))
+Base.|>(vars::Tuple{Vararg{Variable}}, fun::Functor) = apply(fun, vars)
 
-function diff!(var::Variable)
-  var.grad = ones(var.value)
-  sorted = topdown(var)
-  for v in sorted
+function diff!(var::Variable, grad)
+  var.grad = grad
+  for v in topdown(var)
     length(v.tails) == 0 && continue
-    if length(v.tails) == 1
-      tail = v.tails[1]
-      gradin = v.work == nothing ? diff(v.fun, tail.value, v.grad) : diff(v.fun, tail.value, v.work, v.grad)
-      tail.grad == nothing ? tail.grad = gradin : tail.grad += gradin
-    else
-      inputs = map(t -> t.value, v.tails)
-      gradins = v.work == nothing ? diff(v.fun, inputs, v.grad) : diff(v.fun, inputs, v.work, v.grad)
-      for i = 1:length(inputs)
-        gradin, tail = gradins[i], v.tails[i]
-        tail.grad == nothing ? tail.grad = gradin : tail.grad += gradin
-      end
+    inputs = map(t -> t.value, v.tails)
+    gradins = diff(v.fun, v.grad, v.work, inputs...)
+    for i = 1:length(gradins)
+      g, t = gradins[i], v.tails[i]
+      t.grad == nothing ? t.grad = g : t.grad += g
     end
   end
 end

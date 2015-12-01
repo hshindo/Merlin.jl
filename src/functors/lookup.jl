@@ -32,7 +32,8 @@ end
 #  reshape(output, size(output, 1), size(input)...)
 #end
 
-function apply{K,V}(fun::Lookup{K,V}, input::Vector{K})
+function apply{K,V}(fun::Lookup{K,V}, inputs::Tuple{Vector{K}})
+  input = inputs[1]
   output = Array(V, length(fun.weights[1]), length(input))
   for i = 1:length(input)
     key = input[i]
@@ -49,14 +50,15 @@ end
 
 mat(a::Array) = reshape(a, size(a, 1), prod(size(a)[2:end]))
 
-function diff{K,V}(fun::Lookup{K,V}, input::Vector{K}, gradout::Matrix{V})
+function diff{K,V}(fun::Lookup{K,V}, inputs::Tuple{Vector{K}}, work, gradout::Matrix{V})
+  input = inputs[1]
   gradout = mat(gradout)
   for i = 1:length(input)
     id = fun.dict[input[i]]
     fun.grads[id] += gradout[:, i]
     union!(fun.idset, id)
   end
-  nothing
+  tuple(nothing)
 end
 
 function optimize!(opt::Optimizer, l::Lookup)

@@ -4,7 +4,8 @@ end
 
 ReLU() = ReLU(0.0)
 
-function apply{T,N}(fun::ReLU, input::Array{T,N})
+function apply{T,N}(fun::ReLU, inputs::Tuple{Array{T,N}})
+  input = inputs[1]
   output = similar(input)
   for i = 1:length(input)
     x = input[i]
@@ -13,11 +14,12 @@ function apply{T,N}(fun::ReLU, input::Array{T,N})
   output, nothing
 end
 
-function diff{T}(fun::ReLU, input::Array{T}, gradout::Array{T})
+function diff{T,N}(fun::ReLU, inputs::Tuple{Array{T,N}}, work, gradout::Array{T,N})
+  input = inputs[1]
   gradin = similar(input)
   for i = 1:length(input)
     d = input[i] > T(0.0) ? T(1.0) : T(fun.alpha)
     gradin[i] = gradout[i] * d
   end
-  gradin
+  tuple(gradin)
 end

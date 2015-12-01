@@ -1,5 +1,6 @@
-type CrossEntropy{T} <: Functor
-  param::Array{T}
+type CrossEntropy <: Functor
+  param
+  logp
 end
 
 function logsoftmax{T}(input::Matrix{T})
@@ -18,20 +19,23 @@ function logsoftmax{T}(input::Matrix{T})
   output
 end
 
-function apply{T}(fun::CrossEntropy{T}, input::Matrix{T})
-  @assert(length(fun.param) == length(input))
+function apply{T}(fun::CrossEntropy, input::Matrix{T})
+  length(fun.param) == length(input) || error("CrossEntropy length unmatch")
+  param::Matrix{T} = fun.param
   output = similar(input)
   logp = logsoftmax(input)
   for i = 1:length(input)
-    output[i] = -fun.param[i] * logp[i]
+    output[i] = -param[i] * fun.logp[i]
   end
-  output, logp
+  fun.logp = logp
+  output
 end
 
-function diff{T}(fun::CrossEntropy{T}, input::Matrix{T}, logp::Matrix{T}, gradout::Matrix{T})
-  gradin = similar(input)
+function diff{T}(fun::CrossEntropy, gradout::Matrix{T}, input::Matrix{T})
+  gradin = similar(inputs[1])
+  param::Matrix{T} = fun.param
   for i = 1:length(input)
-    gradin[i] = gradout[i] * (exp(logp[i]) - fun.param[i])
+    gradin[i] = gradout[i] * (exp(logp[i]) - param[i])
   end
-  gradin
+  tuple(gradin)
 end

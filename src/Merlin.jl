@@ -3,8 +3,8 @@ module Merlin
 abstract Functor
 abstract Optimizer
 
-export Variable, diff!, Functor
-export Concat, CrossEntropy, Linear, Lookup, Pooling, ReLU, Window1D
+export Variable, diff!
+export Concat, CrossEntropy, Linear, Lookup, Pooling, ReLU, Sequence, Window1D
 #export Graph, Sequence
 #export Add, Mult
 export AdaGrad, Adam, SGD, optimize!

@@ -2,7 +2,9 @@ type Concat <: Functor
   dim::Int
 end
 
-function apply{T,N}(fun::Concat, inputs::Vector{Array{T,N}})
+clone(fun::Concat) = fun
+
+function apply{T,N}(fun::Concat, inputs::Array{T,N}...)
   sum = 0
   for x in inputs
     sum += size(x, fun.dim)
@@ -19,18 +21,17 @@ function apply{T,N}(fun::Concat, inputs::Vector{Array{T,N}})
     output[range...] = x
     index += s
   end
-  output, nothing
+  output
 end
 
-function diff{T,N}(fun::Concat, inputs::Vector{Array{T,N}}, gradout::Array{T,N})
-  gradins = map(similar, inputs)
+function diff{T,N}(fun::Concat, gradout::Array{T,N}, inputs::Array{T,N}...)
   range = map(s -> 1:s, [size(gradout)...])
   index = 1
-  for g in gradins
-    s = size(g, fun.dim)
+  i = 1
+  map(inputs) do x
+    s = size(x, fun.dim)
     range[fun.dim] = index:(index + s - 1)
-    g[:] = gradout[range...]
     index += s
+    gradout[range...]
   end
-  gradins
 end
