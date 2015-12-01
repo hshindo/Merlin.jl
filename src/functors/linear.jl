@@ -20,17 +20,19 @@ function Linear{T}(::Type{T}, inlength::Int, outlength::Int)
   Linear(weight, bias)
 end
 
+clone(fun::Linear) = fun
+
 mat(a::Array) = reshape(a, size(a, 1), prod(size(a)[2:end]))
 
-function apply{T}(fun::Linear{T}, inputs::Tuple{Matrix{T}})
+function apply{T}(fun::Linear{T}, input::Matrix{T})
   output = Array(T, size(fun.weight, 1), size(input)[2:end]...)
   gemm!('N', 'N', T(1.0), fun.weight, input, T(0.0), output)
   broadcast!(+, output, fun.bias, output)
-  output, nothing
+  output
 end
 
-function diff{T}(fun::Linear{T}, inputs::Tuple{Matrix{T}}, work, gradout::Matrix{T})
-  gradin = similar(inputs[1])
+function diff{T}(fun::Linear{T}, gradout::Matrix{T}, input::Matrix{T})
+  gradin = similar(input)
   gemm!('T', 'N', T(1.0), fun.weight, gradout, T(0.0), gradin) # d gradout / d input = weight^T * gradout
   gemm!('N', 'T', T(1.0), gradout, input, T(1.0), fun.gradweight) # d gradout / d weight = gradout * input^T
   sum!(fun.gradbias, gradout) # d gradout / d bias = 1

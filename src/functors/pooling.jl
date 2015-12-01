@@ -1,8 +1,9 @@
 type Pooling <: Functor
 end
 
-function apply{T}(fun::Pooling, inputs::Tuple{Matrix{T}})
-  input = inputs[1]
+clone(fun::Pooling) = fun
+
+function apply{T}(fun::Pooling, input::Matrix{T})
   output = Array(T, size(input, 1), 1)
   if size(input, 2) == 1
     output[:] = input[:]
@@ -10,11 +11,10 @@ function apply{T}(fun::Pooling, inputs::Tuple{Matrix{T}})
     m = maximum(input, 2) # inefficient
     output[:] = m[:]
   end
-  output, nothing
+  output
 end
 
-function diff{T}(fun::Pooling, inputs::Tuple{Matrix{T}}, work, gradout::Matrix{T})
-  input = inputs[1]
+function diff{T}(fun::Pooling, gradout::Matrix{T}, input::Matrix{T})
   gradin = similar(input)
   if size(input, 2) == 1
     gradin[:] = gradout[:]

@@ -3,6 +3,8 @@ type CrossEntropy <: Functor
   logp
 end
 
+clone(fun::CrossEntropy) = CrossEntropy(fun.param, nothing)
+
 function logsoftmax{T}(input::Matrix{T})
   output = similar(input)
   max = maximum(input, 1)
@@ -32,7 +34,7 @@ function apply{T}(fun::CrossEntropy, input::Matrix{T})
 end
 
 function diff{T}(fun::CrossEntropy, gradout::Matrix{T}, input::Matrix{T})
-  gradin = similar(inputs[1])
+  gradin = similar(input)
   param::Matrix{T} = fun.param
   for i = 1:length(input)
     gradin[i] = gradout[i] * (exp(logp[i]) - param[i])

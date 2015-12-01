@@ -4,18 +4,18 @@ end
 
 ReLU() = ReLU(0.0)
 
-function apply{T,N}(fun::ReLU, inputs::Tuple{Array{T,N}})
-  input = inputs[1]
+clone(fun::ReLU) = fun
+
+function apply{T,N}(fun::ReLU, input::Array{T,N})
   output = similar(input)
   for i = 1:length(input)
     x = input[i]
     output[i] = x > T(0.0) ? x : T(fun.alpha) * x
   end
-  output, nothing
+  output
 end
 
-function diff{T,N}(fun::ReLU, inputs::Tuple{Array{T,N}}, work, gradout::Array{T,N})
-  input = inputs[1]
+function diff{T,N}(fun::ReLU, gradout::Array{T,N}, input::Array{T,N})
   gradin = similar(input)
   for i = 1:length(input)
     d = input[i] > T(0.0) ? T(1.0) : T(fun.alpha)

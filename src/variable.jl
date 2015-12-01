@@ -1,26 +1,18 @@
 type Variable
+  value
   fun
   args::Tuple
 end
 
-type Variable
-  value
-  work
-  grad
-  fun
-  tails::Tuple
-end
-
-Variable(value) = Variable(value, nothing, nothing, nothing, ())
-
-function apply(fun::Functor, vars::Tuple{Vararg{Variable}})
+function apply(fun::Functor, vars::Variable...)
+  fun = clone(fun)
   inputs = map(v -> v.value, vars)
-  output, work = apply(fun, inputs)
-  Variable(output, work, nothing, fun, vars)
+  output = apply(fun, inputs)
+  Variable(output, fun, vars)
 end
 
-Base.|>(var::Variable, fun::Functor) = apply(fun, tuple(var))
-Base.|>(vars::Tuple{Vararg{Variable}}, fun::Functor) = apply(fun, vars)
+Base.|>(var::Variable, fun::Functor) = apply(fun, var)
+Base.|>(vars::Tuple{Vararg{Variable}}, fun::Functor) = apply(fun, vars...)
 
 function diff!(var::Variable, grad)
   var.grad = grad

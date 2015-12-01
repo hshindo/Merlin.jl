@@ -26,14 +26,15 @@ function Lookup{K,V}(path, ::Type{K}, ::Type{V})
   Lookup(dict, weights, grads, Set{Int}(), true)
 end
 
+clone(fun::Lookup) = fun
+
 # necessary?
 #function apply{K,V}(fun::Lookup{K,V}, input::Array{K})
 #  output = apply(fun, vec(input))
 #  reshape(output, size(output, 1), size(input)...)
 #end
 
-function apply{K,V}(fun::Lookup{K,V}, inputs::Tuple{Vector{K}})
-  input = inputs[1]
+function apply{K,V}(fun::Lookup{K,V}, input::Vector{K})
   output = Array(V, length(fun.weights[1]), length(input))
   for i = 1:length(input)
     key = input[i]
@@ -50,8 +51,7 @@ end
 
 mat(a::Array) = reshape(a, size(a, 1), prod(size(a)[2:end]))
 
-function diff{K,V}(fun::Lookup{K,V}, inputs::Tuple{Vector{K}}, work, gradout::Matrix{V})
-  input = inputs[1]
+function diff{K,V}(fun::Lookup{K,V}, gradout::Matrix{V}, input::Vector{K})
   gradout = mat(gradout)
   for i = 1:length(input)
     id = fun.dict[input[i]]
