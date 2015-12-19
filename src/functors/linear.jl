@@ -1,45 +1,14 @@
-using Base.LinAlg.BLAS
-
-type Linear{T} <: Functor
-  weight::Matrix{T}
-  bias::Vector{T}
-  gradweight::Matrix{T}
-  gradbias::Vector{T}
+type Linear <: Functor
+  weight::Variable
+  bias::Variable
 end
 
-Linear(weight, bias) = Linear(weight, bias, zeros(weight), zeros(bias))
-
-function Linear{T}(::Type{T}, inlength::Int, outlength::Int)
-  #weight = rand(T, outsize, insize)
-  #b = sqrt(6.0 / (insize + outsize))
-  #for i = 1:length(weight)
-  #  weight[i] = weight[i] * 2b - b
-  #end
-  weight = convert(Array{T}, randn(outlength, inlength) * sqrt(1 / inlength))
-  bias = fill(T(0.0), outlength)
-  Linear(weight, bias)
+function Linear{T}(::Type{T}, inlen::Int, outlen::Int)
+  weight = convert(Array{T}, randn(outlen, inlen) * sqrt(1 / inlen))
+  bias = fill(T(0.01), outlen)
+  w = Variable(weight, zeros(weight))
+  b = Variable(bias, zeros(bias))
+  Linear(w, b)
 end
 
-clone(fun::Linear) = fun
-
-mat(a::Array) = reshape(a, size(a, 1), prod(size(a)[2:end]))
-
-function apply{T}(fun::Linear{T}, input::Matrix{T})
-  output = Array(T, size(fun.weight, 1), size(input)[2:end]...)
-  gemm!('N', 'N', T(1.0), fun.weight, input, T(0.0), output)
-  broadcast!(+, output, fun.bias, output)
-  output
-end
-
-function diff{T}(fun::Linear{T}, gradout::Matrix{T}, input::Matrix{T})
-  gradin = similar(input)
-  gemm!('T', 'N', T(1.0), fun.weight, gradout, T(0.0), gradin) # d gradout / d input = weight^T * gradout
-  gemm!('N', 'T', T(1.0), gradout, input, T(1.0), fun.gradweight) # d gradout / d weight = gradout * input^T
-  sum!(fun.gradbias, gradout) # d gradout / d bias = 1
-  tuple(gradin)
-end
-
-function optimize!(opt::Optimizer, l::Linear)
-  update!(opt, l.weight, l.gradweight)
-  update!(opt, l.bias, l.gradbias)
-end
+call(f::Linear, x::Variable) = f.weight * x + f.bias

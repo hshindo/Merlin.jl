@@ -23,7 +23,6 @@ function train(path)
   traindata = readCoNLL("$(path)/wsj_00-18.conll", dicts)
   traindata = traindata[1:5000]
   testdata = readCoNLL("$(path)/wsj_22-24.conll", dicts)
-  #ls = LayerSet(path)
   model = POSModel("$(path)/nyt.100")
   opt = SGD(0.0075)
 
@@ -52,10 +51,11 @@ function train(path)
       end
       node = node |> CrossEntropy(target)
       loss += sum(node.value)
-      #diff!(node)
-      #optimize!(opt, model.wordfun)
-      #optimize!(opt, model.charfun)
-      #optimize!(opt, model.sentfun)
+      diff!(node, ones(node.value))
+      optimize!(opt, model.wordembed)
+      optimize!(opt, model.charembed)
+      optimize!(opt, model.charfun)
+      optimize!(opt, model.sentfun)
     end
     println("loss: $(loss)")
     acc = eval(golds, preds)
@@ -64,4 +64,16 @@ function train(path)
     println("")
   end
   println("finish")
+end
+
+function decode(m::POSModel, data::Vector{Vector{Token}})
+  golds, preds = Token[], Int[]
+  for i = 1:length(data)
+    toks = data[i]
+    append!(golds, toks)
+    node = forward(m, toks)
+    append!(preds, maxrows(node.value))
+  end
+  acc = eval(golds, preds)
+  println("test acc: $(acc)")
 end

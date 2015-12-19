@@ -2,25 +2,34 @@ module Merlin
 
 abstract Functor
 abstract Optimizer
+using Base.LinAlg.BLAS
 
 export Variable, diff!
-export Concat, CrossEntropy, Linear, Lookup, Pooling, ReLU, Sequence, Window1D
-#export Graph, Sequence
-#export Add, Mult
+export malloc, free
+export ReLU, Tanh, Sigmoid
+export Concat
+export CrossEntropy
+export Linear
+export Lookup
+export MaxPool2D
+export Window2D
+
 export AdaGrad, Adam, SGD, optimize!
+
+zerograd(g) = nothing
 
 include("native.jl")
 include("variable.jl")
 
+include("functors/activation.jl")
 include("functors/concat.jl")
 include("functors/crossentropy.jl")
-include("functors/linear.jl")
+include("functors/linear2.jl")
 include("functors/lookup.jl")
 #include("functors/math.jl")
-include("functors/pooling.jl")
-include("functors/relu.jl")
-include("functors/sequence.jl")
-include("functors/window1d.jl")
+include("functors/maxpool2d.jl")
+#include("functors/sequence.jl")
+include("functors/window2d.jl")
 
 include("optimizers/adagrad.jl")
 include("optimizers/adam.jl")

@@ -1,4 +1,4 @@
-sources = ["window1d.cpp"]
+sources = ["maxpool.cpp", "window.cpp"]
 
 compiler = "g++"
 
