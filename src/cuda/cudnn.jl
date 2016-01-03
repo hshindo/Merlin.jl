@@ -61,8 +61,8 @@ function add{T}(x::AbstractCudaArray{T}, y::AbstractCudaArray{T}; alpha=1.0, bet
   handle = gethandle(bias.dev)
   xdesc = descriptor(x)
   ydesc = descriptor(y)
-  @cudnncall(:cudnnAddTensor, (Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void}),
-    handle, T[alpha], xdesc, x, T[beta], ydesc, y)
+  #@cudnncall(:cudnnAddTensor, (Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void}),
+  #  handle, T[alpha], xdesc, x, T[beta], ydesc, y)
 end
 
 ##### Activation #####

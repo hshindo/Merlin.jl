@@ -7,7 +7,7 @@ end
 
 Linear(w, b) = Linear(w, b, nothing, nothing)
 
-function Linear(::Type{T}, xlength::Int, ylength::Int)
+function Linear{T}(::Type{T}, xlength::Int, ylength::Int)
   r = randn(ylength, xlength) * sqrt(1 / xlength)
   w = convert(Array{T}, r) |> Var
   b = fill(T(0.01), ylength) |> Var

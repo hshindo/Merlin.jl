@@ -1,11 +1,11 @@
-type Node{T}
-  value::T
-  tails::Vector{Node{T}}
+type Node
+  value::Functor
+  tails::Vector{Node}
 end
 
-Node{T}(value::T) = Node(value, Node{T}[])
+Node(value) = Node(value, Node[])
 
-function call(f::Functor, arg::Node{Functor})
+function call(f::Functor, arg::Node)
   forward!(f, arg.value.y)
   Node(f, [arg])
 end

@@ -5,7 +5,7 @@ type CrossEntropy <: Functor
   y
 end
 
-CrossEntropy() = CrossEntropy(nothing, nothing, nothing)
+CrossEntropy() = CrossEntropy(nothing, nothing, nothing, nothing)
 
 function forward!(f::CrossEntropy, p, q)
   length(p) == length(q) || error("length unmatch")

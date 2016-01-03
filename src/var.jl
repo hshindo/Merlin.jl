@@ -1,4 +1,4 @@
-type Var{T,N}
+type Var{T,N} <: AbstractVar{T,N}
   value::Array{T,N}
   grad::Array{T,N}
   fixed::Bool
@@ -20,8 +20,6 @@ function Var{T}(value::Array{T}, grad::Array{T}=T[])
 end
 
 default{T,N}(v::Var{T,N}) = Var{T,N}()
-data{T,N}(v::Var{T,N}) = (v.value, v.grad)
-Base.size{T,N}(v::Var{T,N}) = size(v.value)
 
 function Base.resize!{T,N}(v::Var{T,N}, dims::NTuple{N,Int})
   dims == size(v.value) && return
@@ -40,4 +38,3 @@ function Base.resize!{T,N}(v::Var{T,N}, dims::NTuple{N,Int})
   v
 end
 Base.resize!{T,N}(v::Var{T,N}, dims::Int...) = resize!(v, dims)
-

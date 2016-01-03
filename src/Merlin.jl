@@ -4,6 +4,12 @@ abstract Functor
 abstract Optimizer
 using Base.LinAlg.BLAS
 
+function call(f::Functor, x)
+  f.x = x
+  forward!(f)
+  f.y
+end
+
 #export Var, constant, backward!
 export Var, CudaVar, setvalue!, Node, forward!, backward!
 export Concat
@@ -19,6 +25,7 @@ export Window2D
 export AdaGrad, Adam, SGD, optimize!
 
 include("native.jl")
+include("abstractvar.jl")
 include("var.jl")
 
 #if haskey(ENV, "USE_CUDA")

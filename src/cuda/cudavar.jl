@@ -2,15 +2,14 @@ using CUDArt
 
 type CudaVar{T,N}
   value::CudaArray{T,N}
+  grad::CudaArray{T,N}
   fixed::Bool
-  buffer::CudaVector{T}
+  bufferlen::Int
 end
 
 CudaVar{T,N}(value::CudaArray{T,N}) = CudaVar(value, false, CudaArray(T, 1))
 
-default{T,N}(v::CudaVar{T,N}) = CudaVar(similar(v.value))
-
-function setvalue!{T,N}(v::CudaVar{T,N}, dims::NTuple{N,Int})
+function Base.resize!{T,N}(v::CudaVar{T,N}, dims::NTuple{N,Int})
   dims == size(v.value) && return
   len = prod(dims)
   len <= 0 && error("length <= 0")

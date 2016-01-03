@@ -9,26 +9,9 @@ using Merlin.CUDNN
 using POSTagging
 path = "/Users/hshindo/Dropbox/tagging"
 
-dirname(@__FILE__)
-r = rand(Float32, 10, 3) - 0.3
-x = Var(r)
-f = ReLU()
-y = forward!(f, x)
-fill!(y.grad, 1.0)
-fill!(x.grad, 0.0)
-x
-backward!(f)
-x
-
-r = convert(Array{Float32}, randn(10, 5))
-x = CudaArray(r)
-x = CudaVar(x)
-f = ReLU()
-
-
-x = Var(r)
-f = ReLU()
-y = forward!(f, x)
+a = (1,1)
+f(x::NTuple{2,Int}) = 1
+f(a)
 
 function bench()
   #d_A = CudaArray(Float32, (100,200,3,2))
