@@ -1,9 +1,11 @@
 ### Linear
-$y = Wx + b$
+$$y = Wx + b$$
+where \(W\) is a weight matrix, \(b\) is a bias vector.
 
 #### Params
-- w
-- b
+- `w::Var{T,2}` or `CudaVar{T,2}`
+
+- `b::Var{T,1}`
 
 #### Input
 n-d array

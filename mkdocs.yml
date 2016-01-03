@@ -19,4 +19,12 @@ pages:
 - Examples:
   - POS-Tagging: 'examples/pos-tagging.md'
 
-markdown_extensions: [codehilite]
+extra_javascript:
+- http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+
+markdown_extensions:
+- codehilite
+- mdx_math
+
+# Note: installation of mdx_math
+# pip install https://github.com/mitya57/python-markdown-math/archive/master.zip

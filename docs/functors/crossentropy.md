@@ -1,9 +1,8 @@
 ### CrossEntropy
-Computes cross-entropy between a true distribution math:$p$ and the specified distribution math:$q$, that is,
-$\mathrm{H}(p,q)=-\sum_{x}p(x)\log q(x)$
+Computes cross-entropy between a true distribution \(p\) and the specified distribution \(q\):
+$$\mathrm{H}(p,q)=-\sum_{x}p(x)\log q(x)$$
 
 #### Params
-- p
 
 #### Input
 - n-d array
