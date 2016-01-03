@@ -8,7 +8,6 @@ end : begin
   const libname = "libmerlin.so"
 end
 
-#const libname = "libtensornet.dll"
 const libpath = abspath(joinpath(dirname(@__FILE__), "..", "deps", libname))
 
 try

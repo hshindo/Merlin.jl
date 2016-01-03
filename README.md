@@ -1,14 +1,13 @@
-COMMING SOON!!!
+# Merlin.jl
+
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 
-## Merlin.jl
-Deep Learning Library for Julia Language.
+`Merlin` is a flexible neural network library in [Julia](http://julialang.org) language.
 
-COMMING SOON!!!
 - **Documentation:** <http://hshindo.github.io/Merlin.jl>
 
 ## Requirements
-COMMING SOON!!!
+
 
 ## Install
 ```julia
@@ -17,5 +16,6 @@ julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 
 ## Basic Usage
 ```julia
-under construction
+x = Variable(rand(10, 5))
+
 ```

@@ -26,26 +26,26 @@ function Lookup{K,V}(path, ::Type{K}, ::Type{V})
   Lookup(dict, weights, grads, Set{Int}(), true)
 end
 
-function apply{K,V}(fun::Lookup{K,V}, input::Vector{K})
-  output = Array(V, length(fun.weights[1]), length(input))
-  for i = 1:length(input)
-    key = input[i]
-    def = fun.readonly ? 1 : length(fun.dict) + 1 # TODO: must be fixed
-    id = get!(fun.dict, key, def)
-    if id > length(fun.weights)
-      push!(fun.weights, randn(size(output, 1)))
-      push!(fun.grads, zeros(size(output, 1)))
+function forward{K,V}(f::Lookup{K,V}, x::Vector{K})
+  y = Array(V, length(f.weights[1]), length(x))
+  for i = 1:length(x)
+    key = x[i]
+    def = f.readonly ? 1 : length(f.dict) + 1 # TODO: must be fixed
+    id = get!(f.dict, key, def)
+    if id > length(f.weights)
+      push!(f.weights, randn(size(y, 1)))
+      push!(f.grads, zeros(size(y, 1)))
     end
-    output[:, i] = fun.weights[id]
+    y[:, i] = f.weights[id]
   end
-  output, gy -> diff(fun, input, gy)
+  y, (gy, _) -> backward!(f, x, gy)
 end
 
-function diff{K,V}(fun::Lookup{K,V}, input::Vector{K}, gradout::Matrix{V})
-  for i = 1:length(input)
-    id = fun.dict[input[i]]
-    fun.grads[id] += gradout[:, i]
-    union!(fun.idset, id)
+function backward!{K,V}(f::Lookup{K,V}, x::Vector{K}, gy::Matrix{V})
+  for i = 1:length(x)
+    id = f.dict[x[i]]
+    f.grads[id] += gy[:, i]
+    union!(f.idset, id)
   end
   nothing
 end

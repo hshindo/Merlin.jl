@@ -19,19 +19,17 @@ mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
 
 isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 
-function apply{T}(f::Linear, input::Matrix{T})
-  output = Array(T, size(f.weight, 1), size(input, 2))
-  gemm!('N', 'N', T(1), f.weight, input, T(0), output)
-  broadcast!(+, output, f.bias, output)
-  output, gy -> diff(f, input, gy)
+function forward{T}(f::Linear, x::Matrix{T})
+  y = Array(T, size(f.weight, 1), size(x, 2))
+  gemm!('N', 'N', T(1), f.weight, x, T(0), y)
+  broadcast!(+, y, f.bias, y)
+  y, (gy, gx) -> gx == nothing || backward!(f, x, gy, gx)
 end
 
-function diff{T}(fun::Linear{T}, input::Matrix{T}, gradout::Matrix{T})
-  gradin = similar(input)
-  gemm!('T', 'N', T(1), fun.weight, gradout, T(0), gradin) # d gradout / d input = weight^T * gradout
-  gemm!('N', 'T', T(1), gradout, input, T(1), fun.gradweight) # d gradout / d weight = gradout * input^T
-  sum!(fun.gradbias, gradout) # d gradout / d bias = 1
-  gradin
+function backward!{T}(f::Linear{T}, x::Matrix{T}, gy::Matrix{T}, gx::Matrix{T})
+  gemm!('T', 'N', T(1), f.weight, gy, T(1), gx) # d gradout / d input = weight^T * gradout
+  gemm!('N', 'T', T(1), gy, x, T(1), f.gradweight) # d gradout / d weight = gradout * input^T
+  sum!(f.gradbias, gy) # d gradout / d bias = 1
 end
 
 function optimize!(opt::Optimizer, l::Linear)

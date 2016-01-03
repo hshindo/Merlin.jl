@@ -1,0 +1,22 @@
+site_name: Merlin.jl
+
+site_description: flexible neural network library in Julia
+
+site_author: Hiroyuki Shindo
+
+repo_url: https://github.com/hshindo/Merlin.jl
+
+docs_dir: 'docs'
+
+pages:
+- Home: index.md
+- Overview: overview.md
+- Functors:
+  - Concat: 'functors/concat.md'
+  - CrossEntropy: 'functors/crossentropy.md'
+  - Linear: 'functors/linear.md'
+  - ReLU: 'functors/relu.md'
+- Examples:
+  - POS-Tagging: 'examples/pos-tagging.md'
+
+markdown_extensions: [codehilite]
