@@ -7,7 +7,7 @@
 - **Documentation:** <http://hshindo.github.io/Merlin.jl>
 
 ## Requirements
-
+cuDNN v4
 
 ## Install
 ```julia
@@ -16,6 +16,4 @@ julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 
 ## Basic Usage
 ```julia
-x = Variable(rand(10, 5))
-
 ```
