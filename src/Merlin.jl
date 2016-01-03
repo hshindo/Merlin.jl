@@ -22,7 +22,7 @@ include("native.jl")
 include("var.jl")
 
 #if haskey(ENV, "USE_CUDA")
-include("cuda/cudnn.jl")
+include("cuda/CUDNN.jl")
 include("cuda/cudavar.jl")
 #end
 

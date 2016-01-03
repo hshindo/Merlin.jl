@@ -37,3 +37,10 @@ function ∇relu!{T}(varx::Var{T}, vary::Var{T})
     gx[i] += d
   end
 end
+
+function ∇relu!{T}(varx::CudaVar{T}, vary::CudaVar{T})
+  varx.fixed && return
+  x, gx = data(varx)
+  y, gy = data(vary)
+  CUDNN.activation_backward(CUDNN.ACTIVATION_RELU, x, y)
+end

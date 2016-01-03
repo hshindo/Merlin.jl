@@ -3,6 +3,8 @@ module CUDNN
 
 using CUDArt
 
+include("libcudnn.jl")
+
 const STATUS_SUCCESS = 0
 const STATUS_NOT_INITIALIZED = 1
 const STATUS_ALLOC_FAILED = 2
@@ -23,24 +25,14 @@ end : begin
 end)
 !isempty(libcudnn) || error("CUDNN library cannot be found.")
 
-macro cudnncall(f, argtypes, args...)
-  quote
-    status = ccall(($f, $libcudnn), Cint, $argtypes, $(args...))
-    if status != STATUS_SUCCESS
-      str = bytestring(ccall((:cudnnGetErrorString, $libcudnn), Cstring, (Cint,), status))
-      throw(str)
-    end
-  end
-end
-
-##### handle #####
+##### Handle #####
 const handles = Dict{Int, Ptr{Void}}()
 atexit(() -> for h in handles destroy(h) end)
 
 function gethandle(dev::Int)
   if !haskey(handles, dev)
     h = Ptr{Void}[0]
-    @cudnncall(:cudnnCreate, (Ptr{Ptr{Void}},), h)
+    cudnnCreate(h)
     handles[dev] = h[1]
     h[1]
   else
@@ -48,35 +40,19 @@ function gethandle(dev::Int)
   end
 end
 
-function destroy(handle)
-  @cudnncall(:cudnnDestroy, (Ptr{Void},), handle)
-end
-
-function setstream(handle, stream)
-  @cudnncall(:cudnnSetStream, (Ptr{Void},Ptr{Void}), handle, stream)
-end
-
-function getstream(handle)
-  s_handle = Ptr{Void}[0]
-  @cudnncall(:cudnnGetStream, (Ptr{Void},Ptr{Ptr{Void}}), handle, s_handle)
-  return s_handle[1]
-end
-
 datatype(::AbstractCudaArray{Float32}) = 0 # CUDNN_DATA_FLOAT
 datatype(::AbstractCudaArray{Float64}) = 1 # CUDNN_DATA_DOUBLE
 datatype(::AbstractCudaArray{Float16}) = 2 # CUDNN_DATA_HALF
 
-destroy_tensor_descriptor(desc) = @cudnncall(:cudnnDestroyTensorDescriptor, (Ptr{Void},), desc)
-
+##### Descriptor #####
 function create_tensor_descriptor(a::AbstractCudaArray)
-  csize = Cint[reverse(size(a))...]
+  csize = Cint[size(a,i) for i=ndims(a):-1:1]
   cstrides = Cint[stride(a,i) for i=ndims(a):-1:1]
   d = Ptr{Void}[0]
-  @cudnncall(:cudnnCreateTensorDescriptor, (Ptr{Void},), d)
+  cudnnCreateTensorDescriptor(d)
   desc = d[1]
-  @cudnncall(:cudnnSetTensorNdDescriptor, (Ptr{Void},Cint,Cint,Ptr{Cint},Ptr{Cint}),
-    desc, datatype(a), ndims(a), csize, cstrides)
-  #finalizer(desc, destroy_tensor_descriptor)
+  cudnnSetTensorNdDescriptor(desc, datatype(a), ndims(a), csize, cstrides)
+  #finalizer(desc, cudnnDestroyTensorDescriptor
   desc
 end
 
@@ -99,8 +75,19 @@ function activation_forward{T}(mode::Int, x::AbstractCudaArray{T}, y::AbstractCu
   handle = gethandle(x.dev)
   xdesc = create_tensor_descriptor(x)
   ydesc = create_tensor_descriptor(y)
-  @cudnncall(:cudnnActivationForward, (Ptr{Void},Cint,Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void}),
-    handle, mode, T[alpha], xdesc, x, T[beta], ydesc, y)
+  cudnnActivationForward(handle, mode, T[alpha], xdesc, x, T[beta], ydesc, y)
 end
+
+function activation_backward{T}(mode::Int, x::AbstractCudaArray{T}, dx, y::AbstractCudaArray{T}, dy; alpha=1.0, beta=0.0)
+  handle = gethandle(x.dev)
+  xdesc = create_tensor_descriptor(x)
+  dxdesc = create_tensor_descriptor(dx)
+  ydesc = create_tensor_descriptor(y)
+  dydesc = create_tensor_descriptor(dy)
+  cudnnActivationBackward(handle, mode, T[alpha], ydesc, y, dydesc, dy, xdesc, x, T[beta], dxdesc, dx)
+end
+
+##### Convolution #####
+
 
 end
