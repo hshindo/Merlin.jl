@@ -9,6 +9,9 @@ using Merlin.CUDNN
 using POSTagging
 path = "/Users/hshindo/Dropbox/tagging"
 
+a = [1,2,3,4]
+b = [1,2,3,4,5]
+a == b
 a = (1,1)
 f(x::NTuple{2,Int}) = 1
 f(a)
