@@ -14,14 +14,15 @@ function Linear{T}(::Type{T}, xlength::Int, ylength::Int)
   Linear(w, b)
 end
 
+clone(f::Linear) = Linear(f.w, f.b)
+
 mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
 isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 
-function forward!(f::Linear, x)
-  f.x = x
-  f.y == nothing && (f.y = default(x))
-  y = resize!(f.y, size(f.w,1), size(x,2))
-  linear!(f.w.value, f.b.value, x.value, y.value)
+function forward!(f::Linear)
+  f.y == nothing && (f.y = default(f.x))
+  y = resize!(f.y, size(f.w,1), size(f.x,2))
+  linear!(f.w.value, f.b.value, f.x.value, y.value)
 end
 
 function linear!{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T}, y::Matrix{T})

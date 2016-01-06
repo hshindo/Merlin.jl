@@ -1,29 +1,36 @@
 type Node
-  value::Functor
+  f::Functor
   tails::Vector{Node}
-end
 
-Node(value) = Node(value, Node[])
-
-function call(f::Functor, arg::Node)
-  forward!(f, arg.value.y)
-  Node(f, [arg])
-end
-
-function compile(node::Node{Functor})
-  topsort(node)
-end
-
-function backward!(node::Node{Functor})
-  sorted = topsort(node)
-  for i = length(sorted):-1:1
-    n = sorted[i]
-    backward!(n.value)
+  function Node(f::Functor, tails::Vector{Node})
+    if length(tails) == 0
+      new(f, tails)
+    elseif length(tails) == 1
+      f(tails[1].f.y)
+      new(f, tails)
+    else
+      x = map(t -> t.f.y, tails)
+      f(x)
+      new(f, tails)
+    end
   end
 end
 
+Node(f::Functor) = Node(f, Node[])
+Node(f::Functor, tail::Node) = Node(f, [tail])
+
+function backward!(node::Node)
+  sorted = topsort(node)
+  for i = length(sorted):-1:1
+    n = sorted[i]
+    #backward!(n.value)
+    println(typeof(n.f))
+  end
+  error("")
+end
+
 function topsort(node::Node)
-  sorted = Var[]
+  sorted = Node[]
   dict = ObjectIdDict()
   function visit(n::Node)
     c = get!(dict, n, 1)
@@ -36,17 +43,4 @@ function topsort(node::Node)
   end
   visit(node)
   sorted
-end
-
-type Graph <: Functor
-  nodes::Vector{Node}
-end
-
-function forward!(f::Graph, x)
-  for n in f.nodes
-
-  end
-end
-
-function forward!()
 end

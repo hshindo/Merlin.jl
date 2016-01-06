@@ -5,9 +5,12 @@ end
 
 ReLU() = ReLU(nothing, nothing)
 
+clone(f::ReLU) = ReLU()
+
 function forward!(f::ReLU)
+  f.y == nothing && (f.y = default(f.x))
   y = resize!(f.y, size(f.x))
-  relu!(x.value, y.value)
+  relu!(f.x.value, y.value)
 end
 
 function relu!{T}(x::Array{T}, y::Array{T})

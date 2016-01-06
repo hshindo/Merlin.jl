@@ -6,6 +6,8 @@ end
 
 Concat(dim::Int) = Concat(dim, nothing, nothing)
 
+clone(f::Concat) = Concat(f.dim)
+
 function getysize{T<:AbstractVar}(dim::Int, xs::Vector{T})
   sum = 0
   for x in xs
@@ -13,15 +15,15 @@ function getysize{T<:AbstractVar}(dim::Int, xs::Vector{T})
   end
   ysize = [size(xs[1])...]
   ysize[dim] = sum
-  tuple(ysize)
+  tuple(ysize...)
 end
 
 function forward!(f::Concat)
-  xs = map(x -> x.value, f.x)
+  xvalues = map(x -> x.value, f.x)
   ysize = getysize(f.dim, f.x)
-  f.y == nothing && (f.y = default(x[1]))
+  f.y == nothing && (f.y = default(f.x[1]))
   y = resize!(f.y, ysize)
-  concat!(f.dim, xs, y.value)
+  concat!(f.dim, xvalues, y.value)
 end
 
 function concat!{T,N}(dim::Int, xs::Vector{Array{T,N}}, y::Array{T,N})
@@ -40,7 +42,7 @@ function backward!(f::Concat)
   ∇concat!(f.dim, gxs, f.y.grad)
 end
 
-function ∇concat!(dim::Int, gxs::Vector{Array{T,N}}, gy::Array{T,N})
+function ∇concat!{T,N}(dim::Int, gxs::Vector{Array{T,N}}, gy::Array{T,N})
   range = map(s -> 1:s, [size(gy)...])
   index = 1
   for gx in gxs

@@ -1,16 +1,16 @@
 type CrossEntropy <: Functor
-  p
-  q
+  x
   logq
   y
 end
 
-CrossEntropy() = CrossEntropy(nothing, nothing, nothing, nothing)
+CrossEntropy() = CrossEntropy(nothing, nothing, nothing)
 
-function forward!(f::CrossEntropy, p, q)
+clone(f::CrossEntropy) = CrossEntropy()
+
+function forward!(f::CrossEntropy)
+  p, q = f.x
   length(p) == length(q) || error("length unmatch")
-  f.p = p
-  f.q = q
   f.logq == nothing && (f.logq = default(q))
   logq = resize!(f.logq, size(q))
   f.y == nothing && (f.y = default(q))
@@ -25,7 +25,7 @@ function crossentropy!{T}(p::Matrix{T}, q::Matrix{T}, logq::Matrix{T}, y::Matrix
   end
 end
 
-backward!(f::CrossEntropy) = ∇crossentropy()
+backward!(f::CrossEntropy) = ∇crossentropy(f.x[1], f.x[2], f.logq, f.y)
 
 function ∇crossentropy!{T}(varp::Var{T,2}, varq::Var{T,2}, logq::Matrix{T}, vary::Var{T,2})
   p, gp = data(varp)
@@ -47,23 +47,5 @@ function logsoftmax!{T}(x::Matrix{T}, y::Matrix{T})
     for i = 1:size(x,1)
       y[i, j] = x[i, j] - max[j] - logz
     end
-  end
-end
-
-function forward{T}(f::CrossEntropy{T}, x::Array{T})
-  length(f.param) == length(x) || error("CrossEntropy: length unmatch")
-  param = f.param
-  y = similar(x)
-  logp = logsoftmax(x)
-  for i = 1:length(y)
-    y[i] = -param[i] * logp[i]
-  end
-  y, (gy, gx) -> gx == nothing || backward!(f, logp, gy, gx)
-end
-
-function backward!{T}(f::CrossEntropy{T}, logp::Matrix{T}, gy::Matrix{T}, gx::Matrix{T})
-  param = f.param
-  for i = 1:length(gx)
-    gx[i] += gy[i] * (exp(logp[i]) - param[i])
   end
 end

@@ -4,17 +4,12 @@ push!(LOAD_PATH, "$(github_path)/Merlin.jl/examples/postagging")
 push!(LOAD_PATH, "/Users/hshindo/.julia/v0.4/Merlin.jl/examples/postagging")
 workspace()
 using Merlin
-using CUDArt
-using Merlin.CUDNN
 using POSTagging
-path = "/Users/hshindo/Dropbox/tagging"
+path = "C:/Users/shindo/Dropbox/tagging"
 
-a = [1,2,3,4]
-b = [1,2,3,4,5]
-a == b
-a = (1,1)
-f(x::NTuple{2,Int}) = 1
-f(a)
+ndims(rand(10,2))
+v = Var(rand(Float32, 10, 5))
+Merlin.default(v,Float64, 3)
 
 function bench()
   #d_A = CudaArray(Float32, (100,200,3,2))

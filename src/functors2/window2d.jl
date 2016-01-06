@@ -18,15 +18,19 @@ end
 window2d_fwd_handle(::Type{Float32}) = WINDOW2D_FWD_F32_HANDLE
 window2d_bwd_handle(::Type{Float32}) = WINDOW2D_BWD_F32_HANDLE
 
+clone(f::Window2D) = Window2D(f.winsize, f.stride, f.padsize)
+
 function forward!(f::Window2D)
+  x = f.x
   w, s, p = [f.winsize...], f.stride, f.padsize
   w[1] == -1 && (w[1] = size(x,1))
   w[2] == -1 && (w[2] = size(x,2))
   n1 = (size(x,1) + 2*p[1] - w[1]) ÷ s[1] + 1
   n2 = (size(x,2) + 2*p[2] - w[2]) ÷ s[2] + 1
   f.params = Int32[w..., s..., p...]
+  f.y == nothing && (f.y = default(x,eltype(x),2))
   y = resize!(f.y, prod(w), n1*n2)
-  window2d!(f.params, f.x.value, y.value)
+  window2d!(f.params, x.value, y.value)
 end
 
 function window2d!{T}(params, x::Matrix{T}, y::Matrix{T})

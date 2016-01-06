@@ -6,7 +6,7 @@ type Var{T,N} <: AbstractVar{T,N}
 end
 
 function call{T,N}(::Type{Var{T,N}})
-  value = Array(T, ntuple(_ -> 0,N))
+  value = Array(T, ntuple(_ -> 0, N))
   Var(value, value, false, Array(T,0))
 end
 
@@ -20,11 +20,16 @@ function Var{T}(value::Array{T}, grad::Array{T}=T[])
 end
 
 default{T,N}(v::Var{T,N}) = Var{T,N}()
+function default{T}(v::Var, ::Type{T}, N::Int)
+  value = Array(T, ntuple(_ -> 0, N))
+  Var(value, value, false, Array(T,0))
+end
 
 function Base.resize!{T,N}(v::Var{T,N}, dims::NTuple{N,Int})
-  dims == size(v.value) && return
+  dims == size(v.value) && return v
   newlen = prod(dims)
-  newlen <= 0 && error("length error")
+  newlen == 0 && return v
+  newlen < 0 && error("length error")
   if length(v.buffer) < newlen * 2
     n = length(v.buffer)
     n == 0 && (n += 1)

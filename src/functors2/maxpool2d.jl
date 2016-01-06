@@ -19,7 +19,10 @@ end
 maxpool2d_fwd_handle(::Type{Float32}) = MAXPOOL2D_FWD_F32_HANDLE
 maxpool2d_bwd_handle(::Type{Float32}) = MAXPOOL2D_BWD_F32_HANDLE
 
+clone(f::MaxPool2D) = MaxPool2D(f.winsize, f.stride, f.padsize)
+
 function forward!(f::MaxPool2D)
+  x = f.x
   w, s, p = [f.winsize...], f.stride, f.padsize
   w[1] == -1 && (w[1] = size(x,1))
   w[2] == -1 && (w[2] = size(x,2))
@@ -27,6 +30,7 @@ function forward!(f::MaxPool2D)
   n2 = (size(x,2) + 2*p[2] - w[2]) ÷ s[2] + 1
   f.params = Int32[w..., s..., p...]
   f.maxind = fill(Int32(-1), n1, n2)
+  f.y == nothing && (f.y = default(x))
   y = resize!(f.y, n1, n2)
   maxpool2d!(f.params, f.maxind, x.value, y.value)
 end

@@ -4,12 +4,14 @@ type Lookup{K,V} <: Functor
   grads::Vector{Vector{V}}
   idset::Set{Int}
   readonly::Bool
+  x
+  y
 end
 
 function Lookup{K, V}(::Type{K}, ::Type{V}, outlength::Int)
   weights = Vector{V}[convert(Vector{V}, randn(outlength))]
   grads = Vector{V}[zeros(V, outlength)]
-  Lookup(Dict{K, Int}(), weights, grads, Set{Int}(), false)
+  Lookup(Dict{K, Int}(), weights, grads, Set{Int}(), false, nothing, nothing)
 end
 
 function Lookup{K,V}(path, ::Type{K}, ::Type{V})
@@ -23,10 +25,17 @@ function Lookup{K,V}(path, ::Type{K}, ::Type{V})
     id <= length(weights) ? weights[id] = vals : push!(weights, vals)
   end
   grads = map(zeros, weights)
-  Lookup(dict, weights, grads, Set{Int}(), true)
+  Lookup(dict, weights, grads, Set{Int}(), true, nothing, nothing)
 end
 
-function forward{K,V}(f::Lookup{K,V}, x::Vector{K})
+clone(f::Lookup) = Lookup(f.dict, f.weights, f.grads, f.idset, f.readonly, nothing, nothing)
+
+function forward!(f::Lookup)
+  y = lookup(f, f.x)
+  f.y = Var(y)
+end
+
+function lookup{K,V}(f::Lookup{K,V}, x::Vector{K})
   y = Array(V, length(f.weights[1]), length(x))
   for i = 1:length(x)
     key = x[i]
@@ -38,10 +47,14 @@ function forward{K,V}(f::Lookup{K,V}, x::Vector{K})
     end
     y[:, i] = f.weights[id]
   end
-  y, (gy, _) -> backward!(f, x, gy)
+  y
 end
 
-function backward!{K,V}(f::Lookup{K,V}, x::Vector{K}, gy::Matrix{V})
+function backward!(f::Lookup)
+  ∇lookup!(f, f.x, f.y.grad)
+end
+
+function ∇lookup!{K,V}(f::Lookup{K,V}, x::Vector{K}, gy::Matrix{V})
   for i = 1:length(x)
     id = f.dict[x[i]]
     f.grads[id] += gy[:, i]

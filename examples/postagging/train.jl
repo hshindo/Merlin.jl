@@ -35,32 +35,25 @@ function train(path)
       toks = traindata[i]
       append!(golds, toks)
 
-      #ref = toks[1]
-      #padt = Token(ref.dicts, "PADDING", [' '], -1)
-      #padtoks = [padt; padt; toks...; padt; padt]
-      #w = map(t -> t.word, padtoks) |> Variable
-      #c = map(t -> Variable([' ', ' ', t.chars..., ' ', ' ']), padtoks)
-      #node = (w, c) |> model
       node = forward(model, toks)
-
-      append!(preds, maxrows(node.value))
-      tagids = map(t -> t.catid, toks)
-      target = zeros(node.value)
-      for j = 1:length(tagids)
-        target[tagids[j], j] = 1.0
-      end
-      node = node |> CrossEntropy(target)
-      loss += sum(node.value)
-      node.grad = ones(node.value)
-      backward!(node)
-      optimize!(opt, model.wordembed)
-      optimize!(opt, model.charembed)
-      optimize!(opt, model.charfun)
-      optimize!(opt, model.sentfun)
+      #append!(preds, maxrows(node.value))
+      #tagids = map(t -> t.catid, toks)
+      #target = zeros(node.value)
+      #for j = 1:length(tagids)
+      #  target[tagids[j], j] = 1.0
+      #end
+      #node = node |> CrossEntropy(target)
+      #loss += sum(node.value)
+      #node.grad = ones(node.value)
+      #backward!(node)
+      #optimize!(opt, model.wordembed)
+      #optimize!(opt, model.charembed)
+      #optimize!(opt, model.charfun)
+      #optimize!(opt, model.sentfun)
     end
-    println("loss: $(loss)")
-    acc = eval(golds, preds)
-    println("train acc: $(acc)")
+    #println("loss: $(loss)")
+    #acc = eval(golds, preds)
+    #println("train acc: $(acc)")
     #decode(model, testdata)
     println("")
   end
