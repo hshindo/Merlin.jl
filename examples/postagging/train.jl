@@ -19,10 +19,10 @@ function makebatchs(data::Vector{Vector{Token}}, batchsize::Int)
 end
 
 function train(path)
-  dicts = (Dict(), Dict(), Dict())
-  traindata = readCoNLL("$(path)/wsj_00-18.conll", dicts)
+  catdict = Dict()
+  traindata = readCoNLL("$(path)/wsj_00-18.conll", catdict)
   #traindata = traindata[1:5000]
-  testdata = readCoNLL("$(path)/wsj_22-24.conll", dicts)
+  testdata = readCoNLL("$(path)/wsj_22-24.conll", catdict)
   model = POSModel(path)
   opt = SGD(0.0075)
 

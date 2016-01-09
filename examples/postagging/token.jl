@@ -13,8 +13,7 @@ function readlist(path)
   dict
 end
 
-function readCoNLL(path, dicts)
-  worddict, chardict, catdict = dicts
+function readCoNLL(path, catdict::Dict)
   data = open(readlines, path)
   doc = Vector{Token}[]
   sent = Token[]
@@ -28,14 +27,11 @@ function readCoNLL(path, dicts)
       word = replace(items[2], r"[0-9]", '0') |> UTF8String
       chars = convert(Vector{Char}, word)
       cat = items[5]
-      catid = get!(catdict, cat, length(catdict) + 1)
-      tok = Token(lowercase(word), chars, catid)
-      push!(sent, tok)
+      catid = get!(catdict, cat, length(catdict)+1)
+      token = Token(lowercase(word), chars, catid)
+      push!(sent, token)
     end
   end
-  println("# words: $(length(worddict))")
-  println("# chars: $(length(chardict))")
-  println("# cats: $(length(catdict))")
   doc
 end
 
@@ -44,9 +40,7 @@ function eval(golds::Vector{Token}, preds::Vector{Int})
   correct = 0
   total = 0
   for i = 1:length(golds)
-    if golds[i].catid == preds[i]
-      correct += 1
-    end
+    golds[i].catid == preds[i] && (correct += 1)
     total += 1
   end
   correct / total

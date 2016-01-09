@@ -1,7 +1,7 @@
 module POSTagging
 
 include("token.jl")
-include("model2.jl")
+include("model.jl")
 include("train.jl")
 
 end
