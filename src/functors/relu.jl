@@ -1,21 +1,42 @@
 type ReLU <: Functor
-  alpha::Float64
 end
 
-ReLU() = ReLU(0.0)
+function forward!(f::ReLU, v::Variable)
+  v.value = relu(v[1].value)
+end
 
-function forward{T,N}(f::ReLU, x::Array{T,N})
-  y = similar(x)
+function relu{T,N}(x::Array{T,N})
+  y = alloc_cpu(T, size(x))
   for i = 1:length(x)
     xx = x[i]
-    y[i] = xx > T(0) ? xx : T(f.alpha) * xx
+    y[i] = xx > T(0) ? xx : T(0)
   end
-  y, (gy, gx) -> gx == nothing || backward!(f, x, gy, gx)
+  y
 end
 
-function backward!{T,N}(f::ReLU, x::Array{T,N}, gy::Array{T,N}, gx::Array{T,N})
+function relu{T,N}(x::CudaArray{T,N})
+  y = alloc_gpu(T, size(x))
+  CUDNN.activation_forward(CUDNN.ACTIVATION_RELU, x, y)
+  y
+end
+
+function backward!(f::ReLU, v::Variable)
+  gx = ∇relu(v[1].value, v.grad)
+  addgrad!(v[1], gx)
+end
+
+function ∇relu{T,N}(x::Array{T,N}, gy::Array{T,N})
+  gx = alloc_cpu(T, size(x))
   for i = 1:length(x)
-    d = x[i] > T(0) ? gy[i] : T(f.alpha) * gy[i]
-    gx[i] += d
+    #d = x[i] > T(0) ? gy[i] : p * gy[i]
+    d = x[i] > T(0) ? gy[i] : T(0)
+    gx[i] = d
   end
+  gx
+end
+
+function ∇relu{T,N}(varx::CudaArray{T,N}, vary::CudaArray{T,N})
+  x, gx = data(varx)
+  y, gy = data(vary)
+  CUDNN.activation_backward(CUDNN.ACTIVATION_RELU, x, dx, y, dy)
 end

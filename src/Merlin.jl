@@ -1,19 +1,14 @@
 module Merlin
 
+abstract Functor
+export Functor
 abstract Optimizer
+export Optimizer
+
+using CUDArt
 using Base.LinAlg.BLAS
 
-abstract Functor
-
-function call(f::Functor, x)
-  f.x = x
-  forward!(f)
-  f.y
-end
-
-export Var, CudaVar, setvalue!, forward!, backward!
-export clone
-export Node
+export Variable, forward!, backward!
 export Concat
 export CrossEntropy
 export Linear
@@ -24,33 +19,26 @@ export Sigmoid
 export Tanh
 export Window2D
 
-export Sequence
-
 export AdaGrad, Adam, SGD, optimize!
 
 include("native.jl")
-include("abstractvar.jl")
-include("var.jl")
-include("node.jl")
+include("variable.jl")
 
 #if haskey(ENV, "USE_CUDA")
 include("cuda/CUDNN.jl")
-include("cuda/cudavar.jl")
+#include("cuda/cudavar.jl")
 #end
 
-include("functors2/concat.jl")
-include("functors2/crossentropy.jl")
-include("functors2/linear.jl")
-include("functors2/lookup.jl")
+include("functors/concat.jl")
+include("functors/crossentropy.jl")
+include("functors/linear.jl")
+include("functors/lookup.jl")
 #include("functors/math.jl")
-include("functors2/maxpool2d.jl")
-include("functors2/relu.jl")
+include("functors/maxpool2d.jl")
+include("functors/relu.jl")
 #include("functors/sigmoid.jl")
 #include("functors/tanh.jl")
-#include("functors/sequence.jl")
-include("functors2/window2d.jl")
-
-include("sequence.jl")
+include("functors/window2d.jl")
 
 include("optimizers/adagrad.jl")
 include("optimizers/adam.jl")

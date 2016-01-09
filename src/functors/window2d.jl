@@ -15,23 +15,35 @@ end
 fwd_handle(f::Window2D, ::Type{Float32}) = WINDOW2D_FWD_F32_HANDLE
 bwd_handle(f::Window2D, ::Type{Float32}) = WINDOW2D_BWD_F32_HANDLE
 
-function forward{T}(f::Window2D, x::Matrix{T})
+function forward!(f::Window2D, v::Variable)
+  y, params = window2d(f, v[1].value)
+  v.value = y
+  v.state = params
+end
+
+function window2d{T}(f::Window2D, x::Matrix{T})
   w, s, p = [f.winsize...], f.stride, f.padsize
   w[1] == -1 && (w[1] = size(x,1))
   w[2] == -1 && (w[2] = size(x,2))
   n1 = (size(x,1) + 2*p[1] - w[1]) ÷ s[1] + 1
   n2 = (size(x,2) + 2*p[2] - w[2]) ÷ s[2] + 1
   params = Int32[w..., s..., p...]
-
-  y = Array(T, prod(w), n1*n2)
+  y = alloc_cpu(T, prod(w), n1*n2)
   ccall(fwd_handle(f,T), Void,
     (Ptr{T}, Ptr{Cint}, Ptr{T}, Cint, Cint),
     x, params, y, size(x,1), size(x,2))
-  y, (gy, gx) -> gx == nothing || backward!(f, params, gy, gx)
+  y, params
 end
 
-function backward!{T}(f::Window2D, params::Vector{Int32}, gy::Matrix{T}, gx::Matrix{T})
+function backward!(f::Window2D, v::Variable)
+  gx = ∇window2d(f, v.state, v[1].value, v.grad)
+  addgrad!(v[1], gx)
+end
+
+function ∇window2d{T}(f::Window2D, params::Vector{Int32}, x::Matrix{T}, gy::Matrix{T})
+  gx = zeros(T, size(x))
   ccall(bwd_handle(f,T), Void,
     (Ptr{Cint}, Ptr{T}, Ptr{T}, Cint, Cint),
-    params, gy, gx, size(gx, 1), size(gx, 2))
+    params, gy, gx, size(x,1), size(x,2))
+  gx
 end

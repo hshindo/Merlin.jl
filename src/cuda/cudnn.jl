@@ -78,6 +78,13 @@ function activation_forward{T}(mode::Int, x::AbstractCudaArray{T}, y::AbstractCu
   cudnnActivationForward(handle, mode, T[alpha], xdesc, x, T[beta], ydesc, y)
 end
 
+function activation_forward2{T}(mode::Int, x::AbstractCudaArray{T}, xdesc, y::AbstractCudaArray{T}, ydesc; alpha=1.0, beta=0.0)
+  handle = gethandle(x.dev)
+  #xdesc = create_tensor_descriptor(x)
+  #ydesc = create_tensor_descriptor(y)
+  cudnnActivationForward(handle, mode, T[alpha], xdesc, x, T[beta], ydesc, y)
+end
+
 function activation_backward{T}(mode::Int, x::AbstractCudaArray{T}, dx, y::AbstractCudaArray{T}, dy; alpha=1.0, beta=0.0)
   handle = gethandle(x.dev)
   xdesc = create_tensor_descriptor(x)

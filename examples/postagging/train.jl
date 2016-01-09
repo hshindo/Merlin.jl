@@ -21,9 +21,9 @@ end
 function train(path)
   dicts = (Dict(), Dict(), Dict())
   traindata = readCoNLL("$(path)/wsj_00-18.conll", dicts)
-  traindata = traindata[1:5000]
+  #traindata = traindata[1:5000]
   testdata = readCoNLL("$(path)/wsj_22-24.conll", dicts)
-  model = POSModel("$(path)/nyt.100")
+  model = POSModel(path)
   opt = SGD(0.0075)
 
   for iter = 1:10
@@ -35,26 +35,23 @@ function train(path)
       toks = traindata[i]
       append!(golds, toks)
 
-      node = forward(model, toks)
-      #append!(preds, maxrows(node.value))
-      #tagids = map(t -> t.catid, toks)
-      #target = zeros(node.value)
-      #for j = 1:length(tagids)
-      #  target[tagids[j], j] = 1.0
-      #end
-      #node = node |> CrossEntropy(target)
-      #loss += sum(node.value)
-      #node.grad = ones(node.value)
-      #backward!(node)
-      #optimize!(opt, model.wordembed)
-      #optimize!(opt, model.charembed)
-      #optimize!(opt, model.charfun)
-      #optimize!(opt, model.sentfun)
+      var = forward(model, toks)
+      append!(preds, maxrows(var.value))
+      tagids = map(t -> t.catid, toks)
+      target = zeros(var.value)
+      for j = 1:length(tagids)
+        target[tagids[j], j] = 1.0
+      end
+      var = [Variable(target), var] |> CrossEntropy()
+      loss += sum(var.value)
+      var.grad = ones(var.value)
+      backward!(var)
+      optimize!(model, opt)
     end
-    #println("loss: $(loss)")
-    #acc = eval(golds, preds)
-    #println("train acc: $(acc)")
-    #decode(model, testdata)
+    println("loss: $(loss)")
+    acc = eval(golds, preds)
+    println("train acc: $(acc)")
+    decode(model, testdata)
     println("")
   end
   println("finish")
@@ -65,8 +62,8 @@ function decode(m::POSModel, data::Vector{Vector{Token}})
   for i = 1:length(data)
     toks = data[i]
     append!(golds, toks)
-    node = forward(m, toks)
-    append!(preds, maxrows(node.value))
+    var = forward(m, toks)
+    append!(preds, maxrows(var.value))
   end
   acc = eval(golds, preds)
   println("test acc: $(acc)")

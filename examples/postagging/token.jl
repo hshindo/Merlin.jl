@@ -1,5 +1,4 @@
 type Token
-  dicts::Tuple{Dict, Dict, Dict}
   word::UTF8String
   chars::Vector{Char}
   catid::Int
@@ -30,7 +29,7 @@ function readCoNLL(path, dicts)
       chars = convert(Vector{Char}, word)
       cat = items[5]
       catid = get!(catdict, cat, length(catdict) + 1)
-      tok = Token(dicts, lowercase(word), chars, catid)
+      tok = Token(lowercase(word), chars, catid)
       push!(sent, tok)
     end
   end

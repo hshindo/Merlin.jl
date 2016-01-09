@@ -8,8 +8,8 @@ void maxpool2d_fwd(const T *x, const int *params, T *y, int *maxind, int size_x1
   int s1 = params[2], s2 = params[3];
   int p1 = params[4], p2 = params[5];
   int o = 0;
-  for (int m2 = -p2; m2 <= size_x2 + 2*p2 - w2; m2 += s2) {
-    for (int m1 = -p1; m1 <= size_x1 + 2*p1 - w1; m1 += s1) {
+  for (int m2 = -p2; m2 <= size_x2 + p2 - w2; m2 += s2) {
+    for (int m1 = -p1; m1 <= size_x1 + p1 - w1; m1 += s1) {
       T maxval = -std::numeric_limits<T>::max();
       int maxi = -1;
       for (int n2 = m2; n2 < m2 + w2; n2++) {

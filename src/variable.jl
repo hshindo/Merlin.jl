@@ -1,71 +1,60 @@
+function alloc_cpu{T}(::Type{T}, dims)
+  Array(T, dims)
+end
+alloc_cpu{T}(::Type{T}, dims...) = alloc_cpu(T, dims)
+
 type Variable
   value
   grad
+  state
+  f
   args
-  diff
-  fixed::Bool
 end
 
-Variable(value, grad) = Variable(value, grad, (), [], false)
-Variable(value) = Variable(value, nothing)
+Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, nothing, [])
 
-function call(f::Functor, arg::Variable)
-  y, diff = apply(f, arg.value)
-  Variable(y, nothing, (arg,), diff, false)
+function Base.call(f::Functor, args::Vector{Variable})
+  y = Variable()
+  y.f = f
+  y.args = args
+  forward!(f, y)
+  y
 end
+Base.call(f::Functor, arg::Variable) = call(f, [arg])
 
-function call(f::Functor, args::Vector{Variable})
-  x = map(a -> a.value, args)
-  y, diff = apply(f, x)
-  Variable(y, nothing, args, diff, false)
-end
-
-function call(f::Functor, args::Tuple{Vararg{Variable}})
-  x = map(a -> a.value, args)
-  y, diff = apply(f, x...)
-  Variable(y, nothing, args, diff, false)
-end
-
-function call(funs::Vector, arg::Variable)
-  for f in funs
-    arg = f(arg)
+function Base.call(fs::Vector, arg::Variable)
+  for f in fs
+    arg = call(f, arg)
   end
   arg
 end
 
-function diff!(var::Variable, grad)
-  var.grad = grad
-  sorted = topdown(var)
-  for v in sorted
+Base.getindex(v::Variable, key) = v.args[key]
+Base.setindex!(v::Variable, value, key) = v.args[key] = value
+
+function backward!(var::Variable)
+  sorted = topsort(var)
+  for i = length(sorted):-1:1
+    v = sorted[i]
     length(v.args) == 0 && continue
-    if typeof(v.args) <: Tuple
-      length(v.args) == 1 || error("NOT IMPLEMENTED YET")
-      arg, g = v.args[1], v.diff(v.grad)
-      arg.grad == nothing ? arg.grad = g : arg.grad += g
-    elseif typeof(v.args) <: Vector
-      gs = v.diff(v.grad)
-      for i = 1:length(v.args)
-        arg, g = v.args[i], gs[i]
-        arg.grad == nothing ? arg.grad = g : arg.grad += g
-      end
-    else
-      error("")
-    end
+    backward!(v.f, v)
   end
 end
 
-function topdown(var::Variable)
+function addgrad!(var::Variable, grad)
+  var.grad == nothing ? var.grad = grad : axpy!(1.0, grad, var.grad)
+end
+
+function topsort(var::Variable)
   sorted = Variable[]
   dict = ObjectIdDict()
   function visit(v::Variable)
     c = get!(dict, v, 1)
     if c == 1
-      push!(sorted, v)
       for a in v.args
         visit(a)
       end
-    #else
-    #  dict[v] = c + 1
+      push!(sorted, v)
     end
   end
   visit(var)

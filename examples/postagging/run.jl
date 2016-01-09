@@ -7,21 +7,31 @@ using Merlin
 using POSTagging
 path = "C:/Users/shindo/Dropbox/tagging"
 
-ndims(rand(10,2))
-v = Var(rand(Float32, 10, 5))
-Merlin.default(v,Float64, 3)
+using CUDArt
+using Merlin.CUDNN
+using CUBLAS
 
+a = rand(10)
+Array[a]
 function bench()
-  #d_A = CudaArray(Float32, (100,200,3,2))
-  a = Array(Float32, 100,200,3,2)
+  r = rand(Float32, 1000, 1000) - 0.5
+  x = CudaArray(r)
+  w = CudaArray(r)
+  y = CudaArray(r)
   for i = 1:1000
-    for j = 1:length(a)
-      if a[j] > Float32(0)
-        a[j] += a[j]
-      end
-    end
-    #d = CUDNN.create_tensor_descriptor(d_A)
+    #CUBLAS.gemm!('N', 'N', 1.0f0, x, w, 0.0f0, y)
+    y = CUBLAS.gemm('N', 'N', 1.0f0, x, w)
   end
+
+  #y = CudaArray(r)
+  #xdesc = CUDNN.create_tensor_descriptor(x)
+  #ydesc = CUDNN.create_tensor_descriptor(y)
+  #for i = 1:4000
+  #  p = CUDArt.malloc(Float32, 1000*1000)
+  #  CUDArt.free(p)
+    #CUDNN.activation_forward(CUDNN.ACTIVATION_RELU, x, y)
+    #CUDNN.activation_forward2(CUDNN.ACTIVATION_RELU, x, xdesc, y, ydesc)
+  #end
 end
 
 @time bench()
