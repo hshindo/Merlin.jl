@@ -1,7 +1,6 @@
 github_path = "C:/Users/shindo/Documents/GitHub"
 push!(LOAD_PATH, github_path)
-push!(LOAD_PATH, "$(github_path)/Merlin.jl/examples/postagging")
-push!(LOAD_PATH, "/Users/hshindo/.julia/v0.4/Merlin.jl/examples/postagging")
+push!(LOAD_PATH, dirname(@__FILE__))
 workspace()
 using Merlin
 using POSTagging

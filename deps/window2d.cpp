@@ -13,7 +13,7 @@ void window2d_fwd(const T *x, const int *params, T *y, int size_x1, int size_x2)
         for (int n1 = m1; n1 < m1 + w1; n1++) {
           int i = n1 + n2 * size_x1;
           if (n1 >= 0 && n1 < size_x1 && n2 >= 0 && n2 < size_x2) y[o] = x[i];
-          else y[o] = 0;
+          else y[o] = 0.0;
           o++;
         }
       }
