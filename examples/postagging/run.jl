@@ -1,14 +1,10 @@
-github_path = "C:/Users/shindo/Documents/GitHub"
-push!(LOAD_PATH, github_path)
+push!(LOAD_PATH, joinpath(dirname(@__FILE__), "../../.."))
 push!(LOAD_PATH, dirname(@__FILE__))
 workspace()
+using ArrayFire
 using Merlin
 using POSTagging
 path = "C:/Users/shindo/Dropbox/tagging"
-
-using CUDArt
-using Merlin.CUDNN
-using CUBLAS
 
 a = rand(10)
 Array[a]

@@ -6,7 +6,7 @@ alloc_cpu{T}(::Type{T}, dims...) = alloc_cpu(T, dims)
 type Variable
   value
   grad
-  state # workspace for intermediate results
+  state
   f
   args
 end

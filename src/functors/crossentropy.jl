@@ -2,18 +2,24 @@ type CrossEntropy <: Functor
 end
 
 function forward!(f::CrossEntropy, v::Variable)
-  y, logq = crossentropy(v[1].value, v[2].value)
-  v.value = y
+  logq, y = crossentropy(v[1].value, v[2].value)
   v.state = logq
+  v.value = y
 end
 
 function crossentropy{T,N}(p::Array{T,N}, q::Array{T,N})
   logq = logsoftmax(q)
-  y = alloc_cpu(T, size(p))
+  y = similar(p)
   for i = 1:length(y)
     y[i] = -p[i] * logq[i]
   end
-  y, logq
+  logq, y
+end
+
+function crossentropy{T,N}(p::AFArray{T,N}, q::AFArray{T,N})
+  logq = logsoftmax(q)
+  y = AFArray(T, 0.0, size(p)) - (p * logq)
+  logq, y
 end
 
 function backward!(f::CrossEntropy, v::Variable)

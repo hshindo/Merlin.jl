@@ -28,6 +28,12 @@ function linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})
   y
 end
 
+function linear{T}(w::AFMatrix{T}, b::AFVector{T}, x::AFMatrix{T})
+  y = w * x
+  # broadcast!(+, y, b, y)
+  y
+end
+
 function backward!(f::Linear, v::Variable)
   ∇linear_dwb!(f.w.grad, f.b.grad, v[1].value, v.grad)
   gx = ∇linear_dx(f.w.value, v[1].value, v.grad)

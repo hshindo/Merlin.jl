@@ -1,4 +1,5 @@
 using Merlin
+using ArrayFire
 
 function maxrows(m::Matrix)
   _, inds = findmax(m, 1)
@@ -19,9 +20,11 @@ function makebatchs(data::Vector{Vector{Token}}, batchsize::Int)
 end
 
 function train(path)
-  catdict = Dict()
+  catdictt = begin
+
+  end
   traindata = readCoNLL("$(path)/wsj_00-18.conll", catdict)
-  #traindata = traindata[1:5000]
+  traindata = traindata[1:5000]
   testdata = readCoNLL("$(path)/wsj_22-24.conll", catdict)
   model = POSModel(path)
   opt = SGD(0.0075)
@@ -42,16 +45,17 @@ function train(path)
       for j = 1:length(tagids)
         target[tagids[j], j] = 1.0
       end
+
       var = [Variable(target), var] |> CrossEntropy()
       loss += sum(var.value)
-      var.grad = ones(var.value)
-      backward!(var)
-      optimize!(model, opt)
+      #var.grad = ones(var.value)
+      #backward!(var)
+      #optimize!(model, opt)
     end
     println("loss: $(loss)")
     acc = eval(golds, preds)
     println("train acc: $(acc)")
-    decode(model, testdata)
+    #decode(model, testdata)
     println("")
   end
   println("finish")

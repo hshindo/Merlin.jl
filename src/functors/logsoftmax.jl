@@ -1,35 +1,50 @@
-type LogSoftmax
+type LogSoftmax <: Functor
 end
 
-function call{T}(fun::LogSoftmax, input::Matrix{T})
-  output = similar(input)
-  max = maximum(input, 1)
-  for j = 1:size(input, 2)
+function forward!(f::LogSoftmax, v::Variable)
+  v.value = logsoftmax(v[1].value)
+end
+
+function logsoftmax{T}(x::Matrix{T})
+  y = similar(x)
+  max = maximum(x, 1)
+  for j = 1:size(x,2)
     sum = T(0.0)
-    for i = 1:size(input, 1)
-      sum += exp(input[i, j] - max[j])
+    for i = 1:size(x,1)
+      sum += exp(x[i, j] - max[j])
     end
     logz = log(sum)
-    for i = 1:size(input, 1)
-      output[i, j] = input[i, j] - max[j] - logz
+    for i = 1:size(x,1)
+      y[i, j] = x[i, j] - max[j] - logz
     end
   end
-  output
+  y
 end
-apply{T}(fun::LogSoftmax, input::Array{T}) = apply(fun, mat(input))
 
-function diff{T}(fun::LogSoftmax, input::Matrix{T}, gradout::Matrix{T})
+function logsoftmax{T}(x::AFMatrix{T})
+  #if cuda
+  #  softmax_forward(x, y, algo=CUDNN.CUDNN_SOFTMAX_LOG)
+  #else
+  #
+  #end
+end
+
+function backward!(f::LogSoftmax, v::Variable)
+  gx = ∇logsoftmax(v[1].value, v[2].value, v.state, v.grad)
+  addgrad!(v[1], gx)
+end
+
+function ∇logsoftmax{T}(x::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
   # d(y_j) / d(x_i) = delta(i = j) - exp(y_i)
-  gradin = similar(input)
-  output = Array(T, outsize(input))
-  fill!(gradin, T(0.0))
-  for d = 1:size(output, 2)
-    for i = 1:size(output, 1)
-      expy = exp(output[i, d])
-      for j = 1:size(output, 1)
+  gx = zeros(T, size(x))
+  for d = 1:size(x,2)
+    for i = 1:size(x,1)
+      expy = exp(y[i, d])
+      for j = 1:size(x,1)
         delta = i == j ? T(1.0) : T(0.0)
-        gradin[i, d] += gradout[j, d] * (delta - expy)
+        gx[i, d] += gy[j, d] * (delta - expy)
       end
     end
   end
+  gx
 end

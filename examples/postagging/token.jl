@@ -1,35 +1,28 @@
 type Token
   word::UTF8String
-  chars::Vector{Char}
+  wordid::Int
+  charids::Vector{Int}
   catid::Int
 end
 
-function readlist(path)
-  dict = Dict()
-  lines = open(readlines, path)
-  for l in lines
-    get!(dict, chomp(l), length(dict)+1)
-  end
-  dict
+function aaa(data::Vector)
+  worddict = Dict{UTF8String,Int}()
+  chardict = Dict{UTF8String,Int}()
+  catdict = Dict{Any,Int}()
+
 end
 
-function readCoNLL(path, catdict::Dict)
-  data = open(readlines, path)
-  doc = Vector{Token}[]
-  sent = Token[]
-  for line in data
+function read_conll(path)
+  doc = []
+  sent = []
+  for line in open(readlines, path)
     line = chomp(line)
     if length(line) == 0
       push!(doc, sent)
-      sent = Token[]
+      sent = []
     else
-      items = split(chomp(line), '\t')
-      word = replace(items[2], r"[0-9]", '0') |> UTF8String
-      chars = convert(Vector{Char}, word)
-      cat = items[5]
-      catid = get!(catdict, cat, length(catdict)+1)
-      token = Token(lowercase(word), chars, catid)
-      push!(sent, token)
+      items = split(line, '\t')
+      push!(sent, tuple(items...))
     end
   end
   doc

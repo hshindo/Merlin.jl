@@ -14,11 +14,11 @@ function relu{T,N}(x::Array{T,N})
   y
 end
 
-function relu{T,N}(x::CudaArray{T,N})
-  y = alloc_gpu(T, size(x))
-  CUDNN.activation_forward(CUDNN.ACTIVATION_RELU, x, y)
-  y
-end
+#function relu{T,N}(x::CudaArray{T,N})
+#  y = alloc_gpu(T, size(x))
+#  CUDNN.activation_forward(CUDNN.ACTIVATION_RELU, x, y)
+#  y
+#end
 
 function backward!(f::ReLU, v::Variable)
   gx = ∇relu(v[1].value, v.grad)
@@ -35,8 +35,8 @@ function ∇relu{T,N}(x::Array{T,N}, gy::Array{T,N})
   gx
 end
 
-function ∇relu{T,N}(varx::CudaArray{T,N}, vary::CudaArray{T,N})
-  x, gx = data(varx)
-  y, gy = data(vary)
-  CUDNN.activation_backward(CUDNN.ACTIVATION_RELU, x, dx, y, dy)
-end
+#function ∇relu{T,N}(varx::CudaArray{T,N}, vary::CudaArray{T,N})
+#  x, gx = data(varx)
+#  y, gy = data(vary)
+#  CUDNN.activation_backward(CUDNN.ACTIVATION_RELU, x, dx, y, dy)
+#end

@@ -5,13 +5,14 @@ export Functor
 abstract Optimizer
 export Optimizer
 
-using CUDArt
+using ArrayFire
 using Base.LinAlg.BLAS
 
 export Variable, forward!, backward!
 export Concat
 export CrossEntropy
 export Linear
+export LogSoftmax
 export Lookup
 export MaxPool2D
 export ReLU
@@ -25,18 +26,20 @@ include("native.jl")
 include("variable.jl")
 
 #if haskey(ENV, "USE_CUDA")
-include("cuda/CUDNN.jl")
+#include("cudnn/CUDNN.jl")
 #include("cuda/cudavar.jl")
 #end
 
 include("functors/concat.jl")
 include("functors/crossentropy.jl")
 include("functors/linear.jl")
+include("functors/logsoftmax.jl")
 include("functors/lookup.jl")
 #include("functors/math.jl")
 include("functors/maxpool2d.jl")
 include("functors/relu.jl")
 #include("functors/sigmoid.jl")
+include("functors/softmax.jl")
 #include("functors/tanh.jl")
 include("functors/window2d.jl")
 
