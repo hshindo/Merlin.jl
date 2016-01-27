@@ -1,6 +1,7 @@
 type Lookup{K,V} <: Functor
   keydict::Dict{K,Int}
   values::Vector{Variable}
+  unknown::Int
   idset::Set{Int}
 end
 
