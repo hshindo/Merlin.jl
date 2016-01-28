@@ -22,11 +22,10 @@ function logsoftmax{T}(x::Matrix{T})
 end
 
 function logsoftmax{T}(x::AFMatrix{T})
-  #if cuda
-  #  softmax_forward(x, y, algo=CUDNN.CUDNN_SOFTMAX_LOG)
-  #else
-  #
-  #end
+  max = max(x, 1)
+  exp(x - max)
+  logz = sum(x, 1)
+  x - max - logz
 end
 
 function backward!(f::LogSoftmax, v::Variable)

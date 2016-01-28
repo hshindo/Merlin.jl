@@ -6,6 +6,14 @@ using Merlin
 using POSTagging
 path = "C:/Users/shindo/Dropbox/tagging"
 
+parse(Float32, "1.0")
+typeof(float("1.0"))
+a = Array(Float32, 10)
+push!(a, 1.0)
+x = rand(AFArray{Float32}, 10, 5)
+y = rand(AFArray{Float32}, 10, 1)
+x .* y
+
 a = rand(10)
 Array[a]
 function bench()
@@ -17,16 +25,6 @@ function bench()
     #CUBLAS.gemm!('N', 'N', 1.0f0, x, w, 0.0f0, y)
     y = CUBLAS.gemm('N', 'N', 1.0f0, x, w)
   end
-
-  #y = CudaArray(r)
-  #xdesc = CUDNN.create_tensor_descriptor(x)
-  #ydesc = CUDNN.create_tensor_descriptor(y)
-  #for i = 1:4000
-  #  p = CUDArt.malloc(Float32, 1000*1000)
-  #  CUDArt.free(p)
-    #CUDNN.activation_forward(CUDNN.ACTIVATION_RELU, x, y)
-    #CUDNN.activation_forward2(CUDNN.ACTIVATION_RELU, x, xdesc, y, ydesc)
-  #end
 end
 
 @time bench()

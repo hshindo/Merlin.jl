@@ -1,41 +1,34 @@
 type Token
-  word::UTF8String
+  word
   wordid::Int
   charids::Vector{Int}
   catid::Int
 end
 
-function load_data(path)
-  worddict = Dict{UTF8String,Int}("UNKNOWN"=>1)
-  chardict = Dict{Char,Int}()
-  catdict = Dict{ASCIIString,Int}()
-  function to_token(word)
-    word = UTF8String(word)
-    wordid = begin
-      w = replace(word, r"[0-9]", '0')
-      get!(worddict, w, length(worddict)+1)
-    end
-    charids = map(convert(Vector{Char}, word)) do c
-      get!(chardict, c, length(chardict)+1)
-    end
-    catid = get!(catdict, cat, length(catdict)+1)
-    Token(word, wordid, charids, catid)
-  end
-  read_conll()
-end
-
-function read_conll(f, path, positions::Vector{Int})
-  doc = []
-  sent = []
+function read_conll(path, append::Bool, worddict::Dict, chardict::Dict, catdict::Dict)
+  doc = Vector{Token}[]
+  sent = Token[]
+  unkword = worddict["UNKNOWN"]
   for line in open(readlines, path)
     line = chomp(line)
     if length(line) == 0
       push!(doc, sent)
-      sent = []
+      sent = Token[]
     else
-      items = map(split(line, '\t'))
-      data = map(p -> items[p], positions)
-      token = f(data)
+      items = split(line, '\t')
+      word = replace(items[2], r"[0-9]", '0')
+      wordid = begin
+        w = lowercase(word)
+        get(worddict, w, unkword)
+        #append ? get!(worddict, w, length(worddict)+1) : get(worddict, w, unkword)
+      end
+      chars = convert(Vector{Char}, word)
+      charids = map(chars) do c
+        append ? get!(chardict, c, length(chardict)+1) : chardict[c]
+      end
+      cat = items[5]
+      catid = append ? get!(catdict, cat, length(catdict)+1) : catdict[cat]
+      token = Token(word, wordid, charids, catid)
       push!(sent, token)
     end
   end

@@ -1,32 +1,56 @@
-type Lookup{K,V} <: Functor
-  keydict::Dict{K,Int}
-  values::Vector{Variable}
-  unknown::Int
+type Lookup <: Functor
+  params::Vector{Variable}
   idset::Set{Int}
 end
 
-function Lookup{K,V}(keys::Vector{K}, values::Vector{V})
-  all(v -> length(v) == length(values[1]), values) || error("Value length unmatch")
-  keydict = Dict{K,Int}()
-  sizehint!(keydict, length(keys))
-  for i = 1:length(keys)
-    keydict[keys[i]] = i
+Lookup(params::Vector{Variable}) = Lookup(params, Set{Int}())
+
+function Lookup{T}(::Type{T}, xlength::Int, ylength::Int)
+  params = Array(Variable, xlength)
+  for i = 1:xlength
+    params[i] = convert(Vector{T}, randn(ylength)) |> Variable
   end
-  Lookup(keydict, values, Set{Int}())
+  Lookup(params)
 end
 
-function Lookup{K,V}(keys::Vector{K}, ::Type{V}, vlength::Int)
-  values = convert(Vector{V}, randn(vlength))
-  Lookup(keys, values)
+function Lookup{T}(path, ::Type{T})
+  lines = open(readlines, path)
+  params = Array(Variable, length(lines))
+  for i = 1:length(lines)
+    items = split(chomp(lines[i]), ' ')
+    v = map(x -> parse(T,x), items)
+    params[i] = Variable(v)
+  end
+  Lookup(params)
 end
 
 forward!(f::Lookup, v::Variable) = v.value = lookup(f, v[1].value)
 
-function lookup{K,V}(f::Lookup{K,V}, x::Vector{K})
-  y = Array(V, length(f.embeds[1]), length(x))
+function lookup(f::Lookup, x::Vector{Int})
+  p = f.params
+  y = Array(eltype(p[1].value), length(p[1].value), length(x))
   for i = 1:length(x)
-    id = get(f.iddict, x[i], 1)
-    y[:, i] = f.values[id]
+    y[:, i] = p[x[i]].value
   end
   y
+end
+
+function backward!(f::Lookup, v::Variable)
+  ∇lookup!(f, v[1].value, v.grad)
+end
+
+function ∇lookup!(f::Lookup, x::Vector{Int}, gy::Matrix)
+  for i = 1:length(x)
+    id = x[i]
+    addgrad!(f.params[id], gy[:, i])
+    union!(f.idset, id)
+  end
+end
+
+function optimize!(opt::Optimizer, f::Lookup)
+  for id in f.idset
+    p = f.params[id]
+    update!(opt, p.value, p.grad)
+  end
+  empty!(f.idset)
 end

@@ -20,12 +20,18 @@ function makebatchs(data::Vector{Vector{Token}}, batchsize::Int)
 end
 
 function train(path)
-  catdictt = begin
-
+  worddict = begin
+    d = Dict()
+    for l in open(readlines, "$(path)/words.lst")
+      get!(d, chomp(l), length(d)+1)
+    end
+    d
   end
-  traindata = readCoNLL("$(path)/wsj_00-18.conll", catdict)
-  traindata = traindata[1:5000]
-  testdata = readCoNLL("$(path)/wsj_22-24.conll", catdict)
+  chardict, catdict = Dict(), Dict()
+  traindata = read_conll("$(path)/wsj_00-18.conll", true, worddict, chardict, catdict)
+  println("#word: $(length(worddict)), #char: $(length(chardict)), #cat: $(length(catdict))")
+  #traindata = traindata[1:5000]
+  testdata = read_conll("$(path)/wsj_22-24.conll", false, worddict, chardict, catdict)
   model = POSModel(path)
   opt = SGD(0.0075)
 
@@ -34,6 +40,7 @@ function train(path)
     golds, preds = Token[], Int[]
     opt.learnrate = 0.0075 / iter
     loss = 0.0
+
     for i in randperm(length(traindata))
       toks = traindata[i]
       append!(golds, toks)
@@ -48,14 +55,14 @@ function train(path)
 
       var = [Variable(target), var] |> CrossEntropy()
       loss += sum(var.value)
-      #var.grad = ones(var.value)
-      #backward!(var)
-      #optimize!(model, opt)
+      var.grad = ones(var.value)
+      backward!(var)
+      optimize!(model, opt)
     end
     println("loss: $(loss)")
     acc = eval(golds, preds)
     println("train acc: $(acc)")
-    #decode(model, testdata)
+    decode(model, testdata)
     println("")
   end
   println("finish")

@@ -9,14 +9,9 @@ end
 
 function POSModel(path)
   T = Float32
-  wordlookup = begin
-    keys = map(l -> UTF8String(chomp(l)), open(readlines,"$(path)/word.lst"))
-    Lookup(keys, T, 100)
-  end
-  charlookup = begin
-    keys = map(l -> Char(chomp(l)), open(readlines,"$(path)/char.lst"))
-    Lookup(keys, T, 10)
-  end
+  #wordlookup = Lookup(T, 100000, 100)
+  wordlookup = Lookup("$(path)/nyt100.lst", T)
+  charlookup = Lookup(T, 100, 10)
   charfun = [Window2D((10,5),(1,1),(0,2)), Linear(T,50,50), MaxPool2D((1,-1),(1,1))]
   sentfun = [Window2D((150,5),(1,1),(0,2)), Linear(T,750,300), ReLU(), Linear(T,300,45)]
   POSModel(wordlookup, charlookup, charfun, sentfun)
@@ -27,13 +22,19 @@ function forward(m::POSModel, tokens::Vector{Token})
   #padt = Token(ref.dicts, "PADDING", [' '], -1)
   #tokens = [padt; padt; tokens...; padt; padt]
 
-  words = map(t -> t.word, tokens)
-  wordmat = Variable(words) |> m.wordembed
+  wordvec = map(t -> t.wordid, tokens)
+  wordmat = Variable(wordvec) |> m.wordlookup
   charvecs = map(tokens) do t
     #chars = [' '; ' '; t.chars...; ' '; ' ']
-    chars = t.chars
-    Variable(chars) |> m.charembed |> m.charfun
+    Variable(t.charids) |> m.charlookup |> m.charfun
   end
   charmat = charvecs |> Concat(2)
   [wordmat, charmat] |> Concat(1) |> m.sentfun
+end
+
+function optimize!( m::POSModel, opt::Optimizer)
+  Merlin.optimize!(opt, m.wordlookup)
+  Merlin.optimize!(opt, m.charlookup)
+  Merlin.optimize!(opt, m.charfun)
+  Merlin.optimize!(opt, m.sentfun)
 end
