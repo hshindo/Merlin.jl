@@ -30,7 +30,7 @@ function train(path)
   chardict, catdict = Dict(), Dict()
   traindata = read_conll("$(path)/wsj_00-18.conll", true, worddict, chardict, catdict)
   println("#word: $(length(worddict)), #char: $(length(chardict)), #cat: $(length(catdict))")
-  #traindata = traindata[1:5000]
+  traindata = traindata[1:5000]
   testdata = read_conll("$(path)/wsj_22-24.conll", false, worddict, chardict, catdict)
   model = POSModel(path)
   opt = SGD(0.0075)
@@ -54,15 +54,15 @@ function train(path)
       end
 
       var = [Variable(target), var] |> CrossEntropy()
-      loss += sum(var.value)
-      var.grad = ones(var.value)
-      backward!(var)
-      optimize!(model, opt)
+      #loss += sum(var.value)
+      #var.grad = ones(var.value)
+      #backward!(var)
+      #optimize!(model, opt)
     end
     println("loss: $(loss)")
     acc = eval(golds, preds)
     println("train acc: $(acc)")
-    decode(model, testdata)
+    #decode(model, testdata)
     println("")
   end
   println("finish")

@@ -3,11 +3,18 @@ type Linear <: Functor
   b::Variable
 end
 
-#call(f::Linear, x::Variable) = f.weight * x + f.bias
-
 function Linear{T}(::Type{T}, xlength::Int, ylength::Int)
   r = randn(ylength, xlength) * sqrt(1 / xlength)
   w = convert(Array{T}, r)
+  b = fill(T(0.01), ylength)
+  w = Variable(w, zeros(w))
+  b = Variable(b, zeros(b))
+  Linear(w, b)
+end
+
+function Linear{T}(::AFArray{T}, xlength::Int, ylength::Int)
+  r = randn(AFArray{T}, ylength, xlength) * sqrt(1 / xlength)
+  w = convert(AFArray{T}, r)
   b = fill(T(0.01), ylength)
   w = Variable(w, zeros(w))
   b = Variable(b, zeros(b))
@@ -29,7 +36,7 @@ function linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})
 end
 
 function linear{T}(w::AFMatrix{T}, b::AFVector{T}, x::AFMatrix{T})
-  y = w * x
+  w * x
   # broadcast!(+, y, b, y)
   y
 end

@@ -13,7 +13,7 @@ export Concat
 export CrossEntropy
 export Linear
 export LogSoftmax
-export Lookup
+export Lookup, AFLookup
 export MaxPool2D
 export ReLU
 export Sigmoid

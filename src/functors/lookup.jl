@@ -1,3 +1,20 @@
+type AFLookup <: Functor
+  weight::Variable
+  idset::Set{Int}
+end
+
+function AFLookup{T}(::Type{T}, xlength::Int, ylength::Int)
+  w = randn(AFArray{T}, xlength, ylength) |> Variable
+  AFLookup(w, Set{Int}())
+end
+
+forward!(f::AFLookup, v::Variable) = v.value = aflookup(f.weight.value, v[1].value)
+
+aflookup(weight::AFMatrix, indices::AFVector{Int}) = ArrayFire.lookup(weight, indices, 2)
+
+
+
+
 type Lookup <: Functor
   params::Vector{Variable}
   idset::Set{Int}
