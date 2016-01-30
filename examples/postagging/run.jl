@@ -6,17 +6,23 @@ using Merlin
 using POSTagging
 path = "C:/Users/shindo/Dropbox/tagging"
 
+x = rand(Float32, 10, 5)
+xx = AFArray(x)
+m = maximum(xx, 1)
+e = exp(xx - m)
 
-a = rand(10)
-Array[a]
+
+l = LogSoftmax()
+Merlin.logsoftmax(x)
+Merlin.logsoftmax(xx)
+
 function bench()
-  r = rand(Float32, 1000, 1000) - 0.5
-  x = CudaArray(r)
-  w = CudaArray(r)
-  y = CudaArray(r)
+  x = rand(Float32, 1000, 500)
+  xx = AFArray(x)
   for i = 1:1000
+    Merlin.logsoftmax(xx)
     #CUBLAS.gemm!('N', 'N', 1.0f0, x, w, 0.0f0, y)
-    y = CUBLAS.gemm('N', 'N', 1.0f0, x, w)
+    #y = CUBLAS.gemm('N', 'N', 1.0f0, x, w)
   end
 end
 

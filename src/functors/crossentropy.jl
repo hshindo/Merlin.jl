@@ -17,6 +17,7 @@ function crossentropy{T,N}(p::Array{T,N}, q::Array{T,N})
 end
 
 function crossentropy{T,N}(p::AFArray{T,N}, q::AFArray{T,N})
+
   logq = logsoftmax(q)
   y = AFArray(T, 0.0, size(p)) - (p * logq)
   logq, y

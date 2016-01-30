@@ -12,9 +12,6 @@ forward!(f::AFLookup, v::Variable) = v.value = aflookup(f.weight.value, v[1].val
 
 aflookup(weight::AFMatrix, indices::AFVector{Int}) = ArrayFire.lookup(weight, indices, 2)
 
-
-
-
 type Lookup <: Functor
   params::Vector{Variable}
   idset::Set{Int}

@@ -22,10 +22,10 @@ function logsoftmax{T}(x::Matrix{T})
 end
 
 function logsoftmax{T}(x::AFMatrix{T})
-  max = max(x, 1)
-  exp(x - max)
-  logz = sum(x, 1)
-  x - max - logz
+  m = maximum(x, 1)
+  e = exp(x - m)
+  z = sum(e, 1)
+  x - m - log(z)
 end
 
 function backward!(f::LogSoftmax, v::Variable)
