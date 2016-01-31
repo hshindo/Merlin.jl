@@ -1,51 +1,45 @@
 #include <algorithm>
+#include <arrayfire.h>
+#include <stdio.h>
+using namespace af;
 
-template <typename T>
-void window2d_fwd(const T *x, const int *params, T *y, int size_x1, int size_x2) {
-
-  int w1 = params[0], w2 = params[1];
-  int s1 = params[2], s2 = params[3];
-  int p1 = params[4], p2 = params[5];
-  int o = 0;
-  for (int m2 = -p2; m2 <= size_x2 + p2 - w2; m2 += s2) {
-    for (int m1 = -p1; m1 <= size_x1 + p1 - w1; m1 += s1) {
-      for (int n2 = m2; n2 < m2 + w2; n2++) {
-        for (int n1 = m1; n1 < m1 + w1; n1++) {
-          int i = n1 + n2 * size_x1;
-          if (n1 >= 0 && n1 < size_x1 && n2 >= 0 && n2 < size_x2) y[o] = x[i];
-          else y[o] = 0.0;
-          o++;
-        }
-      }
-    }
-  }
-}
-
-template <typename T>
-void window2d_bwd(const int *params, const T *gy, T *gx, int size_x1, int size_x2) {
-
-  int w1 = params[0], w2 = params[1];
-  int s1 = params[2], s2 = params[3];
-  int p1 = params[4], p2 = params[5];
-  int o = 0;
-  for (int m2 = -p2; m2 <= size_x2 + p2 - w2; m2 += s2) {
-    for (int m1 = -p1; m1 <= size_x1 + p1 - w1; m1 += s1) {
-      for (int n2 = m2; n2 < m2 + w2; n2++) {
-        for (int n1 = m1; n1 < m1 + w1; n1++) {
-          int i = n1 + n2 * size_x1;
-          if (n1 >= 0 && n1 < size_x1 && n2 >= 0 && n2 < size_x2) gx[i] += gy[o];
-          o++;
-        }
-      }
-    }
-  }
-}
+// array window2d_fwd(void *x, const int *params, void *y, int size_x1, int size_x2) {
+//
+//   int w1 = params[0], w2 = params[1];
+//   int s1 = params[2], s2 = params[3];
+//   int p1 = params[4], p2 = params[5];
+//   array arr = static_cast<array>(x);
+//   // af::array arr = af::array(size_x1, size_x2, x);
+//   af_print(arr);
+//   array res = unwrap(arr, w1, w2, s1, s2, p1, p2);
+//   return res;
+// }
+//
+// void window2d_bwd(const int *params, const void *gy, void *gx, int size_y1, int size_y2) {
+//
+//   int w1 = params[0], w2 = params[1];
+//   int s1 = params[2], s2 = params[3];
+//   int p1 = params[4], p2 = params[5];
+//   af::array arr = af::array(size_y1, size_y2, gy);
+//   af::array res = af::wrap(arr, size_y1, size_y2, w1, w2, s1, s2, p1, p2);
+//   gx = &res;
+// }
 
 extern "C" {
-  void window2d_fwd_f32(const float *x, const int *params, float *y, int size_x1, int size_x2) {
-    window2d_fwd(x, params, y, size_x1, size_x2);
-  }
-  void window2d_bwd_f32(const int *params, const float *gy, float *gx, int size_x1, int size_x2) {
-    window2d_bwd(params, gy, gx, size_x1, size_x2);
-  }
+void window2d_fwd_f32(void *x, const int *params, void **y, int size_x1, int size_x2) {
+  int w1 = params[0], w2 = params[1];
+  int s1 = params[2], s2 = params[3];
+  int p1 = params[4], p2 = params[5];
+  void *out;
+  af_unwrap(&out, x, w1, w2, s1, s2, p1, p2, true);
+  std::swap(*y, out);
+}
+void window2d_bwd_f32(const int *params, void *gy, void **gx, int size_y1, int size_y2) {
+  int w1 = params[0], w2 = params[1];
+  int s1 = params[2], s2 = params[3];
+  int p1 = params[4], p2 = params[5];
+  void *out;
+  af_wrap(&out, gy, size_y1, size_y2, w1, w2, s1, s2, p1, p2, true);
+  std::swap(*gx, out);
+}
 }
