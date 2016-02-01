@@ -1,5 +1,3 @@
-const HW_HANDLE = Libdl.dlsym(Native.library2, :getName)
-
 function callhw()
   ccall(HW_HANDLE, Void,
     (Cint,), 1)

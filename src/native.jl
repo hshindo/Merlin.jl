@@ -9,7 +9,7 @@ end : begin
 end
 
 const libpath = abspath(joinpath(dirname(@__FILE__), "..", "deps", libname))
-const libpath2 = abspath(joinpath(dirname(@__FILE__), "..", "deps", "helloworld.dll"))
+const libpath2 = abspath(joinpath(dirname(@__FILE__), "..", "deps", "Merlin.dll"))
 
 try
   const global library = Libdl.dlopen(libpath)
