@@ -12,8 +12,8 @@ function POSModel(path)
   #wordlookup = Lookup(T, 100000, 100)
   wordlookup = Lookup("$(path)/nyt100.lst", T)
   charlookup = Lookup(T, 100, 10)
-  charfun = [Window2D((10,5),(1,1),(0,2)), Linear(T,50,50), MaxPool2D((1,-1),(1,1))]
-  sentfun = [Window2D((150,5),(1,1),(0,2)), Linear(T,750,300), ReLU(), Linear(T,300,45)]
+  charfun = [Window2D(10,5,1,1,0,2), Linear(T,50,50), MaxPool2D((1,-1),(1,1))]
+  sentfun = [Window2D(150,5,1,1,0,2), Linear(T,750,300), ReLU(), Linear(T,300,45)]
   POSModel(wordlookup, charlookup, charfun, sentfun)
 end
 

@@ -1,38 +1,23 @@
-const WINDOW2D_FWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_fwd_f32)
-const WINDOW2D_BWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f32)
-
 type Window2D <: Functor
-  winsize::Tuple{Int,Int}
-  stride::Tuple{Int,Int}
-  padsize::Tuple{Int,Int}
+  w1::Int
+  w2::Int
+  s1::Int
+  s2::Int
+  p1::Int
+  p2::Int
 
-  function Window2D(winsize, stride, padsize=(0,0))
-    (stride[1] > 0 && stride[2] > 0) || error("stride must be > 0")
-    new(winsize, stride, padsize)
+  function Window2D(w1, w2, s1, s2, p1=0, p2=0)
+    (s1 > 0 && s2 > 0) || throw("stride must be > 0")
+    new(w1, w2, s1, s2, p1, p2)
   end
 end
 
-fwd_handle(f::Window2D, ::Type{Float32}) = WINDOW2D_FWD_F32_HANDLE
-bwd_handle(f::Window2D, ::Type{Float32}) = WINDOW2D_BWD_F32_HANDLE
-
 function forward!(f::Window2D, v::Variable)
-  y, params = window2d(f, v[1].value)
-  v.value = y
-  v.state = params
-end
-
-function window2d{T}(f::Window2D, x::Matrix{T})
-  w, s, p = [f.winsize...], f.stride, f.padsize
-  w[1] == -1 && (w[1] = size(x,1))
-  w[2] == -1 && (w[2] = size(x,2))
-  n1 = (size(x,1) + 2*p[1] - w[1]) ÷ s[1] + 1
-  n2 = (size(x,2) + 2*p[2] - w[2]) ÷ s[2] + 1
-  params = Int32[w..., s..., p...]
-  y = alloc_cpu(T, prod(w), n1*n2)
-  ccall(fwd_handle(f,T), Void,
-    (Ptr{T}, Ptr{Cint}, Ptr{T}, Cint, Cint),
-    x, params, y, size(x,1), size(x,2))
-  y, params
+  w1, w2 = f.w1, f.w2
+  w1 == -1 && (w1 = size(x,1))
+  w2 == -1 && (w2 = size(x,2))
+  x = v[1].value
+  v.value = unwrap(x, w1, w2, s1, s2, p1, p2)
 end
 
 function backward!(f::Window2D, v::Variable)

@@ -2,7 +2,12 @@ type LogSoftmax <: Functor
 end
 
 function forward!(f::LogSoftmax, v::Variable)
-  v.value = logsoftmax(v[1].value)
+  x = v[1].value
+  m = x - maximum(x, 1)
+  e = exp(m)
+  z = sum(e, 1)
+  y = m - log(z)
+  v.value = y
 end
 
 function logsoftmax{T}(x::Matrix{T})
@@ -19,13 +24,6 @@ function logsoftmax{T}(x::Matrix{T})
     end
   end
   y
-end
-
-function logsoftmax{T}(x::AFMatrix{T})
-  m = x - maximum(x, 1)
-  e = exp(m)
-  z = sum(e, 1)
-  m - log(z)
 end
 
 function backward!(f::LogSoftmax, v::Variable)

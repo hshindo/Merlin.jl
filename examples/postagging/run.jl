@@ -6,23 +6,9 @@ using Merlin
 using POSTagging
 path = "C:/Users/shindo/Dropbox/tagging"
 
-x = [rand(Float32, 100, 1) for i=1:100]
+x = [rand(Float32, 10, 5) for i=1:12]
 xx = map(AFArray, x)
 cat(1, xx)
-
-5 % 3
-x = rand(Float32, 10, 5)
-xx = AFArray(x)
-ArrayFire.af_buffer
-x1 = xx
-x2 = AFArray(rand(Float32, 10, 5))
-x3 = AFArray(rand(Float32, 10, 5))
-Merlin.logsoftmax(xx)
-
-Merlin.logsoftmax(x)
-
-m = maximum(xx, 1)
-e = exp(xx - m)
 
 macro afcall(ex)
   buffer = []

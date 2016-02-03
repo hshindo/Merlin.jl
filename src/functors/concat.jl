@@ -4,30 +4,8 @@ end
 
 function forward!(f::Concat, v::Variable)
   xs = map(a -> a.value, v.args)
-  v.value = concat(f.dim, xs)
+  v.value = cat(f.dim, xs)
 end
-
-function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
-  sum = 0
-  for x in xs
-    sum += size(x, dim)
-  end
-  outsize = [size(xs[1])...]
-  outsize[dim] = sum
-  y = alloc_cpu(T, outsize...)
-
-  range = map(s -> 1:s, outsize)
-  index = 1
-  for x in xs
-    s = size(x, dim)
-    range[dim] = index:(index + s - 1)
-    y[range...] = x
-    index += s
-  end
-  y
-end
-
-concat{T,N}(dim::Int, xs::Vector{AFArray{T,N}}) = cat(dim, xs)
 
 function backward!(f::Concat, v::Variable)
   xs = map(a -> a.value, v.args)
