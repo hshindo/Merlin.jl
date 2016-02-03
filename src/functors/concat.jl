@@ -27,7 +27,7 @@ function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
   y
 end
 
-concat{T,N}(dim::Int, xs::Vector{AFArray{T,N}}) = cat_many(dim, xs)
+concat{T,N}(dim::Int, xs::Vector{AFArray{T,N}}) = cat(dim, xs)
 
 function backward!(f::Concat, v::Variable)
   xs = map(a -> a.value, v.args)

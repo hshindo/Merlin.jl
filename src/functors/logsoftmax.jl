@@ -1,5 +1,3 @@
-const HW_HANDLE = Libdl.dlsym(Native.library2, :af_logsoftmax)
-
 type LogSoftmax <: Functor
 end
 
@@ -24,13 +22,10 @@ function logsoftmax{T}(x::Matrix{T})
 end
 
 function logsoftmax{T}(x::AFMatrix{T})
-  #m = maximum(x, 1)
-  #e = exp(x - m)
-  #z = sum(e, 1)
-  #x - m - log(z)
-  out = Ptr{Void}[0]
-  ccall(HW_HANDLE, Void, (Ptr{Ptr{Void}},Ptr{Void}), out, x.ptr)
-  AFMatrix{T}(out[1])
+  m = x - maximum(x, 1)
+  e = exp(m)
+  z = sum(e, 1)
+  m - log(z)
 end
 
 function backward!(f::LogSoftmax, v::Variable)
