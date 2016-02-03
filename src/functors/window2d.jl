@@ -21,18 +21,19 @@ function forward!(f::Window2D, v::Variable)
   v.state = params
 end
 
-function window2d{T}(f::Window2D, x::Matrix{T})
+function window2d{T,N}(f::Window2D, x::AFArray{T,N})
   w, s, p = [f.winsize...], f.stride, f.padsize
   w[1] == -1 && (w[1] = size(x,1))
   w[2] == -1 && (w[2] = size(x,2))
   n1 = (size(x,1) + 2*p[1] - w[1]) ÷ s[1] + 1
   n2 = (size(x,2) + 2*p[2] - w[2]) ÷ s[2] + 1
   params = Int32[w..., s..., p...]
-  y = alloc_cpu(T, prod(w), n1*n2)
+  # y = af_array[0]
+  y = Ptr{Void}[0]
   ccall(fwd_handle(f,T), Void,
-    (Ptr{T}, Ptr{Cint}, Ptr{T}, Cint, Cint),
+    (Ptr{Void}, Ptr{Cint}, Ptr{Void}, Cint, Cint),
     x, params, y, size(x,1), size(x,2))
-  y, params
+  AFArray{T,N}(y[1]), params
 end
 
 function backward!(f::Window2D, v::Variable)
@@ -40,10 +41,11 @@ function backward!(f::Window2D, v::Variable)
   addgrad!(v[1], gx)
 end
 
-function ∇window2d{T}(f::Window2D, params::Vector{Int32}, x::Matrix{T}, gy::Matrix{T})
-  gx = zeros(T, size(x))
+function ∇window2d{T,N}(f::Window2D, params::Vector{Int32}, x::AFArray{T,N}, gy::AFArray{T,N})
+  # y = af_array[0]
+  gx = Ptr{Void}[0]
   ccall(bwd_handle(f,T), Void,
-    (Ptr{Cint}, Ptr{T}, Ptr{T}, Cint, Cint),
+    (Ptr{Cint}, Ptr{Void}, Ptr{Void}, Cint, Cint),
     params, gy, gx, size(x,1), size(x,2))
-  gx
+  AFArray{T,N}(gx[1])
 end
