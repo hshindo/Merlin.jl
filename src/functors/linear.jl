@@ -3,12 +3,11 @@ type Linear <: Functor
   b::Variable
 end
 
-function Linear{T}(::AFArray{T}, xlength::Int, ylength::Int)
-  r = randn(AFArray{T}, ylength, xlength) * sqrt(1 / xlength)
-  w = convert(AFArray{T}, r)
-  b = fill(T(0.01), ylength)
-  w = Variable(w, zeros(w))
-  b = Variable(b, zeros(b))
+function Linear{T}(::Type{T}, xlength::Int, ylength::Int)
+  w = randn(AFArray{T}, ylength, xlength) * T(sqrt(1 / xlength))
+  b = fill(AFArray, T(0.01), (ylength,1))
+  w = Variable(w)
+  b = Variable(b)
   Linear(w, b)
 end
 
@@ -18,8 +17,9 @@ isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 function forward!(f::Linear, v::Variable)
   x = v[1].value
   w = f.w.value
-  b = f.b.balue
+  b = f.b.value
   v.value = w * x + b
+  println("linear done")
 end
 
 function linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})

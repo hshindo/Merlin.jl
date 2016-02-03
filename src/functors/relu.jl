@@ -2,7 +2,9 @@ type ReLU <: Functor
 end
 
 function forward!(f::ReLU, v::Variable)
-  v.value = relu(v[1].value)
+  x = v[1].value
+  y = x * (x >= 0.0)
+  v.value = y
 end
 
 function relu{T,N}(x::Array{T,N})

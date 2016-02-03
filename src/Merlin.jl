@@ -22,7 +22,7 @@ export Window2D
 
 export AdaGrad, Adam, SGD, optimize!
 
-include("native.jl")
+#include("native.jl")
 include("variable.jl")
 
 #if haskey(ENV, "USE_CUDA")

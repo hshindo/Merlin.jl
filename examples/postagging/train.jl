@@ -53,7 +53,7 @@ function train(path)
         target[tagids[j], j] = 1.0
       end
 
-      var = [Variable(target), var] |> CrossEntropy()
+      #var = [Variable(target), var] |> CrossEntropy()
       #loss += sum(var.value)
       #var.grad = ones(var.value)
       #backward!(var)

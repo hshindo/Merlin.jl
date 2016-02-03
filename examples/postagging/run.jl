@@ -6,6 +6,11 @@ using Merlin
 using POSTagging
 path = "C:/Users/shindo/Dropbox/tagging"
 
+x = AFArray(rand(Float32, 10, 2))
+f = Window2D(10,4,1,1,0,1)
+v = Variable(x)
+f(v).value
+
 x = [rand(Float32, 10, 5) for i=1:12]
 xx = map(AFArray, x)
 cat(1, xx)
