@@ -4,8 +4,10 @@ type Lookup <: Functor
 end
 
 function Lookup{T}(::Type{T}, xlength::Int, ylength::Int)
-  w = randn(AFArray{T}, xlength, ylength) |> Variable
-  Lookup(w, Set{Int}())
+  w = randn(xlength, ylength)
+  w = convert(Matrix{T}, w)
+  v = Variable(w, true)
+  Lookup(v, Set{Int}())
 end
 
 function forward!(f::Lookup, v::Variable)

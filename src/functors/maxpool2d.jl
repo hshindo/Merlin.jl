@@ -1,12 +1,13 @@
 type MaxPool2D <: Functor
+  dim::Int
 end
 
 function forward!(f::MaxPool2D, v::Variable)
   x = v[1].value
-  y, ind = findmax(x, 2)
+  y, ind = findmax(x, f.dim)
+  finalize(ind)
   v.value = y
-  v.state = ind
-  println("maxpool done")
+  #v.state = ind
 end
 
 function backward!(f::MaxPool2D, v::Variable)

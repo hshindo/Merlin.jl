@@ -4,10 +4,11 @@ type Linear <: Functor
 end
 
 function Linear{T}(::Type{T}, xlength::Int, ylength::Int)
-  w = randn(AFArray{T}, ylength, xlength) * T(sqrt(1 / xlength))
-  b = fill(AFArray, T(0.01), (ylength,1))
-  w = Variable(w)
-  b = Variable(b)
+  w = randn(ylength, xlength) * sqrt(1 / xlength)
+  w = convert(Matrix{T}, w)
+  b = fill(T(0.01), ylength)
+  w = Variable(w, true)
+  b = Variable(b, true)
   Linear(w, b)
 end
 
@@ -18,8 +19,9 @@ function forward!(f::Linear, v::Variable)
   x = v[1].value
   w = f.w.value
   b = f.b.value
-  v.value = w * x + b
-  println("linear done")
+  wx = w * x
+  v.value = wx + b
+  finalize(wx)
 end
 
 function linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})

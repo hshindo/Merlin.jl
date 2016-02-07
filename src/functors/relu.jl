@@ -3,8 +3,10 @@ end
 
 function forward!(f::ReLU, v::Variable)
   x = v[1].value
-  y = x * (x >= 0.0)
+  wh = x >= 0.0
+  y = wh .* x
   v.value = y
+  finalize(wh)
 end
 
 function relu{T,N}(x::Array{T,N})

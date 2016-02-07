@@ -1,27 +1,17 @@
 push!(LOAD_PATH, joinpath(dirname(@__FILE__), "../../.."))
 push!(LOAD_PATH, dirname(@__FILE__))
+push!(LOAD_PATH, "C:/Program Files/ArrayFire/v3/lib")
+ENV["USE_CUDA"] = true
 workspace()
+using IterativeSolvers
 using ArrayFire
 using Merlin
 using POSTagging
 path = "C:/Users/shindo/Dropbox/tagging"
 
-x = AFArray(rand(Float32, 10, 2))
-f = Window2D(10,4,1,1,0,1)
-v = Variable(x)
-f(v).value
-
-x = [rand(Float32, 10, 5) for i=1:12]
-xx = map(AFArray, x)
-cat(1, xx)
-
-macro afcall(ex)
-  buffer = []
-  local val = $(esc(ex))
-  for a in buffer
-    release(a)
-  end
-end
+Libdl.find_library(["cudnn64_4"])
+ArrayFire.device_info()
+AFArray([1,2,3])
 
 function bench()
   xx = [rand(Float32, 100, 1) for i=1:100]
@@ -50,8 +40,10 @@ function bench()
   #release(x)
 end
 
-ArrayFire.device_gc()
-gc()
 @time bench()
 
 @time POSTagging.train(path)
+
+Profile.clear()
+@profile POSTagging.train(path)
+Profile.print()

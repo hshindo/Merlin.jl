@@ -1,12 +1,11 @@
-function callhw()
-  ccall(HW_HANDLE, Void,
-    (Cint,), 1)
-end
-
 function alloc_cpu{T}(::Type{T}, dims)
   Array(T, dims)
 end
 alloc_cpu{T}(::Type{T}, dims...) = alloc_cpu(T, dims)
+
+type VarBuffer
+  buffer::Vector
+end
 
 type Variable
   value
@@ -14,28 +13,54 @@ type Variable
   state
   f
   args
+  b
 end
 
-Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, nothing, [])
+const varbuf = VarBuffer([])
 
-function Base.call(f::Functor, args::Vector{Variable})
-  y = Variable()
-  y.f = f
-  y.args = args
+function Variable(a::Array, b::Bool)
+  value = AFArray(a)
+  v = Variable(value, nothing, nothing, nothing, [], b)
+  #b ? finalizer(value, release) : push!(varbuf.buffer, v)
+  v
+end
+
+#Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, nothing, [])
+
+function reset2()
+  while length(varbuf.buffer) > 0
+    v = pop!(varbuf.buffer)
+    release(v.value)
+  end
+end
+
+function reset()
+  for v in varbuf.buffer
+    v.b || finalize(v.value)
+    #release(v.value)
+  end
+  varbuf.buffer = []
+end
+
+function call(f::Functor, args::Vector{Variable})
+  y = Variable(nothing, nothing, nothing, f, args, false)
+  # y.f = f
+  # y.args = args
   forward!(f, y)
+  push!(varbuf.buffer, y)
   y
 end
-Base.call(f::Functor, arg::Variable) = call(f, [arg])
+call(f::Functor, arg::Variable) = call(f, [arg])
 
-function Base.call(fs::Vector, arg::Variable)
+function call(fs::Vector, arg::Variable)
   for f in fs
     arg = call(f, arg)
   end
   arg
 end
 
-Base.getindex(v::Variable, key) = v.args[key]
-Base.setindex!(v::Variable, value, key) = v.args[key] = value
+getindex(v::Variable, key) = v.args[key]
+setindex!(v::Variable, value, key) = v.args[key] = value
 
 function backward!(var::Variable)
   sorted = topsort(var)

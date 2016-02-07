@@ -19,11 +19,11 @@ const STATUS_LICENSE_ERROR = 10
 
 @windows? (
 begin
-  const libcudnn = Libdl.find_library(["cudnn64_4.dll"])
+  const libcudnn = Libdl.find_library(["cudnn64_4"])
 end : begin
   const libcudnn = Libdl.find_library(["libcudnn"])
 end)
-!isempty(libcudnn) || error("CUDNN library cannot be found.")
+# !isempty(libcudnn) || error("CUDNN library cannot be found.")
 
 ##### Handle #####
 const handles = Dict{Int, Ptr{Void}}()

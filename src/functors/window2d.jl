@@ -15,14 +15,13 @@ end
 function forward!(f::Window2D, v::Variable)
   w1, w2 = f.w1, f.w2
   x = v[1].value
-  println("xsize: $(size(x))")
   w1 == -1 && (w1 = size(x,1))
-  w2 == -1 && (w2 = size(x,2))
-  println("w1, w2: $(w1), $(w2)")
+  if w2 == -1
+    w2 = (ndims(x) == 1) ? 1 : size(x,2)
+  end
   x = v[1].value
   y = unwrap(x, w1, w2, f.s1, f.s2, f.p1, f.p2)
   v.value = y
-  println("window done")
 end
 
 function backward!(f::Window2D, v::Variable)

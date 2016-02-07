@@ -1,5 +1,4 @@
 using Merlin
-using ArrayFire
 
 function maxrows(m::Matrix)
   _, inds = findmax(m, 1)
@@ -41,17 +40,24 @@ function train(path)
     opt.learnrate = 0.0075 / iter
     loss = 0.0
 
-    for i in randperm(length(traindata))
+    #for i in randperm(length(traindata))
+    for i = 1:length(traindata)
+      #i % 100 == 0 && println(i)
       toks = traindata[i]
+
+      length(toks) > 150 && continue
+      length(toks) == 1 && continue
+
       append!(golds, toks)
 
       var = forward(model, toks)
-      append!(preds, maxrows(var.value))
-      tagids = map(t -> t.catid, toks)
-      target = zeros(var.value)
-      for j = 1:length(tagids)
-        target[tagids[j], j] = 1.0
-      end
+      #pred = maximum(var.value) |> to_host
+      #append!(preds, pred)
+      #tagids = map(t -> t.catid, toks)
+      #target = zeros(var.value)
+      #for j = 1:length(tagids)
+      #  target[tagids[j], j] = 1.0
+      #end
 
       #var = [Variable(target), var] |> CrossEntropy()
       #loss += sum(var.value)
@@ -60,8 +66,8 @@ function train(path)
       #optimize!(model, opt)
     end
     println("loss: $(loss)")
-    acc = eval(golds, preds)
-    println("train acc: $(acc)")
+    #acc = eval(golds, preds)
+    #println("train acc: $(acc)")
     #decode(model, testdata)
     println("")
   end

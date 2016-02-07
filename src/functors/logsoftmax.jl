@@ -3,10 +3,13 @@ end
 
 function forward!(f::LogSoftmax, v::Variable)
   x = v[1].value
-  m = x - maximum(x, 1)
+  max = maximum(x, 1)
+  m = x - max
   e = exp(m)
   z = sum(e, 1)
-  y = m - log(z)
+  logz = log(z)
+  y = m - logz
+  map(release, (max,m,e,z,logz))
   v.value = y
 end
 
