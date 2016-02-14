@@ -1,54 +1,20 @@
-function alloc_cpu{T}(::Type{T}, dims)
-  Array(T, dims)
-end
-alloc_cpu{T}(::Type{T}, dims...) = alloc_cpu(T, dims)
-
-type VarBuffer
-  buffer::Vector
-end
-
 type Variable
   value
   grad
-  state
   f
   args
-  b
+  work
 end
 
-const varbuf = VarBuffer([])
-
-function Variable(a::Array, b::Bool)
-  value = AFArray(a)
-  v = Variable(value, nothing, nothing, nothing, [], b)
-  #b ? finalizer(value, release) : push!(varbuf.buffer, v)
-  v
-end
-
-#Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, nothing, [])
-
-function reset2()
-  while length(varbuf.buffer) > 0
-    v = pop!(varbuf.buffer)
-    release(v.value)
-  end
-end
-
-function reset()
-  for v in varbuf.buffer
-    v.b || finalize(v.value)
-    #release(v.value)
-  end
-  varbuf.buffer = []
-end
+Variable(value::Array) = Variable(AFArray(value))
+Variable(value=nothing) = Variable(value, nothing, nothing, [], nothing)
 
 function call(f::Functor, args::Vector{Variable})
-  y = Variable(nothing, nothing, nothing, f, args, false)
-  # y.f = f
-  # y.args = args
-  forward!(f, y)
-  push!(varbuf.buffer, y)
-  y
+  v = Variable()
+  v.f = f
+  v.args = args
+  forward!(f, v)
+  v
 end
 call(f::Functor, arg::Variable) = call(f, [arg])
 

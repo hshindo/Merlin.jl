@@ -7,21 +7,22 @@ function Linear{T}(::Type{T}, xlength::Int, ylength::Int)
   w = randn(ylength, xlength) * sqrt(1 / xlength)
   w = convert(Matrix{T}, w)
   b = fill(T(0.01), ylength)
-  w = Variable(w, true)
-  b = Variable(b, true)
-  Linear(w, b)
+  Linear(Variable(w), Variable(b))
 end
-
-mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
-isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 
 function forward!(f::Linear, v::Variable)
   x = v[1].value
-  w = f.w.value
-  b = f.b.value
-  wx = w * x
-  v.value = wx + b
-  finalize(wx)
+  w, b = f.w.value, f.b.value
+  v.value = w * x + b
+end
+
+function backward!(f::Linear, v::Variable)
+  x = v[1]
+  w, b = f.w, f.b
+  gy = v.grad
+  addgrad!(w, A_mul_Bt(gy, x.value))
+  addgrad!(b, gy)
+  addgrad!(x, At_mul_B(w, gy))
 end
 
 function linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})
@@ -31,7 +32,7 @@ function linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})
   y
 end
 
-function backward!(f::Linear, v::Variable)
+function backward2!(f::Linear, v::Variable)
   ∇linear_dwb!(f.w.grad, f.b.grad, v[1].value, v.grad)
   gx = ∇linear_dx(f.w.value, v[1].value, v.grad)
   addgrad!(v[1], gx)

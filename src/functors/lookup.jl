@@ -6,8 +6,7 @@ end
 function Lookup{T}(::Type{T}, xlength::Int, ylength::Int)
   w = randn(xlength, ylength)
   w = convert(Matrix{T}, w)
-  v = Variable(w, true)
-  Lookup(v, Set{Int}())
+  Lookup(Variable(w), Set{Int}())
 end
 
 function forward!(f::Lookup, v::Variable)

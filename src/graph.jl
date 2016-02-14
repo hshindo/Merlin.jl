@@ -1,23 +1,3 @@
-type MemoryPool
-  buffer::Vector{Array}
-  ref::Vector{Array}
-  index::Int
-end
-
-function allocate{T}(mp::MemoryPool, ::Type{T}, dims::Int...)
-  buffer, index = mp.buffer, mp.index
-  if mp.index > length(mp.buffer)
-    push!(mp.buffer, Array(T, dims))
-  end
-  a = buffer[index]
-  if eltype(a) != T || size(a) != dims
-    a = Array(T, dims)
-  end
-  a
-end
-
-free(mp::MemoryPool) = mp.index = 1
-
 type Graph <: Functor
   funs::Vector{Functor}
   tails::Vector{Vector{Int}}

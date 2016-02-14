@@ -1,4 +1,5 @@
 using Merlin
+using ArrayFire
 
 function maxrows(m::Matrix)
   _, inds = findmax(m, 1)
@@ -44,13 +45,16 @@ function train(path)
     for i = 1:length(traindata)
       #i % 100 == 0 && println(i)
       toks = traindata[i]
-
-      length(toks) > 150 && continue
-      length(toks) == 1 && continue
-
       append!(golds, toks)
 
-      var = forward(model, toks)
+      pred_var = forward(model, toks)
+      #pred_device = maximum(pred_var.value, 1)
+      #pred = to_host(pred_device)
+
+      #target = onehot(45, map(t -> t.catid, toks), 1.0f0)
+
+      #gold_var = map(t -> t.catid, toks) |> Variable
+      #[gold_var, pred_var] |> CrossEntropy()
       #pred = maximum(var.value) |> to_host
       #append!(preds, pred)
       #tagids = map(t -> t.catid, toks)

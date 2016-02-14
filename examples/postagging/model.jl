@@ -1,4 +1,5 @@
 using Merlin
+using ArrayFire
 
 type POSModel
   wordlookup
@@ -18,20 +19,17 @@ function POSModel(path)
 end
 
 function forward(m::POSModel, tokens::Vector{Token})
-  Merlin.reset()
-
   wordvec = map(t -> t.wordid, tokens)
-  wordmat = Variable(wordvec, false) |> m.wordlookup
+  wordmat = Variable(wordvec) |> m.wordlookup
   charvecs = map(tokens) do t
-    Variable(t.charids, false) |> m.charlookup |> m.charfun
+    Variable(t.charids) |> m.charlookup |> m.charfun
   end
   charmat = charvecs |> Concat(2)
   [wordmat, charmat] |> Concat(1) |> m.sentfun
 end
 
 function optimize!( m::POSModel, opt::Optimizer)
-  Merlin.optimize!(opt, m.wordlookup)
-  Merlin.optimize!(opt, m.charlookup)
-  Merlin.optimize!(opt, m.charfun)
-  Merlin.optimize!(opt, m.sentfun)
+  for f in [m.wordlookup, m.charlookup,m.charfun,m.sentfun]
+    Merlin.optimize!(opt, f)
+  end
 end

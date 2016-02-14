@@ -6,7 +6,6 @@ function forward!(f::ReLU, v::Variable)
   wh = x >= 0.0
   y = wh .* x
   v.value = y
-  finalize(wh)
 end
 
 function relu{T,N}(x::Array{T,N})
@@ -17,12 +16,6 @@ function relu{T,N}(x::Array{T,N})
   end
   y
 end
-
-#function relu{T,N}(x::CudaArray{T,N})
-#  y = alloc_gpu(T, size(x))
-#  CUDNN.activation_forward(CUDNN.ACTIVATION_RELU, x, y)
-#  y
-#end
 
 function backward!(f::ReLU, v::Variable)
   gx = ∇relu(v[1].value, v.grad)

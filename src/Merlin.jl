@@ -1,8 +1,8 @@
 module Merlin
 
 abstract Functor
-export Functor
 abstract Optimizer
+export Functor
 export Optimizer
 
 using ArrayFire
@@ -39,13 +39,11 @@ if haskey(ENV, "USE_CUDNN")
   #using CUDArt
 end
 
+include("util.jl")
 include("variable.jl")
-for name in ["concat","linear","logsoftmax","lookup","relu","reshape","window2d"]
+for name in ["concat","crossentropy","linear","logsoftmax","lookup","maxpool","relu","reshape","window2d"]
   include("functors/$(name).jl")
 end
-
-include("functors/crossentropy.jl") # depends on logsoftmax
-include("functors/maxpool2d.jl") # depends on window2d
 
 include("optimizers/adagrad.jl")
 include("optimizers/adam.jl")

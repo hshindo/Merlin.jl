@@ -40,9 +40,9 @@ function gethandle(dev::Int)
   end
 end
 
-datatype(::AbstractCudaArray{Float32}) = 0 # CUDNN_DATA_FLOAT
-datatype(::AbstractCudaArray{Float64}) = 1 # CUDNN_DATA_DOUBLE
-datatype(::AbstractCudaArray{Float16}) = 2 # CUDNN_DATA_HALF
+datatype(::Type{Float32}) = 0 # CUDNN_DATA_FLOAT
+datatype(::Type{Float64}) = 1 # CUDNN_DATA_DOUBLE
+datatype(::Type{Float16}) = 2 # CUDNN_DATA_HALF
 
 ##### Descriptor #####
 function create_tensor_descriptor(a::AbstractCudaArray)

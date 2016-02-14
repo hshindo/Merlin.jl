@@ -4,14 +4,19 @@ end
 
 function forward!(f::Concat, v::Variable)
   xs = map(a -> a.value, v.args)
-  v.value = cat(f.dim, xs)
+  v.value = cat(xs, f.dim)
 end
 
 function backward!(f::Concat, v::Variable)
-  xs = map(a -> a.value, v.args)
-  gxs = ∇concat(f.dim, xs, v.grad)
+  gy = v.grad
+  offset = 0
   for i = 1:length(v.args)
-    addgrad!(v[i], gxs[i])
+    x = v[i].value
+    s = size(x, f.dim)
+    indices = AFArray([offset:offset+s])
+    gx = lookup(x, indices, f.dim)
+    addgrad!(v[i], gx)
+    offset += s
   end
 end
 
