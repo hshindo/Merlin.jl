@@ -32,7 +32,7 @@ function train(path)
   println("#word: $(length(worddict)), #char: $(length(chardict)), #cat: $(length(catdict))")
   traindata = traindata[1:5000]
   testdata = read_conll("$(path)/wsj_22-24.conll", false, worddict, chardict, catdict)
-  model = POSModel(path)
+  model = POSModel2(path)
   opt = SGD(0.0075)
 
   for iter = 1:10

@@ -1,32 +1,31 @@
 type Variable
-  value
+  value::AFArray
   grad
   f
   args
-  work
 end
 
 Variable(value::Array) = Variable(AFArray(value))
 Variable(value=nothing) = Variable(value, nothing, nothing, [], nothing)
 
-function call(f::Functor, args::Vector{Variable})
+function Base.call(f::Functor, args::Vector{Variable})
   v = Variable()
   v.f = f
   v.args = args
   forward!(f, v)
   v
 end
-call(f::Functor, arg::Variable) = call(f, [arg])
-
-function call(fs::Vector, arg::Variable)
+Base.call(f::Functor, arg::Variable) = call(f, [arg])
+Base.call(f::Functor, args::Variable...) = call(f, [args...])
+function Base.call(fs::Vector, arg::Variable)
   for f in fs
     arg = call(f, arg)
   end
   arg
 end
 
-getindex(v::Variable, key) = v.args[key]
-setindex!(v::Variable, value, key) = v.args[key] = value
+Base.getindex(v::Variable, key) = v.args[key]
+Base.setindex!(v::Variable, value, key) = v.args[key] = value
 
 function backward!(var::Variable)
   sorted = topsort(var)

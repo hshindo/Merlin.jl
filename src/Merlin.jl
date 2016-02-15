@@ -23,8 +23,6 @@ export Window2D
 
 export AdaGrad, Adam, SGD, optimize!
 
-import Base: call, getindex, setindex!
-
 # CUDNN
 if haskey(ENV, "USE_CUDNN")
   #@windows? (
@@ -41,6 +39,7 @@ end
 
 include("util.jl")
 include("variable.jl")
+
 for name in ["concat","crossentropy","linear","logsoftmax","lookup","maxpool","relu","reshape","window2d"]
   include("functors/$(name).jl")
 end

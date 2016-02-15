@@ -11,8 +11,20 @@ path = "C:/Users/hshindo/Dropbox/tagging"
 
 setbackend("cpu")
 
-x = rand(AFArray, Float32, 5, 1)
-w = rand(AFArray, Float32, 5, 1)
+x = rand(Float32, 5, 2) |> Identity
+y = rand(Float32, 5, 2) |> Identity
+z = Concat([x,y], 1)
+
+w = rand(AFArray, Float32, 5, 2)
+f = Concat(2)
+x = Variable(x)
+w = Variable(w)
+y = f(x,w)
+y.value
+y.grad = y.value
+backward!(f, y)
+x.grad
+w.grad
 
 unwrap(x, 10, 2, 1, 1, 0, 0)
 

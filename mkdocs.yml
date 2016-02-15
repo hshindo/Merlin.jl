@@ -15,6 +15,7 @@ pages:
   - Concat: 'functors/concat.md'
   - CrossEntropy: 'functors/crossentropy.md'
   - Linear: 'functors/linear.md'
+  - Logsoftmax: 'functors/logsoftmax.md'
   - ReLU: 'functors/relu.md'
 - Examples:
   - POS-Tagging: 'examples/pos-tagging.md'

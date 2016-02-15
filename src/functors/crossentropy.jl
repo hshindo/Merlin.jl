@@ -1,20 +1,26 @@
 type CrossEntropy <: Functor
-  p::AFArray
+  p
 end
 
-# Instantiation with one-hot vector
-function CrossEntropy(indices::Vector{Int})
-  p = zeros(T, len, length(indices))
-  for j = 1:length(indices)
-    p[indices[j], j] = value
+function onehot{T}(x::Vector{Int}, ::Type{T}, size::Int)
+  y = zeros(T, size, length(x))
+  for j = 1:length(x)
+    y[x[j],j] = T(-1)
   end
-  CrossEntropy(AFArray(p))
+  AFArray(y)
 end
 
 function forward!(f::CrossEntropy, v::Variable)
-  logx = logsoftmax(v[1].value)
+  x = v[1].value
+  T = eltype(x)
+  logx = logsoftmax(x)
+  conv(p::Vector{Int}) = onehot(f.p, eltype(x), size(x,1))
+  conv(p::Matrix{T}) = AFArray(p)
+  conv(p::AFArray) = p
+  f.p = conv(f.p)
   v.work = logx
   v.value = -f.p * logx
+  v.f = CrossEntropy()
 end
 
 function backward!(f::CrossEntropy, v::Variable)

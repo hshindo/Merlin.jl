@@ -1,29 +1,32 @@
 # Overview
+
+## 1. Types
 Basic types:
 
-* Var
-* Functor
-* Node
+* `Variable`
+* `Functor`
+* `Optimizer`
 
-## Var
-`Var{T}` is a type of variable.
+### 1. Variable
+`Variable` has `value` and `grad`.
 ```julia
-x = Var(Float32, 10, 5)
+> x = Variable(Array(Float32,10,5))
+> x.value
+> x.grad
 ```
 
-## Functor
+### Functor
 `Functor` is an abstract type of functors.
-A functor has two functions: `forward` and `backward`.
-```julia
-x = Var(Float32, 10, 5)
-f = ReLU()
-y = forward!(f, x)
-y.grad = ...
-backward!(f)
-```
 
-## Node
-`Node` is used for constructing a computation graph of functors.
+## Training
 ```julia
-n = Node(f)
+opt = SGD(0.001)
+
+for i = 1:10
+  v = Variable()
+  y = v |> f1 |> f2
+  y.grad = ones()
+  backward!(y)
+  update!(opt, y)
+end
 ```

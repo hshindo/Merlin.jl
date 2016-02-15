@@ -13,23 +13,9 @@ function backward!(f::Concat, v::Variable)
   for i = 1:length(v.args)
     x = v[i].value
     s = size(x, f.dim)
-    indices = AFArray([offset:offset+s])
-    gx = lookup(x, indices, f.dim)
+    indices = AFArray([offset:offset+s-1])
+    gx = lookup(gy, indices, f.dim)
     addgrad!(v[i], gx)
     offset += s
   end
-end
-
-function ∇concat{T,N}(dim::Int, xs::Vector{Array{T,N}}, gy::Array{T,N})
-  range = map(s -> 1:s, [size(gy)...])
-  index = 1
-  gxs = Array(Array{T,N}, length(xs))
-  for i = 1:length(xs)
-    x = xs[i]
-    s = size(x, dim)
-    range[dim] = index:(index + s - 1)
-    gxs[i] = gy[range...]
-    index += s
-  end
-  gxs
 end
