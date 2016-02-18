@@ -3,9 +3,15 @@ end
 
 function forward!(f::ReLU, v::Variable)
   x = v[1].value
-  wh = x >= 0.0
-  y = wh .* x
-  v.value = y
+  cond = x >= 0.0
+  v.value = cond .* x
+  v.work = cond
+end
+
+function backward!(f::ReLU, v::Variable)
+  cond = v.work
+  gx = v.grad .* cond
+  addgrad!(v[1], gx)
 end
 
 function relu{T,N}(x::Array{T,N})
@@ -17,7 +23,7 @@ function relu{T,N}(x::Array{T,N})
   y
 end
 
-function backward!(f::ReLU, v::Variable)
+function backward2!(f::ReLU, v::Variable)
   gx = ∇relu(v[1].value, v.grad)
   addgrad!(v[1], gx)
 end

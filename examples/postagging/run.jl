@@ -11,26 +11,12 @@ path = "C:/Users/hshindo/Dropbox/tagging"
 
 setbackend("cpu")
 
-x = rand(Float32, 5, 2) |> Identity
-y = rand(Float32, 5, 2) |> Identity
-z = Concat([x,y], 1)
-
-w = rand(AFArray, Float32, 5, 2)
-f = Concat(2)
-x = Variable(x)
-w = Variable(w)
-y = f(x,w)
-y.value
-y.grad = y.value
-backward!(f, y)
-x.grad
-w.grad
-
-unwrap(x, 10, 2, 1, 1, 0, 0)
-
-range2(AFArray, Float32, (5,3), 3)
-xx = [rand(Float32, 100, 1) |> AFArray for i=1:100]
-cat(1, xx)
+a = [1:5]
+a+2
+i = Variable([1,3,5])
+f = Lookup(Float32, 100, 50)
+f(i)
+x = rand(Float32, 10, 5) |> AFArray |> Variable
 
 function bench()
   xx = [rand(Float32, 100, 1) for i=1:100]

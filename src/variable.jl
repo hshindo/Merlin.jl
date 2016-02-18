@@ -1,17 +1,15 @@
 type Variable
-  value::AFArray
+  value
   grad
   f
   args
+  work
 end
 
-Variable(value::Array) = Variable(AFArray(value))
 Variable(value=nothing) = Variable(value, nothing, nothing, [], nothing)
 
 function Base.call(f::Functor, args::Vector{Variable})
-  v = Variable()
-  v.f = f
-  v.args = args
+  v = Variable(nothing, nothing, f, args, nothing)
   forward!(f, v)
   v
 end
@@ -37,7 +35,7 @@ function backward!(var::Variable)
 end
 
 function addgrad!(var::Variable, grad)
-  var.grad == nothing ? var.grad = grad : axpy!(1.0, grad, var.grad)
+  var.grad == nothing ? var.grad = grad : var.grad += grad
 end
 
 function topsort(var::Variable)

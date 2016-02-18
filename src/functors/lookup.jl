@@ -1,20 +1,35 @@
 type Lookup <: Functor
-  weight::Variable
+  weights::Vector{Variable}
   idset::Set{Int}
 end
 
-function Lookup{T}(::Type{T}, xlength::Int, ylength::Int)
-  w = randn(xlength, ylength)
-  w = convert(Matrix{T}, w)
-  Lookup(Variable(w), Set{Int}())
+function Lookup{T}(::Type{T}, size1::Int, size2::Int)
+  weights = Variable[]
+  for i = 1:size2
+    a = AFArray(convert(Vector{T},randn(size1)))
+    push!(weights, Variable(a))
+  end
+  Lookup(weights, Set{Int}())
 end
 
 function forward!(f::Lookup, v::Variable)
-  indices = v[1].value
-  v.value = lookup(f.weight.value, indices, 2)
+  ids = v[1].value
+  xs = map(id -> f.weights[id].value, ids)
+  v.value = cat(xs, 2)
 end
 
-function optimize!(opt::Optimizer, f::Lookup)
+function backward!(f::Lookup, v::Variable)
+  return nothing
+  ids = v[1].value
+  for i = 1:length(x)
+    id = ids[i]
+    #lookup(v.grad, )
+    addgrad!(f.weights[id], gy[:, i])
+    union!(f.idset, id)
+  end
+end
+
+function optimize2!(opt::Optimizer, f::Lookup)
   for id in f.idset
     p = f.params[id]
     update!(opt, p.value, p.grad)

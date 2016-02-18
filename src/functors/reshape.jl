@@ -1,11 +1,16 @@
-type Reshape{N} <: Functor
-  dims::NTuple{N,Int}
+type Reshape <: Functor
+  dims
 end
 
 Reshape(dims::Int...) = Reshape(dims)
 
 function forward!(f::Reshape, v::Variable)
   x = v[1].value
-  y = reshape(x, f.dims)
-  v.value = y
+  v.value = reshape(x, f.dims)
+end
+
+function backward!(f::Reshape, v::Variable)
+  x = v[1].value
+  gx = reshape(v.grad, size(x))
+  addgrad!(v[1], gx)
 end

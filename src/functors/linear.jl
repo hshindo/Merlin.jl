@@ -3,10 +3,10 @@ type Linear <: Functor
   b::Variable
 end
 
-function Linear{T}(::Type{T}, xlength::Int, ylength::Int)
-  w = randn(ylength, xlength) * sqrt(1 / xlength)
-  w = convert(Matrix{T}, w)
-  b = fill(T(0.01), ylength)
+function Linear{T}(::Type{T}, size1::Int, size2::Int)
+  w = randn(size2, size1) * sqrt(1 / size1)
+  w = convert(Matrix{T}, w) |> AFArray
+  b = fill(AFArray, T(0.01), size2)
   Linear(Variable(w), Variable(b))
 end
 
@@ -21,8 +21,8 @@ function backward!(f::Linear, v::Variable)
   w, b = f.w, f.b
   gy = v.grad
   addgrad!(w, A_mul_Bt(gy, x.value))
-  addgrad!(b, gy)
-  addgrad!(x, At_mul_B(w, gy))
+  addgrad!(b, sum(gy,2))
+  addgrad!(x, At_mul_B(w.value, gy))
 end
 
 function linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})
@@ -55,6 +55,7 @@ function ∇linear_dwb!{T}(gw::Matrix{T}, gb::Vector{T}, x::Matrix{T}, gy::Matri
 end
 
 function optimize!(opt::Optimizer, f::Linear)
-  update!(opt, f.w.value, f.w.grad)
-  update!(opt, f.b.value, f.b.grad)
+  jl_size(f.w.value) == (50,50) && return
+  update!(opt, f.w)
+  #update!(opt, f.b)
 end

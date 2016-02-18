@@ -1,4 +1,4 @@
-## POS-Tagging
+# POS-Tagging
 
 In this tutorial, we explain a pos-tagger based on neural network.
 
@@ -6,11 +6,11 @@ In this tutorial, we explain a pos-tagger based on neural network.
   *Learning Character-level Representations for Part-of-Speech Tagging*,
   In Proceedings of ICML, 2014.
 
-### Preparing the Data
+## Preparing the Data
 
 CoNLL-format Penn Treebank
 
-### Defining the Network Architecture
+## Defining the Network Architecture
 
 The neural pos-tagger consists of three types of layers:
 

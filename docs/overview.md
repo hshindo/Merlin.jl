@@ -1,24 +1,14 @@
 # Overview
+Merlin.jl provides many primitive functions.
 
-## 1. Types
-Basic types:
+Every computation is preserved.
 
-* `Variable`
-* `Functor`
-* `Optimizer`
-
-### 1. Variable
-`Variable` has `value` and `grad`.
+## ★ Decoding
 ```julia
-> x = Variable(Array(Float32,10,5))
-> x.value
-> x.grad
+v = Variable()
 ```
 
-### Functor
-`Functor` is an abstract type of functors.
-
-## Training
+## ★ Training
 ```julia
 opt = SGD(0.001)
 

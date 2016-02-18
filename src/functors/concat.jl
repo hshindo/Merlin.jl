@@ -13,7 +13,7 @@ function backward!(f::Concat, v::Variable)
   for i = 1:length(v.args)
     x = v[i].value
     s = size(x, f.dim)
-    indices = AFArray([offset:offset+s-1])
+    indices = range(AFArray, eltype(x), (s,)) + offset
     gx = lookup(gy, indices, f.dim)
     addgrad!(v[i], gx)
     offset += s

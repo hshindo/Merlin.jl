@@ -32,10 +32,10 @@ function train(path)
   println("#word: $(length(worddict)), #char: $(length(chardict)), #cat: $(length(catdict))")
   traindata = traindata[1:5000]
   testdata = read_conll("$(path)/wsj_22-24.conll", false, worddict, chardict, catdict)
-  model = POSModel2(path)
+  model = POSModel(path)
   opt = SGD(0.0075)
 
-  for iter = 1:10
+  for iter = 1:5
     println("iter: $(iter)")
     golds, preds = Token[], Int[]
     opt.learnrate = 0.0075 / iter
@@ -47,16 +47,29 @@ function train(path)
       toks = traindata[i]
       append!(golds, toks)
 
-      pred_var = forward(model, toks)
-      #pred_device = maximum(pred_var.value, 1)
-      #pred = to_host(pred_device)
+      out = forward(model, toks)
+      #m, idx = findmax(out.value, 1)
+      #idx = convert(Vector{Int}, vec(to_host(idx)))
+      #append!(preds, idx+1)
+
+      target = zeros(Float32, 45, length(toks))
+      for j = 1:length(toks)
+        target[toks[j].catid, j] = -1.0f0
+      end
+      target_var = Variable(AFArray(target))
+
+      out = CrossEntropy()(target_var, out)
+      #l = sum(sum(out.value, 2), 1)
+      #loss += to_host(l)[1]
+      out.grad = ones(out.value)
+      backward!(out)
 
       #target = onehot(45, map(t -> t.catid, toks), 1.0f0)
 
       #gold_var = map(t -> t.catid, toks) |> Variable
       #[gold_var, pred_var] |> CrossEntropy()
       #pred = maximum(var.value) |> to_host
-      #append!(preds, pred)
+
       #tagids = map(t -> t.catid, toks)
       #target = zeros(var.value)
       #for j = 1:length(tagids)
@@ -67,7 +80,7 @@ function train(path)
       #loss += sum(var.value)
       #var.grad = ones(var.value)
       #backward!(var)
-      #optimize!(model, opt)
+      update!(model, opt)
     end
     println("loss: $(loss)")
     #acc = eval(golds, preds)

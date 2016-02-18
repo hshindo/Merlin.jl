@@ -8,15 +8,16 @@ repo_url: https://github.com/hshindo/Merlin.jl
 
 docs_dir: 'docs'
 
+theme: bootstrap
+
+extra_css:
+  - css/extra.css
+
 pages:
 - Home: index.md
 - Overview: overview.md
-- Functors:
-  - Concat: 'functors/concat.md'
-  - CrossEntropy: 'functors/crossentropy.md'
-  - Linear: 'functors/linear.md'
-  - Logsoftmax: 'functors/logsoftmax.md'
-  - ReLU: 'functors/relu.md'
+- Types: types.md
+- Functors: functors.md
 - Examples:
   - POS-Tagging: 'examples/pos-tagging.md'
 
@@ -26,6 +27,3 @@ extra_javascript:
 markdown_extensions:
 - codehilite
 - mdx_math
-
-# Note: installation of mdx_math
-# pip install https://github.com/mitya57/python-markdown-math/archive/master.zip

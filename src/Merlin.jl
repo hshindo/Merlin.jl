@@ -14,7 +14,7 @@ export CrossEntropy
 export Linear
 export LogSoftmax
 export Lookup
-export MaxPool2D
+export MaxPooling
 export ReLU
 export Reshape
 export Sigmoid
@@ -37,10 +37,11 @@ if haskey(ENV, "USE_CUDNN")
   #using CUDArt
 end
 
+include("native.jl")
 include("util.jl")
 include("variable.jl")
 
-for name in ["concat","crossentropy","linear","logsoftmax","lookup","maxpool","relu","reshape","window2d"]
+for name in ["concat","crossentropy","linear","logsoftmax","lookup","maxpooling","relu","reshape","window2d"]
   include("functors/$(name).jl")
 end
 
