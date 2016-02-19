@@ -1,28 +1,30 @@
 type Linear <: Layer
   w::Variable
   b::Variable
-  in::Layer
   out::Variable
+
+  function Linear(w, b)
+    l = Linear(w, b, nothing, nothing)
+    finalizer(l, free)
+    l
+  end
 end
 
-function Linear{T}(::Type{T}, xlength::Int, ylength::Int)
-  w = randn(ylength, xlength) * sqrt(1 / xlength)
+function Linear{T}(::Type{T}, size1::Int, size2::Int)
+  w = randn(size2, size1) * sqrt(1 / size1)
   w = convert(Matrix{T}, w) |> AFArray
-  b = fill(T(0.01), ylength) |> AFArray
-  args = [Variable(w), Variable(b), Variable()]
-  Linear(args, nothing)
+  b = fill(AFArray, T(0.01), size2)
+  Linear(Variable(w), Variable(b))
 end
 
-function Linear(w::Variable, b::Variable, x::Layer)
-
+function forward!(l::Linear)
+  x = v[1].value
+  w, b = f.w.value, f.b.value
+  v.value = w * x + b
 end
 
-function Base.call(f::Linear, x::Variable)
-  w, b = f.w, f.b
-  y = w.value * x + b.value
-  Linear([w,b,x], y)
-end
-
-function backward(f::Linear)
-
+function free(l::Linear)
+  release(l.w)
+  release(l.b)
+  release(l.out)
 end
