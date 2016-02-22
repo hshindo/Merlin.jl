@@ -1,23 +1,7 @@
 using Merlin
 using ArrayFire
 
-function maxrows(m::Matrix)
-  _, inds = findmax(m, 1)
-  map!(i -> ind2sub(size(m), i)[1], inds)
-  vec(inds)
-end
 
-function makebatchs(data::Vector{Vector{Token}}, batchsize::Int)
-  batchs = Vector{Token}[]
-  pad = getpad(data[1][1])
-  i = 1
-  while i <= length(data)
-    range = i:(i + + min(batchsize, length(data) - i + 1) - 1)
-    push!(batchs, [pad; pad; data[range]...; pad; pad])
-    i += batchsize
-  end
-  batchs
-end
 
 function train(path)
   worddict = begin
@@ -35,7 +19,7 @@ function train(path)
   model = POSModel(path)
   opt = SGD(0.0075)
 
-  for iter = 1:5
+  for iter = 1:10
     println("iter: $(iter)")
     golds, preds = Token[], Int[]
     opt.learnrate = 0.0075 / iter
@@ -47,18 +31,22 @@ function train(path)
       toks = traindata[i]
       append!(golds, toks)
 
+      #l = length(AF.af_ptrs)
       out = forward(model, toks)
       #m, idx = findmax(out.value, 1)
       #idx = convert(Vector{Int}, vec(to_host(idx)))
       #append!(preds, idx+1)
 
-      target = zeros(Float32, 45, length(toks))
+      px = zeros(Float32, 45, length(toks))
       for j = 1:length(toks)
-        target[toks[j].catid, j] = -1.0f0
+        px[toks[j].catid, j] = -1.0f0
       end
-      target_var = Variable(AFArray(target))
 
-      out = CrossEntropy()(target_var, out)
+      out = CrossEntropy(px)(out)
+      #loss += sum(out.value)
+      #p = device_ptr(out.value)
+      #host = pointer_to_array(p, size(out.value))
+
       #l = sum(sum(out.value, 2), 1)
       #loss += to_host(l)[1]
       out.grad = ones(out.value)
@@ -80,12 +68,14 @@ function train(path)
       #loss += sum(var.value)
       #var.grad = ones(var.value)
       #backward!(var)
-      update!(model, opt)
+      #update!(model, opt)
+      #AF.free(l)
     end
     println("loss: $(loss)")
     #acc = eval(golds, preds)
     #println("train acc: $(acc)")
     #decode(model, testdata)
+
     println("")
   end
   println("finish")

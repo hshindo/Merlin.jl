@@ -41,6 +41,7 @@ function backward!(f::Window2D, v::Variable)
 
   gx = wrap(v.grad, xsize[1], xsize[2], w1, w2, f.s1, f.s2, f.p1, f.p2, f.iscolumn)
   addgrad!(v[1], gx)
+  #addgrad!(v[1], zeros(v[1].value))
 end
 
 function getraw(in::AFArray)

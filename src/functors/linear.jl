@@ -6,22 +6,28 @@ end
 function Linear{T}(::Type{T}, size1::Int, size2::Int)
   w = randn(size2, size1) * sqrt(1 / size1)
   w = convert(Matrix{T}, w) |> AFArray
-  b = fill(AFArray, T(0.01), size2)
+  b = AF.fill(T(0.01), size2)
   Linear(Variable(w), Variable(b))
 end
 
 function forward!(f::Linear, v::Variable)
   x = v[1].value
   w, b = f.w.value, f.b.value
-  v.value = w * x + b
+  #v.value = w * x + b
+  v.value = w * x
 end
 
 function backward!(f::Linear, v::Variable)
   x = v[1]
   w, b = f.w, f.b
   gy = v.grad
-  addgrad!(w, A_mul_Bt(gy, x.value))
-  addgrad!(b, sum(gy,2))
+  #addgrad!(x, zeros(x.value))
+  #addgrad!(w, A_mul_Bt(gy, x.value))
+  gw = A_mul_Bt(gy, x.value)
+  w.grad == nothing ? w.grad = gw : w.grad = w.grad + gw
+  AF.eval(w.grad)
+  #gb = sum(gy,2)
+  #addgrad!(b, sum(gy,2))
   addgrad!(x, At_mul_B(w.value, gy))
 end
 

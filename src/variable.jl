@@ -6,15 +6,19 @@ type Variable
   work
 end
 
-Variable(value=nothing) = Variable(value, nothing, nothing, [], nothing)
+Variable() = Variable(nothing)
+Variable(value) = Variable(value, nothing, nothing, [], nothing)
 
 function Base.call(f::Functor, args::Vector{Variable})
-  v = Variable(nothing, nothing, f, args, nothing)
+  v = Variable()
+  v.f = f
+  v.args = args
   forward!(f, v)
   v
 end
 Base.call(f::Functor, arg::Variable) = call(f, [arg])
 Base.call(f::Functor, args::Variable...) = call(f, [args...])
+
 function Base.call(fs::Vector, arg::Variable)
   for f in fs
     arg = call(f, arg)
@@ -54,8 +58,10 @@ function topsort(var::Variable)
   sorted
 end
 
-function optimize!(opt::Optimizer, funs::Vector)
-  for fun in funs
-    applicable(optimize!, opt, fun) && optimize!(opt, fun)
+update!(opt::Optimizer, f::Functor) = () # for non-param functor
+
+function update!(opt::Optimizer, fs::Vector)
+  for f in fs
+    update!(opt, f)
   end
 end

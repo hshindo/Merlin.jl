@@ -13,4 +13,5 @@ function backward!(f::MaxPooling, v::Variable)
   cond = x.value >= v.value
   gx = v.grad .* cond
   addgrad!(x, gx)
+  #addgrad!(x, zeros(x.value))
 end

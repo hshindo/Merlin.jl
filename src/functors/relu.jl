@@ -12,6 +12,7 @@ function backward!(f::ReLU, v::Variable)
   cond = v.work
   gx = v.grad .* cond
   addgrad!(v[1], gx)
+  #addgrad!(v[1], zeros(v[1].value))
 end
 
 function relu{T,N}(x::Array{T,N})
