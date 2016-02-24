@@ -19,7 +19,7 @@ export ReLU
 export Tanh
 export Window2D
 
-export AdaGrad, Adam, SGD, optimize!
+export AdaGrad, Adam, SGD, update!
 
 # CUDNN
 if haskey(ENV, "USE_CUDNN")

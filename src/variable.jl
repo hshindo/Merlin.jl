@@ -38,8 +38,8 @@ function backward!(var::Variable)
   end
 end
 
-function addgrad!(var::Variable, grad)
-  var.grad == nothing ? var.grad = grad : var.grad += grad
+function addgrad!(v::Variable, grad)
+  v.grad == nothing ? v.grad = grad : axpy!(1.0, grad, v.grad)
 end
 
 function topsort(var::Variable)
@@ -58,10 +58,8 @@ function topsort(var::Variable)
   sorted
 end
 
-optimize!(opt::Optimizer, f::Functor) = () # for non-param functor
-
-function optimize!(opt::Optimizer, fs::Vector)
+function update!(opt::Optimizer, fs::Vector)
   for f in fs
-    optimize!(opt, f)
+    applicable(update!, opt, f) && update!(opt, f)
   end
 end
