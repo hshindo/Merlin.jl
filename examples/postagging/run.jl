@@ -1,5 +1,5 @@
-#push!(LOAD_PATH, joinpath(dirname(@__FILE__), "../../.."))
-#push!(LOAD_PATH, dirname(@__FILE__))
+push!(LOAD_PATH, joinpath(dirname(@__FILE__), "../../.."))
+push!(LOAD_PATH, dirname(@__FILE__))
 workspace()
 
 using Merlin
