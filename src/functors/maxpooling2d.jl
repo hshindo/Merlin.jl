@@ -17,7 +17,7 @@ fwd_handle(f::MaxPooling2D, ::Type{Float32}) = MAXPOOLING2D_FWD_F32_HANDLE
 bwd_handle(f::MaxPooling2D, ::Type{Float32}) = MAXPOOLING2D_BWD_F32_HANDLE
 
 function forward!(f::MaxPooling2D, v::Variable)
-  y, maxind = maxpoolng2d, v[1].value)
+  y, maxind = maxpooling2d(f, v[1].value)
   v.value = y
   v.work = maxind
 end

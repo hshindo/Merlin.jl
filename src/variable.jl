@@ -7,7 +7,7 @@ type Variable
 end
 
 Variable() = Variable(nothing)
-Variable(value) = Variable(value, nothing, nothing, [], nothing)
+Variable(value, grad=nothing) = Variable(value, grad, nothing, [], nothing)
 
 function Base.call(f::Functor, args::Vector{Variable})
   v = Variable()
@@ -30,6 +30,7 @@ Base.getindex(v::Variable, key) = v.args[key]
 Base.setindex!(v::Variable, value, key) = v.args[key] = value
 
 function backward!(var::Variable)
+  var.grad == nothing && (var.grad = ones(var.value))
   sorted = topsort(var)
   for i = length(sorted):-1:1
     v = sorted[i]

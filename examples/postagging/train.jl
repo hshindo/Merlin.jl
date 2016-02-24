@@ -1,5 +1,10 @@
 using Merlin
-using ArrayFire
+
+function maxrows(m::Matrix)
+  _, inds = findmax(m, 1)
+  map!(i -> ind2sub(size(m), i)[1], inds)
+  vec(inds)
+end
 
 function train(path)
   worddict = begin
@@ -12,94 +17,53 @@ function train(path)
   chardict, catdict = Dict(), Dict()
   traindata = read_conll("$(path)/wsj_00-18.conll", true, worddict, chardict, catdict)
   println("#word: $(length(worddict)), #char: $(length(chardict)), #cat: $(length(catdict))")
-  traindata = traindata[1:5000]
+  #traindata = traindata[1:5000]
   testdata = read_conll("$(path)/wsj_22-24.conll", false, worddict, chardict, catdict)
   model = POSModel(path)
-  println("model created...")
   opt = SGD(0.0075)
 
-  for iter = 1:5
+  for iter = 1:10
     println("iter: $(iter)")
-    golds, preds = Token[], Int[]
+    golds, preds = Int[], Int[]
     opt.learnrate = 0.0075 / iter
     loss = 0.0
-    outs = AFArray[]
 
-    #for i in randperm(length(traindata))
-    for i = 1:length(traindata)
-      #println(i)
-      #i % 100 == 0 && println(i)
-      toks = traindata[i]
-      append!(golds, toks)
+    for i in randperm(length(traindata))
+      tokens = traindata[i]
+      append!(golds, map(t -> t.catid, tokens))
 
-      #l = length(AF.af_ptrs)
-      out = forward(model, toks)
-      #m, idx = findmax(out.value, 1)
-      #idx = convert(Vector{Int}, vec(to_host(idx)))
-      #append!(preds, idx+1)
+      out = forward(model, tokens)
+      maxidx = maxrows(out.value)
+      append!(preds, maxidx)
 
-      px = zeros(Float32, 45, length(toks))
-      for j = 1:length(toks)
-        px[toks[j].catid, j] = -1.0f0
+      # loss function
+      px = zeros(Float32, 45, length(tokens))
+      for j = 1:length(tokens)
+        px[tokens[j].catid, j] = 1.0
       end
+      out = CrossEntropy(px)(out)
+      loss += sum(out.value)
 
-      #out = CrossEntropy(px)(out)
-      #if isnan(s)
-      #  println(out.value)
-      #  println(s)
-      #  o = to_host(out.value)
-      #  println(sum(o))
-      #  error("")
-      #end
-      #p = device_ptr(out.value)
-      #host = pointer_to_array(p, size(out.value))
-
-      #l = sum(sum(out.value, 2), 1)
-      #loss += to_host(l)[1]
-      #out.grad = ones(out.value)
-      #backward!(out)
-
-      #target = onehot(45, map(t -> t.catid, toks), 1.0f0)
-
-      #gold_var = map(t -> t.catid, toks) |> Variable
-      #[gold_var, pred_var] |> CrossEntropy()
-      #pred = maximum(var.value) |> to_host
-
-      #tagids = map(t -> t.catid, toks)
-      #target = zeros(var.value)
-      #for j = 1:length(tagids)
-      #  target[tagids[j], j] = 1.0
-      #end
-
-      #var = [Variable(target), var] |> CrossEntropy()
-      #loss += sum(var.value)
-      #var.grad = ones(var.value)
-      #backward!(var)
-      #update!(model, opt)
-      #loss += sum(to_host(out.value))
-      AF.sync()
-      #AF.free(l)
+      backward!(out)
+      update!(model, opt)
     end
-    #o = sum(cat(outs, 1))
-    #loss += o
     println("loss: $(loss)")
-    #acc = eval(golds, preds)
-    #println("train acc: $(acc)")
-    #decode(model, testdata)
-
+    acc = accuracy(golds, preds)
+    println("train acc: $(acc)")
+    decode(model, testdata)
     println("")
   end
   println("finish")
 end
 
 function decode(m::POSModel, data::Vector{Vector{Token}})
-  golds, preds = Token[], Int[]
+  golds, preds = Int[], Int[]
   for i = 1:length(data)
-    toks = data[i]
-    append!(golds, toks)
-    var = forward(m, toks)
-    append!(preds, maxrows(var.value))
+    tokens = data[i]
+    append!(golds, map(t -> t.catid, tokens))
+    out = forward(m, tokens)
+    append!(preds, maxrows(out.value))
   end
-  acc = eval(golds, preds)
+  acc = accuracy(golds, preds)
   println("test acc: $(acc)")
 end

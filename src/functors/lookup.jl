@@ -6,9 +6,9 @@ end
 Lookup(weights::Vector{Variable}) = Lookup(weights, Set{Int}())
 
 function Lookup{T}(::Type{T}, size1::Int, size2::Int)
-  weights = Array(Variable, size1)
-  for i = 1:xlength
-    weights[i] = convert(Vector{T}, randn(size2)) |> Variable
+  weights = Array(Variable, size2)
+  for i = 1:size2
+    weights[i] = convert(Vector{T}, randn(size1)) |> Variable
   end
   Lookup(weights)
 end

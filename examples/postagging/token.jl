@@ -35,18 +35,7 @@ function read_conll(path, append::Bool, worddict::Dict, chardict::Dict, catdict:
   doc
 end
 
-function eval(golds::Vector{Token}, preds::Vector{Int})
-  @assert length(golds) == length(preds)
-  correct = 0
-  total = 0
-  for i = 1:length(golds)
-    golds[i].catid == preds[i] && (correct += 1)
-    total += 1
-  end
-  correct / total
-end
-
-function eval2(golds::Vector{Int}, preds::Vector{Int})
+function accuracy(golds::Vector{Int}, preds::Vector{Int})
   @assert length(golds) == length(preds)
   correct = 0
   total = 0

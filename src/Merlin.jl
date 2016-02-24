@@ -14,7 +14,7 @@ export CrossEntropy
 export Linear
 export LogSoftmax
 export Lookup
-export MaxPooling
+export MaxPooling2D
 export ReLU
 export Tanh
 export Window2D

@@ -28,7 +28,7 @@ end
 
 function backward!(f::Linear, v::Variable)
   w, b, x = f.w, f.b, v[1]
-  gx = ∇linear(w.value, b.value, v.grad, w.grad, b.grad)
+  gx = ∇linear(w.value, b.value, x.value, v.grad, w.grad, b.grad)
   addgrad!(x, gx)
 end
 
@@ -37,7 +37,7 @@ d_y / d_x = w^T * gy
 d_y / d_w = gy * x^T
 d_y / d_b = 1
 """
-function ∇linear{T}(w::Matrix{T}, b::Vector{T}, gy::Matrix{T}, gw::Matrix{T}, gb::Vector{T})
+function ∇linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T}, gy::Matrix{T}, gw::Matrix{T}, gb::Vector{T})
   gx = similar(x)
   gemm!('T', 'N', T(1), w, gy, T(0), gx)
   gemm!('N', 'T', T(1), gy, x, T(1), gw)

@@ -38,7 +38,7 @@ function window2d{T}(f::Window2D, x::Matrix{T})
   n1 = (size(x,1) + 2*p1 - w1) ÷ s1 + 1
   n2 = (size(x,2) + 2*p2 - w2) ÷ s2 + 1
   params = Int32[w1, w2, s1, s2, p1, p2]
-  y = Array(T, prod(w), n1*n2)
+  y = Array(T, w1*w2, n1*n2)
   ccall(fwd_handle(f,T), Void,
     (Ptr{T}, Ptr{Cint}, Ptr{T}, Cint, Cint),
     x, params, y, size(x,1), size(x,2))
@@ -51,7 +51,7 @@ function backward!(f::Window2D, v::Variable)
 end
 
 function ∇window2d{T}(f::Window2D, params::Vector{Int32}, x::Matrix{T}, gy::Matrix{T})
-  gx = zeros(T, size(x))
+  gx = zeros(x)
   ccall(bwd_handle(f,T), Void,
     (Ptr{Cint}, Ptr{T}, Ptr{T}, Cint, Cint),
     params, gy, gx, size(x,1), size(x,2))
