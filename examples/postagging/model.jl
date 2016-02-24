@@ -8,8 +8,8 @@ end
 
 function POSModel(path)
   T = Float32
-  #word_f = Lookup(T, 100, 500000)
-  word_f = Lookup("$(path)/nyt100.lst", T)
+  word_f = Lookup(T, 100, 500000)
+  #word_f = Lookup("$(path)/nyt100.lst", T)
   char_f = [Lookup(T, 10, 100),
             Window2D(10,5,1,1,0,2),
             Linear(T,50,50),

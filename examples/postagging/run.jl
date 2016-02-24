@@ -1,13 +1,11 @@
-push!(LOAD_PATH, joinpath(dirname(@__FILE__), "../../.."))
-push!(LOAD_PATH, dirname(@__FILE__))
+#push!(LOAD_PATH, joinpath(dirname(@__FILE__), "../../.."))
+#push!(LOAD_PATH, dirname(@__FILE__))
 workspace()
 
 using Merlin
-using POSTagging
+include("token.jl")
+include("model.jl")
+include("train.jl")
 path = "C:/Users/hshindo/Dropbox/tagging"
 
-@time POSTagging.train(path)
-
-Profile.clear()
-@profile POSTagging.train(path)
-Profile.print()
+@time train(path)

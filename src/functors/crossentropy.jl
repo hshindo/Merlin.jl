@@ -1,5 +1,5 @@
 type CrossEntropy <: Functor
-  p
+  p::Matrix
 end
 
 function forward!(f::CrossEntropy, v::Variable)
@@ -30,5 +30,3 @@ function ∇crossentropy{T}(p::Matrix{T}, logq::Matrix{T}, gy::Matrix{T})
   end
   gq
 end
-
-
