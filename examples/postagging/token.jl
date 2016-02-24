@@ -1,11 +1,11 @@
 type Token
-  word
+  word::UTF8String
   wordid::Int
   charids::Vector{Int}
-  catid::Int
+  tagid::Int
 end
 
-function read_conll(path, append::Bool, worddict::Dict, chardict::Dict, catdict::Dict)
+function read_conll(path, append::Bool, worddict::Dict, chardict::Dict, tagdict::Dict)
   doc = Vector{Token}[]
   sent = Token[]
   unkword = worddict["UNKNOWN"]
@@ -16,23 +16,30 @@ function read_conll(path, append::Bool, worddict::Dict, chardict::Dict, catdict:
       sent = Token[]
     else
       items = split(line, '\t')
-      word = replace(items[2], r"[0-9]", '0')
+      word = replace(items[2], r"[0-9]", '0') |> UTF8String
       wordid = begin
         w = lowercase(word)
         get(worddict, w, unkword)
-        #append ? get!(worddict, w, length(worddict)+1) : get(worddict, w, unkword)
       end
       chars = convert(Vector{Char}, word)
       charids = map(chars) do c
         append ? get!(chardict, c, length(chardict)+1) : chardict[c]
       end
-      cat = items[5]
-      catid = append ? get!(catdict, cat, length(catdict)+1) : catdict[cat]
-      token = Token(word, wordid, charids, catid)
+      tag = items[5]
+      tagid = append ? get!(tagdict, tag, length(tagdict)+1) : tagdict[tag]
+      token = Token(word, wordid, charids, tagid)
       push!(sent, token)
     end
   end
   doc
+end
+
+function read_wordlist(path)
+  d = Dict()
+  for l in open(readlines, path)
+    get!(d, chomp(l), length(d)+1)
+  end
+  d
 end
 
 function accuracy(golds::Vector{Int}, preds::Vector{Int})

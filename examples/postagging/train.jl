@@ -7,18 +7,15 @@ function maxrows(m::Matrix)
 end
 
 function train(path)
-  worddict = begin
-    d = Dict()
-    for l in open(readlines, "$(path)/words.lst")
-      get!(d, chomp(l), length(d)+1)
-    end
-    d
-  end
+  # data load
+  worddict = read_wordlist("$(path)/words.lst")
   chardict, catdict = Dict(), Dict()
   traindata = read_conll("$(path)/wsj_00-18.conll", true, worddict, chardict, catdict)
   println("#word: $(length(worddict)), #char: $(length(chardict)), #cat: $(length(catdict))")
   #traindata = traindata[1:5000]
   testdata = read_conll("$(path)/wsj_22-24.conll", false, worddict, chardict, catdict)
+
+  # model
   model = POSModel(path)
   opt = SGD(0.0075)
 
