@@ -1,8 +1,6 @@
 using Merlin
 using ArrayFire
 
-
-
 function train(path)
   worddict = begin
     d = Dict()
@@ -17,16 +15,19 @@ function train(path)
   traindata = traindata[1:5000]
   testdata = read_conll("$(path)/wsj_22-24.conll", false, worddict, chardict, catdict)
   model = POSModel(path)
+  println("model created...")
   opt = SGD(0.0075)
 
-  for iter = 1:10
+  for iter = 1:5
     println("iter: $(iter)")
     golds, preds = Token[], Int[]
     opt.learnrate = 0.0075 / iter
     loss = 0.0
+    outs = AFArray[]
 
     #for i in randperm(length(traindata))
     for i = 1:length(traindata)
+      #println(i)
       #i % 100 == 0 && println(i)
       toks = traindata[i]
       append!(golds, toks)
@@ -42,15 +43,21 @@ function train(path)
         px[toks[j].catid, j] = -1.0f0
       end
 
-      out = CrossEntropy(px)(out)
-      #loss += sum(out.value)
+      #out = CrossEntropy(px)(out)
+      #if isnan(s)
+      #  println(out.value)
+      #  println(s)
+      #  o = to_host(out.value)
+      #  println(sum(o))
+      #  error("")
+      #end
       #p = device_ptr(out.value)
       #host = pointer_to_array(p, size(out.value))
 
       #l = sum(sum(out.value, 2), 1)
       #loss += to_host(l)[1]
-      out.grad = ones(out.value)
-      backward!(out)
+      #out.grad = ones(out.value)
+      #backward!(out)
 
       #target = onehot(45, map(t -> t.catid, toks), 1.0f0)
 
@@ -69,8 +76,12 @@ function train(path)
       #var.grad = ones(var.value)
       #backward!(var)
       #update!(model, opt)
+      #loss += sum(to_host(out.value))
+      AF.sync()
       #AF.free(l)
     end
+    #o = sum(cat(outs, 1))
+    #loss += o
     println("loss: $(loss)")
     #acc = eval(golds, preds)
     #println("train acc: $(acc)")

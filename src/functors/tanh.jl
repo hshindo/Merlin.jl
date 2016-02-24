@@ -1,26 +1,19 @@
-"""
-### Tanh function
-#### params
-
-#### input
-n-d array
-
-#### output
-n-d array
-"""
 type Tanh <: Functor
 end
 
-function forward{T,N}(f::Tanh, x::Array{T,N})
-  y = similar(x)
-  for i = 1:length(x)
-    y[i] = tanh(x[i])
-  end
-  y, (gy, gx) -> gx == nothing || backward!(f, y, gy, gx)
+function forward!(f::Tanh, v::Variable)
+  v.value = tanh(v[1].value)
 end
 
-function backward!{T,N}(f::Tanh, y::Array{T,N}, gy::Array{T,N}, gx::Array{T,N})
+function backward!(f::Tanh, v::Variable)
+  gx = ∇tanh(v.value, v.grad)
+  addgrad!(v[1], gx)
+end
+
+function ∇tanh{T,N}(f::Tanh, y::Array{T,N}, gy::Array{T,N})
+  gx = similar(y)
   for i = 1:length(gx)
-    gx[i] += gy[i] * (T(1) - y[i] * y[i])
+    gx[i] = gy[i] * (T(1) - y[i] * y[i])
   end
+  gx
 end

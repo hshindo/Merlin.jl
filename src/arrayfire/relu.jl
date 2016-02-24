@@ -2,7 +2,17 @@ type ReLU <: Functor
 end
 
 function forward!(f::ReLU, v::Variable)
-  v.value = relu(v[1].value)
+  x = v[1].value
+  cond = x >= 0.0
+  v.value = cond .* x
+  v.work = cond
+end
+
+function backward!(f::ReLU, v::Variable)
+  cond = v.work
+  gx = v.grad .* cond
+  addgrad!(v[1], gx)
+  #addgrad!(v[1], zeros(v[1].value))
 end
 
 function relu{T,N}(x::Array{T,N})
@@ -14,13 +24,7 @@ function relu{T,N}(x::Array{T,N})
   y
 end
 
-#function relu{T,N}(x::CudaArray{T,N})
-#  y = alloc_gpu(T, size(x))
-#  CUDNN.activation_forward(CUDNN.ACTIVATION_RELU, x, y)
-#  y
-#end
-
-function backward!(f::ReLU, v::Variable)
+function backward2!(f::ReLU, v::Variable)
   gx = ∇relu(v[1].value, v.grad)
   addgrad!(v[1], gx)
 end

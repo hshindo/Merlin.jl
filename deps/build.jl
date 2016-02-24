@@ -1,11 +1,11 @@
-sources = ["crossentropy.cpp"]
+sources = ["maxpooling2d.cpp", "window2d.cpp"]
 
 compiler = "g++"
 
 @windows? begin
   flags    = ["-Wall", "-O3", "-shared"]
   libname = "libmerlin.dll"
-  cmd = `$compiler $flags -o $libname $sources -laf`
+  cmd = `$compiler $flags -o $libname $sources`
   println("Running $cmd")
   run(cmd)
 end : begin

@@ -58,10 +58,10 @@ function topsort(var::Variable)
   sorted
 end
 
-update!(opt::Optimizer, f::Functor) = () # for non-param functor
+optimize!(opt::Optimizer, f::Functor) = () # for non-param functor
 
-function update!(opt::Optimizer, fs::Vector)
+function optimize!(opt::Optimizer, fs::Vector)
   for f in fs
-    update!(opt, f)
+    optimize!(opt, f)
   end
 end

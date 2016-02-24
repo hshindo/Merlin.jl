@@ -5,7 +5,7 @@ abstract Optimizer
 export Functor
 export Optimizer
 
-using ArrayFire
+#using ArrayFire
 using Base.LinAlg.BLAS
 
 export Variable, forward!, backward!
@@ -16,8 +16,6 @@ export LogSoftmax
 export Lookup
 export MaxPooling
 export ReLU
-export Reshape
-export Sigmoid
 export Tanh
 export Window2D
 
@@ -41,12 +39,22 @@ include("native.jl")
 include("util.jl")
 include("variable.jl")
 
-for name in ["concat","crossentropy","linear","logsoftmax","lookup","maxpooling","relu","reshape","window2d"]
+for name in ["concat",
+             "crossentropy",
+             "linear",
+             "logsoftmax",
+             "lookup",
+             "maxpooling2d",
+             "relu",
+             "tanh",
+             "window2d"]
   include("functors/$(name).jl")
 end
 
-include("optimizers/adagrad.jl")
-include("optimizers/adam.jl")
-include("optimizers/sgd.jl")
+for name in ["adagrad",
+             "adam",
+             "sgd"]
+  include("optimizers/$(name).jl")
+end
 
 end
