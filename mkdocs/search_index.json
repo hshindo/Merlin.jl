@@ -62,7 +62,7 @@
         }, 
         {
             "location": "/functors/", 
-            "text": "Functors\n\n\n\ud83d\udd28 Concat\n\n\nConcatenates arrays along the specified dimension.\n\n\n\n\nConcat(dim)\n\n\n\n\n\ud83d\udc49 Example\n\n\nf = Concat(1)\nx1 = Variable(rand(Float32,10,5))\nx2 = Variable(rand(Float32,10,5))\ny = f(x1, x2)\n\n\n\n\n\ud83d\udd28 CrossEntropy\n\n\nComputes cross-entropy between a true distribution \np\n and the target distribution \nq\n.\n\nf(p,q)=-\\sum_{x}p(x)\\log q(x)\n\n\n\n\n\n\nCrossEntropy(p, x)\n\n\n\n\n\ud83d\udc49 Example\n\n\n\n\n\n\n\ud83d\udd28 Linear\n\n\nComputes linear transformation a.k.a. affine transformation.\n\nf(x) = Wx + b\n\nwhere \nW\n is a weight matrix, \nb\n is a bias vector.\n\n\n\n\nLinear(w, b)\n\n\nLinear{T}(::Type{T}, xlength::Int, ylength::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\n\n\n\n\n\ud83d\udd28 LogSoftmax\n\n\n\n\nf(x)=\\frac{\\exp(x_{i})}{\\sum_{j}^{n}\\exp(x_{j})},\\;i=1,\\ldots,n\n\n\n\n\n\ud83d\udc49 Example\n\n\n\n\n\n\n\ud83d\udd28 MaxPooling\n\n\n\n\nMaxPooling(dim)\n\n\n\n\n\ud83d\udc49 Example\n\n\n\n\n\n\n\ud83d\udd28 Window2D\n\n\n\n\nWindow(w1, w2, s1, s2, p1, p2)\n\n\nw1, w2: window sizes\n\n\ns1, s2: stride sizes\n\n\np1, p2: padding sizes\n\n\n\n\n\n\n\n\n\ud83d\udc49 Example\n\n\n\n\n\n\n\ud83d\udd28 ReLU\n\n\nRectifier linear unit.\n\n\n\n\nReLU()\n\n\n\n\n\ud83d\udc49 Example", 
+            "text": "Functors\n\n\n\ud83d\udd28 Concat\n\n\nConcatenates arrays along the specified dimension.\n\n\n\n\nConcat(dim)\n\n\n\n\n\ud83d\udc49 Example\n\n\nf = Concat(1)\nx1 = Variable(rand(Float32,10,5))\nx2 = Variable(rand(Float32,10,5))\ny = f(x1, x2)\n\n\n\n\n\ud83d\udd28 CrossEntropy\n\n\nComputes cross-entropy between a true distribution \np\n and the target distribution \nq\n.\n\nf(p,q)=-\\sum_{x}p(x)\\log q(x)\n\n\n\n\n\n\nCrossEntropy(p, q)\n\n\n\n\n\ud83d\udc49 Example\n\n\np = Variable(rand(Float32,10,5))\nq = Variable(rand(Float32,10,5))\nf = CrossEntropy(p, q)\ny = f(p, q)\n\n\n\n\n\ud83d\udd28 Linear\n\n\nComputes linear transformation a.k.a. affine transformation.\n\nf(x) = Wx + b\n\nwhere \nW\n is a weight matrix, \nb\n is a bias vector.\n\n\n\n\nLinear(w, b)\n\n\nLinear{T}(::Type{T}, insize::Int, outsize::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = Variable(rand(Float32,10,5))\nf = Linear(Float32, 10, 3)\ny = f(x)\n\n\n\n\n\ud83d\udd28 LogSoftmax\n\n\n\n\nf(x)=\\frac{\\exp(x_{i})}{\\sum_{j}^{n}\\exp(x_{j})},\\;i=1,\\ldots,n\n\n\n\n\n\n\nLogSoftmax()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = Variable(rand(Float32,10,5))\nf = LogSoftmax()\ny = f(x)\n\n\n\n\n\ud83d\udd28 Lookup\n\n\nLookup variables.\n\n\n\ud83d\udc49 Example\n\n\n\n\n\n\n\ud83d\udd28 Max\n\n\nComputes the maximum value of an array over the given dimensions.\n\n\n\n\nMax(dim)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = Variable(rand(Float32,10,5))\nf = Max(1)\ny = f(x)\n\n\n\n\n\ud83d\udd28 MaxPooling\n\n\n\n\nMaxPooling(w1, w2, s1, s2)\n\n\nw1, w2: window sizes\n\n\ns1, s2: stride sizes\n\n\n\n\n\n\n\n\n\ud83d\udc49 Example\n\n\n\n\n\n\n\ud83d\udd28 Window2D\n\n\n\n\nWindow(w1, w2, s1, s2, p1, p2)\n\n\nw1, w2: window sizes\n\n\ns1, s2: stride sizes\n\n\np1, p2: padding sizes\n\n\n\n\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = Variable(rand(Float32,10,5))\nf = Window2D(10, 2, 1, 1, 0, 0)\ny = f(x)\n\n\n\n\n\ud83d\udd28 ReLU\n\n\nRectifier linear unit.\n\n\n\n\nReLU()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = Variable(rand(Float32,10,5))\nf = ReLU()\ny = f(x)", 
             "title": "Functors"
         }, 
         {
@@ -82,41 +82,61 @@
         }, 
         {
             "location": "/functors/#crossentropy", 
-            "text": "Computes cross-entropy between a true distribution  p  and the target distribution  q . f(p,q)=-\\sum_{x}p(x)\\log q(x)    CrossEntropy(p, x)", 
+            "text": "Computes cross-entropy between a true distribution  p  and the target distribution  q . f(p,q)=-\\sum_{x}p(x)\\log q(x)    CrossEntropy(p, q)", 
             "title": "\ud83d\udd28 CrossEntropy"
         }, 
         {
             "location": "/functors/#example_1", 
-            "text": "", 
+            "text": "p = Variable(rand(Float32,10,5))\nq = Variable(rand(Float32,10,5))\nf = CrossEntropy(p, q)\ny = f(p, q)", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
             "location": "/functors/#linear", 
-            "text": "Computes linear transformation a.k.a. affine transformation. f(x) = Wx + b \nwhere  W  is a weight matrix,  b  is a bias vector.   Linear(w, b)  Linear{T}(::Type{T}, xlength::Int, ylength::Int)", 
+            "text": "Computes linear transformation a.k.a. affine transformation. f(x) = Wx + b \nwhere  W  is a weight matrix,  b  is a bias vector.   Linear(w, b)  Linear{T}(::Type{T}, insize::Int, outsize::Int)", 
             "title": "\ud83d\udd28 Linear"
         }, 
         {
             "location": "/functors/#example_2", 
-            "text": "", 
+            "text": "x = Variable(rand(Float32,10,5))\nf = Linear(Float32, 10, 3)\ny = f(x)", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
             "location": "/functors/#logsoftmax", 
-            "text": "f(x)=\\frac{\\exp(x_{i})}{\\sum_{j}^{n}\\exp(x_{j})},\\;i=1,\\ldots,n", 
+            "text": "f(x)=\\frac{\\exp(x_{i})}{\\sum_{j}^{n}\\exp(x_{j})},\\;i=1,\\ldots,n    LogSoftmax()", 
             "title": "\ud83d\udd28 LogSoftmax"
         }, 
         {
             "location": "/functors/#example_3", 
+            "text": "x = Variable(rand(Float32,10,5))\nf = LogSoftmax()\ny = f(x)", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#lookup", 
+            "text": "Lookup variables.", 
+            "title": "\ud83d\udd28 Lookup"
+        }, 
+        {
+            "location": "/functors/#example_4", 
             "text": "", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
+            "location": "/functors/#max", 
+            "text": "Computes the maximum value of an array over the given dimensions.   Max(dim)", 
+            "title": "\ud83d\udd28 Max"
+        }, 
+        {
+            "location": "/functors/#example_5", 
+            "text": "x = Variable(rand(Float32,10,5))\nf = Max(1)\ny = f(x)", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
             "location": "/functors/#maxpooling", 
-            "text": "MaxPooling(dim)", 
+            "text": "MaxPooling(w1, w2, s1, s2)  w1, w2: window sizes  s1, s2: stride sizes", 
             "title": "\ud83d\udd28 MaxPooling"
         }, 
         {
-            "location": "/functors/#example_4", 
+            "location": "/functors/#example_6", 
             "text": "", 
             "title": "\ud83d\udc49 Example"
         }, 
@@ -126,8 +146,8 @@
             "title": "\ud83d\udd28 Window2D"
         }, 
         {
-            "location": "/functors/#example_5", 
-            "text": "", 
+            "location": "/functors/#example_7", 
+            "text": "x = Variable(rand(Float32,10,5))\nf = Window2D(10, 2, 1, 1, 0, 0)\ny = f(x)", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
@@ -136,8 +156,8 @@
             "title": "\ud83d\udd28 ReLU"
         }, 
         {
-            "location": "/functors/#example_6", 
-            "text": "", 
+            "location": "/functors/#example_8", 
+            "text": "x = Variable(rand(Float32,10,5))\nf = ReLU()\ny = f(x)", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
