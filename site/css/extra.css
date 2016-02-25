@@ -1,0 +1,35 @@
+h1 {
+  color: #444;
+  font-size: 28px;
+  line-height: 1.6em;
+  padding: 0 0 12px 12px;
+  margin-bottom: 10px;
+  border-left: 4px solid #444;
+  border-bottom: 1px solid #888;
+}
+
+h2 {
+	font-size: 24px;
+	border-bottom:1px dashed#A0522D;
+  padding-bottom: 10px;
+  padding-top: 40px;
+}
+
+h3 {
+	font-size: 18px;
+}
+
+p {
+  font-size: 16px;
+}
+
+li {
+	margin: 5px;
+}
+li code {
+  font-size: 16px;
+}
+
+.language-julia {
+  font-size: 14px;
+}
