@@ -2,78 +2,163 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Merlin.jl\n\n\nMerlin.jl is a flexible neural network library in Julia language.\n\n\nInstall\n\n\njulia\n \nPkg\n.\nclone\n(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\n\nRequirements\n\n\n\n\ngcc\n\n\ncuDNN v4 (if you use CUDA GPU)", 
+            "text": "Merlin.jl\n\n\nMerlin.jl\n is a neural network library in \nJulia\n.\n\n\nIt aims to provide a fast, flexible and concise neural network library for machine learning.\n\n\nMerlin.jl uses our customized \narrayfire\n library for array computation\n on CPU / GPU / OpenCL backends through \nArrayFire.jl\n.\n\n\n\u2605 Install\n\n\njulia\n Pkg.clone(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\u2605 Optional Requirements\n\n\n\n\ncuDNN\n v4 (for CUDA GPU)", 
             "title": "Home"
         }, 
         {
             "location": "/#merlinjl", 
-            "text": "Merlin.jl is a flexible neural network library in Julia language.", 
+            "text": "Merlin.jl  is a neural network library in  Julia .  It aims to provide a fast, flexible and concise neural network library for machine learning.  Merlin.jl uses our customized  arrayfire  library for array computation\n on CPU / GPU / OpenCL backends through  ArrayFire.jl .", 
             "title": "Merlin.jl"
         }, 
         {
             "location": "/#install", 
-            "text": "julia   Pkg . clone ( https://github.com/hshindo/Merlin.jl.git )", 
-            "title": "Install"
+            "text": "julia  Pkg.clone( https://github.com/hshindo/Merlin.jl.git )", 
+            "title": "\u2605 Install"
         }, 
         {
-            "location": "/#requirements", 
-            "text": "gcc  cuDNN v4 (if you use CUDA GPU)", 
-            "title": "Requirements"
+            "location": "/#optional-requirements", 
+            "text": "cuDNN  v4 (for CUDA GPU)", 
+            "title": "\u2605 Optional Requirements"
         }, 
         {
             "location": "/overview/", 
-            "text": "Overview\n\n\nBasic types:\n\n\n\n\nVar\n\n\nFunctor\n\n\nNode\n\n\n\n\nVar\n\n\nVar{T}\n is a type of variable.\n\n\nx\n \n=\n \nVar\n(\nFloat32\n,\n \n10\n,\n \n5\n)\n\n\n\n\n\n\nFunctor\n\n\nFunctor\n is an abstract type of functors.\nA functor has two functions: \nforward\n and \nbackward\n.\n\n\nx\n \n=\n \nVar\n(\nFloat32\n,\n \n10\n,\n \n5\n)\n\n\nf\n \n=\n \nReLU\n()\n\n\ny\n \n=\n \nforward\n!\n(\nf\n,\n \nx\n)\n\n\ny\n.\ngrad\n \n=\n \n...\n\n\nbackward\n!\n(\nf\n)\n\n\n\n\n\n\nNode\n\n\nNode\n is used for constructing a computation graph of functors.\n\n\nn\n \n=\n \nNode\n(\nf\n)", 
+            "text": "Overview\n\n\nMerlin.jl provides many primitive functions.\n\n\nEvery computation is preserved.\n\n\n\u2605 Decoding\n\n\nv = Variable()\n\n\n\n\n\u2605 Training\n\n\nopt = SGD(0.001)\n\nfor i = 1:10\n  v = Variable()\n  y = v |\n f1 |\n f2\n  y.grad = ones()\n  backward!(y)\n  update!(opt, y)\nend", 
             "title": "Overview"
         }, 
         {
             "location": "/overview/#overview", 
-            "text": "Basic types:   Var  Functor  Node", 
+            "text": "Merlin.jl provides many primitive functions.  Every computation is preserved.", 
             "title": "Overview"
         }, 
         {
-            "location": "/overview/#var", 
-            "text": "Var{T}  is a type of variable.  x   =   Var ( Float32 ,   10 ,   5 )", 
-            "title": "Var"
+            "location": "/overview/#decoding", 
+            "text": "v = Variable()", 
+            "title": "\u2605 Decoding"
         }, 
         {
-            "location": "/overview/#functor", 
-            "text": "Functor  is an abstract type of functors.\nA functor has two functions:  forward  and  backward .  x   =   Var ( Float32 ,   10 ,   5 )  f   =   ReLU ()  y   =   forward ! ( f ,   x )  y . grad   =   ...  backward ! ( f )", 
-            "title": "Functor"
+            "location": "/overview/#training", 
+            "text": "opt = SGD(0.001)\n\nfor i = 1:10\n  v = Variable()\n  y = v |  f1 |  f2\n  y.grad = ones()\n  backward!(y)\n  update!(opt, y)\nend", 
+            "title": "\u2605 Training"
         }, 
         {
-            "location": "/overview/#node", 
-            "text": "Node  is used for constructing a computation graph of functors.  n   =   Node ( f )", 
-            "title": "Node"
+            "location": "/types/", 
+            "text": "Types\n\n\nThere are three basic types:\n\n\n\n\nVariable\n\n\nFunctor\n\n\nOptimizer\n\n\n\n\n\u2605 Variable\n\n\nVariable\n has \nvalue\n and \ngrad\n.\n\n\nx = Variable(AFArray(Float32,10,5))\nx.value\nx.grad\n\n\n\n\n\u2605 Functor\n\n\nFunctor\n is an abstract type of functors.", 
+            "title": "Types"
         }, 
         {
-            "location": "/functors/concat/", 
-            "text": "Concat\n\n\nConcatenates n-d arrays along the specified dimension.\n\n\nParams\n\n\n\n\ndim::Int\ndimension\n\n\n\n\nInput\n\n\nn-d arrays. The number of dimensions of the input arrays must be the same.\n\n\nOutput\n\n\nconcatenated n-d array\n\n\nExample\n\n\nf\n \n=\n \nConcat\n(\n1\n)\n\n\nx\n \n=\n \nVar\n()\n\n\ny\n \n=\n \nf\n(\nx\n)", 
-            "title": "Concat"
+            "location": "/types/#types", 
+            "text": "There are three basic types:   Variable  Functor  Optimizer", 
+            "title": "Types"
         }, 
         {
-            "location": "/functors/crossentropy/", 
-            "text": "CrossEntropy\n\n\nComputes cross-entropy between a true distribution math:$p$ and the specified distribution math:$q$, that is,\n$\\mathrm{H}(p,q)=-\\sum_{x}p(x)\\log q(x)$\n\n\nParams\n\n\n\n\np\n\n\n\n\nInput\n\n\n\n\nn-d array\n\n\n\n\nOutput\n\n\n\n\nn-d array\n\n\n\n\nExample", 
-            "title": "CrossEntropy"
+            "location": "/types/#variable", 
+            "text": "Variable  has  value  and  grad .  x = Variable(AFArray(Float32,10,5))\nx.value\nx.grad", 
+            "title": "\u2605 Variable"
         }, 
         {
-            "location": "/functors/linear/", 
-            "text": "Linear\n\n\n$y = Wx + b$\n\n\nParams\n\n\n\n\nw\n\n\nb\n\n\n\n\nInput\n\n\nn-d array\n\n\nOutput\n\n\nn-d array\n\n\nExample\n\n\nf\n \n=\n \nLinear\n()\n\n\nx\n \n=\n \nVar\n()\n\n\ny\n \n=\n \nf\n(\nx\n)", 
-            "title": "Linear"
+            "location": "/types/#functor", 
+            "text": "Functor  is an abstract type of functors.", 
+            "title": "\u2605 Functor"
         }, 
         {
-            "location": "/functors/relu/", 
-            "text": "ReLU\n\n\nReLU\n is a rectifier linear unit.\n\n\nParams\n\n\nInput\n\n\nn-d array\n\n\nOutput\n\n\nn-d array\n\n\nExample", 
-            "title": "ReLU"
+            "location": "/functors/", 
+            "text": "Functors\n\n\n\ud83d\udd28 Concat\n\n\nConcatenates arrays along the specified dimension.\n\n\n\n\nConcat(dim)\n\n\n\n\n\ud83d\udc49 Example\n\n\nf = Concat(1)\nx1 = Variable(rand(Float32,10,5))\nx2 = Variable(rand(Float32,10,5))\ny = f(x1, x2)\n\n\n\n\n\ud83d\udd28 CrossEntropy\n\n\nComputes cross-entropy between a true distribution \np\n and the target distribution \nq\n.\n\nf(p,q)=-\\sum_{x}p(x)\\log q(x)\n\n\n\n\n\n\nCrossEntropy(p, x)\n\n\n\n\n\ud83d\udc49 Example\n\n\n\n\n\n\n\ud83d\udd28 Linear\n\n\nComputes linear transformation a.k.a. affine transformation.\n\nf(x) = Wx + b\n\nwhere \nW\n is a weight matrix, \nb\n is a bias vector.\n\n\n\n\nLinear(w, b)\n\n\nLinear{T}(::Type{T}, xlength::Int, ylength::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\n\n\n\n\n\ud83d\udd28 LogSoftmax\n\n\n\n\nf(x)=\\frac{\\exp(x_{i})}{\\sum_{j}^{n}\\exp(x_{j})},\\;i=1,\\ldots,n\n\n\n\n\n\ud83d\udc49 Example\n\n\n\n\n\n\n\ud83d\udd28 MaxPooling\n\n\n\n\nMaxPooling(dim)\n\n\n\n\n\ud83d\udc49 Example\n\n\n\n\n\n\n\ud83d\udd28 Window2D\n\n\n\n\nWindow(w1, w2, s1, s2, p1, p2)\n\n\nw1, w2: window sizes\n\n\ns1, s2: stride sizes\n\n\np1, p2: padding sizes\n\n\n\n\n\n\n\n\n\ud83d\udc49 Example\n\n\n\n\n\n\n\ud83d\udd28 ReLU\n\n\nRectifier linear unit.\n\n\n\n\nReLU()\n\n\n\n\n\ud83d\udc49 Example", 
+            "title": "Functors"
+        }, 
+        {
+            "location": "/functors/#functors", 
+            "text": "", 
+            "title": "Functors"
+        }, 
+        {
+            "location": "/functors/#concat", 
+            "text": "Concatenates arrays along the specified dimension.   Concat(dim)", 
+            "title": "\ud83d\udd28 Concat"
+        }, 
+        {
+            "location": "/functors/#example", 
+            "text": "f = Concat(1)\nx1 = Variable(rand(Float32,10,5))\nx2 = Variable(rand(Float32,10,5))\ny = f(x1, x2)", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#crossentropy", 
+            "text": "Computes cross-entropy between a true distribution  p  and the target distribution  q . f(p,q)=-\\sum_{x}p(x)\\log q(x)    CrossEntropy(p, x)", 
+            "title": "\ud83d\udd28 CrossEntropy"
+        }, 
+        {
+            "location": "/functors/#example_1", 
+            "text": "", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#linear", 
+            "text": "Computes linear transformation a.k.a. affine transformation. f(x) = Wx + b \nwhere  W  is a weight matrix,  b  is a bias vector.   Linear(w, b)  Linear{T}(::Type{T}, xlength::Int, ylength::Int)", 
+            "title": "\ud83d\udd28 Linear"
+        }, 
+        {
+            "location": "/functors/#example_2", 
+            "text": "", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#logsoftmax", 
+            "text": "f(x)=\\frac{\\exp(x_{i})}{\\sum_{j}^{n}\\exp(x_{j})},\\;i=1,\\ldots,n", 
+            "title": "\ud83d\udd28 LogSoftmax"
+        }, 
+        {
+            "location": "/functors/#example_3", 
+            "text": "", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#maxpooling", 
+            "text": "MaxPooling(dim)", 
+            "title": "\ud83d\udd28 MaxPooling"
+        }, 
+        {
+            "location": "/functors/#example_4", 
+            "text": "", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#window2d", 
+            "text": "Window(w1, w2, s1, s2, p1, p2)  w1, w2: window sizes  s1, s2: stride sizes  p1, p2: padding sizes", 
+            "title": "\ud83d\udd28 Window2D"
+        }, 
+        {
+            "location": "/functors/#example_5", 
+            "text": "", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#relu", 
+            "text": "Rectifier linear unit.   ReLU()", 
+            "title": "\ud83d\udd28 ReLU"
+        }, 
+        {
+            "location": "/functors/#example_6", 
+            "text": "", 
+            "title": "\ud83d\udc49 Example"
         }, 
         {
             "location": "/examples/pos-tagging/", 
-            "text": "POS-Tagging\n\n\nIn this tutorial, we explain a pos-tagger based on neural network.\n\n\n[Santos] dosSantos and Zadrozny,\n  \nLearning Character-level Representations for Part-of-Speech Tagging\n,\n  In Proceedings of ICML, 2014.\n\n\nPreparing the Data\n\n\nCoNLL-format Penn Treebank\n\n\nDefining the Network Architecture\n\n\nThe neural pos-tagger consists of three types of layers:\n\n\nFirst, we define a Token type:\n\n\n  \ntype\n Token\n\n    \ndicts\n::\nTuple\n{\nDict\n,\n \nDict\n,\n \nDict\n}\n\n    \nwordid\n::\nInt\n\n    \ncharids\n::\nVector\n{\nInt\n}\n\n    \ncatid\n::\nInt\n\n  \nend\n\n\n\n\n\n\n  \nusing\n \nMerlin\n\n\n  \ntype\n LayerSet\n\n    \nwordembed\n::\nLookup\n\n    \ncharseq\n::\nSequence\n\n    \nwordseq\n::\nSequence\n\n  \nend\n\n\n\n\n\n\nThen we need to define a forward function:\n\n\n```julia\n  function forward(ls::LayerSet, data::Vector{Token})\n\n\nend\n```julia", 
+            "text": "POS-Tagging\n\n\nIn this tutorial, we explain a pos-tagger based on neural network.\n\n\n[Santos] dosSantos and Zadrozny,\n  \nLearning Character-level Representations for Part-of-Speech Tagging\n,\n  In Proceedings of ICML, 2014.\n\n\nPreparing the Data\n\n\nCoNLL-format Penn Treebank\n\n\nDefining the Network Architecture\n\n\nThe neural pos-tagger consists of three types of layers:\n\n\nFirst, we define a Token type:\n\n\n  type Token\n    dicts::Tuple{Dict, Dict, Dict}\n    wordid::Int\n    charids::Vector{Int}\n    catid::Int\n  end\n\n\n\n\n  using Merlin\n\n  type LayerSet\n    wordembed::Lookup\n    charseq::Sequence\n    wordseq::Sequence\n  end\n\n\n\n\nThen we need to define a forward function:\n\n\n```julia\n  function forward(ls::LayerSet, data::Vector{Token})\n\n\nend\n```julia", 
             "title": "POS-Tagging"
         }, 
         {
             "location": "/examples/pos-tagging/#pos-tagging", 
-            "text": "In this tutorial, we explain a pos-tagger based on neural network.  [Santos] dosSantos and Zadrozny,\n   Learning Character-level Representations for Part-of-Speech Tagging ,\n  In Proceedings of ICML, 2014.  Preparing the Data  CoNLL-format Penn Treebank  Defining the Network Architecture  The neural pos-tagger consists of three types of layers:  First, we define a Token type:     type  Token \n     dicts :: Tuple { Dict ,   Dict ,   Dict } \n     wordid :: Int \n     charids :: Vector { Int } \n     catid :: Int \n   end      using   Merlin \n\n   type  LayerSet \n     wordembed :: Lookup \n     charseq :: Sequence \n     wordseq :: Sequence \n   end   Then we need to define a forward function:  ```julia\n  function forward(ls::LayerSet, data::Vector{Token})  end\n```julia", 
+            "text": "In this tutorial, we explain a pos-tagger based on neural network.  [Santos] dosSantos and Zadrozny,\n   Learning Character-level Representations for Part-of-Speech Tagging ,\n  In Proceedings of ICML, 2014.", 
             "title": "POS-Tagging"
+        }, 
+        {
+            "location": "/examples/pos-tagging/#preparing-the-data", 
+            "text": "CoNLL-format Penn Treebank", 
+            "title": "Preparing the Data"
+        }, 
+        {
+            "location": "/examples/pos-tagging/#defining-the-network-architecture", 
+            "text": "The neural pos-tagger consists of three types of layers:  First, we define a Token type:    type Token\n    dicts::Tuple{Dict, Dict, Dict}\n    wordid::Int\n    charids::Vector{Int}\n    catid::Int\n  end    using Merlin\n\n  type LayerSet\n    wordembed::Lookup\n    charseq::Sequence\n    wordseq::Sequence\n  end  Then we need to define a forward function:  ```julia\n  function forward(ls::LayerSet, data::Vector{Token})  end\n```julia", 
+            "title": "Defining the Network Architecture"
         }
     ]
 }

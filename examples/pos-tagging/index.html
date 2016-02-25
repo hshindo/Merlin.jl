@@ -11,11 +11,11 @@
 
 	<title>POS-Tagging - Merlin.jl</title>
 
-        <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../../css/bootstrap-3.0.3.min.css" rel="stylesheet">
         <link href="../../css/font-awesome-4.0.3.css" rel="stylesheet">
-        <link href="../../css/base.css" rel="stylesheet">
         <link rel="stylesheet" href="../../css/highlight.css">
-        <link href="../../css/github.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link href="../../css/extra.css" rel="stylesheet">
 
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
@@ -33,7 +33,6 @@
 
         <!-- Collapsed navigation -->
         <div class="navbar-header">
-            
             <!-- Expander button -->
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                 <span class="sr-only">Toggle navigation</span>
@@ -41,7 +40,6 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            
 
             <!-- Main title -->
             <a class="navbar-brand" href="../..">Merlin.jl</a>
@@ -49,100 +47,69 @@
 
         <!-- Expanded navigation -->
         <div class="navbar-collapse collapse">
+            <!-- Main navigation -->
+            <ul class="nav navbar-nav">
             
-                <!-- Main navigation -->
-                <ul class="nav navbar-nav">
-                
-                
-                    <li >
-                        <a href="../..">Home</a>
-                    </li>
-                
-                
-                
-                    <li >
-                        <a href="../../overview/">Overview</a>
-                    </li>
-                
-                
-                
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Functors <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                        
-                            
-<li >
-    <a href="../../functors/concat/">Concat</a>
-</li>
-
-                        
-                            
-<li >
-    <a href="../../functors/crossentropy/">CrossEntropy</a>
-</li>
-
-                        
-                            
-<li >
-    <a href="../../functors/linear/">Linear</a>
-</li>
-
-                        
-                            
-<li >
-    <a href="../../functors/relu/">ReLU</a>
-</li>
-
-                        
-                        </ul>
-                    </li>
-                
-                
-                
-                    <li class="dropdown active">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Examples <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                        
-                            
-<li class="active">
-    <a href="./">POS-Tagging</a>
-</li>
-
-                        
-                        </ul>
-                    </li>
-                
-                
-                </ul>
             
+                <li >
+                    <a href="../..">Home</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="../../overview/">Overview</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="../../types/">Types</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="../../functors/">Functors</a>
+                </li>
+            
+            
+            
+                <li class="dropdown active">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Examples <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    
+                        <li class="active">
+                            <a href="./">POS-Tagging</a>
+                        </li>
+                    
+                    </ul>
+                </li>
+            
+            
+            </ul>
 
+            <!-- Search, Navigation and Repo links -->
             <ul class="nav navbar-nav navbar-right">
-                <li>
-                    <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
-                        <i class="fa fa-search"></i> Search
+                <li >
+                    <a rel="next" href="../../functors/">
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li class="disabled">
+                    <a rel="prev" >
+                        Next <i class="fa fa-arrow-right"></i>
                     </a>
                 </li>
                 
-                    <li >
-                        <a rel="next" href="../../functors/relu/">
-                            <i class="fa fa-arrow-left"></i> Previous
-                        </a>
-                    </li>
-                    <li class="disabled">
-                        <a rel="prev" >
-                            Next <i class="fa fa-arrow-right"></i>
-                        </a>
-                    </li>
-                
-                
-                    <li>
-                        <a href="https://github.com/hshindo/Merlin.jl">
-                            
-                                <i class="fa fa-github"></i>
-                            
-                            GitHub
-                        </a>
-                    </li>
+                <li>
+                    <a href="https://github.com/hshindo/Merlin.jl">
+                        
+                            <i class="fa fa-github"></i>
+                        
+                        GitHub
+                    </a>
+                </li>
                 
             </ul>
         </div>
@@ -150,8 +117,7 @@
 </div>
 
         <div class="container">
-            
-                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+            <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
     
         <li class="main active"><a href="#pos-tagging">POS-Tagging</a></li>
@@ -163,35 +129,33 @@
     
     </ul>
 </div></div>
-                <div class="col-md-9" role="main">
+            <div class="col-md-9" role="main">
 
-<h2 id="pos-tagging">POS-Tagging</h2>
+<h1 id="pos-tagging">POS-Tagging</h1>
 <p>In this tutorial, we explain a pos-tagger based on neural network.</p>
 <p>[Santos] dosSantos and Zadrozny,
   <em>Learning Character-level Representations for Part-of-Speech Tagging</em>,
   In Proceedings of ICML, 2014.</p>
-<h3 id="preparing-the-data">Preparing the Data</h3>
+<h2 id="preparing-the-data">Preparing the Data</h2>
 <p>CoNLL-format Penn Treebank</p>
-<h3 id="defining-the-network-architecture">Defining the Network Architecture</h3>
+<h2 id="defining-the-network-architecture">Defining the Network Architecture</h2>
 <p>The neural pos-tagger consists of three types of layers:</p>
 <p>First, we define a Token type:</p>
-<div class="codehilite"><pre>  <span class="k">type</span><span class="nc"> Token</span>
-    <span class="n">dicts</span><span class="p">::</span><span class="n">Tuple</span><span class="p">{</span><span class="n">Dict</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Dict</span><span class="p">}</span>
-    <span class="n">wordid</span><span class="p">::</span><span class="kt">Int</span>
-    <span class="n">charids</span><span class="p">::</span><span class="n">Vector</span><span class="p">{</span><span class="kt">Int</span><span class="p">}</span>
-    <span class="n">catid</span><span class="p">::</span><span class="kt">Int</span>
-  <span class="k">end</span>
-</pre></div>
+<pre class="codehilite"><code class="language-julia">  type Token
+    dicts::Tuple{Dict, Dict, Dict}
+    wordid::Int
+    charids::Vector{Int}
+    catid::Int
+  end</code></pre>
 
 
-<div class="codehilite"><pre>  <span class="k">using</span> <span class="n">Merlin</span>
+<pre class="codehilite"><code class="language-julia">  using Merlin
 
-  <span class="k">type</span><span class="nc"> LayerSet</span>
-    <span class="n">wordembed</span><span class="p">::</span><span class="n">Lookup</span>
-    <span class="n">charseq</span><span class="p">::</span><span class="n">Sequence</span>
-    <span class="n">wordseq</span><span class="p">::</span><span class="n">Sequence</span>
-  <span class="k">end</span>
-</pre></div>
+  type LayerSet
+    wordembed::Lookup
+    charseq::Sequence
+    wordseq::Sequence
+  end</code></pre>
 
 
 <p>Then we need to define a forward function:</p>
@@ -199,46 +163,19 @@
   function forward(ls::LayerSet, data::Vector{Token})</p>
 <p>end
 ```julia</p></div>
-            
         </div>
 
-        <footer class="col-md-12">
-            <hr>
-            
-            <p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
-        </footer>
+	<footer class="col-md-12">
+		<hr>
+		
+		<p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+	</footer>
+
 
         <script src="../../js/jquery-1.10.2.min.js"></script>
         <script src="../../js/bootstrap-3.0.3.min.js"></script>
         <script src="../../js/highlight.pack.js"></script>
-        <script>var base_url = '../..';</script>
-        <script data-main="../../mkdocs/js/search.js" src="../../mkdocs/js/require.js"></script>
         <script src="../../js/base.js"></script>
-
-        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                        <h4 class="modal-title" id="exampleModalLabel">Search</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>
-                            From here you can search these documents. Enter
-                            your search terms below.
-                        </p>
-                        <form role="form">
-                            <div class="form-group">
-                                <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query">
-                            </div>
-                        </form>
-                        <div id="mkdocs-search-results"></div>
-                    </div>
-                    <div class="modal-footer">
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     </body>
 </html>
