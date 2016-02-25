@@ -9,7 +9,7 @@
         
         <link rel="shortcut icon" href="../img/favicon.ico">
 
-	<title>Overview - Merlin.jl</title>
+	<title>Types - Merlin.jl</title>
 
         <link href="../css/bootstrap-3.0.3.min.css" rel="stylesheet">
         <link href="../css/font-awesome-4.0.3.css" rel="stylesheet">
@@ -57,14 +57,14 @@
             
             
             
-                <li class="active">
-                    <a href="./">Overview</a>
+                <li >
+                    <a href="../overview/">Overview</a>
                 </li>
             
             
             
-                <li >
-                    <a href="../types/">Types</a>
+                <li class="active">
+                    <a href="./">Types</a>
                 </li>
             
             
@@ -92,12 +92,12 @@
             <!-- Search, Navigation and Repo links -->
             <ul class="nav navbar-nav navbar-right">
                 <li >
-                    <a rel="next" href="..">
+                    <a rel="next" href="../overview/">
                         <i class="fa fa-arrow-left"></i> Previous
                     </a>
                 </li>
                 <li >
-                    <a rel="prev" href="../types/">
+                    <a rel="prev" href="../functors/">
                         Next <i class="fa fa-arrow-right"></i>
                     </a>
                 </li>
@@ -120,34 +120,33 @@
             <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
     
-        <li class="main active"><a href="#overview">Overview</a></li>
+        <li class="main active"><a href="#types">Types</a></li>
         
-            <li><a href="#decoding">★ Decoding</a></li>
+            <li><a href="#variable">★ Variable</a></li>
         
-            <li><a href="#training">★ Training</a></li>
+            <li><a href="#functor">★ Functor</a></li>
         
     
     </ul>
 </div></div>
             <div class="col-md-9" role="main">
 
-<h1 id="overview">Overview</h1>
-<p>Merlin.jl provides many primitive functions.</p>
-<p>Every computation is preserved.</p>
-<h2 id="decoding">★ Decoding</h2>
-<pre class="codehilite"><code class="language-julia">v = Variable()</code></pre>
+<h1 id="types">Types</h1>
+<p>There are three basic types:</p>
+<ul>
+<li><code>Variable</code></li>
+<li><code>Functor</code></li>
+<li><code>Optimizer</code></li>
+</ul>
+<h2 id="variable">★ Variable</h2>
+<p><code>Variable</code> has <code>value</code> and <code>grad</code>.</p>
+<pre class="codehilite"><code class="language-julia">x = Variable(AFArray(Float32,10,5))
+x.value
+x.grad</code></pre>
 
 
-<h2 id="training">★ Training</h2>
-<pre class="codehilite"><code class="language-julia">opt = SGD(0.001)
-
-for i = 1:10
-  v = Variable()
-  y = v |&gt; f1 |&gt; f2
-  y.grad = ones()
-  backward!(y)
-  update!(opt, y)
-end</code></pre></div>
+<h2 id="functor">★ Functor</h2>
+<p><code>Functor</code> is an abstract type of functors.</p></div>
         </div>
 
 	<footer class="col-md-12">

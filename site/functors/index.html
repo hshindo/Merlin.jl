@@ -9,7 +9,7 @@
         
         <link rel="shortcut icon" href="../img/favicon.ico">
 
-	<title>Overview - Merlin.jl</title>
+	<title>Functors - Merlin.jl</title>
 
         <link href="../css/bootstrap-3.0.3.min.css" rel="stylesheet">
         <link href="../css/font-awesome-4.0.3.css" rel="stylesheet">
@@ -57,8 +57,8 @@
             
             
             
-                <li class="active">
-                    <a href="./">Overview</a>
+                <li >
+                    <a href="../overview/">Overview</a>
                 </li>
             
             
@@ -69,8 +69,8 @@
             
             
             
-                <li >
-                    <a href="../functors/">Functors</a>
+                <li class="active">
+                    <a href="./">Functors</a>
                 </li>
             
             
@@ -92,12 +92,12 @@
             <!-- Search, Navigation and Repo links -->
             <ul class="nav navbar-nav navbar-right">
                 <li >
-                    <a rel="next" href="..">
+                    <a rel="next" href="../types/">
                         <i class="fa fa-arrow-left"></i> Previous
                     </a>
                 </li>
                 <li >
-                    <a rel="prev" href="../types/">
+                    <a rel="prev" href="../examples/pos-tagging/">
                         Next <i class="fa fa-arrow-right"></i>
                     </a>
                 </li>
@@ -120,34 +120,99 @@
             <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
     
-        <li class="main active"><a href="#overview">Overview</a></li>
+        <li class="main active"><a href="#functors">Functors</a></li>
         
-            <li><a href="#decoding">★ Decoding</a></li>
+            <li><a href="#concat">🔨 Concat</a></li>
         
-            <li><a href="#training">★ Training</a></li>
+            <li><a href="#crossentropy">🔨 CrossEntropy</a></li>
+        
+            <li><a href="#linear">🔨 Linear</a></li>
+        
+            <li><a href="#logsoftmax">🔨 LogSoftmax</a></li>
+        
+            <li><a href="#maxpooling">🔨 MaxPooling</a></li>
+        
+            <li><a href="#window2d">🔨 Window2D</a></li>
+        
+            <li><a href="#relu">🔨 ReLU</a></li>
         
     
     </ul>
 </div></div>
             <div class="col-md-9" role="main">
 
-<h1 id="overview">Overview</h1>
-<p>Merlin.jl provides many primitive functions.</p>
-<p>Every computation is preserved.</p>
-<h2 id="decoding">★ Decoding</h2>
-<pre class="codehilite"><code class="language-julia">v = Variable()</code></pre>
+<h1 id="functors">Functors</h1>
+<h2 id="concat">🔨 Concat</h2>
+<p>Concatenates arrays along the specified dimension.</p>
+<ul>
+<li><code>Concat(dim)</code></li>
+</ul>
+<h3 id="example">👉 Example</h3>
+<pre class="codehilite"><code class="language-julia">f = Concat(1)
+x1 = Variable(rand(Float32,10,5))
+x2 = Variable(rand(Float32,10,5))
+y = f(x1, x2)</code></pre>
 
 
-<h2 id="training">★ Training</h2>
-<pre class="codehilite"><code class="language-julia">opt = SGD(0.001)
+<h2 id="crossentropy">🔨 CrossEntropy</h2>
+<p>Computes cross-entropy between a true distribution <script type="math/tex">p</script> and the target distribution <script type="math/tex">q</script>.
+<script type="math/tex; mode=display">f(p,q)=-\sum_{x}p(x)\log q(x)</script>
+</p>
+<ul>
+<li><code>CrossEntropy(p, x)</code></li>
+</ul>
+<h3 id="example_1">👉 Example</h3>
+<pre class="codehilite"><code class="language-julia"></code></pre>
 
-for i = 1:10
-  v = Variable()
-  y = v |&gt; f1 |&gt; f2
-  y.grad = ones()
-  backward!(y)
-  update!(opt, y)
-end</code></pre></div>
+
+<h2 id="linear">🔨 Linear</h2>
+<p>Computes linear transformation a.k.a. affine transformation.
+<script type="math/tex; mode=display">f(x) = Wx + b</script>
+where <script type="math/tex">W</script> is a weight matrix, <script type="math/tex">b</script> is a bias vector.</p>
+<ul>
+<li><code>Linear(w, b)</code></li>
+<li><code>Linear{T}(::Type{T}, xlength::Int, ylength::Int)</code></li>
+</ul>
+<h3 id="example_2">👉 Example</h3>
+<pre class="codehilite"><code class="language-julia"></code></pre>
+
+
+<h2 id="logsoftmax">🔨 LogSoftmax</h2>
+<p>
+<script type="math/tex; mode=display">f(x)=\frac{\exp(x_{i})}{\sum_{j}^{n}\exp(x_{j})},\;i=1,\ldots,n</script>
+</p>
+<h3 id="example_3">👉 Example</h3>
+<pre class="codehilite"><code class="language-julia"></code></pre>
+
+
+<h2 id="maxpooling">🔨 MaxPooling</h2>
+<ul>
+<li><code>MaxPooling(dim)</code></li>
+</ul>
+<h3 id="example_4">👉 Example</h3>
+<pre class="codehilite"><code class="language-julia"></code></pre>
+
+
+<h2 id="window2d">🔨 Window2D</h2>
+<ul>
+<li><code>Window(w1, w2, s1, s2, p1, p2)</code><ul>
+<li>w1, w2: window sizes</li>
+<li>s1, s2: stride sizes</li>
+<li>p1, p2: padding sizes</li>
+</ul>
+</li>
+</ul>
+<h3 id="example_5">👉 Example</h3>
+<pre class="codehilite"><code class="language-julia"></code></pre>
+
+
+<h2 id="relu">🔨 ReLU</h2>
+<p>Rectifier linear unit.</p>
+<ul>
+<li><code>ReLU()</code></li>
+</ul>
+<h3 id="example_6">👉 Example</h3>
+<pre class="codehilite"><code class="language-julia"></code></pre></div>
         </div>
 
 	<footer class="col-md-12">
