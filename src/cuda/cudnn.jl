@@ -23,7 +23,7 @@ begin
 end : begin
   const libcudnn = Libdl.find_library(["libcudnn"])
 end)
-# !isempty(libcudnn) || error("CUDNN library cannot be found.")
+!isempty(libcudnn) || error("CUDNN library cannot be found.")
 
 ##### Handle #####
 const handles = Dict{Int, Ptr{Void}}()

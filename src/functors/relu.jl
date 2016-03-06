@@ -14,12 +14,6 @@ function relu{T,N}(x::Array{T,N})
   y
 end
 
-#function relu{T,N}(x::CudaArray{T,N})
-#  y = alloc_gpu(T, size(x))
-#  CUDNN.activation_forward(CUDNN.ACTIVATION_RELU, x, y)
-#  y
-#end
-
 function backward!(f::ReLU, v::Variable)
   gx = ∇relu(v[1].value, v.grad)
   addgrad!(v[1], gx)

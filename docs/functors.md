@@ -1,15 +1,16 @@
 # Functors
 
 ## 🔨 Concat
-Concatenates arrays along the specified dimension.
+Concatenates arrays along the given dimension.
 
-- `Concat(dim)`
+### Functions
+- `Concat(dim::Int)`
 
 ### 👉 Example
 ```julia
-f = Concat(1)
-x1 = Variable(rand(Float32,10,5))
+x1 = Variable(rand(Float32,7,5))
 x2 = Variable(rand(Float32,10,5))
+f = Concat(1)
 y = f(x1, x2)
 ```
 
@@ -17,14 +18,15 @@ y = f(x1, x2)
 Computes cross-entropy between a true distribution \(p\) and the target distribution \(q\).
 $$f(p,q)=-\sum_{x}p(x)\log q(x)$$
 
-- `CrossEntropy(p, q)`
+### Functions
+- `CrossEntropy(p::Matrix)`
 
 ### 👉 Example
 ```julia
 p = Variable(rand(Float32,10,5))
+f = CrossEntropy(p)
 q = Variable(rand(Float32,10,5))
-f = CrossEntropy(p, q)
-y = f(p, q)
+y = f(q)
 ```
 
 ## 🔨 Linear
@@ -32,6 +34,7 @@ Computes linear transformation a.k.a. affine transformation.
 $$f(x) = Wx + b$$
 where \(W\) is a weight matrix, \(b\) is a bias vector.
 
+### Functions
 - `Linear(w, b)`
 - `Linear{T}(::Type{T}, insize::Int, outsize::Int)`
 
@@ -45,6 +48,7 @@ y = f(x)
 ## 🔨 LogSoftmax
 $$f(x)=\frac{\exp(x_{i})}{\sum_{j}^{n}\exp(x_{j})},\;i=1,\ldots,n$$
 
+### Functions
 - `LogSoftmax()`
 
 ### 👉 Example
@@ -57,14 +61,19 @@ y = f(x)
 ## 🔨 Lookup
 Lookup variables.
 
+### Functions
+- Lookup(insize::Int, outsize::Int)
+
 ### 👉 Example
 ```julia
+
 ```
 
 ## 🔨 Max
 Computes the maximum value of an array over the given dimensions.
 
-- `Max(dim)`
+### Functions
+- `Max(dim::Int)`
 
 ### 👉 Example
 ```julia
@@ -74,27 +83,15 @@ y = f(x)
 ```
 
 ## 🔨 MaxPooling
+Computes
 
-- `MaxPooling(w1, w2, s1, s2)`
+### Functions
+- `MaxPooling(w1::Int, w2::Int, s1::Int, s2::Int)`
     - w1, w2: window sizes
     - s1, s2: stride sizes
 
 ### 👉 Example
 ```julia
-```
-
-## 🔨 Window2D
-
-- `Window(w1, w2, s1, s2, p1, p2)`
-    - w1, w2: window sizes
-    - s1, s2: stride sizes
-    - p1, p2: padding sizes
-
-### 👉 Example
-```julia
-x = Variable(rand(Float32,10,5))
-f = Window2D(10, 2, 1, 1, 0, 0)
-y = f(x)
 ```
 
 ## 🔨 ReLU
@@ -106,5 +103,32 @@ Rectifier linear unit.
 ```julia
 x = Variable(rand(Float32,10,5))
 f = ReLU()
+y = f(x)
+```
+
+## 🔨 Reshape
+Reshapes an array with the given dimensions.
+
+### Functions
+- `Reshape(dims::Int...)`
+
+### 👉 Example
+```julia
+x = Variable(rand(Float32,10,5,3))
+f = Reshape(5,3,10)
+y = f(x)
+```
+
+## 🔨 Window2D
+
+- `Window(w1::Int, w2::Int, s1::Int, s2::Int, p1::Int, p2::Int)`
+    - w1, w2: window sizes
+    - s1, s2: stride sizes
+    - p1, p2: padding sizes
+
+### 👉 Example
+```julia
+x = Variable(rand(Float32,10,5))
+f = Window2D(10, 2, 1, 1, 0, 0)
 y = f(x)
 ```

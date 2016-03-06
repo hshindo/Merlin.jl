@@ -10,7 +10,7 @@ function backward!(f::Tanh, v::Variable)
   addgrad!(v[1], gx)
 end
 
-function ∇tanh{T,N}(f::Tanh, y::Array{T,N}, gy::Array{T,N})
+function ∇tanh{T,N}(y::Array{T,N}, gy::Array{T,N})
   gx = similar(y)
   for i = 1:length(gx)
     gx[i] = gy[i] * (T(1) - y[i] * y[i])

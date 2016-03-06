@@ -30,7 +30,7 @@ function maxpooling2d{T}(f::MaxPooling2D, x::Matrix{T})
   n2 = (size(x,2) - w2) ÷ s2 + 1
   params = Int32[w1, w2, s1, s2]
   maxind = fill(Int32(-1), n1, n2)
-  y = Array(T, n1, n2)
+  y = alloc_cpu(T, n1, n2)
   ccall(fwd_handle(f,T), Void,
     (Ptr{T}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Cint, Cint),
     x, params, y, maxind, size(x,1), size(x,2))
@@ -43,7 +43,9 @@ function backward!(f::MaxPooling2D, v::Variable)
 end
 
 function ∇maxpooling2d{T}(f::MaxPooling2D, x::Matrix{T}, maxind::Matrix{Int32}, gy::Matrix{T})
-  gx = zeros(T, size(x))
+  #gx = zeros(T, size(x))
+  gx = alloc_cpu(T, size(x))
+  fill!(gx, T(0))
   ccall(bwd_handle(f,T), Void,
     (Ptr{Cint}, Ptr{T}, Ptr{T}, Cint), maxind, gy, gx, length(gy))
   gx

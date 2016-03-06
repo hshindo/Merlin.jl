@@ -13,7 +13,7 @@ function POSModel(path)
   char_f = [Lookup(T, 10, 100),
             Window2D(10,5,1,1,0,2),
             Linear(T,50,50),
-            MaxPooling2D(1,-1,1,1)]
+            Max(2)]
   sent_f = [Window2D(150,5,1,1,0,2),
             Linear(T,300,750),
             ReLU(),

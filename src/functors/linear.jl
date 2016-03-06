@@ -4,9 +4,12 @@ type Linear <: Functor
 end
 
 function Linear{T}(::Type{T}, size1::Int, size2::Int)
-  r = randn(size1, size2) * sqrt(1 / size2)
+  #r = randn(size1, size2) * sqrt(1 / size2)
+  #r = rand(size1, size2) * 0.001
+  b = sqrt(6 / (size1+size2))
+  r = rand(size1, size2) * 2b - b
   w = convert(Matrix{T}, r)
-  b = fill(T(0.01), size1)
+  b = fill(T(0), size1)
   w = Variable(w, zeros(w))
   b = Variable(b, zeros(b))
   Linear(w, b)
@@ -20,7 +23,7 @@ function forward!(f::Linear, v::Variable)
 end
 
 function linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})
-  y = Array(T, size(w,1), size(x,2))
+  y = alloc_cpu(T, size(w,1), size(x,2))
   gemm!('N', 'N', T(1), w, x, T(0), y)
   broadcast!(+, y, b, y)
   y
@@ -38,7 +41,8 @@ d_y / d_w = gy * x^T
 d_y / d_b = 1
 """
 function ∇linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T}, gy::Matrix{T}, gw::Matrix{T}, gb::Vector{T})
-  gx = similar(x)
+  #gx = similar(x)
+  gx = alloc_cpu(x)
   gemm!('T', 'N', T(1), w, gy, T(0), gx)
   gemm!('N', 'T', T(1), gy, x, T(1), gw)
   sum!(gb, gy)

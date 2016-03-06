@@ -14,7 +14,7 @@ function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
   end
   outsize = [size(xs[1])...]
   outsize[dim] = sum
-  y = Array(T, outsize...)
+  y = alloc_cpu(T, outsize...)
 
   range = map(s -> 1:s, outsize)
   index = 1
