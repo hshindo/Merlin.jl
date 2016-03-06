@@ -29,3 +29,5 @@ extern "C" {
     relu_forward(epsilon, data, len);
   }
 }
+
+# relu_forward<float><<<GET_BLOCKS(1), CUDA_NUM_THREADS>>>((float)0.0, raw_ptr, 4);
