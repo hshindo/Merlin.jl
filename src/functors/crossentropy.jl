@@ -10,8 +10,7 @@ function forward!(f::CrossEntropy, v::Variable)
 end
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
-  #y = similar(p)
-  y = alloc_cpu(p)
+  y = similar(p)
   for i = 1:length(y)
     y[i] = -p[i] * logq[i]
   end
@@ -25,8 +24,7 @@ function backward!(f::CrossEntropy, v::Variable)
 end
 
 function ∇crossentropy{T}(p::Matrix{T}, logq::Matrix{T}, gy::Matrix{T})
-  #gq = similar(p)
-  gq = alloc_cpu(p)
+  gq = similar(p)
   for i = 1:length(gq)
     gq[i] = gy[i] * (exp(logq[i]) - p[i])
   end

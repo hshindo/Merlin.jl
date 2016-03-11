@@ -5,10 +5,10 @@ end
 
 Lookup(weights::Vector{Variable}) = Lookup(weights, Set{Int}())
 
-function Lookup{T}(::Type{T}, size1::Int, size2::Int)
-  weights = Array(Variable, size2)
-  for i = 1:size2
-    weights[i] = convert(Vector{T}, randn(size1)) |> Variable
+function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
+  weights = Array(Variable, insize)
+  for i = 1:insize
+    weights[i] = convert(Vector{T}, randn(outsize)) |> Variable
   end
   Lookup(weights)
 end

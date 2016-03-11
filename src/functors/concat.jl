@@ -14,7 +14,7 @@ function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
   end
   outsize = [size(xs[1])...]
   outsize[dim] = sum
-  y = alloc_cpu(T, outsize...)
+  y = Array(T, outsize...)
 
   range = map(s -> 1:s, outsize)
   index = 1
@@ -25,6 +25,10 @@ function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
     index += s
   end
   y
+end
+
+function concat{T,N}(dim::Int, xs::Vector{CudaArray{T,N}})
+
 end
 
 function backward!(f::Concat, v::Variable)
@@ -47,4 +51,8 @@ function ∇concat{T,N}(dim::Int, xs::Vector{Array{T,N}}, gy::Array{T,N})
     index += s
   end
   gxs
+end
+
+function ∇concat{T,N}(dim::Int, xs::Vector{CudaArray{T,N}}, gy::Array{T,N})
+
 end

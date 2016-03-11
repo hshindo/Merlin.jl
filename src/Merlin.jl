@@ -5,8 +5,6 @@ abstract Optimizer
 export Functor
 export Optimizer
 
-using Base.LinAlg.BLAS
-
 export CudaArray
 export Variable, forward!, backward!
 export Concat
@@ -23,11 +21,15 @@ export Window2D
 
 export AdaGrad, Adam, SGD, update!
 
-#use_cuda() = haskey(ENV, "USE_CUDA")
-
-include("array.jl")
-include("memory.jl")
 include("native.jl")
+
+if haskey(ENV, "USE_CUDA")
+  include("cuda/array.jl")
+else
+  type CudaArray{T,N}
+  end
+end
+
 include("util.jl")
 include("variable.jl")
 
