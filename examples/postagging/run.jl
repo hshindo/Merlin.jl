@@ -19,6 +19,6 @@ end
 include("token.jl")
 include("model.jl")
 include("train.jl")
-path = "C:/Users/shindo/Dropbox/tagging"
+path = "C:/Users/hshindo/Dropbox/tagging"
 
 @time train(path)

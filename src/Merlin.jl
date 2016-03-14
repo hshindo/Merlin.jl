@@ -24,7 +24,8 @@ export AdaGrad, Adam, SGD, update!
 include("native.jl")
 
 if haskey(ENV, "USE_CUDA")
-  include("cuda/array.jl")
+  #push!(LOAD_PATH, joinpath(dirname(@__FILE__), "cuda"))
+  using CUDA
 else
   type CudaArray{T,N}
   end

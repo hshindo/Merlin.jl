@@ -2,66 +2,6 @@
 
 using Compat
 
-const unix = 1
-const linux = 1
-const MB_LEN_MAX = 16
-const LLONG_MAX = __LONG_LONG_MAX__
-const LLONG_MIN = -LLONG_MAX - 1
-const ULLONG_MAX = LLONG_MAX * 2 + 1
-const NR_OPEN = 1024
-const NGROUPS_MAX = 65536
-const ARG_MAX = 131072
-const LINK_MAX = 127
-const MAX_CANON = 255
-const MAX_INPUT = 255
-const NAME_MAX = 255
-const PATH_MAX = 4096
-const PIPE_BUF = 4096
-const XATTR_NAME_MAX = 255
-const XATTR_SIZE_MAX = 65536
-const XATTR_LIST_MAX = 65536
-const RTSIG_MAX = 32
-const PTHREAD_KEYS_MAX = 1024
-const PTHREAD_DESTRUCTOR_ITERATIONS = _POSIX_THREAD_DESTRUCTOR_ITERATIONS
-const AIO_PRIO_DELTA_MAX = 20
-const PTHREAD_STACK_MIN = 16384
-const DELAYTIMER_MAX = 2147483647
-const TTY_NAME_MAX = 32
-const LOGIN_NAME_MAX = 256
-const HOST_NAME_MAX = 64
-const MQ_PRIO_MAX = 32768
-
-# Skipping MacroDefinition: SEM_VALUE_MAX ( 2147483647
-
-const LONG_MAX = __LONG_MAX__
-const SSIZE_MAX = LONG_MAX
-const BC_BASE_MAX = _POSIX2_BC_BASE_MAX
-const BC_DIM_MAX = _POSIX2_BC_DIM_MAX
-const BC_SCALE_MAX = _POSIX2_BC_SCALE_MAX
-const BC_STRING_MAX = _POSIX2_BC_STRING_MAX
-const COLL_WEIGHTS_MAX = 255
-const EXPR_NEST_MAX = _POSIX2_EXPR_NEST_MAX
-const LINE_MAX = _POSIX2_LINE_MAX
-const CHARCLASS_NAME_MAX = 2048
-const RE_DUP_MAX = 0x07ff
-const SCHAR_MAX = __SCHAR_MAX__
-const SHRT_MAX = __SHRT_MAX__
-const INT_MAX = __INT_MAX__
-const SCHAR_MIN = -SCHAR_MAX - 1
-const SHRT_MIN = -SHRT_MAX - 1
-const INT_MIN = -INT_MAX - 1
-const LONG_MIN = -LONG_MAX - 1
-const UCHAR_MAX = SCHAR_MAX * 2 + 1
-const USHRT_MAX = SHRT_MAX * 2 + 1
-const UINT_MAX = INT_MAX * 2 + 1
-const ULONG_MAX = LONG_MAX * 2 + 1
-const CHAR_BIT = __CHAR_BIT__
-const CHAR_MIN = SCHAR_MIN
-const CHAR_MAX = SCHAR_MAX
-
-# Skipping MacroDefinition: NULL ( ( void * ) 0 )
-# Skipping MacroDefinition: offsetof ( TYPE , MEMBER ) __builtin_offsetof ( TYPE , MEMBER )
-
 const cudaHostAllocDefault = 0x00
 const cudaHostAllocPortable = 0x01
 const cudaHostAllocMapped = 0x02
@@ -105,10 +45,6 @@ const cudaOccupancyDisableCachingOverride = 0x01
 # Skipping MacroDefinition: cudaDevicePropDontCare { { '\0' } , /* char   name[256];               */ 0 , /* size_t totalGlobalMem;          */ 0 , /* size_t sharedMemPerBlock;       */ 0 , /* int    regsPerBlock;            */ 0 , /* int    warpSize;                */ 0 , /* size_t memPitch;                */ 0 , /* int    maxThreadsPerBlock;      */ { 0 , 0 , 0 } , /* int    maxThreadsDim[3];        */ { 0 , 0 , 0 } , /* int    maxGridSize[3];          */ 0 , /* int    clockRate;               */ 0 , /* size_t totalConstMem;           */ - 1 , /* int    major;                   */ - 1 , /* int    minor;                   */ 0 , /* size_t textureAlignment;        */ 0 , /* size_t texturePitchAlignment    */ - 1 , /* int    deviceOverlap;           */ 0 , /* int    multiProcessorCount;     */ 0 , /* int    kernelExecTimeoutEnabled */ 0 , /* int    integrated               */ 0 , /* int    canMapHostMemory         */ 0 , /* int    computeMode              */ 0 , /* int    maxTexture1D             */ 0 , /* int    maxTexture1DMipmap       */ 0 , /* int    maxTexture1DLinear       */ { 0 , 0 } , /* int    maxTexture2D[2]          */ { 0 , 0 } , /* int    maxTexture2DMipmap[2]    */ { 0 , 0 , 0 } , /* int    maxTexture2DLinear[3]    */ { 0 , 0 } , /* int    maxTexture2DGather[2]    */ { 0 , 0 , 0 } , /* int    maxTexture3D[3]          */ { 0 , 0 , 0 } , /* int    maxTexture3DAlt[3]       */ 0 , /* int    maxTextureCubemap        */ { 0 , 0 } , /* int    maxTexture1DLayered[2]   */ { 0 , 0 , 0 } , /* int    maxTexture2DLayered[3]   */ { 0 , 0 } , /* int    maxTextureCubemapLayered[2] */ 0 , /* int    maxSurface1D             */ { 0 , 0 } , /* int    maxSurface2D[2]          */ { 0 , 0 , 0 } , /* int    maxSurface3D[3]          */ { 0 , 0 } , /* int    maxSurface1DLayered[2]   */ { 0 , 0 , 0 } , /* int    maxSurface2DLayered[3]   */ 0 , /* int    maxSurfaceCubemap        */ { 0 , 0 } , /* int    maxSurfaceCubemapLayered[2] */ 0 , /* size_t surfaceAlignment         */ 0 , /* int    concurrentKernels        */ 0 , /* int    ECCEnabled               */ 0 , /* int    pciBusID                 */ 0 , /* int    pciDeviceID              */ 0 , /* int    pciDomainID              */ 0 , /* int    tccDriver                */ 0 , /* int    asyncEngineCount         */ 0 , /* int    unifiedAddressing        */ 0 , /* int    memoryClockRate          */ 0 , /* int    memoryBusWidth           */ 0 , /* int    l2CacheSize              */ 0 , /* int    maxThreadsPerMultiProcessor */ 0 , /* int    streamPrioritiesSupported */ 0 , /* int    globalL1CacheSupported   */ 0 , /* int    localL1CacheSupported    */ 0 , /* size_t sharedMemPerMultiprocessor; */ 0 , /* int    regsPerMultiprocessor;   */ 0 , /* int    managedMemory            */ 0 , /* int    isMultiGpuBoard          */ 0 , /* int    multiGpuBoardGroupID     */ }
 
 const CUDA_IPC_HANDLE_SIZE = 64
-
-typealias ptrdiff_t Clong
-typealias size_t Culong
-typealias wchar_t Cint
 
 # begin enum cudaError
 typealias cudaError UInt32
@@ -1208,3 +1144,30 @@ const CUDART_VERSION = 7050
 ()
 
 typealias cudaStreamCallback_t Ptr{Void}
+
+# begin enum ANONYMOUS_1
+typealias ANONYMOUS_1 UInt32
+const NVRTC_SUCCESS = (UInt32)(0)
+const NVRTC_ERROR_OUT_OF_MEMORY = (UInt32)(1)
+const NVRTC_ERROR_PROGRAM_CREATION_FAILURE = (UInt32)(2)
+const NVRTC_ERROR_INVALID_INPUT = (UInt32)(3)
+const NVRTC_ERROR_INVALID_PROGRAM = (UInt32)(4)
+const NVRTC_ERROR_INVALID_OPTION = (UInt32)(5)
+const NVRTC_ERROR_COMPILATION = (UInt32)(6)
+const NVRTC_ERROR_BUILTIN_OPERATION_FAILURE = (UInt32)(7)
+# end enum ANONYMOUS_1
+
+# begin enum nvrtcResult
+typealias nvrtcResult UInt32
+const NVRTC_SUCCESS = (UInt32)(0)
+const NVRTC_ERROR_OUT_OF_MEMORY = (UInt32)(1)
+const NVRTC_ERROR_PROGRAM_CREATION_FAILURE = (UInt32)(2)
+const NVRTC_ERROR_INVALID_INPUT = (UInt32)(3)
+const NVRTC_ERROR_INVALID_PROGRAM = (UInt32)(4)
+const NVRTC_ERROR_INVALID_OPTION = (UInt32)(5)
+const NVRTC_ERROR_COMPILATION = (UInt32)(6)
+const NVRTC_ERROR_BUILTIN_OPERATION_FAILURE = (UInt32)(7)
+# end enum nvrtcResult
+
+typealias _nvrtcProgram Void
+typealias nvrtcProgram Ptr{_nvrtcProgram}

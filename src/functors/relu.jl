@@ -16,7 +16,7 @@ end
 
 function relu{T,N}(x::CudaArray{T,N})
   y = similar(x)
-
+  activation_forward!(CUDNN_ACTIVATION_RELU, 1.0, x, 0.0, y)
   y
 end
 

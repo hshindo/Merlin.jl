@@ -1,4 +1,3 @@
-# Adapted from CUDArt.jl
 using Clang
 
 version = "7.5"
@@ -9,7 +8,7 @@ includes = ["/usr/local/include",
             "/usr/lib/gcc/x86_64-linux-gnu/4.8/include",
             "/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed"]
 cudapath = "/usr/local/cuda-$(version)/include"
-headers = ["cuda_runtime_api.h", "driver_types.h", "vector_types.h"]
+headers = ["cuda_runtime_api.h", "driver_types.h", "vector_types.h", "nvrtc.h"]
 headers = [joinpath(cudapath,h) for h in headers]
 
 # Customize how functions, constants, and structs are written
@@ -39,14 +38,17 @@ function rewriter(ex::Expr)
     # Error-check functions that return a cudaError_t (with some omissions)
     ccallexpr = body.args[1]
     if ccallexpr.head != :ccall
-        error("Unexpected body expression: ", body)
+      error("Unexpected body expression: ", body)
     end
     rettype = ccallexpr.args[2]
     if rettype == :cudaError_t
-        fname = decl.args[1]
-        if !in(fname, skip_error_check)
-            body.args[1] = Expr(:call, :checkerror, deepcopy(ccallexpr))
-        end
+      fname = decl.args[1]
+      if !in(fname, skip_error_check)
+        body.args[1] = Expr(:call, :check_error, deepcopy(ccallexpr))
+      end
+    elseif rettype == :nvrtcResult # nvrtc.h
+      fname = decl.args[1]
+      body.args[1] = Expr(:call, :check_nvrtc, deepcopy(ccallexpr))
     end
     ex
 end
@@ -61,8 +63,7 @@ context = wrap_c.init(output_file = "libcuda-$(version).jl",
                       headers = headers,
                       clang_includes = includes,
                       clang_diagnostics = true,
-                      #header_wrapped=(x,y)->contains(x,"cuda"),
-                      header_wrapped = (x,y)->true,
+                      header_wrapped=(x,y)->contains(y,"cuda")||contains(y,"nvrtc"),
                       rewriter = rewriter)
 
 context.options = wrap_c.InternalOptions(true,true)  # wrap structs, too
