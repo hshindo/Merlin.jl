@@ -8,7 +8,8 @@ Lookup(weights::Vector{Variable}) = Lookup(weights, Set{Int}())
 function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
   weights = Array(Variable, insize)
   for i = 1:insize
-    weights[i] = convert(Vector{T}, randn(outsize)) |> Variable
+    w = convert(Vector{T}, randn(outsize))
+    weights[i] = Variable(w, zeros(w))
   end
   Lookup(weights)
 end
@@ -19,12 +20,15 @@ function Lookup{T}(path, ::Type{T})
   for i = 1:length(lines)
     items = split(chomp(lines[i]), ' ')
     v = map(x -> parse(T,x), items)
-    weights[i] = Variable(v)
+    weights[i] = Variable(v, zeros(v))
   end
   Lookup(weights)
 end
 
-forward!(f::Lookup, v::Variable) = v.value = lookup(f, v[1].value)
+function forward!(f::Lookup, v::Variable)
+  v.value = lookup(f, v[1].value)
+  v.backward! = () -> ∇lookup!(f, v[1].value, v.grad)
+end
 
 function lookup(f::Lookup, x::Vector{Int})
   w = f.weights
@@ -40,10 +44,10 @@ function backward!(f::Lookup, v::Variable)
   ∇lookup!(f, v[1].value, v.grad)
 end
 
-function ∇lookup!(f::Lookup, x::Vector{Int}, gy::Matrix)
+function ∇lookup!{T}(f::Lookup, x::Vector{Int}, gy::Matrix{T})
   for i = 1:length(x)
     id = x[i]
-    addgrad!(f.weights[id], gy[:, i])
+    axpy!(1.0, gy[:, i], f.weights[id].grad)
     union!(f.idset, id)
   end
 end

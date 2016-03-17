@@ -3,8 +3,8 @@ type Concat <: Functor
 end
 
 function forward!(f::Concat, v::Variable)
-  xs = map(a -> a.value, v.args)
-  v.value = concat(f.dim, xs)
+  v.value = concat(f.dim, map(a -> a.value, v.args))
+  v.backward! = () -> ∇concat!(f.dim, map(a -> a.grad, v.args), v.grad)
 end
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
@@ -31,28 +31,18 @@ function concat{T,N}(dim::Int, xs::Vector{CudaArray{T,N}})
 
 end
 
-function backward!(f::Concat, v::Variable)
-  xs = map(a -> a.value, v.args)
-  gxs = ∇concat(f.dim, xs, v.grad)
-  for i = 1:length(v.args)
-    addgrad!(v[i], gxs[i])
-  end
-end
-
-function ∇concat{T,N}(dim::Int, xs::Vector{Array{T,N}}, gy::Array{T,N})
+function ∇concat!{T,N}(dim::Int, gxs::Vector{Array{T,N}}, gy::Array{T,N})
   range = map(s -> 1:s, [size(gy)...])
   index = 1
-  gxs = Array(Array{T,N}, length(xs))
-  for i = 1:length(xs)
-    x = xs[i]
-    s = size(x, dim)
+  for i = 1:length(gxs)
+    gx = gxs[i]
+    s = size(gx, dim)
     range[dim] = index:(index + s - 1)
-    gxs[i] = gy[range...]
+    axpy!(1.0, gy[range...], gx)
     index += s
   end
-  gxs
 end
 
-function ∇concat{T,N}(dim::Int, xs::Vector{CudaArray{T,N}}, gy::Array{T,N})
+function ∇concat!{T,N}(dim::Int, xs::Vector{CudaArray{T,N}}, gy::Array{T,N})
 
 end

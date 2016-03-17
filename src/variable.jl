@@ -3,11 +3,11 @@ type Variable
   grad
   f
   args
+  backward!
   work
 end
 
-Variable() = Variable(nothing)
-Variable(value, grad=nothing) = Variable(value, grad, nothing, [], nothing)
+Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, [], nothing, nothing)
 
 function Base.call(f::Functor, args::Vector{Variable})
   v = Variable()
@@ -32,16 +32,21 @@ Base.setindex!(v::Variable, value, key) = v.args[key] = value
 function backward!(var::Variable)
   var.grad == nothing && (var.grad = ones(var.value))
   sorted = topsort(var)
+  for i = 1:length(sorted)-1 # excludes var
+    v = sorted[i]
+    length(v.args) > 0 && (v.grad = zeros(v.value))
+  end
   for i = length(sorted):-1:1
     v = sorted[i]
     length(v.args) == 0 && continue
-    backward!(v.f, v)
+    v.backward!()
+    #backward!(v.f, v)
   end
 end
 
-function addgrad!(v::Variable, grad)
-  v.grad == nothing ? v.grad = grad : axpy!(1.0, grad, v.grad)
-end
+#function addgrad!(v::Variable, grad)
+#  v.grad == nothing ? v.grad = grad : axpy!(1.0, grad, v.grad)
+#end
 
 function topsort(var::Variable)
   sorted = Variable[]

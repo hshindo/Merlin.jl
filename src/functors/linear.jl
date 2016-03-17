@@ -22,6 +22,7 @@ isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 
 function forward!(f::Linear, v::Variable)
   v.value = linear(f.w.value, f.b.value, v[1].value)
+  v.backward! = () -> ∇linear!(f.w.value, f.b.value, v[1].value, v[1].grad, v.grad, f.w.grad, f.b.grad)
 end
 
 function linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})
@@ -31,23 +32,15 @@ function linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})
   y
 end
 
-function backward!(f::Linear, v::Variable)
-  w, b, x = f.w, f.b, v[1]
-  gx = ∇linear(w.value, b.value, x.value, v.grad, w.grad, b.grad)
-  addgrad!(x, gx)
-end
-
 """
 d_y / d_x = w^T * gy
 d_y / d_w = gy * x^T
 d_y / d_b = 1
 """
-function ∇linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T}, gy::Matrix{T}, gw::Matrix{T}, gb::Vector{T})
-  gx = similar(x)
-  gemm!('T', 'N', T(1), w, gy, T(0), gx)
+function ∇linear!{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T}, gx::Matrix{T}, gy::Matrix{T}, gw::Matrix{T}, gb::Vector{T})
+  gemm!('T', 'N', T(1), w, gy, T(1), gx)
   gemm!('N', 'T', T(1), gy, x, T(1), gw)
   sum!(gb, gy)
-  gx
 end
 
 function update!(opt::Optimizer, f::Linear)

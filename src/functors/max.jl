@@ -3,22 +3,17 @@ type Max <: Functor
 end
 
 function forward!(f::Max, v::Variable)
-  v.value, v.work = max(v[1].value, f.dim)
+  y, idx = max(f.dim, v[1].value)
+  v.value = y
+  v.backward! = () -> ∇max!(idx, v[1].grad, v.grad)
 end
 
-function max{T,N}(x::Array{T,N}, dim::Int)
+function max{T,N}(dim::Int, x::Array{T,N})
   findmax(x, dim)
 end
 
-function backward!(f::Max, v::Variable)
-  gx = ∇max(v[1].value, v.grad, v.work)
-  addgrad!(v[1], gx)
-end
-
-function ∇max{T,N}(x::Array{T,N}, gy::Array{T,N}, idx::Array{Int,N})
-  gx = zeros(x)
+function ∇max!{T,N}(idx::Array{Int,N}, gx::Array{T,N}, gy::Array{T,N})
   for i = 1:length(idx)
-    gx[idx[i]] = gy[i]
+    gx[idx[i]] += gy[i]
   end
-  gx
 end
