@@ -12,22 +12,37 @@ function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
   y = Array(T, 1, size(p,2))
   for j = 1:size(p,2)
     s = T(0)
-    @simd for i = 1:size(p,1)
-      @inbounds s += -p[i,j] * logq[i,j]
+    @inbounds @simd for i = 1:size(p,1)
+      s += -p[i,j] * logq[i,j]
     end
     y[j] = s
   end
   y
 end
 
+function crossentropy{T}(p::Vector{Int}, logq::Matrix{T})
+  y = Array(T, 1, length(p))
+  @inbounds @simd for j = 1:length(p)
+    y[j] = -logq[p[j],j]
+  end
+  y
+end
+
 function ∇crossentropy!{T}(p::Matrix{T}, logq::Matrix{T}, gq::Matrix{T}, gy::Matrix{T})
-  #@simd for i = 1:length(gq)
-  #  gq[i] += gy[i] * (exp(logq[i]) - p[i])
-  #end
   for j = 1:size(p,2)
     g = gy[j]
-    @simd for i = 1:size(p,1)
-      @inbounds gq[i,j] += g * (exp(logq[i,j]) - p[i,j])
+    @inbounds @simd for i = 1:size(p,1)
+      gq[i,j] += g * (exp(logq[i,j]) - p[i,j])
+    end
+  end
+end
+
+function ∇crossentropy!{T}(p::Vector{Int}, logq::Matrix{T}, gq::Matrix{T}, gy::Matrix{T})
+  for j = 1:length(p)
+    g = gy[j]
+    @inbounds @simd for i = 1:size(logq,1)
+      delta = i == p[j] ? T(1) : T(0)
+      gq[i,j] += g * (exp(logq[i,j]) - delta)
     end
   end
 end

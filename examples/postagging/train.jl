@@ -35,11 +35,12 @@ function train(path)
       append!(preds, maxidx)
 
       # loss function
-      px = zeros(Float32, size(out.value,1), length(tokens))
-      for j = 1:length(tokens)
-        px[tokens[j].tagid, j] = 1.0
-      end
-      out = CrossEntropy(px)(out)
+      #px = zeros(Float32, size(out.value,1), length(tokens))
+      #for j = 1:length(tokens)
+      #  px[tokens[j].tagid, j] = 1.0
+      #end
+      p = map(t -> t.tagid, tokens)
+      out = CrossEntropy(p)(out)
       loss += sum(out.value)
 
       # backward & update
