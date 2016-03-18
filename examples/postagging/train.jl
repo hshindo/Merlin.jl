@@ -12,7 +12,7 @@ function train(path)
   chardict, tagdict = Dict(), Dict()
   traindata = read_conll("$(path)/wsj_00-18.conll", true, worddict, chardict, tagdict)
   println("#word: $(length(worddict)), #char: $(length(chardict)), #tag: $(length(tagdict))")
-  #traindata = traindata[1:5000]
+  traindata = traindata[1:5000]
   testdata = read_conll("$(path)/wsj_22-24.conll", false, worddict, chardict, tagdict)
 
   # model
@@ -35,10 +35,6 @@ function train(path)
       append!(preds, maxidx)
 
       # loss function
-      #px = zeros(Float32, size(out.value,1), length(tokens))
-      #for j = 1:length(tokens)
-      #  px[tokens[j].tagid, j] = 1.0
-      #end
       p = map(t -> t.tagid, tokens)
       out = CrossEntropy(p)(out)
       loss += sum(out.value)

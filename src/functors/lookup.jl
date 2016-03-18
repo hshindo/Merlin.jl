@@ -30,25 +30,27 @@ function forward!(f::Lookup, v::Variable)
   v.backward! = () -> ∇lookup!(f, v[1].value, v.grad)
 end
 
-function lookup(f::Lookup, x::Vector{Int})
-  w = f.weights
-  T = eltype(w[1].value)
-  y = Array(T, length(w[1].value), length(x))
+function lookup(f::Lookup, x::Matrix{Int})
+  ws = f.weights
+  w1 = ws[1].value
+  len = length(w1)
+  T = eltype(w1)
+  y = Array(T, len*size(x,1), size(x,2))
+  offset = 1
   for i = 1:length(x)
-    y[:, i] = w[x[i]].value
+    copy!(y, offset, ws[x[i]].value, 1, len)
+    offset += len
   end
   y
 end
 
-function backward!(f::Lookup, v::Variable)
-  ∇lookup!(f, v[1].value, v.grad)
-end
-
-function ∇lookup!{T}(f::Lookup, x::Vector{Int}, gy::Matrix{T})
+function ∇lookup!{T}(f::Lookup, x::Matrix{Int}, gy::Matrix{T})
+  ws = f.weights
+  len = length(ws[1].value)
+  size(x,1) > len && (gy = reshape(gy, len, length(x)))
   for i = 1:length(x)
-    id = x[i]
-    axpy!(1.0, gy[:, i], f.weights[id].grad)
-    union!(f.idset, id)
+    axpy!(1.0, gy[:, i], ws[x[i]].grad)
+    union!(f.idset, x[i])
   end
 end
 
