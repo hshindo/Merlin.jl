@@ -63,18 +63,3 @@ function update!(opt::Optimizer, f::Lookup)
   end
   empty!(f.idset)
 end
-
-type LookupLinear <: Functor
-  w
-  dict::Dict
-end
-
-function forward!()
-end
-
-function lookuplinear()
-  if haskey(f.dict, id)
-  else
-
-  end
-end
