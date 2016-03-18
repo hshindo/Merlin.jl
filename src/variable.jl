@@ -4,10 +4,9 @@ type Variable
   f
   args
   backward!
-  work
 end
 
-Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, [], nothing, nothing)
+Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, [], nothing)
 
 function Base.call(f::Functor, args::Vector{Variable})
   v = Variable()
@@ -40,13 +39,8 @@ function backward!(var::Variable)
     v = sorted[i]
     length(v.args) == 0 && continue
     v.backward!()
-    #backward!(v.f, v)
   end
 end
-
-#function addgrad!(v::Variable, grad)
-#  v.grad == nothing ? v.grad = grad : axpy!(1.0, grad, v.grad)
-#end
 
 function topsort(var::Variable)
   sorted = Variable[]
@@ -68,4 +62,9 @@ function update!(opt::Optimizer, fs::Vector)
   for f in fs
     applicable(update!, opt, f) && update!(opt, f)
   end
+end
+
+macro cache(f::Function, v::Variable)
+  dict = Dict{Vector{Int},Variable}()
+  v.value
 end

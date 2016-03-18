@@ -13,3 +13,4 @@ function logsoftmax{T}(x::Matrix{T})
   end
   y
 end
+

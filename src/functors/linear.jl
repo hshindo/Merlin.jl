@@ -33,14 +33,18 @@ function linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})
 end
 
 """
-d_y / d_x = w^T * gy
-d_y / d_w = gy * x^T
-d_y / d_b = 1
+dy / dx = w^T * gy
+dy / dw = gy * x^T
+dy / db = 1
 """
 function ∇linear!{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T}, gx::Matrix{T}, gy::Matrix{T}, gw::Matrix{T}, gb::Vector{T})
   gemm!('T', 'N', T(1), w, gy, T(1), gx)
   gemm!('N', 'T', T(1), gy, x, T(1), gw)
-  sum!(gb, gy)
+  for j = 1:size(gy,2)
+    @inbounds @simd for i = 1:size(gy,1)
+      gb[i] += gy[i,j]
+    end
+  end
 end
 
 function update!(opt::Optimizer, f::Linear)
