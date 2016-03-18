@@ -47,9 +47,11 @@ end
 function ∇lookup!{T}(f::Lookup, x::Matrix{Int}, gy::Matrix{T})
   ws = f.weights
   len = length(ws[1].value)
-  size(x,1) > len && (gy = reshape(gy, len, length(x)))
+  offset = 1
   for i = 1:length(x)
-    axpy!(1.0, gy[:, i], ws[x[i]].grad)
+    gw = ws[x[i]].grad
+    axpy!(len, T(1.0), pointer(gy,offset), stride(gy,1), pointer(gw), stride(gw,1))
+    offset += len
     union!(f.idset, x[i])
   end
 end
