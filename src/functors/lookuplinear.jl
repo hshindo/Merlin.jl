@@ -1,13 +1,16 @@
 type LookupLinear <: Functor
-  f1::Lookup
-  f2::Linear
-  cache::Dict
+  ws::Vector{Variable}
+  l::Linear
+  cache::Vector{Variable}
 end
 
-function forward!(f::LookupLinear)
-  f.f1
+function aaa(f::LookupLinear, x::Matrix{Int})
+  for j = 1:size(x,2)
+    for i = 1:size(x,1)
+      id = x[i, j]
+
+    end
+  end
+  v |> [f.f1, f.f2]
 end
 
-function lookuplinear()
-
-end

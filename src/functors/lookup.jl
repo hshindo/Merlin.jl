@@ -27,7 +27,9 @@ end
 
 function forward!(f::Lookup, v::Variable)
   v.value = lookup(f, v[1].value)
-  v.backward! = () -> ∇lookup!(f, v[1].value, v.grad)
+  v.backward! = () -> begin
+    ∇lookup!(f, v[1].value, v.grad)
+  end
 end
 
 function lookup(f::Lookup, x::Matrix{Int})

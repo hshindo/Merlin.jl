@@ -28,7 +28,10 @@ end
 function forward!(f::Window2D, v::Variable)
   y, params = window2d(f, v[1].value)
   v.value = y
-  v.backward! = () -> ∇window2d!(f, params, v[1].grad, v.grad)
+  v.backward! = () -> begin
+    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
+    ∇window2d!(f, params, v[1].grad, v.grad)
+  end
 end
 
 function window2d{T}(f::Window2D, x::Matrix{T})

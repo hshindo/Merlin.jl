@@ -5,7 +5,10 @@ end
 function forward!(f::CrossEntropy, v::Variable)
   logq = logsoftmax(v[1].value)
   v.value = crossentropy(f.p, logq)
-  v.backward! = () -> ∇crossentropy!(f.p, logq, v[1].grad, v.grad)
+  v.backward! = () -> begin
+    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
+    ∇crossentropy!(f.p, logq, v[1].grad, v.grad)
+  end
 end
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})

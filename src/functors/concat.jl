@@ -4,7 +4,12 @@ end
 
 function forward!(f::Concat, v::Variable)
   v.value = concat(f.dim, map(a -> a.value, v.args))
-  v.backward! = () -> ∇concat!(f.dim, map(a -> a.grad, v.args), v.grad)
+  v.backward! = () -> begin
+    for a in v.args
+      a.grad == nothing && (a.grad = zeros(a.value))
+    end
+    ∇concat!(f.dim, map(a -> a.grad, v.args), v.grad)
+  end
 end
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})

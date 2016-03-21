@@ -27,14 +27,15 @@ end
 
 Base.getindex(v::Variable, key) = v.args[key]
 Base.setindex!(v::Variable, value, key) = v.args[key] = value
+Base.eltype(v::Variable) = eltype(v.value)
 
 function backward!(var::Variable)
   var.grad == nothing && (var.grad = ones(var.value))
   sorted = topsort(var)
-  for i = 1:length(sorted)-1 # excludes var
-    v = sorted[i]
-    length(v.args) > 0 && (v.grad = zeros(v.value))
-  end
+  #for i = 1:length(sorted)-1 # excludes var
+  #  v = sorted[i]
+  #  length(v.args) > 0 && (v.grad = zeros(v.value))
+  #end
   for i = length(sorted):-1:1
     v = sorted[i]
     length(v.args) == 0 && continue

@@ -2,8 +2,6 @@ module Merlin
 
 abstract Functor
 abstract Optimizer
-export Functor
-export Optimizer
 
 export CudaArray
 export Variable, forward!, backward!
@@ -39,8 +37,9 @@ for name in ["concat",
              "linear",
              "logsoftmax",
              "lookup",
+             "math",
              "max",
-             "maxpooling2d",
+             #"maxpooling2d",
              "relu",
              "reshape",
              "tanh",

@@ -12,11 +12,11 @@ function train(path)
   chardict, tagdict = Dict(), Dict()
   traindata = read_conll("$(path)/wsj_00-18.conll", true, worddict, chardict, tagdict)
   println("#word: $(length(worddict)), #char: $(length(chardict)), #tag: $(length(tagdict))")
-  traindata = traindata[1:5000]
+  #traindata = traindata[1:5000]
   testdata = read_conll("$(path)/wsj_22-24.conll", false, worddict, chardict, tagdict)
 
   # model
-  model = POSModel(path)
+  model = Model(path)
   opt = SGD(0.0075)
 
   for iter = 1:10
@@ -46,13 +46,13 @@ function train(path)
     println("loss: $(loss)")
     acc = accuracy(golds, preds)
     println("train acc: $(acc)")
-    decode(model, testdata)
+    #decode(model, testdata)
     println("")
   end
   println("finish")
 end
 
-function decode(m::POSModel, data::Vector{Vector{Token}})
+function decode(m::Model, data::Vector{Vector{Token}})
   golds, preds = Int[], Int[]
   for i = 1:length(data)
     tokens = data[i]

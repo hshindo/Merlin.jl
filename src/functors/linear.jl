@@ -11,7 +11,7 @@ function Linear{T}(::Type{T}, insize::Int, outsize::Int)
   b = sqrt(6 / (outsize+insize))
   r = rand(outsize, insize) * 2b - b
   w = convert(Matrix{T}, r)
-  b = fill(T(0), outsize)
+  b = fill(T(0), outsize, 1)
   w = Variable(w, zeros(w))
   b = Variable(b, zeros(b))
   Linear(w, b)
@@ -20,14 +20,20 @@ end
 mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
 isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 
+#function call(f::Linear, v::Variable)
+#  f.w * v + f.b
+#end
+
 function forward!(f::Linear, v::Variable)
   v.value = linear(f.w.value, f.b.value, v[1].value)
-  v.backward! = () -> ∇linear!(f.w.value, f.b.value, v[1].value, v[1].grad, v.grad, f.w.grad, f.b.grad)
+  v.backward! = () -> begin
+    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
+    ∇linear!(f.w.value, f.b.value, v[1].value, v[1].grad, v.grad, f.w.grad, f.b.grad)
+  end
 end
 
-function linear{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})
-  y = Array(T, size(w,1), size(x,2))
-  gemm!('N', 'N', T(1), w, x, T(0), y)
+function linear{T}(w::Matrix{T}, b::Matrix{T}, x::Matrix{T})
+  y = w * x
   broadcast!(+, y, b, y)
   y
 end
@@ -37,14 +43,18 @@ dy / dx = w^T * gy
 dy / dw = gy * x^T
 dy / db = 1
 """
-function ∇linear!{T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T}, gx::Matrix{T}, gy::Matrix{T}, gw::Matrix{T}, gb::Vector{T})
+function ∇linear!{T}(w::Matrix{T}, b::Matrix{T}, x::Matrix{T}, gx::Matrix{T}, gy::Matrix{T}, gw::Matrix{T}, gb::Matrix{T})
   gemm!('T', 'N', T(1), w, gy, T(1), gx)
   gemm!('N', 'T', T(1), gy, x, T(1), gw)
-  for j = 1:size(gy,2)
-    @inbounds @simd for i = 1:size(gy,1)
-      gb[i] += gy[i,j]
-    end
+  #axpy!(T(1), reducedim(+, gy, 2), gb)
+  for offset = 1:length(b):length(gy)
+    axpy!(length(b), T(1.0), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
   end
+  #for j = 1:size(gy,2)
+  #  @inbounds @simd for i = 1:size(gy,1)
+  #    gb[i] += gy[i,j]
+  #  end
+  #end
 end
 
 function update!(opt::Optimizer, f::Linear)
