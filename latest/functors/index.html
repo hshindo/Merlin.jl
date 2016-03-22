@@ -207,6 +207,12 @@
               </a>
             </li>
           
+            <li class="anchor">
+              <a title="Linear" href="#linear">
+                Linear
+              </a>
+            </li>
+          
         </ul>
       
     
@@ -239,6 +245,24 @@
 <span class="n">f</span> <span class="o">=</span> <span class="n">Concat</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">])</span>
+</pre></div>
+
+
+<p>aaa</p>
+<p><a id='Merlin.Linear' href='#Merlin.Linear'>#</a>
+<strong><code>Merlin.Linear</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="linear">Linear</h2>
+<p>Computes linear transformation a.k.a. affine transformation.</p>
+<h3 id="functions">Functions</h3>
+<ul>
+<li><code>Linear(w, b)</code></li>
+<li><code>Linear{T}(::Type{T}, insize::Int, outsize::Int)</code></li>
+</ul>
+<h3 id="example_1">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="c">#x = Variable(rand(Float32,10,5))</span>
+<span class="c">#f = Linear(Float32, 10, 3)</span>
+<span class="c">#y = f(x)</span>
 </pre></div>
           <aside class="copyright" role="note">
             
