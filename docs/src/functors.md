@@ -1,1 +1,5 @@
-# Getting Started
+# Functors
+
+## 🔨 Concat
+    {docs}
+    Concat

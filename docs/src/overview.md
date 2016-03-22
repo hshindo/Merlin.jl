@@ -3,12 +3,12 @@ Merlin.jl provides many primitive functions.
 
 Every computation is preserved.
 
-## ★ Decoding
+## Decoding
 ```julia
 v = Variable()
 ```
 
-## ★ Training
+## Training
 ```julia
 opt = SGD(0.001)
 
