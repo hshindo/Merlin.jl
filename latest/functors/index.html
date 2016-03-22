@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1">
     
       
-        <title>Overview - Merlin.jl</title>
+        <title>Functors - Merlin.jl</title>
       
       
       
@@ -94,7 +94,7 @@
             
           </span>
         
-        Overview
+        Functors
       </div>
     </div>
     
@@ -173,30 +173,9 @@
           
             
   <li>
-    <a class="current" title="Overview" href="./">
+    <a class="" title="Overview" href="../overview/">
       Overview
     </a>
-    
-      
-        
-      
-      
-        <ul>
-          
-            <li class="anchor">
-              <a title="Decoding" href="#decoding">
-                Decoding
-              </a>
-            </li>
-          
-            <li class="anchor">
-              <a title="Training" href="#training">
-                Training
-              </a>
-            </li>
-          
-        </ul>
-      
     
   </li>
 
@@ -212,9 +191,30 @@
           
             
   <li>
-    <a class="" title="Functors" href="../functors/">
+    <a class="current" title="Functors" href="./">
       Functors
     </a>
+    
+      
+        
+      
+      
+        <ul>
+          
+            <li class="anchor">
+              <a title="🔨 Concat" href="#concat">
+                🔨 Concat
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="🔨 Concat" href="#concat_1">
+                🔨 Concat
+              </a>
+            </li>
+          
+        </ul>
+      
     
   </li>
 
@@ -229,27 +229,24 @@
       <article class="article">
         <div class="wrapper">
           
-          <p><a id='Overview-1'></a></p>
-<h1 id="overview">Overview</h1>
-<p>Merlin.jl provides many primitive functions.</p>
-<p>Every computation is preserved.</p>
-<p><a id='Decoding-1'></a></p>
-<h2 id="decoding">Decoding</h2>
-<div class="codehilite"><pre><span></span><span class="n">v</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
-</pre></div>
-
-
-<p><a id='Training-1'></a></p>
-<h2 id="training">Training</h2>
-<div class="codehilite"><pre><span></span><span class="n">opt</span> <span class="o">=</span> <span class="n">SGD</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
-
-<span class="k">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="mi">10</span>
-  <span class="n">v</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
-  <span class="n">y</span> <span class="o">=</span> <span class="n">v</span> <span class="o">|&gt;</span> <span class="n">f1</span> <span class="o">|&gt;</span> <span class="n">f2</span>
-  <span class="n">y</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">ones</span><span class="p">()</span>
-  <span class="n">backward!</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-  <span class="n">update!</span><span class="p">(</span><span class="n">opt</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-<span class="k">end</span>
+          <p><a id='Functors-1'></a></p>
+<h1 id="functors">Functors</h1>
+<p><a id='Concat-1'></a></p>
+<h2 id="concat">🔨 Concat</h2>
+<p><a id='Merlin.Concat' href='#Merlin.Concat'>#</a>
+<strong><code>Merlin.Concat</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="concat_1">🔨 Concat</h2>
+<p>Concatenates arrays along the given dimension.</p>
+<ul>
+<li><code>Concat(dim::Int)</code></li>
+</ul>
+<h3 id="example">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="c">#x1 = Variable(rand(Float32,7,5))</span>
+<span class="c">#x2 = Variable(rand(Float32,10,5))</span>
+<span class="c">#f = Concat(1)</span>
+<span class="c">#y = f(x1, x2)</span>
+<span class="c">#y = f([x1,x2])</span>
 </pre></div>
           <aside class="copyright" role="note">
             
@@ -267,7 +264,7 @@
   <nav class="pagination" aria-label="Footer">
     <div class="previous">
       
-        <a href=".." title="Home">
+        <a href="../types/" title="Types">
           <span class="direction">
             Previous
           </span>
@@ -277,7 +274,7 @@
             </div>
             <div class="stretch">
               <div class="title">
-                Home
+                Types
               </div>
             </div>
           </div>
@@ -285,22 +282,6 @@
       
     </div>
     <div class="next">
-      
-        <a href="../types/" title="Types">
-          <span class="direction">
-            Next
-          </span>
-          <div class="page">
-            <div class="stretch">
-              <div class="title">
-                Types
-              </div>
-            </div>
-            <div class="button button-next" role="button" aria-label="Next">
-              <i class="icon icon-forward"></i>
-            </div>
-          </div>
-        </a>
       
     </div>
   </nav>
