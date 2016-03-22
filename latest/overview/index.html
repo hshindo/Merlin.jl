@@ -9,10 +9,8 @@
     <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1">
     
       
-        <title>Merlin.jl - Flexible Neural Network Library in Julia</title>
+        <title>Overview - Merlin.jl</title>
       
-      
-        <meta name="description" content="Flexible Neural Network Library in Julia">
       
       
       
@@ -21,31 +19,31 @@
     
     <meta property="og:url" content="None">
     <meta property="og:title" content="Merlin.jl">
-    <meta property="og:image" content="None/./">
+    <meta property="og:image" content="None/../">
     <meta name="apple-mobile-web-app-title" content="Merlin.jl">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     
-    <link rel="shortcut icon" type="image/x-icon" href="./None">
-    <link rel="icon" type="image/x-icon" href="./None">
+    <link rel="shortcut icon" type="image/x-icon" href="../None">
+    <link rel="icon" type="image/x-icon" href="../None">
     <style>
       @font-face {
       	font-family: 'Icon';
-      	src: url('./assets/fonts/icon.eot?52m981');
-      	src: url('./assets/fonts/icon.eot?#iefix52m981')
+      	src: url('../assets/fonts/icon.eot?52m981');
+      	src: url('../assets/fonts/icon.eot?#iefix52m981')
                format('embedded-opentype'),
-      		   url('./assets/fonts/icon.woff?52m981')
+      		   url('../assets/fonts/icon.woff?52m981')
                format('woff'),
-      		   url('./assets/fonts/icon.ttf?52m981')
+      		   url('../assets/fonts/icon.ttf?52m981')
                format('truetype'),
-      		   url('./assets/fonts/icon.svg?52m981#icon')
+      		   url('../assets/fonts/icon.svg?52m981#icon')
                format('svg');
       	font-weight: normal;
       	font-style: normal;
       }
     </style>
-    <link rel="stylesheet" href="./assets/stylesheets/application-54f87043f3.css">
+    <link rel="stylesheet" href="../assets/stylesheets/application-54f87043f3.css">
     
     
       
@@ -62,9 +60,9 @@
       </style>
     
     
-      <link rel="stylesheet" href="./assets/Lapidary.css">
+      <link rel="stylesheet" href="../assets/Lapidary.css">
     
-    <script src="./assets/javascripts/modernizr-4ab42b99fd.js"></script>
+    <script src="../assets/javascripts/modernizr-4ab42b99fd.js"></script>
     
   </head>
   
@@ -96,7 +94,7 @@
             
           </span>
         
-        Merlin.jl
+        Overview
       </div>
     </div>
     
@@ -166,8 +164,17 @@
           
             
   <li>
-    <a class="current" title="Home" href=".">
+    <a class="" title="Home" href="..">
       Home
+    </a>
+    
+  </li>
+
+          
+            
+  <li>
+    <a class="current" title="Overview" href="./">
+      Overview
     </a>
     
       
@@ -177,20 +184,14 @@
         <ul>
           
             <li class="anchor">
-              <a title="★ Functions" href="#functions">
-                ★ Functions
+              <a title="★ Decoding" href="#decoding">
+                ★ Decoding
               </a>
             </li>
           
             <li class="anchor">
-              <a title="★ Install" href="#install">
-                ★ Install
-              </a>
-            </li>
-          
-            <li class="anchor">
-              <a title="★ Optional Requirements" href="#optional-requirements">
-                ★ Optional Requirements
+              <a title="★ Training" href="#training">
+                ★ Training
               </a>
             </li>
           
@@ -202,16 +203,7 @@
           
             
   <li>
-    <a class="" title="Overview" href="overview/">
-      Overview
-    </a>
-    
-  </li>
-
-          
-            
-  <li>
-    <a class="" title="Types" href="types/">
+    <a class="" title="Types" href="../types/">
       Types
     </a>
     
@@ -228,26 +220,28 @@
       <article class="article">
         <div class="wrapper">
           
-          <p><a id='Merlin.jl-1'></a></p>
-<h1 id="merlinjl">Merlin.jl</h1>
-<p><a href="https://github.com/hshindo/Merlin.jl">Merlin.jl</a> is a neural network library in <a href="http://julialang.org/">Julia</a>.</p>
-<p><a id='Functions-1'></a></p>
-<h2 id="functions">★ Functions</h2>
-<ul>
-<li><a href="functors.md#Getting-Started-1">Getting Started</a></li>
-</ul>
-<p>It aims to provide a fast, flexible and concise neural network library for machine learning.</p>
-<p><a id='Install-1'></a></p>
-<h2 id="install">★ Install</h2>
-<div class="codehilite"><pre><span></span><span class="c">#julia&gt; Pkg.clone(&quot;https://github.com/hshindo/Merlin.jl.git&quot;)</span>
+          <p><a id='Overview-1'></a></p>
+<h1 id="overview">Overview</h1>
+<p>Merlin.jl provides many primitive functions.</p>
+<p>Every computation is preserved.</p>
+<p><a id='Decoding-1'></a></p>
+<h2 id="decoding">★ Decoding</h2>
+<div class="codehilite"><pre><span></span><span class="n">v</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
 </pre></div>
 
 
-<p><a id='Optional-Requirements-1'></a></p>
-<h2 id="optional-requirements">★ Optional Requirements</h2>
-<ul>
-<li><a href="https://developer.nvidia.com/cudnn">cuDNN</a> v4 (for CUDA GPU)</li>
-</ul>
+<p><a id='Training-1'></a></p>
+<h2 id="training">★ Training</h2>
+<div class="codehilite"><pre><span></span><span class="n">opt</span> <span class="o">=</span> <span class="n">SGD</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="mi">10</span>
+  <span class="n">v</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
+  <span class="n">y</span> <span class="o">=</span> <span class="n">v</span> <span class="o">|&gt;</span> <span class="n">f1</span> <span class="o">|&gt;</span> <span class="n">f2</span>
+  <span class="n">y</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">ones</span><span class="p">()</span>
+  <span class="n">backward!</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+  <span class="n">update!</span><span class="p">(</span><span class="n">opt</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
           <aside class="copyright" role="note">
             
             Documentation built with
@@ -264,17 +258,33 @@
   <nav class="pagination" aria-label="Footer">
     <div class="previous">
       
+        <a href=".." title="Home">
+          <span class="direction">
+            Previous
+          </span>
+          <div class="page">
+            <div class="button button-previous" role="button" aria-label="Previous">
+              <i class="icon icon-back"></i>
+            </div>
+            <div class="stretch">
+              <div class="title">
+                Home
+              </div>
+            </div>
+          </div>
+        </a>
+      
     </div>
     <div class="next">
       
-        <a href="overview/" title="Overview">
+        <a href="../types/" title="Types">
           <span class="direction">
             Next
           </span>
           <div class="page">
             <div class="stretch">
               <div class="title">
-                Overview
+                Types
               </div>
             </div>
             <div class="button button-next" role="button" aria-label="Next">
@@ -300,14 +310,14 @@
       </div>
     </main>
     <script>
-      var base_url = '.';
+      var base_url = '..';
       var repo_id  = 'hshindo/Merlin.jl';
     </script>
-    <script src="./assets/javascripts/application-997097ee0c.js"></script>
+    <script src="../assets/javascripts/application-997097ee0c.js"></script>
     
       <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
-      <script src="./assets/mathjaxhelper.js"></script>
+      <script src="../assets/mathjaxhelper.js"></script>
     
     
   </body>

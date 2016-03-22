@@ -24,6 +24,46 @@
             "location": "/#optional-requirements", 
             "text": "cuDNN  v4 (for CUDA GPU)", 
             "title": "\u2605 Optional Requirements"
+        }, 
+        {
+            "location": "/overview/", 
+            "text": "Overview\n\n\nMerlin.jl provides many primitive functions.\n\n\nEvery computation is preserved.\n\n\n\n\n\u2605 Decoding\n\n\nv\n \n=\n \nVariable\n()\n\n\n\n\n\n\n\n\n\u2605 Training\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\n\nfor\n \ni\n \n=\n \n1\n:\n10\n\n  \nv\n \n=\n \nVariable\n()\n\n  \ny\n \n=\n \nv\n \n|\n \nf1\n \n|\n \nf2\n\n  \ny\n.\ngrad\n \n=\n \nones\n()\n\n  \nbackward!\n(\ny\n)\n\n  \nupdate!\n(\nopt\n,\n \ny\n)\n\n\nend", 
+            "title": "Overview"
+        }, 
+        {
+            "location": "/overview/#overview", 
+            "text": "Merlin.jl provides many primitive functions.  Every computation is preserved.", 
+            "title": "Overview"
+        }, 
+        {
+            "location": "/overview/#decoding", 
+            "text": "v   =   Variable ()", 
+            "title": "\u2605 Decoding"
+        }, 
+        {
+            "location": "/overview/#training", 
+            "text": "opt   =   SGD ( 0.001 )  for   i   =   1 : 10 \n   v   =   Variable () \n   y   =   v   |   f1   |   f2 \n   y . grad   =   ones () \n   backward! ( y ) \n   update! ( opt ,   y )  end", 
+            "title": "\u2605 Training"
+        }, 
+        {
+            "location": "/types/", 
+            "text": "Types\n\n\nThere are three basic types:\n\n\n\n\nVariable\n\n\nFunctor\n\n\nOptimizer\n\n\n\n\n\n\n\u2605 Variable\n\n\nVariable\n has \nvalue\n and \ngrad\n.\n\n\nx\n \n=\n \nVariable\n(\nAFArray\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nx\n.\nvalue\n\n\nx\n.\ngrad\n\n\n\n\n\n\n\n\n\u2605 Functor\n\n\nFunctor\n is an abstract type of functors.", 
+            "title": "Types"
+        }, 
+        {
+            "location": "/types/#types", 
+            "text": "There are three basic types:   Variable  Functor  Optimizer", 
+            "title": "Types"
+        }, 
+        {
+            "location": "/types/#variable", 
+            "text": "Variable  has  value  and  grad .  x   =   Variable ( AFArray ( Float32 , 10 , 5 ))  x . value  x . grad", 
+            "title": "\u2605 Variable"
+        }, 
+        {
+            "location": "/types/#functor", 
+            "text": "Functor  is an abstract type of functors.", 
+            "title": "\u2605 Functor"
         }
     ]
 }
