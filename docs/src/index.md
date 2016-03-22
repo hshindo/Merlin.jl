@@ -5,7 +5,7 @@
 ## ★ Functions
   {contents}
   Pages = [
-    "man/functors.md",
+    "man/functors.md"
   ]
   Depth = 2
 
