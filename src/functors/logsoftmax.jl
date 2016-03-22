@@ -1,3 +1,19 @@
+export LogSoftmax
+
+"""
+## 🔨 LogSoftmax
+f(x)=\frac{\exp(x_{i})}{\sum_{j}^{n}\exp(x_{j})},\;i=1,\ldots,n
+
+### Functions
+- `LogSoftmax()`
+
+### 👉 Example
+```julia
+x = Variable(rand(Float32,10,5))
+f = LogSoftmax()
+y = f(x)
+```
+"""
 type LogSoftmax <: Functor
 end
 

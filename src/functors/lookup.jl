@@ -1,3 +1,17 @@
+export Lookup
+
+"""
+## 🔨 Lookup
+Lookup variables.
+
+### Functions
+- Lookup(insize::Int, outsize::Int)
+
+### 👉 Example
+```julia
+
+```
+"""
 type Lookup <: Functor
   weights::Vector{Variable}
   idset::Set{Int}

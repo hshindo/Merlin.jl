@@ -1,4 +1,0 @@
-Node
-========
-
-Node type

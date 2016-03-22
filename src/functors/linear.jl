@@ -1,5 +1,23 @@
+export Linear
 using Base.LinAlg.BLAS
 
+"""
+## 🔨 Linear
+Computes linear transformation a.k.a. affine transformation.
+f(x) = W^{\mathrm{T}}x + b
+where \(W\) is a weight matrix, \(b\) is a bias vector.
+
+### Functions
+- `Linear(w, b)`
+- `Linear{T}(::Type{T}, insize::Int, outsize::Int)`
+
+### 👉 Example
+```julia
+x = Variable(rand(Float32,10,5))
+f = Linear(Float32, 10, 3)
+y = f(x)
+```
+"""
 type Linear <: Functor
   w::Variable
   b::Variable

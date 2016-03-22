@@ -5,18 +5,6 @@ abstract Optimizer
 
 export CudaArray
 export Variable, forward!, backward!
-export Concat
-export CrossEntropy
-export Linear
-export LogSoftmax
-export Lookup
-export Max
-export MaxPooling2D
-export ReLU
-export Reshape
-export Tanh
-export Window2D
-
 export AdaGrad, Adam, SGD, update!
 
 include("native.jl")

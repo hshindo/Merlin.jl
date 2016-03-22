@@ -1,6 +1,21 @@
+export MaxPooling2D
+
 const MAXPOOLING2D_FWD_F32_HANDLE = Libdl.dlsym(Native.library, :maxpooling2d_fwd_f32)
 const MAXPOOLING2D_BWD_F32_HANDLE = Libdl.dlsym(Native.library, :maxpooling2d_bwd_f32)
 
+"""
+## 🔨 MaxPooling
+Computes
+
+### Functions
+- `MaxPooling(w1::Int, w2::Int, s1::Int, s2::Int)`
+    - w1, w2: window sizes
+    - s1, s2: stride sizes
+
+### 👉 Example
+```julia
+```
+"""
 type MaxPooling2D <: Functor
   w1::Int
   w2::Int

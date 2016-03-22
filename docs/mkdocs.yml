@@ -1,5 +1,5 @@
 site_name: Merlin.jl
-site_description: flexible neural network library in Julia
+site_description: Flexible Neural Network Library in Julia
 site_author: Hiroyuki Shindo
 repo_url: https://github.com/hshindo/Merlin.jl
 
@@ -8,7 +8,7 @@ docs_dir: 'build'
 theme: material
 
 extra_css:
-  - css/extra.css
+  - assets/Lapidary.css
 
 extra_javascript:
   - http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
@@ -22,9 +22,9 @@ markdown_extensions:
   - mdx_math
 
 pages:
-- Home: index.md
-- Overview: overview.md
-- Types: types.md
-- Functors: functors.md
-- Examples:
-  - POS-Tagging: 'examples/pos-tagging.md'
+  - Home: index.md
+#  - Overview: overview.md
+#  - Types: types.md
+#  - Functors: functors.md
+#  - Examples:
+#    - POS-Tagging: 'examples/pos-tagging.md'

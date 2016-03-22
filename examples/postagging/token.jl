@@ -42,6 +42,15 @@ function read_wordlist(path)
   d
 end
 
+function make_batch(data::Vector{Vector{Token}})
+  dict = Dict()
+  for tokens in data
+    key = length(tokens)
+    haskey(dict, key) || (dict[key] = [])
+    push!(dict[key], tokens)
+  end
+end
+
 function accuracy(golds::Vector{Int}, preds::Vector{Int})
   @assert length(golds) == length(preds)
   correct = 0

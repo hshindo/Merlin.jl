@@ -1,6 +1,23 @@
+export Window2D
+
 const WINDOW2D_FWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_fwd_f32)
 const WINDOW2D_BWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f32)
 
+"""
+## 🔨 Window2D
+
+- `Window(w1::Int, w2::Int, s1::Int, s2::Int, p1::Int, p2::Int)`
+    - w1, w2: window sizes
+    - s1, s2: stride sizes
+    - p1, p2: padding sizes
+
+### 👉 Example
+```julia
+x = Variable(rand(Float32,10,5))
+f = Window2D(10, 2, 1, 1, 0, 0)
+y = f(x)
+```
+"""
 type Window2D <: Functor
   w1::Int
   w2::Int
