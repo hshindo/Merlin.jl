@@ -23,8 +23,8 @@ markdown_extensions:
 
 pages:
   - Home: index.md
-#  - Overview: overview.md
-#  - Types: types.md
+  - Overview: overview.md
+  - Types: types.md
 #  - Functors: functors.md
 #  - Examples:
 #    - POS-Tagging: 'examples/pos-tagging.md'
