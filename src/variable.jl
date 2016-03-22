@@ -8,17 +8,17 @@ end
 
 Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, [], nothing)
 
-function Base.call(f::Functor, args::Vector{Variable})
+function (f::Functor)(args::Vector{Variable})
   v = Variable()
   v.f = f
   v.args = args
   forward!(f, v)
   v
 end
-Base.call(f::Functor, arg::Variable) = call(f, [arg])
-Base.call(f::Functor, args::Variable...) = call(f, [args...])
+(f::Functor)(arg::Variable) = f([arg])
+(f::Functor)(args::Variable...) = f([args...])
 
-function Base.call(fs::Vector, arg::Variable)
+function (fs::Vector)(arg::Variable)
   for f in fs
     arg = call(f, arg)
   end
