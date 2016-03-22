@@ -1,5 +1,4 @@
 # Functors
 
-## 🔨 Concat
     {docs}
     Concat
