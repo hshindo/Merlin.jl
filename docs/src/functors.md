@@ -2,6 +2,3 @@
 
     {docs}
     Concat
-
-    {docs}
-    CrossEntropy
