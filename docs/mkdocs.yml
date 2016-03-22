@@ -12,14 +12,14 @@ extra_css:
 
 extra_javascript:
   - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
-  - assets/mathjaxhelper.js
+  - https://github.com/hshindo/Merlin.jl/blob/master/docs/mathjaxhelper.js
+  #- assets/mathjaxhelper.js
 
 markdown_extensions:
   - codehilite
   - extra
   - tables
   - fenced_code
-  #- mdx_math
 
 pages:
   - Home: index.md
