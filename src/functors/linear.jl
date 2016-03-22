@@ -5,6 +5,10 @@ using Base.LinAlg.BLAS
 ## Linear
 Computes linear transformation a.k.a. affine transformation.
 
+\\begin
+f(x) = 1
+\\end
+
 \$\$ f(x) = W^{\mathrm{T}}x + b \$\$
 
 \$ f(x) = W^{\mathrm{T}}x + b \$
