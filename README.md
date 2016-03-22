@@ -4,9 +4,9 @@
 
 `Merlin` is a flexible neural network library in [Julia](http://julialang.org).
 
-[Documentation](http://hshindo.github.io/Merlin.jl)
+[Documentation](http://hshindo.github.io/Merlin.jl/latest/)
 
-## Requirements
+## Requirements for CUDA GPU
 cuDNN v4
 
 ## Install
@@ -16,4 +16,5 @@ julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 
 ## Basic Usage
 ```julia
+
 ```
