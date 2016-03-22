@@ -2,7 +2,7 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Merlin.jl\n\n\nMerlin.jl\n is a neural network library in \nJulia\n.\n\n\n\n\n\u2605 Functions\n\n\n{contents}   Pages = [\"man/functors.md\"]   Depth = 2\n\n\nIt aims to provide a fast, flexible and concise neural network library for machine learning.\n\n\n\n\n\u2605 Install\n\n\n#julia\n Pkg.clone(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\n\n\n\n\u2605 Optional Requirements\n\n\n\n\ncuDNN\n v4 (for CUDA GPU)", 
+            "text": "Merlin.jl\n\n\nMerlin.jl\n is a neural network library in \nJulia\n.\n\n\n\n\n\u2605 Functions\n\n\n{contents} Pages = [\"man/functors.md\"] Depth = 2\n\n\nIt aims to provide a fast, flexible and concise neural network library for machine learning.\n\n\n\n\n\u2605 Install\n\n\n#julia\n Pkg.clone(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\n\n\n\n\u2605 Optional Requirements\n\n\n\n\ncuDNN\n v4 (for CUDA GPU)", 
             "title": "Introduction"
         }, 
         {
@@ -12,7 +12,7 @@
         }, 
         {
             "location": "/#functions", 
-            "text": "{contents}   Pages = [\"man/functors.md\"]   Depth = 2  It aims to provide a fast, flexible and concise neural network library for machine learning.", 
+            "text": "{contents} Pages = [\"man/functors.md\"] Depth = 2  It aims to provide a fast, flexible and concise neural network library for machine learning.", 
             "title": "\u2605 Functions"
         }, 
         {
