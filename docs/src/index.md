@@ -13,7 +13,7 @@ It aims to provide a fast, flexible and concise neural network library for machi
 
 ## ★ Install
 ```julia
-julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
+#julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 ```
 
 ## ★ Optional Requirements
