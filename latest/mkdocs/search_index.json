@@ -3,7 +3,7 @@
         {
             "location": "/", 
             "text": "Merlin.jl\n\n\nMerlin.jl\n is a neural network library in \nJulia\n.\n\n\n\n\n\u2605 Functions\n\n\n\n\nGetting Started\n\n\n\n\nIt aims to provide a fast, flexible and concise neural network library for machine learning.\n\n\n\n\n\u2605 Install\n\n\n#julia\n Pkg.clone(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\n\n\n\n\u2605 Optional Requirements\n\n\n\n\ncuDNN\n v4 (for CUDA GPU)", 
-            "title": "Introduction"
+            "title": "Home"
         }, 
         {
             "location": "/#merlinjl", 
@@ -24,16 +24,6 @@
             "location": "/#optional-requirements", 
             "text": "cuDNN  v4 (for CUDA GPU)", 
             "title": "\u2605 Optional Requirements"
-        }, 
-        {
-            "location": "/man/functors/", 
-            "text": "Getting Started", 
-            "title": "Functors"
-        }, 
-        {
-            "location": "/man/functors/#getting-started", 
-            "text": "", 
-            "title": "Getting Started"
         }
     ]
 }
