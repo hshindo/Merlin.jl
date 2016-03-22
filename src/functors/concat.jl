@@ -1,7 +1,7 @@
 export Concat
 
 """
-## 🔨 Concat
+## Concat
 
 Concatenates arrays along the given dimension.
 
