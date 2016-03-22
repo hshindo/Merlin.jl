@@ -67,7 +67,7 @@
         }, 
         {
             "location": "/functors/", 
-            "text": "Functors\n\n\n#\n\n\nMerlin.Concat\n \n \nType\n.\n\n\n\n\nConcat\n\n\nConcatenates arrays along the given dimension.\n\n\n\n\nConcat(dim::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx1\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n7\n,\n5\n))\n\n\nx2\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nConcat\n(\n1\n)\n\n\ny\n \n=\n \nf\n(\nx1\n,\n \nx2\n)\n\n\ny\n \n=\n \nf\n([\nx1\n,\nx2\n])\n\n\n\n\n\n\naaa\n\n\n#\n\n\nMerlin.Linear\n \n \nType\n.\n\n\n\n\nLinear\n\n\nComputes linear transformation a.k.a. affine transformation. $f(x) = W^{mathrm{T}}x + b$ where (W) is a weight matrix, (b) is a bias vector.\n\n\nFunctions\n\n\n\n\nLinear(w, b)\n\n\nLinear{T}(::Type{T}, insize::Int, outsize::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\n#x = Variable(rand(Float32,10,5))\n\n\n#f = Linear(Float32, 10, 3)\n\n\n#y = f(x)", 
+            "text": "Functors\n\n\n#\n\n\nMerlin.Concat\n \n \nType\n.\n\n\n\n\nConcat\n\n\nConcatenates arrays along the given dimension.\n\n\n\n\nConcat(dim::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx1\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n7\n,\n5\n))\n\n\nx2\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nConcat\n(\n1\n)\n\n\ny\n \n=\n \nf\n(\nx1\n,\n \nx2\n)\n\n\ny\n \n=\n \nf\n([\nx1\n,\nx2\n])\n\n\n\n\n\n\naaa\n\n\n#\n\n\nMerlin.Linear\n \n \nType\n.\n\n\n\n\nLinear\n\n\nComputes linear transformation a.k.a. affine transformation.\n\n\n[   f(x) = wx ]\n\n\n$f(x) = W^{mathrm{T}}x + b$\nwhere (W) is a weight matrix, (b) is a bias vector.\n\n\nFunctions\n\n\n\n\nLinear(w, b)\n\n\nLinear{T}(::Type{T}, insize::Int, outsize::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\n#x = Variable(rand(Float32,10,5))\n\n\n#f = Linear(Float32, 10, 3)\n\n\n#y = f(x)", 
             "title": "Functors"
         }, 
         {
@@ -87,7 +87,7 @@
         }, 
         {
             "location": "/functors/#linear", 
-            "text": "Computes linear transformation a.k.a. affine transformation. $f(x) = W^{mathrm{T}}x + b$ where (W) is a weight matrix, (b) is a bias vector.", 
+            "text": "Computes linear transformation a.k.a. affine transformation.  [   f(x) = wx ]  $f(x) = W^{mathrm{T}}x + b$\nwhere (W) is a weight matrix, (b) is a bias vector.", 
             "title": "Linear"
         }, 
         {
