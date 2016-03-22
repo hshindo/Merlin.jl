@@ -13,9 +13,9 @@ where \(W\) is a weight matrix, \(b\) is a bias vector.
 
 ### 👉 Example
 ```julia
-x = Variable(rand(Float32,10,5))
-f = Linear(Float32, 10, 3)
-y = f(x)
+#x = Variable(rand(Float32,10,5))
+#f = Linear(Float32, 10, 3)
+#y = f(x)
 ```
 """
 type Linear <: Functor

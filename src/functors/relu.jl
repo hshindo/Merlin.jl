@@ -8,9 +8,9 @@ Rectifier linear unit.
 
 ### 👉 Example
 ```julia
-x = Variable(rand(Float32,10,5))
-f = ReLU()
-y = f(x)
+#x = Variable(rand(Float32,10,5))
+#f = ReLU()
+#y = f(x)
 ```
 """
 type ReLU <: Functor

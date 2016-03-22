@@ -9,9 +9,9 @@ Computes the maximum value of an array over the given dimensions.
 
 ### 👉 Example
 ```julia
-x = Variable(rand(Float32,10,5))
-f = Max(1)
-y = f(x)
+#x = Variable(rand(Float32,10,5))
+#f = Max(1)
+#y = f(x)
 ```
 """
 type Max <: Functor

@@ -10,10 +10,10 @@ f(p,q)=-\sum_{x}p(x)\log q(x)
 
 ### 👉 Example
 ```julia
-p = Variable(rand(Float32,10,5))
-f = CrossEntropy(p)
-q = Variable(rand(Float32,10,5))
-y = f(q)
+#p = Variable(rand(Float32,10,5))
+#f = CrossEntropy(p)
+#q = Variable(rand(Float32,10,5))
+#y = f(q)
 ```
 """
 type CrossEntropy <: Functor
