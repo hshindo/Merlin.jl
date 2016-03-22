@@ -11,7 +11,7 @@ extra_css:
   - assets/Lapidary.css
 
 extra_javascript:
-  - http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+  - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
   - assets/mathjaxhelper.js
 
 markdown_extensions:
