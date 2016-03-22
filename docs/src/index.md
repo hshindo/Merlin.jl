@@ -5,7 +5,7 @@
 ## ★ Functions
 
     {contents}
-    Pages = ["man/functors.md"]
+    Pages = ["functors.md"]
     Depth = 2
 
 It aims to provide a fast, flexible and concise neural network library for machine learning.
