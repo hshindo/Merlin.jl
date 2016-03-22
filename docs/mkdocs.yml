@@ -12,7 +12,7 @@ extra_css:
 
 extra_javascript:
   - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
-  - https://github.com/hshindo/Merlin.jl/blob/master/docs/mathjaxhelper.js
+  - https://raw.githubusercontent.com/hshindo/Merlin.jl/master/docs/mathjaxhelper.js
   #- assets/mathjaxhelper.js
 
 markdown_extensions:
