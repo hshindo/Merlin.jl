@@ -67,7 +67,7 @@
         }, 
         {
             "location": "/functors/", 
-            "text": "Functors\n\n\n#\n\n\nMerlin.Concat\n \n \nType\n.\n\n\n\n\nConcat\n\n\nConcatenates arrays along the given dimension.\n\n\n\n\nConcat(dim::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx1\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n7\n,\n5\n))\n\n\nx2\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nConcat\n(\n1\n)\n\n\ny\n \n=\n \nf\n(\nx1\n,\n \nx2\n)\n\n\ny\n \n=\n \nf\n([\nx1\n,\nx2\n])\n\n\n\n\n\n\naaa\n\n\n#\n\n\nMerlin.Linear\n \n \nType\n.\n\n\n\n\nLinear\n\n\nComputes linear transformation a.k.a. affine transformation.\n\n\n\\begin f(x) = 1 \\end\n\n\n:$\nf(x) = W^{mathrm{T}}x + b :$\n\n\n$ f(x) = W^{mathrm{T}}x + b $\n\n\nwhere $W$ is a weight matrix, $b$ is a bias vector.\n\n\nFunctions\n\n\n\n\nLinear(w, b)\n\n\nLinear{T}(::Type{T}, insize::Int, outsize::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\n#x = Variable(rand(Float32,10,5))\n\n\n#f = Linear(Float32, 10, 3)\n\n\n#y = f(x)", 
+            "text": "Functors\n\n\n#\n\n\nMerlin.Concat\n \n \nType\n.\n\n\n\n\nConcat\n\n\nConcatenates arrays along the given dimension.\n\n\n\n\nConcat(dim::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx1\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n7\n,\n5\n))\n\n\nx2\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nConcat\n(\n1\n)\n\n\ny\n \n=\n \nf\n(\nx1\n,\n \nx2\n)\n\n\ny\n \n=\n \nf\n([\nx1\n,\nx2\n])\n\n\n\n\n\n\n#\n\n\nMerlin.CrossEntropy\n \n \nType\n.\n\n\n\n\n\ud83d\udd28 CrossEntropy\n\n\nComputes cross-entropy between a true distribution $p$ and the target distribution $q$.\n\n\n$ f(p,q)=-sum_{x}p(x)log q(x) $\n\n\nFunctions\n\n\n\n\nCrossEntropy(p::Matrix)\n\n\n\n\n\ud83d\udc49 Example\n\n\n#p = Variable(rand(Float32,10,5))\n\n\n#f = CrossEntropy(p)\n\n\n#q = Variable(rand(Float32,10,5))\n\n\n#y = f(q)\n\n\n\n\n\n\n#\n\n\nMerlin.Linear\n \n \nType\n.\n\n\n\n\nLinear\n\n\nComputes linear transformation a.k.a. affine transformation.\n\n\n$ f(x) = W^{mathrm{T}}x + b $\n\n\nwhere $W$ is a weight matrix, $b$ is a bias vector.\n\n\nFunctions\n\n\n\n\nLinear(w, b)\n\n\nLinear{T}(::Type{T}, insize::Int, outsize::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nFloat32\n,\n \n10\n,\n \n3\n)\n\n\ny\n \n=\n \nf\n(\nx\n)", 
             "title": "Functors"
         }, 
         {
@@ -82,22 +82,37 @@
         }, 
         {
             "location": "/functors/#example", 
-            "text": "x1   =   Variable ( rand ( Float32 , 7 , 5 ))  x2   =   Variable ( rand ( Float32 , 10 , 5 ))  f   =   Concat ( 1 )  y   =   f ( x1 ,   x2 )  y   =   f ([ x1 , x2 ])   aaa  #  Merlin.Linear     Type .", 
+            "text": "x1   =   Variable ( rand ( Float32 , 7 , 5 ))  x2   =   Variable ( rand ( Float32 , 10 , 5 ))  f   =   Concat ( 1 )  y   =   f ( x1 ,   x2 )  y   =   f ([ x1 , x2 ])   #  Merlin.CrossEntropy     Type .", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
-            "location": "/functors/#linear", 
-            "text": "Computes linear transformation a.k.a. affine transformation.  \\begin f(x) = 1 \\end  :$\nf(x) = W^{mathrm{T}}x + b :$  $ f(x) = W^{mathrm{T}}x + b $  where $W$ is a weight matrix, $b$ is a bias vector.", 
-            "title": "Linear"
+            "location": "/functors/#crossentropy", 
+            "text": "Computes cross-entropy between a true distribution $p$ and the target distribution $q$.  $ f(p,q)=-sum_{x}p(x)log q(x) $", 
+            "title": "\ud83d\udd28 CrossEntropy"
         }, 
         {
             "location": "/functors/#functions", 
-            "text": "Linear(w, b)  Linear{T}(::Type{T}, insize::Int, outsize::Int)", 
+            "text": "CrossEntropy(p::Matrix)", 
             "title": "Functions"
         }, 
         {
             "location": "/functors/#example_1", 
-            "text": "#x = Variable(rand(Float32,10,5))  #f = Linear(Float32, 10, 3)  #y = f(x)", 
+            "text": "#p = Variable(rand(Float32,10,5))  #f = CrossEntropy(p)  #q = Variable(rand(Float32,10,5))  #y = f(q)   #  Merlin.Linear     Type .", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#linear", 
+            "text": "Computes linear transformation a.k.a. affine transformation.  $ f(x) = W^{mathrm{T}}x + b $  where $W$ is a weight matrix, $b$ is a bias vector.", 
+            "title": "Linear"
+        }, 
+        {
+            "location": "/functors/#functions_1", 
+            "text": "Linear(w, b)  Linear{T}(::Type{T}, insize::Int, outsize::Int)", 
+            "title": "Functions"
+        }, 
+        {
+            "location": "/functors/#example_2", 
+            "text": "x   =   Variable ( rand ( Float32 , 10 , 5 ))  f   =   Linear ( Float32 ,   10 ,   3 )  y   =   f ( x )", 
             "title": "\ud83d\udc49 Example"
         }
     ]
