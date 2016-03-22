@@ -2,8 +2,5 @@
 
     {docs}
     Concat
-
-aaa
-
-    {docs}
+    CrossEntropy
     Linear

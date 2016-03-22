@@ -5,12 +5,6 @@ using Base.LinAlg.BLAS
 ## Linear
 Computes linear transformation a.k.a. affine transformation.
 
-\\begin
-f(x) = 1
-\\end
-
-\$\$ f(x) = W^{\mathrm{T}}x + b \$\$
-
 \$ f(x) = W^{\mathrm{T}}x + b \$
 
 where \$W\$ is a weight matrix, \$b\$ is a bias vector.
@@ -21,9 +15,9 @@ where \$W\$ is a weight matrix, \$b\$ is a bias vector.
 
 ### 👉 Example
 ```julia
-#x = Variable(rand(Float32,10,5))
-#f = Linear(Float32, 10, 3)
-#y = f(x)
+x = Variable(rand(Float32,10,5))
+f = Linear(Float32, 10, 3)
+y = f(x)
 ```
 """
 type Linear <: Functor

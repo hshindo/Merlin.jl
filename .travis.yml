@@ -13,6 +13,9 @@ notifications:
 before_script:
   - export PATH=$HOME/.local/bin:$PATH
 
+install:
+  - pip install python-markdown-math
+
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - julia -e 'Pkg.clone(pwd()); Pkg.build("Merlin"); Pkg.test("Merlin"; coverage=true)'
