@@ -4,7 +4,7 @@ using Lapidary
 using Merlin
 
 makedocs(
-  modules = [Merlin]
+  modules = [Merlin],
   clean = false
 )
 
