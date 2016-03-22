@@ -2,3 +2,6 @@
 
     {docs}
     Concat
+
+    {docs}
+    Linear
