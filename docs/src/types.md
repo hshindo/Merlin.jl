@@ -5,7 +5,7 @@ There are three basic types:
 * `Functor`
 * `Optimizer`
 
-## ★ Variable
+## Variable
 `Variable` has `value` and `grad`.
 ```julia
 x = Variable(AFArray(Float32,10,5))
@@ -13,5 +13,5 @@ x.value
 x.grad
 ```
 
-## ★ Functor
+## Functor
 `Functor` is an abstract type of functors.
