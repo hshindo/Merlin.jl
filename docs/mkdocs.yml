@@ -22,7 +22,8 @@ markdown_extensions:
   #- mdx_math
 
 pages:
-  - Home: index.md
+  - [index.md, Introduction]
+  - [man/functors.md, Functors]
 #  - Overview: overview.md
 #  - Types: types.md
 #  - Functors: functors.md
