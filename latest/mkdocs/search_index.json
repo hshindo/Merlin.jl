@@ -2,7 +2,7 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Merlin.jl\n\n\nMerlin.jl\n is a neural network library in \nJulia\n.\n\n\n\n\n\u2605 Functions\n\n\n\n\nGetting Started\n\n\n\n\nIt aims to provide a fast, flexible and concise neural network library for machine learning.\n\n\n\n\n\u2605 Install\n\n\n#julia\n Pkg.clone(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\n\n\n\n\u2605 Optional Requirements\n\n\n\n\ncuDNN\n v4 (for CUDA GPU)", 
+            "text": "Merlin.jl\n\n\nMerlin.jl\n is a neural network library in \nJulia\n.\n\n\n\n\nFunctions\n\n\n\n\nOverview\n\n\nDecoding\n\n\nTraining\n\n\n\n\n\n\nTypes\n\n\n\u2605 Variable\n\n\n\u2605 Functor\n\n\n\n\n\n\nFunctors\n\n\n\ud83d\udd28 Concat\n\n\n\n\n\n\n\n\nIt aims to provide a fast, flexible and concise neural network library for machine learning.\n\n\n\n\nInstall\n\n\n#julia\n Pkg.clone(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\n\n\n\nOptional Requirements\n\n\n\n\ncuDNN\n v4 (for CUDA GPU)", 
             "title": "Home"
         }, 
         {
@@ -12,22 +12,22 @@
         }, 
         {
             "location": "/#functions", 
-            "text": "Getting Started   It aims to provide a fast, flexible and concise neural network library for machine learning.", 
-            "title": "\u2605 Functions"
+            "text": "Overview  Decoding  Training    Types  \u2605 Variable  \u2605 Functor    Functors  \ud83d\udd28 Concat     It aims to provide a fast, flexible and concise neural network library for machine learning.", 
+            "title": "Functions"
         }, 
         {
             "location": "/#install", 
             "text": "#julia  Pkg.clone( https://github.com/hshindo/Merlin.jl.git )", 
-            "title": "\u2605 Install"
+            "title": "Install"
         }, 
         {
             "location": "/#optional-requirements", 
             "text": "cuDNN  v4 (for CUDA GPU)", 
-            "title": "\u2605 Optional Requirements"
+            "title": "Optional Requirements"
         }, 
         {
             "location": "/overview/", 
-            "text": "Overview\n\n\nMerlin.jl provides many primitive functions.\n\n\nEvery computation is preserved.\n\n\n\n\n\u2605 Decoding\n\n\nv\n \n=\n \nVariable\n()\n\n\n\n\n\n\n\n\n\u2605 Training\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\n\nfor\n \ni\n \n=\n \n1\n:\n10\n\n  \nv\n \n=\n \nVariable\n()\n\n  \ny\n \n=\n \nv\n \n|\n \nf1\n \n|\n \nf2\n\n  \ny\n.\ngrad\n \n=\n \nones\n()\n\n  \nbackward!\n(\ny\n)\n\n  \nupdate!\n(\nopt\n,\n \ny\n)\n\n\nend", 
+            "text": "Overview\n\n\nMerlin.jl provides many primitive functions.\n\n\nEvery computation is preserved.\n\n\n\n\nDecoding\n\n\nv\n \n=\n \nVariable\n()\n\n\n\n\n\n\n\n\nTraining\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\n\nfor\n \ni\n \n=\n \n1\n:\n10\n\n  \nv\n \n=\n \nVariable\n()\n\n  \ny\n \n=\n \nv\n \n|\n \nf1\n \n|\n \nf2\n\n  \ny\n.\ngrad\n \n=\n \nones\n()\n\n  \nbackward!\n(\ny\n)\n\n  \nupdate!\n(\nopt\n,\n \ny\n)\n\n\nend", 
             "title": "Overview"
         }, 
         {
@@ -38,12 +38,12 @@
         {
             "location": "/overview/#decoding", 
             "text": "v   =   Variable ()", 
-            "title": "\u2605 Decoding"
+            "title": "Decoding"
         }, 
         {
             "location": "/overview/#training", 
             "text": "opt   =   SGD ( 0.001 )  for   i   =   1 : 10 \n   v   =   Variable () \n   y   =   v   |   f1   |   f2 \n   y . grad   =   ones () \n   backward! ( y ) \n   update! ( opt ,   y )  end", 
-            "title": "\u2605 Training"
+            "title": "Training"
         }, 
         {
             "location": "/types/", 
