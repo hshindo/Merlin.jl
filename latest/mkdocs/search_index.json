@@ -2,7 +2,7 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Merlin.jl\n\n\nMerlin.jl\n is a neural network library in \nJulia\n.\n\n\n\n\nFunctions\n\n\n\n\nOverview\n\n\nDecoding\n\n\nTraining\n\n\n\n\n\n\nTypes\n\n\nVariable\n\n\nFunctor\n\n\n\n\n\n\nFunctors\n\n\n\ud83d\udd28 Concat\n\n\n\n\n\n\n\n\nIt aims to provide a fast, flexible and concise neural network library for machine learning.\n\n\n\n\nInstall\n\n\n#julia\n Pkg.clone(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\n\n\n\nOptional Requirements\n\n\n\n\ncuDNN\n v4 (for CUDA GPU)", 
+            "text": "Merlin.jl\n\n\nMerlin.jl\n is a neural network library in \nJulia\n.\n\n\n\n\nFunctions\n\n\n\n\nOverview\n\n\nDecoding\n\n\nTraining\n\n\n\n\n\n\nTypes\n\n\nVariable\n\n\nFunctor\n\n\n\n\n\n\nFunctors\n\n\n\n\nIt aims to provide a fast, flexible and concise neural network library for machine learning.\n\n\n\n\nInstall\n\n\n#julia\n Pkg.clone(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\n\n\n\nOptional Requirements\n\n\n\n\ncuDNN\n v4 (for CUDA GPU)", 
             "title": "Home"
         }, 
         {
@@ -12,7 +12,7 @@
         }, 
         {
             "location": "/#functions", 
-            "text": "Overview  Decoding  Training    Types  Variable  Functor    Functors  \ud83d\udd28 Concat     It aims to provide a fast, flexible and concise neural network library for machine learning.", 
+            "text": "Overview  Decoding  Training    Types  Variable  Functor    Functors   It aims to provide a fast, flexible and concise neural network library for machine learning.", 
             "title": "Functions"
         }, 
         {
@@ -67,27 +67,22 @@
         }, 
         {
             "location": "/functors/", 
-            "text": "Functors\n\n\n\n\n\ud83d\udd28 Concat\n\n\n#\n\n\nMerlin.Concat\n \n \nType\n.\n\n\n\n\n\ud83d\udd28 Concat\n\n\nConcatenates arrays along the given dimension.\n\n\n\n\nConcat(dim::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\n#x1 = Variable(rand(Float32,7,5))\n\n\n#x2 = Variable(rand(Float32,10,5))\n\n\n#f = Concat(1)\n\n\n#y = f(x1, x2)\n\n\n#y = f([x1,x2])", 
+            "text": "Functors\n\n\n#\n\n\nMerlin.Concat\n \n \nType\n.\n\n\n\n\n\ud83d\udd28 Concat\n\n\nConcatenates arrays along the given dimension.\n\n\n\n\nConcat(dim::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx1\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n7\n,\n5\n))\n\n\nx2\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nConcat\n(\n1\n)\n\n\ny\n \n=\n \nf\n(\nx1\n,\n \nx2\n)\n\n\ny\n \n=\n \nf\n([\nx1\n,\nx2\n])", 
             "title": "Functors"
         }, 
         {
             "location": "/functors/#functors", 
-            "text": "", 
+            "text": "#  Merlin.Concat     Type .", 
             "title": "Functors"
         }, 
         {
             "location": "/functors/#concat", 
-            "text": "#  Merlin.Concat     Type .", 
-            "title": "\ud83d\udd28 Concat"
-        }, 
-        {
-            "location": "/functors/#concat_1", 
             "text": "Concatenates arrays along the given dimension.   Concat(dim::Int)", 
             "title": "\ud83d\udd28 Concat"
         }, 
         {
             "location": "/functors/#example", 
-            "text": "#x1 = Variable(rand(Float32,7,5))  #x2 = Variable(rand(Float32,10,5))  #f = Concat(1)  #y = f(x1, x2)  #y = f([x1,x2])", 
+            "text": "x1   =   Variable ( rand ( Float32 , 7 , 5 ))  x2   =   Variable ( rand ( Float32 , 10 , 5 ))  f   =   Concat ( 1 )  y   =   f ( x1 ,   x2 )  y   =   f ([ x1 , x2 ])", 
             "title": "\ud83d\udc49 Example"
         }
     ]

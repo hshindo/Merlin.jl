@@ -207,12 +207,6 @@
               </a>
             </li>
           
-            <li class="anchor">
-              <a title="🔨 Concat" href="#concat_1">
-                🔨 Concat
-              </a>
-            </li>
-          
         </ul>
       
     
@@ -231,22 +225,20 @@
           
           <p><a id='Functors-1'></a></p>
 <h1 id="functors">Functors</h1>
-<p><a id='Concat-1'></a></p>
-<h2 id="concat">🔨 Concat</h2>
 <p><a id='Merlin.Concat' href='#Merlin.Concat'>#</a>
 <strong><code>Merlin.Concat</code></strong> &mdash; <em>Type</em>.</p>
 <hr />
-<h2 id="concat_1">🔨 Concat</h2>
+<h2 id="concat">🔨 Concat</h2>
 <p>Concatenates arrays along the given dimension.</p>
 <ul>
 <li><code>Concat(dim::Int)</code></li>
 </ul>
 <h3 id="example">👉 Example</h3>
-<div class="codehilite"><pre><span></span><span class="c">#x1 = Variable(rand(Float32,7,5))</span>
-<span class="c">#x2 = Variable(rand(Float32,10,5))</span>
-<span class="c">#f = Concat(1)</span>
-<span class="c">#y = f(x1, x2)</span>
-<span class="c">#y = f([x1,x2])</span>
+<div class="codehilite"><pre><span></span><span class="n">x1</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">x2</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Concat</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">])</span>
 </pre></div>
           <aside class="copyright" role="note">
             
