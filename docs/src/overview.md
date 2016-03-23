@@ -2,26 +2,26 @@
 Merlin.jl provides many primitive functions.
 
 ## Decoding
-
 1. Create `Variable` from Array (CPU) or CudaArray (CUDA GPU).
 1. Create `Functor`s.
 1. Apply the functors to the variable.
 
 ```julia
-T = Float32
-x = Variable(rand(T,50,5))
-f = Linear(T,50,30)
+using Merlin
+
+x = Variable(rand(Float32,50,5))
+f = Linear(Float32,50,30)
 y = f(x)
 ```
 
 ## Training
-
 1. Create `Optimizer`.
 1. Decode your variables.
 1. Compute gradient.
 1. Update `Functor`s with your `Optimizer`.
-
 ```julia
+using Merlin
+
 opt = SGD(0.001)
 f = [Linear(Float32,50,30), ReLU(), Linear(Float32,30,10)]
 
