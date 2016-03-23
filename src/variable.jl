@@ -29,7 +29,7 @@ Base.getindex(v::Variable, key) = v.args[key]
 Base.setindex!(v::Variable, value, key) = v.args[key] = value
 Base.eltype(v::Variable) = eltype(v.value)
 
-function backward!(var::Variable)
+function gradient!(var::Variable)
   var.grad == nothing && (var.grad = ones(var.value))
   sorted = topsort(var)
   #for i = 1:length(sorted)-1 # excludes var
