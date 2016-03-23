@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 
-Merlin.jl is a flexible deep library written written in [Julia](http://julialang.org).
+Merlin.jl is a flexible deep library written in [Julia](http://julialang.org).
 
 - [Documentation (latest)](http://hshindo.github.io/Merlin.jl/latest/)
 
@@ -30,6 +30,7 @@ using Merlin
 x = Variable(rand(Float32,50,5))
 f = Linear(Float32,50,30)
 y = f(x)
+println(y)
 ```
 
 ### Training
@@ -45,7 +46,7 @@ f = [Linear(Float32,50,30), ReLU(), Linear(Float32,30,10)]
 
 for i = 1:10
   x = Variable(rand(Float32,50,20))
-  y = f(x)
+  y = f(x) |> CrossEntropy(...)
   gradient!(y)
   update!(opt, f)
 end
