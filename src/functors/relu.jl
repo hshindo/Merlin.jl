@@ -1,16 +1,16 @@
 export ReLU
 
 """
-## 🔨 ReLU
+## ReLU
 Rectifier linear unit.
 
 - `ReLU()`
 
 ### 👉 Example
 ```julia
-#x = Variable(rand(Float32,10,5))
-#f = ReLU()
-#y = f(x)
+x = Variable(rand(Float32,10,5))
+f = ReLU()
+y = f(x)
 ```
 """
 type ReLU <: Functor

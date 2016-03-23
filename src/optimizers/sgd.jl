@@ -1,3 +1,13 @@
+export SGD
+
+"""
+## SGD
+Stochastic Gradient Descent.
+
+### 👉 Example
+```julia
+```
+"""
 type SGD <: Optimizer
   learnrate::Float64
 end

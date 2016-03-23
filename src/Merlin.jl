@@ -5,7 +5,7 @@ abstract Optimizer
 
 export CudaArray
 export Variable, forward!, backward!
-export AdaGrad, Adam, SGD, update!
+export update!
 
 include("native.jl")
 

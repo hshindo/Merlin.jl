@@ -4,7 +4,7 @@ const WINDOW2D_FWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_fwd_f32)
 const WINDOW2D_BWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f32)
 
 """
-## 🔨 Window2D
+## Window2D
 
 - `Window(w1::Int, w2::Int, s1::Int, s2::Int, p1::Int, p2::Int)`
     - w1, w2: window sizes

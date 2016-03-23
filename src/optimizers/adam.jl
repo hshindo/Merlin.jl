@@ -1,4 +1,7 @@
+export Adam
+
 """
+## Adam
 Adam: A Method for Stochastic Optimization
 See: http://arxiv.org/abs/1412.6980v8
 """

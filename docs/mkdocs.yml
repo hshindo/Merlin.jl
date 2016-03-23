@@ -26,5 +26,6 @@ pages:
   - Overview: overview.md
   - Types: types.md
   - Functors: functors.md
+  - Optimizers: optimizers.md
 #  - Examples:
 #    - POS-Tagging: 'examples/pos-tagging.md'

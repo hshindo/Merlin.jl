@@ -1,4 +1,7 @@
+export AdaGrad
+
 """
+## AdaGrad
 AdaGrad implementation.
 See: http://jmlr.org/papers/v12/duchi11a.html
 """

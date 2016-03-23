@@ -1,7 +1,7 @@
 export Lookup
 
 """
-## 🔨 Lookup
+## Lookup
 Lookup variables.
 
 ### Functions
@@ -9,7 +9,9 @@ Lookup variables.
 
 ### 👉 Example
 ```julia
-
+x = Variable([1:5])
+f = Lookup(Float32,10000,100)
+y = f(x)
 ```
 """
 type Lookup <: Functor

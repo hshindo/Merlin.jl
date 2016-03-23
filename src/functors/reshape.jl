@@ -1,7 +1,7 @@
 export Reshape
 
 """
-## 🔨 Reshape
+## Reshape
 Reshapes an array with the given dimensions.
 
 ### Functions
@@ -9,9 +9,9 @@ Reshapes an array with the given dimensions.
 
 ### 👉 Example
 ```julia
-#x = Variable(rand(Float32,10,5,3))
-#f = Reshape(5,3,10)
-#y = f(x)
+x = Variable(rand(Float32,10,5,3))
+f = Reshape(5,3,10)
+y = f(x)
 ```
 """
 type Reshape <: Functor

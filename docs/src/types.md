@@ -8,9 +8,9 @@ There are three basic types:
 ## Variable
 `Variable` has `value` and `grad`.
 ```julia
-x = Variable(AFArray(Float32,10,5))
-x.value
-x.grad
+#x = Variable(AFArray(Float32,10,5))
+#x.value
+#x.grad
 ```
 
 ## Functor

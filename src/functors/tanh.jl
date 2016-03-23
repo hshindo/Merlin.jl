@@ -1,3 +1,17 @@
+export Tanh
+
+"""
+## Tanh
+
+- `Tanh()`
+
+### 👉 Example
+```julia
+x = Variable(rand(Float32,10,5))
+f = Tanh()
+y = f(x)
+```
+"""
 type Tanh <: Functor
 end
 

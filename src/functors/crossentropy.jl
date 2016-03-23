@@ -1,7 +1,7 @@
 export CrossEntropy
 
 """
-## 🔨 CrossEntropy
+## CrossEntropy
 Computes cross-entropy between a true distribution \$p\$ and the target distribution \$q\$.
 
 \$ f(p,q)=-\sum_{x}p(x)\log q(x) \$
