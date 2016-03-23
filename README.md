@@ -20,7 +20,7 @@ julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 ## Basic Usage
 
 ### Decoding
-1. Create `Variable` from Array (CPU) or CudaArray (CUDA GPU).
+1. Create `Variable` from `Array` (CPU) or `CudaArray` (CUDA GPU).
 1. Create `Functor`s.
 1. Apply the functors to the variable.
 
@@ -50,3 +50,6 @@ for i = 1:10
   update!(opt, f)
 end
 ```
+
+## Using CUDA
+To be constructed...

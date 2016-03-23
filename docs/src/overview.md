@@ -2,7 +2,7 @@
 Merlin.jl provides many primitive functions.
 
 ## Decoding
-1. Create `Variable` from Array (CPU) or CudaArray (CUDA GPU).
+1. Create `Variable` from `Array` (CPU) or `CudaArray` (CUDA GPU).
 1. Create `Functor`s.
 1. Apply the functors to the variable.
 
