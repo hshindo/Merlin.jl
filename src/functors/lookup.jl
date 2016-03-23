@@ -36,7 +36,7 @@ function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
 end
 
 """
-- path:
+- path: initial values
 - T::Type
 """
 function Lookup{T}(path, ::Type{T})
