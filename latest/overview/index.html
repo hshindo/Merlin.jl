@@ -244,7 +244,7 @@
 <p><a id='Decoding-1'></a></p>
 <h2 id="decoding">Decoding</h2>
 <ol>
-<li>Create <code>Variable</code> from Array (CPU) or CudaArray(CUDA GPU).</li>
+<li>Create <code>Variable</code> from Array (CPU) or CudaArray (CUDA GPU).</li>
 <li>Create <code>Functor</code>s.</li>
 <li>Apply the functors to the variable.</li>
 </ol>
@@ -257,6 +257,12 @@
 
 <p><a id='Training-1'></a></p>
 <h2 id="training">Training</h2>
+<ol>
+<li>Create <code>Optimizer</code>.</li>
+<li>Decode your variables.</li>
+<li>Compute gradient.</li>
+<li>Update <code>Functor</code>s.</li>
+</ol>
 <div class="codehilite"><pre><span></span><span class="n">T</span> <span class="o">=</span> <span class="kt">Float32</span>
 <span class="n">opt</span> <span class="o">=</span> <span class="n">SGD</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
 
