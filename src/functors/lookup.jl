@@ -21,6 +21,11 @@ end
 
 Lookup(weights::Vector{Variable}) = Lookup(weights, Set{Int}())
 
+"""
+- T: Type
+- insize::Int
+- outsize::Int
+"""
 function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
   weights = Array(Variable, insize)
   for i = 1:insize
@@ -30,6 +35,10 @@ function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
   Lookup(weights)
 end
 
+"""
+- path:
+- T::Type
+"""
 function Lookup{T}(path, ::Type{T})
   lines = open(readlines, path)
   weights = Array(Variable, length(lines))
