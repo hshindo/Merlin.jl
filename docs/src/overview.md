@@ -18,9 +18,9 @@ y = f(x)
 
 1. Create `Optimizer`.
 1. For each iteration...
-  1. Decode your variables.
-  1. Compute gradient.
-  1. Update `Functor`s with your `Optimizer`.
+    1. Decode your variables.
+    1. Compute gradient.
+    1. Update `Functor`s with your `Optimizer`.
 
 ```julia
 T = Float32
