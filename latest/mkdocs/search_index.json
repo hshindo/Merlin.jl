@@ -2,18 +2,13 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Merlin.jl\n\n\nMerlin.jl\n is a neural network library in \nJulia\n.\n\n\n\n\nFunctions\n\n\n\n\nOverview\n\n\nDecoding\n\n\nTraining\n\n\n\n\n\n\nTypes\n\n\nVariable\n\n\nFunctor\n\n\n\n\n\n\nFunctors\n\n\n\n\nIt aims to provide a fast, flexible and concise neural network library for machine learning.\n\n\n\n\nInstall\n\n\n#julia\n Pkg.clone(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\n\n\n\nOptional Requirements\n\n\n\n\ncuDNN\n v4 (for CUDA GPU)", 
+            "text": "Merlin.jl\n\n\nMerlin.jl\n is a neural network library in \nJulia\n.\n\n\nIt aims to provide a fast, flexible and concise neural network library for machine learning.\n\n\n\n\nInstall\n\n\n#julia\n Pkg.clone(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\n\n\n\nRequirements for CUDA GPU\n\n\n\n\ncuDNN\n v4", 
             "title": "Home"
         }, 
         {
             "location": "/#merlinjl", 
-            "text": "Merlin.jl  is a neural network library in  Julia .", 
+            "text": "Merlin.jl  is a neural network library in  Julia .  It aims to provide a fast, flexible and concise neural network library for machine learning.", 
             "title": "Merlin.jl"
-        }, 
-        {
-            "location": "/#functions", 
-            "text": "Overview  Decoding  Training    Types  Variable  Functor    Functors   It aims to provide a fast, flexible and concise neural network library for machine learning.", 
-            "title": "Functions"
         }, 
         {
             "location": "/#install", 
@@ -21,9 +16,9 @@
             "title": "Install"
         }, 
         {
-            "location": "/#optional-requirements", 
-            "text": "cuDNN  v4 (for CUDA GPU)", 
-            "title": "Optional Requirements"
+            "location": "/#requirements-for-cuda-gpu", 
+            "text": "cuDNN  v4", 
+            "title": "Requirements for CUDA GPU"
         }, 
         {
             "location": "/overview/", 
