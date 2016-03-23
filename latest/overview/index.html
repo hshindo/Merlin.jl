@@ -248,9 +248,10 @@
 <li>Create <code>Functor</code>s.</li>
 <li>Apply the functors to the variable.</li>
 </ol>
-<div class="codehilite"><pre><span></span><span class="n">T</span> <span class="o">=</span> <span class="kt">Float32</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
-<span class="n">f</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">30</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><span class="k">using</span> <span class="n">Merlin</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">30</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </pre></div>
 
@@ -261,18 +262,10 @@
 <li>Create <code>Optimizer</code>.</li>
 <li>Decode your variables.</li>
 <li>Compute gradient.</li>
-<li>Update <code>Functor</code>s with your <code>Optimizer</code>.</li>
+<li>Update <code>Functor</code>s with your <code>Optimizer</code>. ```julia using Merlin</li>
 </ol>
-<div class="codehilite"><pre><span></span><span class="n">opt</span> <span class="o">=</span> <span class="n">SGD</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
-<span class="n">f</span> <span class="o">=</span> <span class="p">[</span><span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">30</span><span class="p">),</span> <span class="n">ReLU</span><span class="p">(),</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">10</span><span class="p">)]</span>
-
-<span class="k">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="mi">10</span>
-  <span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">20</span><span class="p">))</span>
-  <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-  <span class="n">gradient!</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-  <span class="n">update!</span><span class="p">(</span><span class="n">opt</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-<span class="k">end</span>
-</pre></div>
+<p>opt = SGD(0.001) f = [Linear(Float32,50,30), ReLU(), Linear(Float32,30,10)]</p>
+<p>for i = 1:10   x = Variable(rand(Float32,50,20))   y = f(x)   gradient!(y)   update!(opt, f) end ```</p>
           <aside class="copyright" role="note">
             
             Documentation built with
