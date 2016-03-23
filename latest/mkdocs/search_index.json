@@ -22,7 +22,7 @@
         }, 
         {
             "location": "/overview/", 
-            "text": "Overview\n\n\nMerlin.jl provides many primitive functions.\n\n\n\n\nDecoding\n\n\nv\n \n=\n \nVariable\n()\n\n\n\n\n\n\n\n\nTraining\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\n\nfor\n \ni\n \n=\n \n1\n:\n10\n\n  \nv\n \n=\n \nVariable\n()\n\n  \ny\n \n=\n \nv\n \n|\n \nf1\n \n|\n \nf2\n\n  \ny\n.\ngrad\n \n=\n \nones\n()\n\n  \nbackward!\n(\ny\n)\n\n  \nupdate!\n(\nopt\n,\n \ny\n)\n\n\nend", 
+            "text": "Overview\n\n\nMerlin.jl provides many primitive functions.\n\n\n\n\nDecoding\n\n\n\n\nCreate \nVariable\n from Array (CPU) or CudaArray(CUDA GPU).\n\n\nCreate \nFunctor\ns.\n\n\nApply the functors to the variable.\n\n\n\n\nT\n \n=\n \nFloat32\n\n\nx\n \n=\n \nVariable\n(\nrand\n(\nT\n,\n50\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nT\n,\n50\n,\n30\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n\n\nTraining\n\n\nT\n \n=\n \nFloat32\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\n\nfor\n \ni\n \n=\n \n1\n:\n10\n\n  \nx\n \n=\n \nVariable\n(\nrand\n(\nT\n,\n10\n,\n5\n))\n\n  \ny\n \n=\n \nReLU\n()(\nx\n)\n\n  \nbackward!\n(\ny\n)\n\n  \nupdate!\n(\nopt\n,\n \ny\n)\n\n\nend", 
             "title": "Overview"
         }, 
         {
@@ -32,12 +32,12 @@
         }, 
         {
             "location": "/overview/#decoding", 
-            "text": "v   =   Variable ()", 
+            "text": "Create  Variable  from Array (CPU) or CudaArray(CUDA GPU).  Create  Functor s.  Apply the functors to the variable.   T   =   Float32  x   =   Variable ( rand ( T , 50 , 5 ))  f   =   Linear ( T , 50 , 30 )  y   =   f ( x )", 
             "title": "Decoding"
         }, 
         {
             "location": "/overview/#training", 
-            "text": "opt   =   SGD ( 0.001 )  for   i   =   1 : 10 \n   v   =   Variable () \n   y   =   v   |   f1   |   f2 \n   y . grad   =   ones () \n   backward! ( y ) \n   update! ( opt ,   y )  end", 
+            "text": "T   =   Float32  opt   =   SGD ( 0.001 )  for   i   =   1 : 10 \n   x   =   Variable ( rand ( T , 10 , 5 )) \n   y   =   ReLU ()( x ) \n   backward! ( y ) \n   update! ( opt ,   y )  end", 
             "title": "Training"
         }, 
         {
