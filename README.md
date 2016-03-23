@@ -2,14 +2,17 @@
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 
-`Merlin` is a flexible neural network library in [Julia](http://julialang.org).
+Merlin.jl is a flexible neural network library written in [Julia](http://julialang.org).
 
-[Documentation (latest)](http://hshindo.github.io/Merlin.jl/latest/)
+- [Documentation (latest)](http://hshindo.github.io/Merlin.jl/latest/)
 
 ## Requirements for CUDA GPU
 [cuDNN](https://developer.nvidia.com/cudnn) v4
 
 ## Install
+
+- Julia 0.4
+
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 ```
@@ -35,12 +38,12 @@ y = f(x)
 1. Update `Functor`s with your `Optimizer`.
 ```julia
 opt = SGD(0.001)
+f = [Linear(Float32,50,30), ReLU(), Linear(Float32,30,10)]
 
 for i = 1:10
-  x = Variable(rand(Float32,10,5))
-  f = ReLU()
+  x = Variable(rand(Float32,50,20))
   y = f(x)
-  backward!(y)
+  gradient!(y)
   update!(opt, y)
 end
 ```
