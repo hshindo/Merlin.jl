@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 
-Merlin.jl is a flexible neural network library written in [Julia](http://julialang.org).
+Merlin.jl is a flexible deep library written written in [Julia](http://julialang.org).
 
 - [Documentation (latest)](http://hshindo.github.io/Merlin.jl/latest/)
 
