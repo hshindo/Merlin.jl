@@ -1,8 +1,6 @@
 # Overview
 Merlin.jl provides many primitive functions.
 
-Every computation is preserved.
-
 ## Decoding
 ```julia
 v = Variable()
