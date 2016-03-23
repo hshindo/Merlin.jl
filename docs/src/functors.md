@@ -6,6 +6,7 @@
     Linear
     LogSoftmax
     Lookup
+    Lookup(::Type{T}, insize::Int, outsize::Int)
     Max
     ReLU
     Reshape
