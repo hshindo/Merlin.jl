@@ -6,13 +6,14 @@ Merlin.jl is a flexible deep library written in [Julia](http://julialang.org).
 
 - [Documentation (latest)](http://hshindo.github.io/Merlin.jl/latest/)
 
-## Requirements for CUDA GPU
-[cuDNN](https://developer.nvidia.com/cudnn) v4
+## Requirements
+- Julia 0.4
+- gcc (for OSX or Linux)
+
+## Optional
+- [cuDNN](https://developer.nvidia.com/cudnn) v4 (to use CUDA GPU)
 
 ## Install
-
-- Julia 0.4
-
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 ```
