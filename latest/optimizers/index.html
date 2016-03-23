@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1">
     
       
-        <title>Types - Merlin.jl</title>
+        <title>Optimizers - Merlin.jl</title>
       
       
       
@@ -94,7 +94,7 @@
             
           </span>
         
-        Types
+        Optimizers
       </div>
     </div>
     
@@ -182,30 +182,9 @@
           
             
   <li>
-    <a class="current" title="Types" href="./">
+    <a class="" title="Types" href="../types/">
       Types
     </a>
-    
-      
-        
-      
-      
-        <ul>
-          
-            <li class="anchor">
-              <a title="Variable" href="#variable">
-                Variable
-              </a>
-            </li>
-          
-            <li class="anchor">
-              <a title="Functor" href="#functor">
-                Functor
-              </a>
-            </li>
-          
-        </ul>
-      
     
   </li>
 
@@ -221,9 +200,36 @@
           
             
   <li>
-    <a class="" title="Optimizers" href="../optimizers/">
+    <a class="current" title="Optimizers" href="./">
       Optimizers
     </a>
+    
+      
+        
+      
+      
+        <ul>
+          
+            <li class="anchor">
+              <a title="AdaGrad" href="#adagrad">
+                AdaGrad
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Adam" href="#adam">
+                Adam
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="SGD" href="#sgd">
+                SGD
+              </a>
+            </li>
+          
+        </ul>
+      
     
   </li>
 
@@ -238,26 +244,26 @@
       <article class="article">
         <div class="wrapper">
           
-          <p><a id='Types-1'></a></p>
-<h1 id="types">Types</h1>
-<p>There are three basic types:</p>
-<ul>
-<li><code>Variable</code></li>
-<li><code>Functor</code></li>
-<li><code>Optimizer</code></li>
-</ul>
-<p><a id='Variable-1'></a></p>
-<h2 id="variable">Variable</h2>
-<p><code>Variable</code> has <code>value</code> and <code>grad</code>.</p>
-<div class="codehilite"><pre><span></span><span class="c">#x = Variable(AFArray(Float32,10,5))</span>
-<span class="c">#x.value</span>
-<span class="c">#x.grad</span>
+          <p><a id='Optimizers-1'></a></p>
+<h1 id="optimizers">Optimizers</h1>
+<p><a id='Merlin.AdaGrad' href='#Merlin.AdaGrad'>#</a>
+<strong><code>Merlin.AdaGrad</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="adagrad">AdaGrad</h2>
+<p>AdaGrad implementation. See: http://jmlr.org/papers/v12/duchi11a.html</p>
+<p><a id='Merlin.Adam' href='#Merlin.Adam'>#</a>
+<strong><code>Merlin.Adam</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="adam">Adam</h2>
+<p>Adam: A Method for Stochastic Optimization See: http://arxiv.org/abs/1412.6980v8</p>
+<p><a id='Merlin.SGD' href='#Merlin.SGD'>#</a>
+<strong><code>Merlin.SGD</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="sgd">SGD</h2>
+<p>Stochastic Gradient Descent.</p>
+<h3 id="example">👉 Example</h3>
+<div class="codehilite"><pre><span></span>
 </pre></div>
-
-
-<p><a id='Functor-1'></a></p>
-<h2 id="functor">Functor</h2>
-<p><code>Functor</code> is an abstract type of functors.</p>
           <aside class="copyright" role="note">
             
             Documentation built with
@@ -274,7 +280,7 @@
   <nav class="pagination" aria-label="Footer">
     <div class="previous">
       
-        <a href="../overview/" title="Overview">
+        <a href="../functors/" title="Functors">
           <span class="direction">
             Previous
           </span>
@@ -284,7 +290,7 @@
             </div>
             <div class="stretch">
               <div class="title">
-                Overview
+                Functors
               </div>
             </div>
           </div>
@@ -292,22 +298,6 @@
       
     </div>
     <div class="next">
-      
-        <a href="../functors/" title="Functors">
-          <span class="direction">
-            Next
-          </span>
-          <div class="page">
-            <div class="stretch">
-              <div class="title">
-                Functors
-              </div>
-            </div>
-            <div class="button button-next" role="button" aria-label="Next">
-              <i class="icon icon-forward"></i>
-            </div>
-          </div>
-        </a>
       
     </div>
   </nav>
