@@ -22,7 +22,7 @@
         }, 
         {
             "location": "/overview/", 
-            "text": "Overview\n\n\nMerlin.jl provides many primitive functions.\n\n\n\n\nDecoding\n\n\n\n\nCreate \nVariable\n from Array (CPU) or CudaArray (CUDA GPU).\n\n\nCreate \nFunctor\ns.\n\n\nApply the functors to the variable.\n\n\n\n\nT\n \n=\n \nFloat32\n\n\nx\n \n=\n \nVariable\n(\nrand\n(\nT\n,\n50\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nT\n,\n50\n,\n30\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n\n\nTraining\n\n\n\n\nCreate \nOptimizer\n.\n\n\nFor each iteration...   * Decode your variables.   * Compute gradient.   * Update \nFunctor\ns with your \nOptimizer\n.\n\n\n\n\nT\n \n=\n \nFloat32\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\n\nfor\n \ni\n \n=\n \n1\n:\n10\n\n  \nx\n \n=\n \nVariable\n(\nrand\n(\nT\n,\n10\n,\n5\n))\n\n  \ny\n \n=\n \nReLU\n()(\nx\n)\n\n  \nbackward!\n(\ny\n)\n\n  \nupdate!\n(\nopt\n,\n \ny\n)\n\n\nend", 
+            "text": "Overview\n\n\nMerlin.jl provides many primitive functions.\n\n\n\n\nDecoding\n\n\n\n\nCreate \nVariable\n from Array (CPU) or CudaArray (CUDA GPU).\n\n\nCreate \nFunctor\ns.\n\n\nApply the functors to the variable.\n\n\n\n\nT\n \n=\n \nFloat32\n\n\nx\n \n=\n \nVariable\n(\nrand\n(\nT\n,\n50\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nT\n,\n50\n,\n30\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n\n\nTraining\n\n\n\n\nCreate \nOptimizer\n.\n\n\nDecode your variables.\n\n\nCompute gradient.\n\n\nUpdate \nFunctor\ns with your \nOptimizer\n.\n\n\n\n\nT\n \n=\n \nFloat32\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\n\nfor\n \ni\n \n=\n \n1\n:\n10\n\n  \nx\n \n=\n \nVariable\n(\nrand\n(\nT\n,\n10\n,\n5\n))\n\n  \ny\n \n=\n \nReLU\n()(\nx\n)\n\n  \nbackward!\n(\ny\n)\n\n  \nupdate!\n(\nopt\n,\n \ny\n)\n\n\nend", 
             "title": "Overview"
         }, 
         {
@@ -37,7 +37,7 @@
         }, 
         {
             "location": "/overview/#training", 
-            "text": "Create  Optimizer .  For each iteration...   * Decode your variables.   * Compute gradient.   * Update  Functor s with your  Optimizer .   T   =   Float32  opt   =   SGD ( 0.001 )  for   i   =   1 : 10 \n   x   =   Variable ( rand ( T , 10 , 5 )) \n   y   =   ReLU ()( x ) \n   backward! ( y ) \n   update! ( opt ,   y )  end", 
+            "text": "Create  Optimizer .  Decode your variables.  Compute gradient.  Update  Functor s with your  Optimizer .   T   =   Float32  opt   =   SGD ( 0.001 )  for   i   =   1 : 10 \n   x   =   Variable ( rand ( T , 10 , 5 )) \n   y   =   ReLU ()( x ) \n   backward! ( y ) \n   update! ( opt ,   y )  end", 
             "title": "Training"
         }, 
         {
