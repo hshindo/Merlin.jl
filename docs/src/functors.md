@@ -4,6 +4,7 @@
     Concat
     CrossEntropy
     Linear
+    linear{T}
     LogSoftmax
     Lookup
     Max

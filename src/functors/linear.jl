@@ -52,6 +52,9 @@ function forward!(f::Linear, v::Variable)
   end
 end
 
+"""
+linear{T}
+"""
 function linear{T}(w::Matrix{T}, b::Matrix{T}, x::Matrix{T})
   y = w * x
   broadcast!(+, y, b, y)
