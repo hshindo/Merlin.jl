@@ -44,6 +44,6 @@ for i = 1:10
   x = Variable(rand(Float32,50,20))
   y = f(x)
   gradient!(y)
-  update!(opt, y)
+  update!(opt, f)
 end
 ```

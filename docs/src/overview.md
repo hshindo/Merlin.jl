@@ -22,13 +22,13 @@ y = f(x)
 1. Update `Functor`s with your `Optimizer`.
 
 ```julia
-T = Float32
 opt = SGD(0.001)
+f = [Linear(Float32,50,30), ReLU(), Linear(Float32,30,10)]
 
 for i = 1:10
-  x = Variable(rand(T,10,5))
-  y = ReLU()(x)
-  backward!(y)
-  update!(opt, y)
+  x = Variable(rand(Float32,50,20))
+  y = f(x)
+  gradient!(y)
+  update!(opt, f)
 end
 ```
