@@ -6,7 +6,7 @@ Merlin.jl provides many primitive functions.
 1. Create `Functor`s.
 1. Apply the functors to the variable.
 
-```julia
+``` julia
 using Merlin
 
 x = Variable(rand(Float32,50,5))
@@ -19,7 +19,8 @@ y = f(x)
 1. Decode your variables.
 1. Compute gradient.
 1. Update `Functor`s with your `Optimizer`.
-```julia
+
+``` julia
 using Merlin
 
 opt = SGD(0.001)
