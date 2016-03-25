@@ -22,7 +22,7 @@
         }, 
         {
             "location": "/overview/", 
-            "text": "Overview\n\n\nMerlin.jl provides many primitive functions.\n\n\n\n\nDecoding\n\n\n\n\nCreate \nVariable\n from \nArray\n (CPU) or \nCudaArray\n (CUDA GPU).\n\n\nCreate \nFunctor\ns.\n\n\nApply the functors to the variable.\n\n\n\n\nusing\n \nMerlin\n\n\n\nx\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n50\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nFloat32\n,\n50\n,\n30\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n\n\nTraining\n\n\n\n\nCreate \nOptimizer\n.\n\n\nDecode your variables.\n\n\nCompute gradient.\n\n\nUpdate \nFunctor\ns with your \nOptimizer\n.\n\n\n\n\nusing\n \nMerlin\n\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\nf\n \n=\n \n[\nLinear\n(\nFloat32\n,\n50\n,\n30\n),\n \nReLU\n(),\n \nLinear\n(\nFloat32\n,\n30\n,\n10\n)]\n\n\n\nfor\n \ni\n \n=\n \n1\n:\n10\n\n  \nx\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n50\n,\n20\n))\n\n  \ny\n \n=\n \nf\n(\nx\n)\n\n  \ngradient!\n(\ny\n)\n\n  \nupdate!\n(\nopt\n,\n \nf\n)\n\n\nend", 
+            "text": "Overview\n\n\nMerlin.jl provides many primitive functions.\n\n\n\n\nDecoding\n\n\n\n\nCreate \nVariable\n from \nArray\n (CPU) or \nCudaArray\n (CUDA GPU).\n\n\nCreate \nFunctor\ns.\n\n\nApply the functors to the variable.\n\n\n\n\nusing\n \nMerlin\n\n\n\nx\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n50\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nFloat32\n,\n50\n,\n30\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n\n\nTraining\n\n\n\n\nCreate \nOptimizer\n.\n\n\nDecode your variables.\n\n\nCompute gradient.\n\n\nUpdate \nFunctor\ns with your \nOptimizer\n.\n\n\n\n\nusing\n \nMerlin\n\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\nf\n \n=\n \n[\nLinear\n(\nFloat32\n,\n50\n,\n30\n),\n \nReLU\n(),\n \nLinear\n(\nFloat32\n,\n30\n,\n10\n)]\n\n\n\nfor\n \ni\n \n=\n \n1\n:\n10\n\n  \nx\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n50\n,\n20\n))\n\n  \ny\n \n=\n \nf\n(\nx\n)\n \n|\n \nCrossEntropy\n(\n...\n)\n\n  \ngradient!\n(\ny\n)\n\n  \nupdate!\n(\nopt\n,\n \nf\n)\n\n\nend", 
             "title": "Overview"
         }, 
         {
@@ -37,7 +37,7 @@
         }, 
         {
             "location": "/overview/#training", 
-            "text": "Create  Optimizer .  Decode your variables.  Compute gradient.  Update  Functor s with your  Optimizer .   using   Merlin  opt   =   SGD ( 0.001 )  f   =   [ Linear ( Float32 , 50 , 30 ),   ReLU (),   Linear ( Float32 , 30 , 10 )]  for   i   =   1 : 10 \n   x   =   Variable ( rand ( Float32 , 50 , 20 )) \n   y   =   f ( x ) \n   gradient! ( y ) \n   update! ( opt ,   f )  end", 
+            "text": "Create  Optimizer .  Decode your variables.  Compute gradient.  Update  Functor s with your  Optimizer .   using   Merlin  opt   =   SGD ( 0.001 )  f   =   [ Linear ( Float32 , 50 , 30 ),   ReLU (),   Linear ( Float32 , 30 , 10 )]  for   i   =   1 : 10 \n   x   =   Variable ( rand ( Float32 , 50 , 20 )) \n   y   =   f ( x )   |   CrossEntropy ( ... ) \n   gradient! ( y ) \n   update! ( opt ,   f )  end", 
             "title": "Training"
         }, 
         {
