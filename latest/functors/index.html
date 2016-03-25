@@ -202,8 +202,14 @@
         <ul>
           
             <li class="anchor">
-              <a title="Concat" href="#concat">
-                Concat
+              <a title="Functions" href="#functions">
+                Functions
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="👉 Example" href="#example">
+                👉 Example
               </a>
             </li>
           
@@ -291,17 +297,16 @@
 <p><a id='Merlin.Concat' href='#Merlin.Concat'>#</a>
 <strong><code>Merlin.Concat</code></strong> &mdash; <em>Type</em>.</p>
 <hr />
-<h2 id="concat">Concat</h2>
 <p>Concatenates arrays along the given dimension.</p>
+<h3 id="functions">Functions</h3>
 <ul>
-<li><code>Concat(dim::Int)</code></li>
+<li>Concat(dim::Int)</li>
 </ul>
 <h3 id="example">👉 Example</h3>
 <div class="codehilite"><pre><span></span><span class="n">x1</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
 <span class="n">x2</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">Concat</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">])</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span> <span class="c"># or y = f([x1,x2])</span>
 </pre></div>
 
 
@@ -311,7 +316,7 @@
 <h2 id="crossentropy">CrossEntropy</h2>
 <p>Computes cross-entropy between a true distribution $p$ and the target distribution $q$.</p>
 <p>$ f(p,q)=-sum_{x}p(x)log q(x) $</p>
-<h3 id="functions">Functions</h3>
+<h3 id="functions_1">Functions</h3>
 <ul>
 <li><code>CrossEntropy(p::Matrix)</code></li>
 </ul>
@@ -330,7 +335,7 @@
 <p>Computes linear transformation a.k.a. affine transformation.</p>
 <p>$ f(x) = W^{mathrm{T}}x + b $</p>
 <p>where $W$ is a weight matrix, $b$ is a bias vector.</p>
-<h3 id="functions_1">Functions</h3>
+<h3 id="functions_2">Functions</h3>
 <ul>
 <li><code>Linear(w, b)</code></li>
 <li><code>Linear{T}(::Type{T}, insize::Int, outsize::Int)</code></li>
@@ -347,7 +352,7 @@
 <hr />
 <h2 id="logsoftmax">LogSoftmax</h2>
 <p>$ f(x)=rac{xp(x_{i})}{sum_{j}^{n}xp(x_{j})},;i=1,ldots,n $</p>
-<h3 id="functions_2">Functions</h3>
+<h3 id="functions_3">Functions</h3>
 <ul>
 <li><code>LogSoftmax()</code></li>
 </ul>
@@ -363,7 +368,7 @@
 <hr />
 <h2 id="lookup">Lookup</h2>
 <p>Lookup variables.</p>
-<h3 id="functions_3">Functions</h3>
+<h3 id="functions_4">Functions</h3>
 <ul>
 <li>Lookup(insize::Int, outsize::Int)</li>
 </ul>
@@ -387,7 +392,7 @@
 <hr />
 <h2 id="max">Max</h2>
 <p>Computes the maximum value of an array over the given dimensions.</p>
-<h3 id="functions_4">Functions</h3>
+<h3 id="functions_5">Functions</h3>
 <ul>
 <li><code>Max(dim::Int)</code></li>
 </ul>
@@ -418,7 +423,7 @@
 <hr />
 <h2 id="reshape">Reshape</h2>
 <p>Reshapes an array with the given dimensions.</p>
-<h3 id="functions_5">Functions</h3>
+<h3 id="functions_6">Functions</h3>
 <ul>
 <li><code>Reshape(dims::Int...)</code></li>
 </ul>
