@@ -1,7 +1,9 @@
 # Functors
 
     {docs}
+    ## Concat
     Concat
+    ## CrossEntropy
     CrossEntropy
     Linear
     LogSoftmax

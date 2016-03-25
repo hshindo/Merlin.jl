@@ -1,19 +1,17 @@
 export Concat
 
 """
-## Concat
-
 Concatenates arrays along the given dimension.
 
-- `Concat(dim::Int)`
+### Functions
+- Concat(dim::Int)
 
 ### 👉 Example
 ```julia
 x1 = Variable(rand(Float32,7,5))
 x2 = Variable(rand(Float32,10,5))
 f = Concat(1)
-y = f(x1, x2)
-y = f([x1,x2])
+y = f(x1, x2) # or y = f([x1,x2])
 ```
 """
 type Concat <: Functor
