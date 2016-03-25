@@ -40,9 +40,9 @@ end
 mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
 isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 
-#function call(f::Linear, v::Variable)
-#  f.w * v + f.b
-#end
+function call2(f::Linear, v::Variable)
+  f.w * v + f.b
+end
 
 function forward!(f::Linear, v::Variable)
   v.value = linear(f.w.value, f.b.value, v[1].value)

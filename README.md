@@ -3,8 +3,7 @@ This is alpha version. We will make this publicly available in a few months.
 # Merlin.jl
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
-
-Merlin.jl is a flexible deep learning library written in [Julia](http://julialang.org).
+[![Build status](https://ci.appveyor.com/api/projects/status/v2u1kyjy61ph0ihn/branch/master?svg=true)](https://ci.appveyor.com/project/hshindo/merlin-jl/branch/master)
 
 - [Documentation (latest)](http://hshindo.github.io/Merlin.jl/latest/)
 
