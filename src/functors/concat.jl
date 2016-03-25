@@ -1,10 +1,11 @@
 export Concat
 
 """
+## Concat
 Concatenates arrays along the given dimension.
 
 ### Functions
-- Concat(dim::Int)
+- `Concat(dim::Int)`
 
 ### 👉 Example
 ```julia
