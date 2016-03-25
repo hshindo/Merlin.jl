@@ -28,7 +28,7 @@ f = [Linear(Float32,50,30), ReLU(), Linear(Float32,30,10)]
 
 for i = 1:10
   x = Variable(rand(Float32,50,20))
-  y = f(x)
+  y = f(x) |> CrossEntropy(...)
   gradient!(y)
   update!(opt, f)
 end

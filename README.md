@@ -1,3 +1,5 @@
+This is alpha version. We will make this publicly available in a few months.
+
 # Merlin.jl
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
