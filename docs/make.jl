@@ -1,5 +1,5 @@
 
-using Lapidary
+using Documenter
 using Merlin
 
 makedocs(
