@@ -81,3 +81,15 @@ function update!(opt::Optimizer, f::Linear)
   update!(opt, f.w.value, f.w.grad)
   update!(opt, f.b.value, f.b.grad)
 end
+
+function Linear2{T}(::Type{T}, insize::Int, outsize::Int)
+  b = sqrt(6 / (outsize+insize))
+  r = rand(outsize, insize) * 2b - b
+  w = convert(Matrix{T}, r)
+  b = fill(T(0), outsize, 1)
+  w = Variable(w, zeros(w))
+  b = Variable(b, zeros(b))
+  x = Variable()
+  y = w * x + b
+  Graph(y)
+end

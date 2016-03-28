@@ -19,6 +19,14 @@ type Concat <: Functor
   dim::Int
 end
 
+function call(f::Concat, args::Vector{Variable})
+  y = concat(f.dim, map(a -> a.value, v.args))
+  backward! = (gy, gxs) -> begin
+    ∇concat!(f.dim, gxs, gy)
+  end
+  Variable(f, args, y, backward!)
+end
+
 function forward!(f::Concat, v::Variable)
   v.value = concat(f.dim, map(a -> a.value, v.args))
   v.backward! = () -> begin

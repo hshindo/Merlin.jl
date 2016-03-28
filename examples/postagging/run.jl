@@ -5,20 +5,9 @@ workspace()
 using Merlin
 
 function bench()
-  a = rand(Float32, 750, 300)
-  x = rand(Float32, 300)
-  xx = rand(Float32, 300, 30)
-  y = zeros(Float32, 750)
-  for i = 1:1000
-    for j = 1:30
-      gemv('N', a, x)
-      gemv('N', a, x)
-      gemv('N', a, x)
-      gemv('N', a, x)
-    end
-    #gemm('N', 'N', a, xx)
-    #Merlin.softmax(r)
-    #cat(1,a...)
+  for i = 1:100000
+    #Variable()
+    Array(Float32,100)
   end
 end
 

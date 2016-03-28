@@ -9,19 +9,11 @@ function forward!(f::Multiply, v::Variable)
     v[2].grad == nothing && (v[2].grad = zeros(v[2].value))
     gemm!('N', 'T', T(1), v.grad, v[2].value, T(1), v[1].grad)
     gemm!('T', 'N', T(1), v[1].value, v.grad, T(1), v[2].grad)
-    #=
-    if v[1].grad == nothing
-      v[1].grad = gemm('N', 'T', v.grad, v[2].value)
-    else
-      gemm!('N', 'T', T(1), v.grad, v[2].value, T(1), v[1].grad)
-    end
-    if v[2].grad == nothing
-      v[2].grad = gemm('T', 'N', v[1].value, v.grad)
-    else
-      gemm!('T', 'N', T(1), v[1].value, v.grad, T(1), v[2].grad)
-    end
-    =#
   end
+end
+
+function multiply!(f::Multiply, x1::Array, x2::Array, y::Array)
+  gemm!('N', 'N', T(1), x1, x2, T(-1), y)
 end
 
 import Base.*

@@ -1,4 +1,4 @@
-This is alpha version. We will make this publicly available in a few months.
+This is pre-alpha version. We will make this publicly available in a next few months.
 
 # Merlin.jl
 
@@ -9,7 +9,7 @@ This is alpha version. We will make this publicly available in a few months.
 
 ## Requirements
 - Julia 0.4
-- gcc (for OSX or Linux)
+- g++ (for OSX or Linux)
 
 ## Optional
 - [cuDNN](https://developer.nvidia.com/cudnn) v4 (to use CUDA GPU)
@@ -19,7 +19,7 @@ This is alpha version. We will make this publicly available in a few months.
 julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 ```
 
-## Basic Usage
+## Usage
 
 ### Decoding
 1. Create `Variable` from `Array` (CPU) or `CudaArray` (CUDA GPU).
@@ -56,4 +56,4 @@ end
 ```
 
 ## Using CUDA
-To be constructed...
+To be written...

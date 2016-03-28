@@ -6,8 +6,15 @@ function Graph(var::Variable)
 
 end
 
-function forward!(f::Graph)
+function call(f::Graph, out::Variable)
   for v in f.vars
+
+  end
+end
+
+function backward!(f::Graph, var::Variable)
+  for i = length(f.vars):-1:1
+    v = f.vars[i]
 
   end
 end

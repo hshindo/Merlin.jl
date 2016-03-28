@@ -18,6 +18,12 @@ type Max <: Functor
   dim::Int
 end
 
+function call(f::Max, arg::Variable)
+  y, idx = max(f.dim, arg.value)
+  backward! = (gxs, gy) -> ∇max!(idx, gxs[1], gy)
+  Variable(f, [arg], y, backward!)
+end
+
 function forward!(f::Max, v::Variable)
   y, idx = max(f.dim, v[1].value)
   v.value = y

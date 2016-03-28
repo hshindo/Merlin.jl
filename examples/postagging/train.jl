@@ -40,8 +40,8 @@ function train(path)
       loss += sum(out.value)
 
       # backward & update
-      gradient!(out)
-      update!(model, opt)
+      #gradient!(out)
+      #update!(model, opt)
     end
     println("loss: $(loss)")
     acc = accuracy(golds, preds)

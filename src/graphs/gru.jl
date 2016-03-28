@@ -12,6 +12,6 @@ function GRU()
 
 end
 
-function forward(f::GRU, x)
+function forward!(f::GRU, x)
   z = f.w * x + f.u * h
 end
