@@ -13,7 +13,7 @@ where \$W\$ is a weight matrix, \$b\$ is a bias vector.
 - `Linear(w, b)`
 - `Linear{T}(::Type{T}, insize::Int, outsize::Int)`
 
-![linear](../linear.png)
+![linear](../assets/linear.png)
 
 ### 👉 Example
 ```julia
