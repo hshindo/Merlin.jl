@@ -9,7 +9,7 @@ Computes linear transformation a.k.a. affine transformation.
 
 where \$W\$ is a weight matrix, \$b\$ is a bias vector.
 
-<img src="assets/linear.png" width="100px">
+<img src="../assets/linear.png" width="100px">
 
 ### Functions
 - `Linear(w, b)`
