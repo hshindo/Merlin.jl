@@ -6,6 +6,10 @@ function Graph(var::Variable)
 
 end
 
+function Graph(funs::Functor...)
+
+end
+
 function call(f::Graph, out::Variable)
   for v in f.vars
 
