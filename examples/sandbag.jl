@@ -4,10 +4,26 @@ ENV["USE_CUDA"] = true
 workspace()
 using Merlin
 using JLD
+using Base.LinAlg.BLAS
 
-type AAA
-  a
+v = Variable()
+
+function bench()
+  A = rand(Float32,500,500)
+  B = rand(Float32,500,30)
+  C = zeros(Float32,500,30)
+  for i = 1:10000
+    #axpy!(-1.0f0, C, A*B)
+    #D = A * B
+    broadcast!(+, B, B, C)
+    #D = B + C
+    #for ii = 1:10
+    #  v = Variable()
+    #end
+  end
 end
+
+@time bench()
 
 path = "C:/temp/"
 A = reshape(1:120, 15, 8)

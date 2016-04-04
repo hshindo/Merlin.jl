@@ -1,5 +1,6 @@
 type Graph <: Functor
   vars::Vector{Variable} # sorted in bottom-up order
+  inputids::Vector{Int}
 end
 
 function Graph(var::Variable)
@@ -10,10 +11,18 @@ function Graph(funs::Functor...)
 
 end
 
-function call(f::Graph, out::Variable)
-  for v in f.vars
-
+function compile(var::Variable)
+  # Flatten add
+  if typeof(var.f) == Add
+    #any(a -> typeof(a.f) == Add, var.args)
+    args = Variable[]
+    for a in var.args
+      typeof(a.f) == Add ? append!(args, a.args) : push!(args, a)
+    end
+    var.args = args
   end
+  # SumProduct
+
 end
 
 function backward!(f::Graph, var::Variable)

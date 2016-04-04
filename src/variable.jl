@@ -6,8 +6,12 @@ type Variable
   backward!
 end
 
-Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, [], nothing)
+#Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, [], nothing)
 
+Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, [], nothing)
+Variable(f, args, value, backward!) = Variable(value, nothing, f, args, backward!)
+
+#=
 function Base.call{F<:Functor}(f::F, args::Vector{Variable})
   v = Variable()
   v.f = f
@@ -17,13 +21,14 @@ function Base.call{F<:Functor}(f::F, args::Vector{Variable})
 end
 Base.call{F<:Functor}(f::F, arg::Variable) = f([arg])
 Base.call{F<:Functor}(f::F, args::Variable...) = f([args...])
-
+=#
 function Base.call{T<:Vector}(fs::T, arg::Variable)
   for f in fs
     arg = call(f, arg)
   end
   arg
 end
+
 
 Base.getindex(v::Variable, key) = v.args[key]
 Base.setindex!(v::Variable, value, key) = v.args[key] = value
@@ -63,9 +68,4 @@ function update!(opt::Optimizer, fs::Vector)
   for f in fs
     applicable(update!, opt, f) && update!(opt, f)
   end
-end
-
-macro cache(f::Function, v::Variable)
-  dict = Dict{Vector{Int},Variable}()
-  v.value
 end

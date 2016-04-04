@@ -46,6 +46,15 @@ function call2(f::Linear, v::Variable)
   f.w * v + f.b
 end
 
+function call(f::Linear, arg::Variable)
+  y = linear(f.w.value, f.b.value, arg.value)
+  backward! = () -> begin
+    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
+    ∇linear!(f.w.value, f.b.value, v[1].value, v[1].grad, v.grad, f.w.grad, f.b.grad)
+  end
+  Variable(f, [arg], y, backward!)
+end
+
 function forward!(f::Linear, v::Variable)
   v.value = linear(f.w.value, f.b.value, v[1].value)
   v.backward! = () -> begin

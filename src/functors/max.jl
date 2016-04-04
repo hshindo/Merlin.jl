@@ -18,9 +18,18 @@ type Max <: Functor
   dim::Int
 end
 
-function call(f::Max, arg::Variable)
+function call2(f::Max, arg::Variable)
   y, idx = max(f.dim, arg.value)
   backward! = (gxs, gy) -> ∇max!(idx, gxs[1], gy)
+  Variable(f, [arg], y, backward!)
+end
+
+function call(f::Max, arg::Variable)
+  y, idx = max(f.dim, arg.value)
+  backward! = () -> begin
+    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
+    ∇max!(idx, v[1].grad, v.grad)
+  end
   Variable(f, [arg], y, backward!)
 end
 

@@ -20,7 +20,8 @@ type Concat <: Functor
 end
 
 function call(f::Concat, args::Vector{Variable})
-  y = concat(f.dim, map(a -> a.value, v.args))
+  xs = map(a -> a.value, args)
+  y = concat(f.dim, xs)
   backward! = (gy, gxs) -> begin
     ∇concat!(f.dim, gxs, gy)
   end

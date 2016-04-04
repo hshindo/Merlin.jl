@@ -2,11 +2,11 @@ This is pre-alpha version. We will make this publicly available in a next few mo
 
 # Merlin.jl: a deep learning framework in Julia
 
-- OSX, Linux: [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
-- Windows: [![Build status](https://ci.appveyor.com/api/projects/status/github/hshindo/Merlin.jl?branch=master)](https://ci.appveyor.com/project/hshindo/merlin-jl/branch/master)
+[![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
+[![Build status](https://ci.appveyor.com/api/projects/status/github/hshindo/Merlin.jl?branch=master)](https://ci.appveyor.com/project/hshindo/merlin-jl/branch/master)
 
-`Merlin` is a deep learning library written in [Julia](http://julialang.org/).
-It aims to provide a fast, flexible and minimal deep learning library for machine learning.
+`Merlin` is a deep learning framework written in [Julia](http://julialang.org/).
+It aims to provide a fast, flexible and compact deep learning library for machine learning.
 Compared with [Mocha.jl](https://github.com/pluskid/Mocha.jl) and other deep learning frameworks, `Merlin` is designed to describe dynamic network structure (e.g. recurrent neural network) more clearly and concisely.
 
 - [Documentation (latest)](http://hshindo.github.io/Merlin.jl/latest/)

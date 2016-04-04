@@ -21,6 +21,16 @@ type CrossEntropy <: Functor
   p
 end
 
+function call(f::CrossEntropy, arg::Variable)
+  logq = logsoftmax(arg.value)
+  y = crossentropy(f.p, logq)
+  backward! = () -> begin
+    arg.grad == nothing && (arg.grad = zeros(arg.value))
+    ∇crossentropy!(f.p, logq, arg.grad, v.grad)
+  end
+  Variable(f, [arg], y, backward!)
+end
+
 function forward!(f::CrossEntropy, v::Variable)
   logq = logsoftmax(v[1].value)
   v.value = crossentropy(f.p, logq)

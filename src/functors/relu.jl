@@ -16,6 +16,15 @@ y = f(x)
 type ReLU <: Functor
 end
 
+function call(f::ReLU, arg::Variable)
+  y = relu(arg.value)
+  backward! = () -> begin
+    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
+    ∇relu!(v[1].value, v[1].grad, v.grad)
+  end
+  Variable(f, [arg], y, backward!)
+end
+
 function forward!(f::ReLU, v::Variable)
   v.value = relu(v[1].value)
   v.backward! = () -> begin

@@ -50,6 +50,14 @@ function Lookup{T}(path, ::Type{T})
   Lookup(weights)
 end
 
+function call(f::Lookup, arg::Variable)
+  y = lookup(f, arg.value)
+  backward! = () -> begin
+    ∇lookup!(f, v[1].value, v.grad)
+  end
+  Variable(f, [arg], y, backward!)
+end
+
 function forward!(f::Lookup, v::Variable)
   v.value = lookup(f, v[1].value)
   v.backward! = () -> begin

@@ -42,6 +42,15 @@ function make_params(f::Window2D)
   params = Int32[w1, w2, s1, s2, p1, p2]
 end
 
+function call(f::Window2D, arg::Variable)
+  y, params = window2d(f, arg.value)
+  backward! = () -> begin
+    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
+    ∇window2d!(f, params, v[1].grad, v.grad)
+  end
+  Variable(f, [arg], y, backward!)
+end
+
 function forward!(f::Window2D, v::Variable)
   y, params = window2d(f, v[1].value)
   v.value = y
