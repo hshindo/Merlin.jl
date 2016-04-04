@@ -1,5 +1,7 @@
 This is pre-alpha version. We will make this publicly available in a next few months.
 
+<img src="https://github.com/hshindo/Merlin.jl/blob/master/Merlin_logo.png" width="10%">
+
 # Merlin.jl: a deep learning framework in Julia
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
