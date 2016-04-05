@@ -1,6 +1,6 @@
 This is pre-alpha version. We will make this publicly available in a next few months.
 
-<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/Merlin_logo.png" width="150"></p>
+<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/Merlin.png" width="150"></p>
 
 # Merlin.jl: a deep learning framework in Julia
 
