@@ -4,9 +4,11 @@ export CrossEntropy
 ## CrossEntropy
 Computes cross-entropy between a true distribution \$p\$ and the target distribution \$q\$.
 
+\$
 \\[
 f(x; p) = -\sum_{x} p \log q_x
 \\]
+\$
 
 \$ f(x; p) = -\sum_{x} p \log q_x \$
 
