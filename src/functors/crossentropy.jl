@@ -4,17 +4,22 @@ export CrossEntropy
 ## CrossEntropy
 Computes cross-entropy between a true distribution \$p\$ and the target distribution \$q\$.
 
-\$ f(p,q)=-\sum_{x}p(x)\log q(x) \$
+\\[
+f(x; p) = -\sum_{x} p \log q_x
+\\]
+
+\$ f(x; p) = -\sum_{x} p \log q_x \$
 
 ### Functions
 - `CrossEntropy(p::Matrix)`
+- `CrossEntropy(p::Vector{Int})`
 
 ### 👉 Example
 ```julia
-#p = Variable(rand(Float32,10,5))
-#f = CrossEntropy(p)
-#q = Variable(rand(Float32,10,5))
-#y = f(q)
+p = Variable([1:10])
+f = CrossEntropy(p)
+x = Variable(rand(Float32,50,10))
+y = f(x)
 ```
 """
 type CrossEntropy <: Functor
@@ -24,20 +29,8 @@ end
 function call(f::CrossEntropy, arg::Variable)
   logq = logsoftmax(arg.value)
   y = crossentropy(f.p, logq)
-  backward! = () -> begin
-    arg.grad == nothing && (arg.grad = zeros(arg.value))
-    ∇crossentropy!(f.p, logq, arg.grad, v.grad)
-  end
-  Variable(f, [arg], y, backward!)
-end
-
-function forward!(f::CrossEntropy, v::Variable)
-  logq = logsoftmax(v[1].value)
-  v.value = crossentropy(f.p, logq)
-  v.backward! = () -> begin
-    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
-    ∇crossentropy!(f.p, logq, v[1].grad, v.grad)
-  end
+  gradient! = gy -> ∇crossentropy!(f.p, logq, arg.grad, gy)
+  Variable(f, [arg], y, gradient!)
 end
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})

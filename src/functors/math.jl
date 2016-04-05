@@ -1,7 +1,7 @@
 type Multiply <: Functor
 end
 
-function call(f::Multiply, arg1::Variable, arg2::Variable)
+function Base.call(f::Multiply, arg1::Variable, arg2::Variable)
   v.value = arg1.value * arg2.value
   v.backward! = () -> begin
     T = eltype(v.value)
@@ -18,69 +18,6 @@ end
 
 import Base.*
 *(v1::Variable, v2::Variable) = Multiply()(v1, v2)
-
-type Add <: Functor
-  inplace::Bool
-end
-
-Add() = Add(false)
-
-function compile(f::Add, var::Variable)
-  args = Variable[]
-  for a in var.args
-    if typeof(a.f) == Add
-      append!(args, a.args)
-    else
-      push!(args, a)
-    end
-  end
-  Variable(Add(), args, nothing)
-end
-
-function call(f::Add, arg1::Variable, arg2::Variable)
-  x1, x2 = arg1.value, arg2.value
-  y = length(x1) >= length(x2) ? x1 : x2
-  broadcast!(+, y, x1, x2)
-  Variable()
-end
-
-function forward!(f::Add, v::Variable)
-  v.value = broadcast(+, v[1].value, v[2].value)
-  v.backward! = () -> begin
-    if v[1].grad == nothing
-      if length(v[1].value) == length(v.value)
-        v[1].grad = v.grad
-      else
-        error("unexpected1")
-      end
-    else
-      ∇add!(v[1].grad, v.grad)
-    end
-    if v[2].grad == nothing
-      if length(v[2].value) == length(v.value)
-        v[2].grad = v.grad
-      else
-        error("unexpected1")
-      end
-    else
-      ∇add!(v[2].grad, v.grad)
-    end
-  end
-end
-
-import Base.+
-+(v1::Variable, v2::Variable) = Add()(v1, v2)
-
-function ∇add!{T}(gx::Array{T}, gy::Array{T})
-  if ndims(gx) > ndims(gy) && length(gx) > length(gy)
-    error("")
-    broadcast!(+, gx, gx, gy)
-  else
-    for offset = 1:length(gx):length(gy)
-      axpy!(length(gx), T(1.0), pointer(gy,offset), stride(gy,1), pointer(gx), stride(gx,1))
-    end
-  end
-end
 
 """
 ## GEMM

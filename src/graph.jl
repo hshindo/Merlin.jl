@@ -12,7 +12,7 @@ function Graph(funs::Functor...)
 end
 
 function compile(var::Variable)
-  # Flatten add
+  # flatten add
   if typeof(var.f) == Add
     #any(a -> typeof(a.f) == Add, var.args)
     args = Variable[]
@@ -21,8 +21,6 @@ function compile(var::Variable)
     end
     var.args = args
   end
-  # SumProduct
-
 end
 
 function backward!(f::Graph, var::Variable)

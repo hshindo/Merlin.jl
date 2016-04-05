@@ -6,7 +6,8 @@ using Merlin
 using JLD
 using Base.LinAlg.BLAS
 
-v = Variable()
+v1 = Variable(rand(Float32,10,10))
+v2 = Variable(rand(Float32,10,10))
 
 function bench()
   A = rand(Float32,500,500)

@@ -19,24 +19,15 @@ type Concat <: Functor
   dim::Int
 end
 
-function call(f::Concat, args::Vector{Variable})
-  xs = map(a -> a.value, args)
-  y = concat(f.dim, xs)
-  backward! = (gy, gxs) -> begin
+function Base.call(f::Concat, args::Vector{Variable})
+  y = concat(f.dim, map(a -> a.value, args))
+  gradient! = gy -> begin
+    gxs = map(a -> a.grad, args)
     ∇concat!(f.dim, gxs, gy)
   end
-  Variable(f, args, y, backward!)
+  Variable(f, args, y, gradient!)
 end
-
-function forward!(f::Concat, v::Variable)
-  v.value = concat(f.dim, map(a -> a.value, v.args))
-  v.backward! = () -> begin
-    for a in v.args
-      a.grad == nothing && (a.grad = zeros(a.value))
-    end
-    ∇concat!(f.dim, map(a -> a.grad, v.args), v.grad)
-  end
-end
+Base.call(f::Concat, args...) = call(f, [args...])
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
   sum = 0
