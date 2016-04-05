@@ -310,16 +310,18 @@
 <hr />
 <h2 id="crossentropy">CrossEntropy</h2>
 <p>Computes cross-entropy between a true distribution $p$ and the target distribution $q$.</p>
-<p>$ f(p,q)=-sum_{x}p(x)log q(x) $</p>
+<p>[ f(x; p) = -sum_{x} p log q_x ]</p>
+<p>$ f(x; p) = -sum_{x} p log q_x $</p>
 <h3 id="functions_1">Functions</h3>
 <ul>
 <li><code>CrossEntropy(p::Matrix)</code></li>
+<li><code>CrossEntropy(p::Vector{Int})</code></li>
 </ul>
 <h3 id="example_1">👉 Example</h3>
-<div class="codehilite"><pre><span></span><span class="c">#p = Variable(rand(Float32,10,5))</span>
-<span class="c">#f = CrossEntropy(p)</span>
-<span class="c">#q = Variable(rand(Float32,10,5))</span>
-<span class="c">#y = f(q)</span>
+<div class="codehilite"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">([</span><span class="mi">1</span><span class="p">:</span><span class="mi">10</span><span class="p">])</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">CrossEntropy</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </pre></div>
 
 
