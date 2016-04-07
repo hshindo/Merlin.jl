@@ -46,7 +46,7 @@ function train(path)
     println("loss: $(loss)")
     acc = accuracy(golds, preds)
     println("train acc: $(acc)")
-    #decode(model, testdata)
+    decode(model, testdata)
     println("")
   end
   println("finish")
