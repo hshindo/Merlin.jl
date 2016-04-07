@@ -12,7 +12,7 @@ function train(path)
   chardict, tagdict = Dict(), Dict()
   traindata = read_conll("$(path)/wsj_00-18.conll", true, worddict, chardict, tagdict)
   println("#word: $(length(worddict)), #char: $(length(chardict)), #tag: $(length(tagdict))")
-  traindata = traindata[1:10000]
+  #traindata = traindata[1:10000]
   testdata = read_conll("$(path)/wsj_22-24.conll", false, worddict, chardict, tagdict)
 
   # model
@@ -40,8 +40,8 @@ function train(path)
       loss += sum(out.value)
 
       # backward & update
-      #gradient!(out)
-      #update!(model, opt)
+      gradient!(out)
+      update!(model, opt)
     end
     println("loss: $(loss)")
     acc = accuracy(golds, preds)

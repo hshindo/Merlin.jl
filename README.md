@@ -2,7 +2,7 @@
 
 This is pre-alpha version. We will make this publicly available in a next few months.
 
-# Merlin.jl: a deep learning framework in Julia
+# Merlin.jl: deep learning framework in Julia
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/github/hshindo/Merlin.jl?branch=master)](https://ci.appveyor.com/project/hshindo/merlin-jl/branch/master)

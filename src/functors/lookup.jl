@@ -50,19 +50,10 @@ function Lookup{T}(path, ::Type{T})
   Lookup(weights)
 end
 
-function call(f::Lookup, arg::Variable)
-  y = lookup(f, arg.value)
-  backward! = () -> begin
-    ∇lookup!(f, v[1].value, v.grad)
-  end
-  Variable(f, [arg], y, backward!)
-end
-
-function forward!(f::Lookup, v::Variable)
-  v.value = lookup(f, v[1].value)
-  v.backward! = () -> begin
-    ∇lookup!(f, v[1].value, v.grad)
-  end
+function forward(f::Lookup, x::Array{Int})
+  y = lookup(f, x)
+  backward = gy -> ∇lookup(f, x, gy)
+  y, backward
 end
 
 function lookup(f::Lookup, x::Matrix{Int})
@@ -77,6 +68,19 @@ function lookup(f::Lookup, x::Matrix{Int})
     offset += len
   end
   y
+end
+
+function ∇lookup{T}(f::Lookup, x::Matrix{Int}, gy::Matrix{T})
+  ws = f.weights
+  len = length(ws[1].value)
+  offset = 1
+  for i = 1:length(x)
+    gw = ws[x[i]].grad
+    axpy!(len, T(1.0), pointer(gy,offset), stride(gy,1), pointer(gw), stride(gw,1))
+    offset += len
+    union!(f.idset, x[i])
+  end
+  []
 end
 
 function ∇lookup!{T}(f::Lookup, x::Matrix{Int}, gy::Matrix{T})

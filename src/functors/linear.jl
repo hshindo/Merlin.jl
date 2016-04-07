@@ -42,31 +42,10 @@ end
 mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
 isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 
-function call2(f::Linear, v::Variable)
-  f.w * v + f.b
-end
-
-function call(f::Linear, arg::Variable)
-  y = linear(f.w.value, f.b.value, arg.value)
-  backward! = () -> begin
-    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
-    ∇linear!(f.w.value, f.b.value, v[1].value, v[1].grad, v.grad, f.w.grad, f.b.grad)
-  end
-  Variable(f, [arg], y, backward!)
-end
-
-function forward!(f::Linear, v::Variable)
-  v.value = linear(f.w.value, f.b.value, v[1].value)
-  v.backward! = () -> begin
-    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
-    ∇linear!(f.w.value, f.b.value, v[1].value, v[1].grad, v.grad, f.w.grad, f.b.grad)
-  end
-end
-
-function linear{T}(w::Matrix{T}, b::Matrix{T}, x::Matrix{T})
-  y = w * x
-  broadcast!(+, y, b, y)
-  y
+function forward(f::Linear, x)
+  y = f.w.value * x .+ f.b.value
+  backward = gy -> ∇linear(f, x, gy)
+  y, backward
 end
 
 """
@@ -74,33 +53,25 @@ dy / dx = w^T * gy
 dy / dw = gy * x^T
 dy / db = 1
 """
-function ∇linear!{T}(w::Matrix{T}, b::Matrix{T}, x::Matrix{T}, gx::Matrix{T}, gy::Matrix{T}, gw::Matrix{T}, gb::Matrix{T})
-  gemm!('T', 'N', T(1), w, gy, T(1), gx)
+function ∇linear{T}(f::Linear, x::Matrix{T}, gy::Matrix{T})
+  w, gw, b, gb = f.w.value, f.w.grad, f.b.value, f.b.grad
+  gx = gemm('T', 'N', w, gy)
   gemm!('N', 'T', T(1), gy, x, T(1), gw)
-  #axpy!(T(1), reducedim(+, gy, 2), gb)
   for offset = 1:length(b):length(gy)
     axpy!(length(b), T(1.0), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
   end
-  #for j = 1:size(gy,2)
-  #  @inbounds @simd for i = 1:size(gy,1)
-  #    gb[i] += gy[i,j]
-  #  end
-  #end
+  Array[gx]
+end
+
+function ∇linear!{T}(w::Matrix{T}, b::Matrix{T}, x::Matrix{T}, gx::Matrix{T}, gy::Matrix{T}, gw::Matrix{T}, gb::Matrix{T})
+  gemm!('T', 'N', T(1), w, gy, T(1), gx)
+  gemm!('N', 'T', T(1), gy, x, T(1), gw)
+  for offset = 1:length(b):length(gy)
+    axpy!(length(b), T(1.0), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
+  end
 end
 
 function update!(opt::Optimizer, f::Linear)
   update!(opt, f.w.value, f.w.grad)
   update!(opt, f.b.value, f.b.grad)
-end
-
-function Linear2{T}(::Type{T}, insize::Int, outsize::Int)
-  b = sqrt(6 / (outsize+insize))
-  r = rand(outsize, insize) * 2b - b
-  w = convert(Matrix{T}, r)
-  b = fill(T(0), outsize, 1)
-  w = Variable(w, zeros(w))
-  b = Variable(b, zeros(b))
-  x = Variable()
-  y = w * x + b
-  Graph(y)
 end

@@ -15,5 +15,12 @@ y = f(x)
 ```
 """
 type Reshape <: Functor
+  dims
 end
 
+function call(f::Reshape, arg::Variable)
+  s = size(arg.value)
+  y = reshape(arg.value, f.dims)
+  addgrad! = gy -> reshape(gy, s)
+  Variable(f, [arg], y, addgrad!)
+end

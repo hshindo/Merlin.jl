@@ -16,21 +16,10 @@ y = f(x)
 type ReLU <: Functor
 end
 
-function call(f::ReLU, arg::Variable)
-  y = relu(arg.value)
-  backward! = () -> begin
-    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
-    ∇relu!(v[1].value, v[1].grad, v.grad)
-  end
-  Variable(f, [arg], y, backward!)
-end
-
-function forward!(f::ReLU, v::Variable)
-  v.value = relu(v[1].value)
-  v.backward! = () -> begin
-    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
-    ∇relu!(v[1].value, v[1].grad, v.grad)
-  end
+function forward(f::ReLU, x)
+  y = relu(x)
+  backward = gy -> ∇relu(x, gy)
+  y, backward
 end
 
 function relu{T,N}(x::Array{T,N})
@@ -48,11 +37,13 @@ function relu{T,N}(x::CudaArray{T,N})
   y
 end
 
-function ∇relu!{T,N}(x::Array{T,N}, gx::Array{T,N}, gy::Array{T,N})
+function ∇relu{T,N}(x::Array{T,N}, gy::Array{T,N})
+  gx = similar(x)
   @inbounds @simd for i = 1:length(x)
     d = x[i] > T(0) ? gy[i] : T(0)
-    gx[i] += d
+    gx[i] = d
   end
+  Array[gx]
 end
 
 #function ∇relu{T,N}(varx::CudaArray{T,N}, vary::CudaArray{T,N})

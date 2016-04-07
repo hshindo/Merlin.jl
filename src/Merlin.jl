@@ -1,5 +1,7 @@
 module Merlin
 
+using Compat
+
 abstract Functor
 abstract Optimizer
 
@@ -20,16 +22,17 @@ include("util.jl")
 include("variable.jl")
 include("graph.jl")
 
-for name in ["concat",
+for name in ["add",
+             "concat",
              "crossentropy",
              "linear",
              "logsoftmax",
              "lookup",
-             "math",
              "max",
-             #"maxpooling2d",
+             "multiply",
              "relu",
              "reshape",
+             "sequence",
              "tanh",
              "window2d"]
   include("functors/$(name).jl")

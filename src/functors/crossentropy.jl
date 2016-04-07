@@ -4,12 +4,6 @@ export CrossEntropy
 ## CrossEntropy
 Computes cross-entropy between a true distribution \$p\$ and the target distribution \$q\$.
 
-\$
-\\[
-f(x; p) = -\sum_{x} p \log q_x
-\\]
-\$
-
 \$ f(x; p) = -\sum_{x} p \log q_x \$
 
 ### Functions
@@ -28,11 +22,11 @@ type CrossEntropy <: Functor
   p
 end
 
-function call(f::CrossEntropy, arg::Variable)
-  logq = logsoftmax(arg.value)
+function forward(f::CrossEntropy, x::Array)
+  logq = logsoftmax(x)
   y = crossentropy(f.p, logq)
-  gradient! = gy -> ∇crossentropy!(f.p, logq, arg.grad, gy)
-  Variable(f, [arg], y, gradient!)
+  backward = gy -> ∇crossentropy(f.p, logq, gy)
+  y, backward
 end
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
@@ -55,21 +49,25 @@ function crossentropy{T}(p::Vector{Int}, logq::Matrix{T})
   y
 end
 
-function ∇crossentropy!{T}(p::Matrix{T}, logq::Matrix{T}, gq::Matrix{T}, gy::Matrix{T})
+function ∇crossentropy{T}(p::Matrix{T}, logq::Matrix{T}, gy::Matrix{T})
+  gq = similar(logq)
   for j = 1:size(p,2)
     g = gy[j]
     @inbounds @simd for i = 1:size(p,1)
-      gq[i,j] += g * (exp(logq[i,j]) - p[i,j])
+      gq[i,j] = g * (exp(logq[i,j]) - p[i,j])
     end
   end
+  Array[gq]
 end
 
-function ∇crossentropy!{T}(p::Vector{Int}, logq::Matrix{T}, gq::Matrix{T}, gy::Matrix{T})
+function ∇crossentropy{T}(p::Vector{Int}, logq::Matrix{T}, gy::Matrix{T})
+  gq = similar(logq)
   for j = 1:length(p)
     g = gy[j]
     @inbounds @simd for i = 1:size(logq,1)
       delta = i == p[j] ? T(1) : T(0)
-      gq[i,j] += g * (exp(logq[i,j]) - delta)
+      gq[i,j] = g * (exp(logq[i,j]) - delta)
     end
   end
+  Array[gq]
 end

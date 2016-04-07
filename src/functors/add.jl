@@ -1,3 +1,5 @@
+export Add
+
 type Add <: Functor
 end
 
@@ -10,27 +12,24 @@ function compile(f::Add, var::Variable)
       push!(args, a)
     end
   end
-  Variable(Add(), args, nothing)
+  Variable(nothing, Add(), args)
 end
 
+#=
 function Base.call(f::Add, args::Vector{Variable})
-  x1, x2 = args[1].value, args[2].value
-  y = broadcast(+, x1, x2)
-  backward! =
-  Variable(f, args, y, backward!)
+  xs = map(a -> a.value, args)
+  y = reduce(+, args)
+  getgrad = gy -> map(_ -> gy, xs)
+  Variable(f, args, y, getgrad)
 end
-Base.call(f:Add, args...) = call(f, [args...])
+Base.call(f::Add, args...) = call(f, [args...])
+=#
+
+function forward{T,N}(f::Add, xs::Vector{Array{T,N}})
+  y = reduce(+, xs)
+  backward = gy -> map(_ -> gy, xs)
+  y, backward
+end
 
 import Base.+
-+(v1::Variable, v2::Variable) = Add()(v1, v2)
-
-function ∇add!{T}(gx::Array{T}, gy::Array{T})
-  if ndims(gx) > ndims(gy) && length(gx) > length(gy)
-    error("")
-    broadcast!(+, gx, gx, gy)
-  else
-    for offset = 1:length(gx):length(gy)
-      axpy!(length(gx), T(1.0), pointer(gy,offset), stride(gy,1), pointer(gx), stride(gx,1))
-    end
-  end
-end
++(v1::Variable, v2::Variable) = Add()([v1,v2])

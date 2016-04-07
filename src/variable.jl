@@ -3,13 +3,26 @@ type Variable
   grad
   f
   args
-  backward!
+  backward
 end
 
-#Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, [], nothing)
-
 Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, [], nothing)
-Variable(f, args, value, backward!) = Variable(value, nothing, f, args, backward!)
+
+#function Variable(value=nothing; grad=nothing, f=nothing)
+#  Variable(value, grad, f, args, nothing, false)
+#end
+#Variable(value, f, args, gradient) = Variable(value, nothing, f, args, backward!)
+
+@compat function (f::Functor)(args::Vector{Variable})
+  xs = map(a -> a.value, args)
+  y, backward = forward(f, xs)
+  Variable(y, nothing, f, args, backward)
+end
+
+@compat function (f::Functor)(arg::Variable)
+  y, backward = forward(f, arg.value)
+  Variable(y, nothing, f, [arg], backward)
+end
 
 #=
 function Base.call{F<:Functor}(f::F, args::Vector{Variable})
@@ -21,14 +34,14 @@ function Base.call{F<:Functor}(f::F, args::Vector{Variable})
 end
 Base.call{F<:Functor}(f::F, arg::Variable) = f([arg])
 Base.call{F<:Functor}(f::F, args::Variable...) = f([args...])
-=#
+
 function Base.call{T<:Vector}(fs::T, arg::Variable)
   for f in fs
     arg = call(f, arg)
   end
   arg
 end
-
+=#
 
 Base.getindex(v::Variable, key) = v.args[key]
 Base.setindex!(v::Variable, value, key) = v.args[key] = value
@@ -44,7 +57,13 @@ function gradient!(var::Variable)
   for i = length(sorted):-1:1
     v = sorted[i]
     length(v.args) == 0 && continue
-    v.backward!()
+    gxs = v.backward(v.grad)
+    length(gxs) == 0 && continue
+    @assert (length(v.args) == length(gxs))
+    for i = 1:length(gxs)
+      gx, a = gxs[i], v[i]
+      a.grad == nothing ? a.grad = gx : a.grad += gx
+    end
   end
 end
 

@@ -18,36 +18,18 @@ type Max <: Functor
   dim::Int
 end
 
-function call2(f::Max, arg::Variable)
-  y, idx = max(f.dim, arg.value)
-  backward! = (gxs, gy) -> ∇max!(idx, gxs[1], gy)
-  Variable(f, [arg], y, backward!)
+function forward(f::Max, x)
+  y, idx = max(f.dim, x)
+  backward = gy -> ∇max(idx, x, gy)
+  y, backward
 end
 
-function call(f::Max, arg::Variable)
-  y, idx = max(f.dim, arg.value)
-  backward! = () -> begin
-    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
-    ∇max!(idx, v[1].grad, v.grad)
-  end
-  Variable(f, [arg], y, backward!)
-end
+max{T,N}(dim::Int, x::Array{T,N}) = findmax(x, dim)
 
-function forward!(f::Max, v::Variable)
-  y, idx = max(f.dim, v[1].value)
-  v.value = y
-  v.backward! = () -> begin
-    v[1].grad == nothing && (v[1].grad = zeros(v[1].value))
-    ∇max!(idx, v[1].grad, v.grad)
-  end
-end
-
-function max{T,N}(dim::Int, x::Array{T,N})
-  findmax(x, dim)
-end
-
-function ∇max!{T,N}(idx::Array{Int,N}, gx::Array{T,N}, gy::Array{T,N})
+function ∇max{T,N}(idx::Array{Int,N}, x::Array{T,N}, gy::Array{T,N})
+  gx = zeros(x)
   @inbounds @simd for i = 1:length(idx)
-    gx[idx[i]] += gy[i]
+    gx[idx[i]] = gy[i]
   end
+  Array[gx]
 end
