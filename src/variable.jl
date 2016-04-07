@@ -14,12 +14,14 @@ Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, [], nothi
 #Variable(value, f, args, gradient) = Variable(value, nothing, f, args, backward!)
 
 @compat function (f::Functor)(args::Vector{Variable})
+  args[1].value == nothing && return Variable(nothing, nothing, f, args, nothing)
   xs = map(a -> a.value, args)
   y, backward = forward(f, xs)
   Variable(y, nothing, f, args, backward)
 end
 
 @compat function (f::Functor)(arg::Variable)
+  arg.value == nothing && return Variable(nothing, nothing, f, [arg], nothing)
   y, backward = forward(f, arg.value)
   Variable(y, nothing, f, [arg], backward)
 end
