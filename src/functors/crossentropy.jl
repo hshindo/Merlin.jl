@@ -65,7 +65,7 @@ function ∇crossentropy{T}(p::Vector{Int}, logq::Matrix{T}, gy::Matrix{T})
   for j = 1:length(p)
     g = gy[j]
     @inbounds @simd for i = 1:size(logq,1)
-      delta = i == p[j] ? T(1) : T(0)
+      delta = ifelse(i == p[j], T(1), T(0))
       gq[i,j] = g * (exp(logq[i,j]) - delta)
     end
   end

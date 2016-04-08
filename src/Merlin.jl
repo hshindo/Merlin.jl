@@ -20,6 +20,7 @@ end
 
 include("util.jl")
 include("variable.jl")
+include("sequence.jl")
 include("graph.jl")
 
 for name in ["add",
@@ -32,7 +33,6 @@ for name in ["add",
              "multiply",
              "relu",
              "reshape",
-             "sequence",
              "tanh",
              "window2d"]
   include("functors/$(name).jl")

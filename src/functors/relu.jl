@@ -25,8 +25,7 @@ end
 function relu{T,N}(x::Array{T,N})
   y = similar(x)
   @inbounds @simd for i = 1:length(x)
-    xx = x[i]
-    y[i] = xx > T(0) ? xx : T(0)
+    y[i] = Base.max(x[i], T(0))
   end
   y
 end
@@ -40,8 +39,7 @@ end
 function ∇relu{T,N}(x::Array{T,N}, gy::Array{T,N})
   gx = similar(x)
   @inbounds @simd for i = 1:length(x)
-    d = x[i] > T(0) ? gy[i] : T(0)
-    gx[i] = d
+    gx[i] = ifelse(x[i]>T(0), gy[i], T(0))
   end
   Array[gx]
 end

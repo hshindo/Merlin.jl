@@ -15,11 +15,14 @@ y = f(x)
 ```
 """
 type Lookup <: Functor
-  weights::Vector{Variable}
+  #weights::Vector{Variable}
+  ws::Vector
+  gws::Vector
   idset::Set{Int}
 end
 
-Lookup(weights::Vector{Variable}) = Lookup(weights, Set{Int}())
+#Lookup(weights::Vector{Variable}) = Lookup(weights, Set{Int}())
+Lookup{T}(ws::Vector{T}) = Lookup(ws, map(zeros, ws), Set{Int}())
 
 """
 - T: Type
@@ -27,18 +30,37 @@ Lookup(weights::Vector{Variable}) = Lookup(weights, Set{Int}())
 - outsize::Int
 """
 function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
-  weights = Array(Variable, insize)
+  ws = Array(Vector{T}, insize)
+  for i = 1:insize
+    ws[i] = convert(Vector{T}, randn(outsize))
+  end
+  Lookup(ws)
+end
+#=
+function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
+  ws = Array(T, insize)
   for i = 1:insize
     w = convert(Vector{T}, randn(outsize))
-    weights[i] = Variable(w, zeros(w))
+    ws[i] = Variable(w, zeros(w))
   end
   Lookup(weights)
 end
+=#
 
 """
 - path: initial values
 - T::Type
 """
+function Lookup{T}(path, ::Type{T})
+  lines = open(readlines, path)
+  ws = Array(Vector{T}, length(lines))
+  for i = 1:length(lines)
+    items = split(chomp(lines[i]), ' ')
+    ws[i] = map(x -> parse(T,x), items)
+  end
+  Lookup(ws)
+end
+#=
 function Lookup{T}(path, ::Type{T})
   lines = open(readlines, path)
   weights = Array(Variable, length(lines))
@@ -49,6 +71,8 @@ function Lookup{T}(path, ::Type{T})
   end
   Lookup(weights)
 end
+=#
+
 
 function forward(f::Lookup, x::Array{Int})
   y = lookup(f, x)
@@ -57,48 +81,34 @@ function forward(f::Lookup, x::Array{Int})
 end
 
 function lookup(f::Lookup, x::Matrix{Int})
-  ws = f.weights
-  w1 = ws[1].value
+  w1 = f.ws[1]
   len = length(w1)
   T = eltype(w1)
   y = Array(T, len*size(x,1), size(x,2))
   offset = 1
   for i = 1:length(x)
-    copy!(y, offset, ws[x[i]].value, 1, len)
+    copy!(y, offset, f.ws[x[i]], 1, len)
     offset += len
   end
   y
 end
 
 function ∇lookup{T}(f::Lookup, x::Matrix{Int}, gy::Matrix{T})
-  ws = f.weights
-  len = length(ws[1].value)
+  len = length(f.ws[1])
   offset = 1
   for i = 1:length(x)
-    gw = ws[x[i]].grad
+    gw = f.gws[x[i]]
     axpy!(len, T(1.0), pointer(gy,offset), stride(gy,1), pointer(gw), stride(gw,1))
     offset += len
     union!(f.idset, x[i])
   end
-  []
-end
-
-function ∇lookup!{T}(f::Lookup, x::Matrix{Int}, gy::Matrix{T})
-  ws = f.weights
-  len = length(ws[1].value)
-  offset = 1
-  for i = 1:length(x)
-    gw = ws[x[i]].grad
-    axpy!(len, T(1.0), pointer(gy,offset), stride(gy,1), pointer(gw), stride(gw,1))
-    offset += len
-    union!(f.idset, x[i])
-  end
+  [nothing]
 end
 
 function update!(opt::Optimizer, f::Lookup)
   for id in f.idset
-    w = f.weights[id]
-    update!(opt, w.value, w.grad)
+    w, gw = f.ws[id], f.gws[id]
+    update!(opt, w, gw)
   end
   empty!(f.idset)
 end

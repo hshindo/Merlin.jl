@@ -14,7 +14,7 @@ Compared with [Mocha.jl](https://github.com/pluskid/Mocha.jl) and other deep lea
 - [Documentation (latest)](http://hshindo.github.io/Merlin.jl/latest/)
 
 ## Requirements
-- Julia 0.4
+- Julia 0.4, 0.5
 - g++ (for OSX or Linux)
 
 ## Optional

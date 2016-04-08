@@ -15,16 +15,6 @@ function compile(f::Add, var::Variable)
   Variable(nothing, Add(), args)
 end
 
-#=
-function Base.call(f::Add, args::Vector{Variable})
-  xs = map(a -> a.value, args)
-  y = reduce(+, args)
-  getgrad = gy -> map(_ -> gy, xs)
-  Variable(f, args, y, getgrad)
-end
-Base.call(f::Add, args...) = call(f, [args...])
-=#
-
 function forward{T,N}(f::Add, xs::Vector{Array{T,N}})
   y = reduce(+, xs)
   backward = gy -> map(_ -> gy, xs)

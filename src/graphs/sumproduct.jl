@@ -1,30 +1,15 @@
 """
 ## SumProduct
 
-$ y = p1 * x1 + p2 * x2 + ... $
-where $p$ and $x$ are matricies.
+\$ y = p1 * x1 + p2 * x2 + ... \$
+where \$p\$ and \$x\$ are matricies.
 """
 type SumProduct <: Functor
   params::Vector{Vector{Variable}}
 end
 
-function check(f::SumProduct)
-  if typeof(var.f) == Add
-    for a in var.args
-      if typeof(a.f) == Multiply
-        op = *
-      end
-    end
-  end
-end
-
-function call(f::SumProduct)
-
-end
-
-function forward!(f::SumProduct, v::Variable)
+function forward(f::SumProduct, xs::Vector{Array})
   params = map(p -> p.value, f.params)
-  xs = map(a -> a.value, v.args)
   v.value = sumproduct(params, xs)
 end
 
