@@ -19,45 +19,11 @@ type Concat <: Functor
   dim::Int
 end
 
-#=
-function Base.call(f::Concat, args::Vector{Variable})
-  xs = map(a -> a.value, args)
+function forward(f::Concat, xs::Vector)
   y = concat(f.dim, xs)
-  getgrad = gy -> ∇concat(f.dim, xs, gy)
-  Variable(f, args, y, getgrad)
-end
-Base.call(f::Concat, args...) = call(f, [args...])
-=#
-
-function forward{T,N}(f::Concat, xs::Vector{Array{T,N}})
-  sum = 0
-  for x in xs
-    sum += size(x, f.dim)
-  end
-  outsize = [size(xs[1])...]
-  outsize[f.dim] = sum
-  y = Array(T, outsize...)
-
-  range = map(s -> 1:s, outsize)
-  offset = 1
-  for x in xs
-    s = size(x, f.dim)
-    range[f.dim] = offset:(offset + s - 1)
-    y[range...] = x
-    offset += s
-  end
-  y, gy -> backward(f, xs, gy)
-end
-
-function backward{T,N}(f::Concat, xs::Vector{Array{T,N}}, gy::Array{T,N})
-  range = map(s -> 1:s, [size(gy)...])
-  offset = 1
-  map(xs) do x
-    s = size(x, f.dim)
-    range[f.dim] = offset:(offset + s - 1)
-    offset += s
-    gy[range...]
-  end
+  backward! = (gxs, gy) -> ∇concat!(f.dim, gxs, gy)
+  #backward! = v -> ∇concat!(f.dim, map(a -> a.grad, v.args), v.grad)
+  y, backward!
 end
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
@@ -84,17 +50,17 @@ function concat{T,N}(dim::Int, xs::Vector{CudaArray{T,N}})
 
 end
 
-function ∇concat{T,N}(dim::Int, xs::Vector{Array{T,N}}, gy::Array{T,N})
+function ∇concat!{T,N}(dim::Int, gxs::Vector{Array{T,N}}, gy::Array{T,N})
   range = map(s -> 1:s, [size(gy)...])
   offset = 1
-  map(xs) do x
-    s = size(x, dim)
+  for gx in gxs
+    s = size(gx, dim)
     range[dim] = offset:(offset + s - 1)
+    copy!(gx, gy[range...])
     offset += s
-    gy[range...]
   end
 end
 
-function ∇concat{T,N}(dim::Int, xs::Vector{CudaArray{T,N}}, gy::Array{T,N})
+function ∇concat!{T,N}(dim::Int, xs::Vector{CudaArray{T,N}}, gy::CudaArray{T,N})
 
 end

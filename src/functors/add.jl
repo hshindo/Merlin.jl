@@ -17,8 +17,12 @@ end
 
 function forward{T,N}(f::Add, xs::Vector{Array{T,N}})
   y = reduce(+, xs)
-  backward = gy -> map(_ -> gy, xs)
-  y, backward
+  backward! = (gxs, gy) -> begin
+    for gx in gxs
+      axpy!(T(1), gy, gx)
+    end
+  end
+  y, backward!
 end
 
 import Base.+

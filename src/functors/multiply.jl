@@ -1,6 +1,14 @@
 export Multiply
 
 type Multiply <: Functor
+  isparam1::Bool
+  isparam2::Bool
+end
+
+function aaa(f::Multiply, v1::Variable, v2::Variable)
+  y = v1.value * v2.value
+  backward = gy -> begin
+  end
 end
 
 function Base.call(f::Multiply, arg1::Variable, arg2::Variable)

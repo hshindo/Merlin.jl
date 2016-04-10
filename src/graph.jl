@@ -1,6 +1,5 @@
 type Graph <: Functor
   vars::Vector{Variable} # sorted in bottom-up order
-  inputids::Vector{Int}
 end
 
 function Graph(var::Variable)
@@ -23,9 +22,16 @@ function compile(var::Variable)
   end
 end
 
-function backward!(f::Graph, var::Variable)
-  for i = length(f.vars):-1:1
-    v = f.vars[i]
+@compat function (g::Graph)(args::Tuple)
+  x = arg
+  @assert (length(g.vars) == length(args))
+  for i = 1:length(g.vars)
+    g.vars[i]
+  end
+end
 
+function update!(opt::Optimizer, seq::Sequence)
+  for f in seq.funs
+    applicable(update!, opt, f) && update!(opt, f)
   end
 end

@@ -9,7 +9,10 @@ type GRU
 end
 
 function GRU()
-
+  z = Variable()
+  w = Variable(rand(Float32,10,5))
+  h = (1 - z) * h + z * hh
+  z = w * x + U * h
 end
 
 function forward!(f::GRU, x)

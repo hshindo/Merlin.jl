@@ -23,29 +23,28 @@ y = f(x)
 ```
 """
 type Linear <: Functor
-  w
-  b
-  gw
-  gb
+  w::Variable
+  b::Variable
 end
 
 function Linear{T}(::Type{T}, insize::Int, outsize::Int)
   #r = randn(outsize, insize) * sqrt(1 / insize)
   #r = rand(outsize, insize) * 0.001
-  b = sqrt(6 / (outsize+insize))
-  r = rand(outsize, insize) * 2b - b
+  x = sqrt(6 / (outsize+insize))
+  r = rand(outsize, insize) * 2x - x
   w = convert(Matrix{T}, r)
   b = fill(T(0), outsize, 1)
-  Linear(w, b, zeros(w), zeros(b))
+  Linear(Variable(w,zeros(w)), Variable(b,zeros(b)))
 end
 
 mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
 isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 
 function forward(f::Linear, x)
-  y = f.w * x .+ f.b
-  backward = gy -> ∇linear(f, x, gy)
-  y, backward
+  y = f.w.value * x .+ f.b.value
+  backward! = (gxs, gy) -> ∇linear!(f, x, gxs[1], gy)
+  #backward! = v -> ∇linear!(f, x, v[1].grad, v.grad)
+  y, backward!
 end
 
 """
@@ -53,13 +52,13 @@ dy / dx = w^T * gy
 dy / dw = gy * x^T
 dy / db = 1
 """
-function ∇linear{T}(f::Linear, x::Matrix{T}, gy::Matrix{T})
-  gx = gemm('T', 'N', f.w, gy)
-  gemm!('N', 'T', T(1), gy, x, T(1), f.gw)
-  for offset = 1:length(f.b):length(gy)
-    axpy!(length(f.b), T(1.0), pointer(gy,offset), stride(gy,1), pointer(f.gb), stride(f.gb,1))
+function ∇linear!{T}(f::Linear, x::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
+  w, gw, b, gb = f.w.value, f.w.grad, f.b.value, f.b.grad
+  gemm!('T', 'N', T(1), w, gy, T(0), gx)
+  gemm!('N', 'T', T(1), gy, x, T(1), gw)
+  for offset = 1:length(b):length(gy)
+    axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
   end
-  Array[gx]
 end
 
 #=
@@ -73,6 +72,6 @@ end
 =#
 
 function update!(opt::Optimizer, f::Linear)
-  update!(opt, f.w, f.gw)
-  update!(opt, f.b, f.gb)
+  update!(opt, f.w.value, f.w.grad)
+  update!(opt, f.b.value, f.b.grad)
 end

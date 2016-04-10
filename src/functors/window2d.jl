@@ -44,8 +44,9 @@ end
 
 function forward(f::Window2D, x)
   y, params = window2d(f, x)
-  backward = gy -> ∇window2d(f, params, x, gy)
-  y, backward
+  backward! = (gxs, gy) -> ∇window2d!(f, params, x, gxs[1], gy)
+  #backward! = v -> ∇window2d!(f, params, x, v[1].grad, v.grad)
+  y, backward!
 end
 
 function window2d{T}(f::Window2D, x::Matrix{T})
@@ -62,10 +63,8 @@ function window2d{T}(f::Window2D, x::Matrix{T})
   y, params
 end
 
-function ∇window2d{T}(f::Window2D, params::Vector{Int32}, x::Matrix{T}, gy::Matrix{T})
-  gx = zeros(x)
+function ∇window2d!{T}(f::Window2D, params::Vector{Int32}, x::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
   ccall(bwd_handle(f,T), Void,
     (Ptr{Cint}, Ptr{T}, Ptr{T}, Cint, Cint),
     params, gy, gx, size(gx,1), size(gx,2))
-  Array[gx]
 end

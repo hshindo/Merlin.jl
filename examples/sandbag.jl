@@ -16,13 +16,14 @@ v2 = Variable(rand(Float32,10,10))
 v1 + v2
 
 function bench()
-  A = rand(Float32,500,500)
-  B = rand(Float32,500,500)
+  #A = rand(Float32,500,500)
+  #B = rand(Float32,500,500)
   #C = zeros(Float32,500,30)
   for i = 1:10000
+    a = Array(Float32,1000)
     #axpy!(-1.0f0, C, A*B)
     #D = A * B
-    broadcast!(+, B, B, C)
+    #broadcast!(+, B, B, C)
     #D = B + C
     #for ii = 1:10
     #  v = Variable()

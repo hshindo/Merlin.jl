@@ -19,17 +19,14 @@ type Max <: Functor
 end
 
 function forward(f::Max, x)
-  y, idx = max(f.dim, x)
-  backward = gy -> ∇max(idx, x, gy)
-  y, backward
+  y, idx = findmax(x, f.dim)
+  backward! = (gxs, gy) -> ∇max(idx, gxs[1], gy)
+  #backward! = v -> ∇max(idx, v[1].grad, v.grad)
+  y, backward!
 end
 
-max{T,N}(dim::Int, x::Array{T,N}) = findmax(x, dim)
-
-function ∇max{T,N}(idx::Array{Int,N}, x::Array{T,N}, gy::Array{T,N})
-  gx = zeros(x)
+function ∇max{T,N}(idx::Array{Int,N}, gx::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(idx)
     gx[idx[i]] = gy[i]
   end
-  Array[gx]
 end

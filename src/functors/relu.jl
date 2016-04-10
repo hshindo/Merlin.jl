@@ -18,14 +18,15 @@ end
 
 function forward(f::ReLU, x)
   y = relu(x)
-  backward = gy -> ∇relu(x, gy)
-  y, backward
+  backward! = (gxs, gy) -> ∇relu!(x, gxs[1], gy)
+  #backward! = v -> ∇relu!(x, v[1].grad, v.grad)
+  y, backward!
 end
 
 function relu{T,N}(x::Array{T,N})
   y = similar(x)
   @inbounds @simd for i = 1:length(x)
-    y[i] = Base.max(x[i], T(0))
+    y[i] = max(x[i], T(0))
   end
   y
 end
@@ -36,12 +37,10 @@ function relu{T,N}(x::CudaArray{T,N})
   y
 end
 
-function ∇relu{T,N}(x::Array{T,N}, gy::Array{T,N})
-  gx = similar(x)
+function ∇relu!{T,N}(x::Array{T,N}, gx::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(x)
     gx[i] = ifelse(x[i]>T(0), gy[i], T(0))
   end
-  Array[gx]
 end
 
 #function ∇relu{T,N}(varx::CudaArray{T,N}, vary::CudaArray{T,N})

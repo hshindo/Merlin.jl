@@ -22,11 +22,13 @@ type CrossEntropy <: Functor
   p
 end
 
-function forward(f::CrossEntropy, x::Array)
+function forward(f::CrossEntropy, x)
+  p = f.p
   logq = logsoftmax(x)
-  y = crossentropy(f.p, logq)
-  backward = gy -> ∇crossentropy(f.p, logq, gy)
-  y, backward
+  y = crossentropy(p, logq)
+  backward! = (gxs, gy) -> ∇crossentropy!(p, logq, gxs[1], gy)
+  #backward! = v -> ∇crossentropy!(p, logq, v[1].grad, v.grad)
+  y, backward!
 end
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
@@ -49,25 +51,21 @@ function crossentropy{T}(p::Vector{Int}, logq::Matrix{T})
   y
 end
 
-function ∇crossentropy{T}(p::Matrix{T}, logq::Matrix{T}, gy::Matrix{T})
-  gq = similar(logq)
+function ∇crossentropy!{T}(p::Matrix{T}, logq::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
   for j = 1:size(p,2)
     g = gy[j]
     @inbounds @simd for i = 1:size(p,1)
-      gq[i,j] = g * (exp(logq[i,j]) - p[i,j])
+      gx[i,j] = g * (exp(logq[i,j]) - p[i,j])
     end
   end
-  Array[gq]
 end
 
-function ∇crossentropy{T}(p::Vector{Int}, logq::Matrix{T}, gy::Matrix{T})
-  gq = similar(logq)
+function ∇crossentropy!{T}(p::Vector{Int}, logq::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
   for j = 1:length(p)
     g = gy[j]
     @inbounds @simd for i = 1:size(logq,1)
       delta = ifelse(i == p[j], T(1), T(0))
-      gq[i,j] = g * (exp(logq[i,j]) - delta)
+      gx[i,j] = g * (exp(logq[i,j]) - delta)
     end
   end
-  Array[gq]
 end
