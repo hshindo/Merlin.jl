@@ -19,11 +19,14 @@ type Concat <: Functor
   dim::Int
 end
 
-function forward(f::Concat, xs::Vector)
-  y = concat(f.dim, xs)
-  backward! = (gxs, gy) -> ∇concat!(f.dim, gxs, gy)
-  #backward! = v -> ∇concat!(f.dim, map(a -> a.grad, v.args), v.grad)
-  y, backward!
+@compat (f::Concat)(args) = forward(f, args)
+function forward!(f::Concat, v::Variable)
+  xs = map(a -> a.value, v.args)
+  v.value = concat(f.dim, xs)
+  v.backward! = () -> begin
+    gxs = map(a -> a.grad, v.args)
+    ∇concat!(f.dim, gxs, v.grad)
+  end
 end
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
@@ -56,7 +59,7 @@ function ∇concat!{T,N}(dim::Int, gxs::Vector{Array{T,N}}, gy::Array{T,N})
   for gx in gxs
     s = size(gx, dim)
     range[dim] = offset:(offset + s - 1)
-    copy!(gx, gy[range...])
+    axpy!(T(1), gy[range...], gx)
     offset += s
   end
 end

@@ -18,20 +18,3 @@ function update!(opt::Optimizer, seq::Sequence)
     applicable(update!, opt, f) && update!(opt, f)
   end
 end
-
-#=
-function forward(seq::Sequence, x)
-  y = x
-  backwards = map(seq.funs) do f
-    y, backward = forward(f, y)
-    backward
-  end
-  y, gy -> begin
-    for i = length(backwards):-1:1
-      gxs = backwards[i](gy)
-      gy = length(gxs) == 1 ? gxs[1] : gxs
-    end
-    Array[gy]
-  end
-end
-=#

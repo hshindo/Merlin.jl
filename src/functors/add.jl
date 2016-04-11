@@ -15,14 +15,14 @@ function compile(f::Add, var::Variable)
   Variable(nothing, Add(), args)
 end
 
-function forward{T,N}(f::Add, xs::Vector{Array{T,N}})
-  y = reduce(+, xs)
-  backward! = (gxs, gy) -> begin
-    for gx in gxs
-      axpy!(T(1), gy, gx)
+@compat (f::Add)(args) = forward(f, args)
+function forward!{T,N}(f::Add, v::Variable)
+  v.value = mapreduce(a -> a.value, +, v.args)
+  v.backward! = () -> begin
+    for a in v.args
+      axpy!(T(1), v.grad, a.grad)
     end
   end
-  y, backward!
 end
 
 import Base.+

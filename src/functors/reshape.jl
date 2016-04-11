@@ -18,9 +18,12 @@ type Reshape <: Functor
   dims
 end
 
-function call(f::Reshape, arg::Variable)
-  s = size(arg.value)
-  y = reshape(arg.value, f.dims)
-  addgrad! = gy -> reshape(gy, s)
-  Variable(f, [arg], y, addgrad!)
+@compat (f::Reshape)(arg) = forward(f, arg)
+function forward!(f::Reshape, v::Variable)
+  s = size(v[1].value)
+  v.value = reshape(v[1].value, f.dims)
+  v.backward! = () -> begin
+    T = eltype(v.value)
+    axpy!(T(1), v.grad, v[1].grad)
+  end
 end

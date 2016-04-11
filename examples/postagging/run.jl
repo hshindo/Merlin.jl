@@ -4,6 +4,7 @@ using Merlin
 
 include("token.jl")
 
+#=
 T = Float32
 word_f = Lookup(T, 500000, 100)
 #word_f = Lookup("$(path)/nyt100.lst", T)
@@ -33,11 +34,7 @@ function update!(m::Model, opt)
     Merlin.update!(opt, f)
   end
 end
-
-
-
-
-
+=#
 
 include("model_char.jl")
 include("train.jl")

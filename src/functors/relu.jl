@@ -16,11 +16,10 @@ y = f(x)
 type ReLU <: Functor
 end
 
-function forward(f::ReLU, x)
-  y = relu(x)
-  backward! = (gxs, gy) -> ∇relu!(x, gxs[1], gy)
-  #backward! = v -> ∇relu!(x, v[1].grad, v.grad)
-  y, backward!
+@compat (f::ReLU)(arg) = forward(f, arg)
+function forward!(f::ReLU, v::Variable)
+  v.value = relu(v[1].value)
+  v.backward! = () -> ∇relu!(v[1].value, v[1].grad, v.grad)
 end
 
 function relu{T,N}(x::Array{T,N})
@@ -39,7 +38,7 @@ end
 
 function ∇relu!{T,N}(x::Array{T,N}, gx::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(x)
-    gx[i] = ifelse(x[i]>T(0), gy[i], T(0))
+    gx[i] += ifelse(x[i]>T(0), gy[i], T(0))
   end
 end
 

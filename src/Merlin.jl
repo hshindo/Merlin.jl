@@ -1,6 +1,8 @@
 module Merlin
 
 using Compat
+using Base.LinAlg.BLAS
+using JLD
 
 abstract Functor
 abstract Optimizer

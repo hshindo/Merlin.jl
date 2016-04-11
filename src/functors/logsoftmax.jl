@@ -17,18 +17,14 @@ y = f(x)
 type LogSoftmax <: Functor
 end
 
+@compat (f::LogSoftmax)(arg) = forward(f, arg)
 function forward!(f::LogSoftmax, v::Variable)
   v.value = logsoftmax(v[1].value)
+  v.backward! = () -> ∇logsoftmax!(v[1].value, v.value, v[1].grad, v.grad)
 end
 
-function backward!(f::LogSoftmax, v::Variable)
-  gx = ∇logsoftmax(v[1].value, v[2].value, v.state, v.grad)
-  addgrad!(v[1], gx)
-end
-
-function ∇logsoftmax{T}(x::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
+function ∇logsoftmax!{T}(x::Matrix{T}, y::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
   # d(y_j) / d(x_i) = delta(i = j) - exp(y_i)
-  gx = zeros(T, size(x))
   for d = 1:size(x,2)
     for i = 1:size(x,1)
       expy = exp(y[i, d])
@@ -38,5 +34,4 @@ function ∇logsoftmax{T}(x::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
       end
     end
   end
-  gx
 end

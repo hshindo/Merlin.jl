@@ -1,46 +1,37 @@
-type Variable{T}
-  value::T
-  grad::T
+type Variable
+  value
+  grad
   f
-  args
+  args::Vector{Variable}
   backward!
 end
 
-Variable{T}(value::T, grad::T) = Variable(value, grad, nothing, [], nothing)
-Variable{T}(value::T) = Variable(value, similar(value,eltype(value),0))
+Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, Variable[], nothing)
 
-@compat function (f::Functor)(args::Vector{Variable})
-  isempty(args[1].value) && return Variable(args[1].value, args[1].value, f, args, nothing)
-  xs = map(a -> a.value, args)
-  y, backward! = forward(f, xs)
-  Variable(y, similar(y, eltype(y), 0), f, args, backward!)
+function forward(f::Functor, args::Vector{Variable})
+  v = Variable(nothing, nothing, f, args, nothing)
+  forward!(f, v)
+  v
 end
-
-@compat function (f::Functor)(arg::Variable)
-  isempty(arg.value) && return Variable(arg.value, arg.value, f, [arg], nothing)
-  y, backward! = forward(f, arg.value)
-  Variable(y, similar(y, eltype(y), 0), f, (arg,), backward!)
-end
+forward(f::Functor, arg::Variable) = forward(f, [arg])
+forward(f::Functor, args::Variable...) = forward(f, [args...])
 
 Base.getindex(v::Variable, key) = v.args[key]
 Base.setindex!(v::Variable, value, key) = v.args[key] = value
 Base.eltype(v::Variable) = eltype(v.value)
 
 function gradient!(var::Variable)
-  isempty(var.grad) && (var.grad = ones(var.value))
+  var.grad == nothing && (var.grad = ones(var.value))
   sorted = topsort(var)
   for v in sorted
-    (v == var || length(v.args) > 0) && continue
+    v == var && continue
+    length(v.args) == 0 && continue
     v.grad = zeros(v.value)
   end
   for i = length(sorted):-1:1
     v = sorted[i]
     length(v.args) == 0 && continue
-    if typeof(v.args) <: Tuple
-
-    end
-    gxs = map(a -> a.grad, v.args)
-    v.backward!(gxs, v.grad)
+    v.backward!()
   end
 end
 

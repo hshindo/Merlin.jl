@@ -50,11 +50,10 @@ function Lookup{T}(path, ::Type{T})
   Lookup(weights)
 end
 
-function forward(f::Lookup, x::Array{Int})
-  y = lookup(f, x)
-  backward! = (_, gy) -> ∇lookup!(f, x, gy)
-  #backward! = v -> ∇lookup!(f, x, v.grad)
-  y, backward!
+@compat (f::Lookup)(arg) = forward(f, arg)
+function forward!(f::Lookup, v::Variable)
+  v.value = lookup(f, v[1].value)
+  v.backward! = () -> ∇lookup!(f, v[1].value, v.grad)
 end
 
 function lookup(f::Lookup, x::Matrix{Int})

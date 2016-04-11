@@ -42,11 +42,11 @@ function make_params(f::Window2D)
   params = Int32[w1, w2, s1, s2, p1, p2]
 end
 
-function forward(f::Window2D, x)
-  y, params = window2d(f, x)
-  backward! = (gxs, gy) -> ∇window2d!(f, params, x, gxs[1], gy)
-  #backward! = v -> ∇window2d!(f, params, x, v[1].grad, v.grad)
-  y, backward!
+@compat (f::Window2D)(arg) = forward(f, arg)
+function forward!(f::Window2D, v::Variable)
+  y, params = window2d(f, v[1].value)
+  v.value = y
+  v.backward! = () -> ∇window2d!(f, params, v[1].value, v[1].grad, v.grad)
 end
 
 function window2d{T}(f::Window2D, x::Matrix{T})
