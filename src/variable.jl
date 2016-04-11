@@ -1,13 +1,13 @@
-type Variable
-  value
-  grad
+type Variable{T}
+  value::T
+  grad::T
   f
   args
   backward!
 end
 
-Variable(value, grad) = Variable(value, grad, nothing, [], nothing)
-Variable(value) = Variable(value, similar(value,eltype(value),0))
+Variable{T}(value::T, grad::T) = Variable(value, grad, nothing, [], nothing)
+Variable{T}(value::T) = Variable(value, similar(value,eltype(value),0))
 
 @compat function (f::Functor)(args::Vector{Variable})
   isempty(args[1].value) && return Variable(args[1].value, args[1].value, f, args, nothing)
@@ -19,7 +19,7 @@ end
 @compat function (f::Functor)(arg::Variable)
   isempty(arg.value) && return Variable(arg.value, arg.value, f, [arg], nothing)
   y, backward! = forward(f, arg.value)
-  Variable(y, similar(y, eltype(y), 0), f, [arg], backward!)
+  Variable(y, similar(y, eltype(y), 0), f, (arg,), backward!)
 end
 
 Base.getindex(v::Variable, key) = v.args[key]
@@ -30,18 +30,17 @@ function gradient!(var::Variable)
   isempty(var.grad) && (var.grad = ones(var.value))
   sorted = topsort(var)
   for v in sorted
-    v != var && length(v.args) > 0 && (v.grad = zeros(v.value))
+    (v == var || length(v.args) > 0) && continue
+    v.grad = zeros(v.value)
   end
   for i = length(sorted):-1:1
     v = sorted[i]
     length(v.args) == 0 && continue
-    gxs = Array(Any, length(v.args))
-    for i = 1:length(gxs)
-      gxs[i] = v[i].grad
+    if typeof(v.args) <: Tuple
+
     end
-    #gxs = map(a -> a.grad, v.args)
+    gxs = map(a -> a.grad, v.args)
     v.backward!(gxs, v.grad)
-    #v.backward!(v)
   end
 end
 
@@ -59,9 +58,4 @@ function topsort(var::Variable)
   end
   visit(var)
   sorted
-end
-
-function aaa()
-  len = 0
-
 end
