@@ -4,6 +4,7 @@ using Merlin
 
 include("token.jl")
 
+
 #=
 T = Float32
 word_f = Lookup(T, 500000, 100)

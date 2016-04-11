@@ -6,11 +6,13 @@ type Variable
   backward!
 end
 
-Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, Variable[], nothing)
+function Variable(value=nothing, grad=nothing, f=nothing, args=Variable[])
+  Variable(value, grad, f, args, nothing)
+end
 
 function forward(f::Functor, args::Vector{Variable})
-  v = Variable(nothing, nothing, f, args, nothing)
-  forward!(f, v)
+  v = Variable(nothing, nothing, f, args)
+  all(a -> a.value != nothing, args) && forward!(f, v)
   v
 end
 forward(f::Functor, arg::Variable) = forward(f, [arg])

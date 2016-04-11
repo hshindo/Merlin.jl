@@ -8,7 +8,7 @@ abstract Functor
 abstract Optimizer
 
 export CudaArray
-export Param, Variable, gradient!, update!, compile
+export Variable, gradient!, update!, compile
 
 include("native.jl")
 
@@ -22,17 +22,16 @@ end
 
 include("util.jl")
 include("variable.jl")
-include("sequence.jl")
+#include("sequence.jl")
 include("graph.jl")
 
-for name in ["add",
-             "concat",
+for name in ["concat",
              "crossentropy",
              "linear",
              "logsoftmax",
              "lookup",
+             "math",
              "max",
-             "multiply",
              "relu",
              "reshape",
              "tanh",
