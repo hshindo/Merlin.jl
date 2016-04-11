@@ -2,15 +2,16 @@ export Sequence
 
 type Sequence <: Functor
   funs::Vector{Functor}
+  cache::Dict
 end
-Sequence(funs::Functor...) = Sequence([funs...])
+Sequence(funs::Functor...) = Sequence([funs...], Dict())
 
 @compat function (seq::Sequence)(arg::Variable)
-  y = arg
+  v = arg
   for f in seq.funs
-    y = f(y)
+    v = f(v)
   end
-  y
+  v
 end
 
 function update!(opt::Optimizer, seq::Sequence)

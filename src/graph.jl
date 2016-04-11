@@ -1,5 +1,4 @@
 export Graph
-export Sequence
 
 type Graph <: Functor
   vars::Vector{Variable} # sorted in bottom-up order
@@ -23,14 +22,6 @@ function Graph(var::Variable)
   Graph(sorted, inids)
 end
 
-function Sequence(funs::Functor...)
-  v = Variable()
-  for f in funs
-    v = f(v)
-  end
-  Graph(v)
-end
-
 Base.getindex(g::Graph, key) = g.vars[key]
 
 @compat function (g::Graph)(args...)
@@ -48,8 +39,6 @@ Base.getindex(g::Graph, key) = g.vars[key]
       args = map(a -> vars[a.value], v.args)
       vars[i] = v.f(args)
     end
-    #args = map(a -> vars[a.value], v.args)
-    #vars[i] = v.f(args)
   end
   vars[end]
 end

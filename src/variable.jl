@@ -52,3 +52,7 @@ function topsort(var::Variable)
   visit(var)
   sorted
 end
+
+function gradcheck()
+
+end

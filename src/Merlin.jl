@@ -22,8 +22,8 @@ end
 
 include("util.jl")
 include("variable.jl")
-#include("sequence.jl")
 include("graph.jl")
+include("sequence.jl")
 
 for name in ["concat",
              "crossentropy",
