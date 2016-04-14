@@ -1,3 +1,5 @@
+export SumProduct
+
 """
 ## SumProduct
 
@@ -5,7 +7,14 @@
 where \$p\$ and \$x\$ are matricies.
 """
 type SumProduct <: Functor
-  params::Vector{Vector{Variable}}
+  weights::Vector{Float64}
+end
+
+function forward!(f::SumProduct, v::Variable)
+  for i = 1:length(f.weights)
+    vv = v[2i-1], v[2i]
+
+  end
 end
 
 function forward(f::SumProduct, xs::Vector{Array})

@@ -33,7 +33,7 @@ function Linear{T}(::Type{T}, insize::Int, outsize::Int)
   r = rand(outsize, insize) * 2x - x
   w = convert(Matrix{T}, r)
   b = fill(T(0), outsize, 1)
-  Linear(Variable(w,zeros(w)), Variable(b,zeros(b)))
+  Linear(Variable(w), Variable(b))
 end
 
 mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
@@ -42,20 +42,16 @@ isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 @compat (f::Linear)(arg) = forward(f, arg)
 function forward!(f::Linear, v::Variable)
   v.value = f.w.value * v[1].value .+ f.b.value
-  v.backward! = () -> ∇linear!(f, v[1].value, v[1].grad, v.grad)
-end
-
-"""
-dy / dx = w^T * gy
-dy / dw = gy * x^T
-dy / db = 1
-"""
-function ∇linear!{T}(f::Linear, x::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
-  w, gw, b, gb = f.w.value, f.w.grad, f.b.value, f.b.grad
-  gemm!('T', 'N', T(1), w, gy, T(1), gx)
-  gemm!('N', 'T', T(1), gy, x, T(1), gw)
-  for offset = 1:length(b):length(gy)
-    axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
+  v.backward! = () -> begin
+    # dy / dx = w^T * gy, dy / dw = gy * x^T
+    T = eltype(v.value)
+    gy = v.grad
+    w, gw, b, gb = f.w.value, f.w.grad, f.b.value, f.b.grad
+    hasgrad(v[1]) && gemm!('T', 'N', T(1), w, gy, T(1), v[1].grad)
+    gemm!('N', 'T', T(1), gy, v[1].value, T(1), gw)
+    for offset = 1:length(b):length(gy)
+      axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
+    end
   end
 end
 

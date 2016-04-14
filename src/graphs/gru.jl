@@ -1,20 +1,20 @@
+export GRU
+
 """
 Gated Recurrent Unit (GRU)
-See Chung et al. "Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling", 2014
+Ref: Chung et al. "Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling", 2014
 """
-type GRU
-  w
-  r
-  u
-end
+function GRU{T}(::Type{T}, xsize::Int, hsize::Int)
+  # parameters
+  Ws = [Variable(rand(T,xsize,hsize)) for i=1:3]
+  Us = [Variable(rand(T,xsize,hsize)) for i=1:3]
+  # input
+  x = Variable()
+  h = Variable()
 
-function GRU()
-  z = Variable()
-  w = Variable(rand(Float32,10,5))
-  h = (1 - z) * h + z * hh
-  z = w * x + U * h
-end
-
-function forward!(f::GRU, x)
-  z = f.w * x + f.u * h
+  r = Sigmoid()(Ws[1]*x + Us[1]*h)
+  z = Sigmoid()(Ws[2]*x + Us[2]*h)
+  h_ = Tanh()(Ws[3]*x + Us[3]*(r.*h))
+  out = (1 - z) .* h + z .* h_
+  Graph(out)
 end

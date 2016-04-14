@@ -6,12 +6,13 @@ type Variable
   backward!
 end
 
-function Variable(value=nothing, grad=nothing, f=nothing, args=Variable[])
-  Variable(value, grad, f, args, nothing)
-end
+Variable(value, grad) = Variable(value, grad, nothing, Variable[], nothing)
+Variable(value) = Variable(value, zeros(value))
+Variable() = Variable(nothing, nothing)
+constant(value) = Variable(value, nothing)
 
 function forward(f::Functor, args::Vector{Variable})
-  v = Variable(nothing, nothing, f, args)
+  v = Variable(nothing, nothing, f, args, nothing)
   all(a -> a.value != nothing, args) && forward!(f, v)
   v
 end
@@ -22,18 +23,18 @@ Base.getindex(v::Variable, key) = v.args[key]
 Base.setindex!(v::Variable, value, key) = v.args[key] = value
 Base.eltype(v::Variable) = eltype(v.value)
 
+hasgrad(v::Variable) = v.grad != nothing
+
 function gradient!(var::Variable)
   var.grad == nothing && (var.grad = ones(var.value))
   sorted = topsort(var)
   for v in sorted
-    v == var && continue
-    length(v.args) == 0 && continue
-    v.grad = zeros(v.value)
+    (v == var || v.backward == nothing) && continue
+    hasgrad(v) || (v.grad = zeros(v.value))
   end
   for i = length(sorted):-1:1
     v = sorted[i]
-    length(v.args) == 0 && continue
-    v.backward!()
+    v.backward == nothing || v.backward!()
   end
 end
 
@@ -53,6 +54,25 @@ function topsort(var::Variable)
   sorted
 end
 
-function gradcheck()
+function numerical_grad(f::Functor, xs::Vector, eps=1e-3)
+  x1, x2 = copy(x), copy(x)
+  gx = zeros(x)
+  for i = 1:length(x)
+    x1[i] += eps
+    x2[i] -= eps
+    y1 = f(Variable(x1))
+    y2 = f(Variable(x2))
+    gx[i] = sum(y1.value-y2.value) / (2*eps)
+    x1[i] -= eps
+    x2[i] += eps
+  end
+  gx
+end
 
+function gradient_check(f::Functor, args::Vector{Variable})
+  out = f(args)
+  gradient!(out)
+  gx1 = out.grad
+  gx2 = numerical_grad(f, x)
+  gx1 - gx2
 end

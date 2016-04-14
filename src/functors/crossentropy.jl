@@ -26,7 +26,7 @@ end
 function forward!(f::CrossEntropy, v::Variable)
   logq = logsoftmax(v[1].value)
   v.value = crossentropy(f.p, logq)
-  v.backward! = () -> ∇crossentropy!(f.p, logq, v[1].grad, v.grad)
+  v.backward! = () -> hasgrad(v[1]) && ∇crossentropy!(f.p, logq, v[1].grad, v.grad)
 end
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})

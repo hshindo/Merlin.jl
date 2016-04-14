@@ -25,18 +25,25 @@ include("variable.jl")
 include("graph.jl")
 include("sequence.jl")
 
-for name in ["concat",
+for name in ["add",
+             "concat",
              "crossentropy",
              "linear",
              "logsoftmax",
              "lookup",
-             "math",
              "max",
+             "multiply",
              "relu",
              "reshape",
+             "sigmoid",
+             "subtract",
              "tanh",
              "window2d"]
   include("functors/$(name).jl")
+end
+
+for name in ["gru"]
+  include("graphs/$(name).jl")
 end
 
 for name in ["adagrad",
