@@ -8,7 +8,7 @@ abstract Functor
 abstract Optimizer
 
 export CudaArray
-export Variable, gradient!, update!, compile
+export Variable, param, gradient!, update!, compile
 
 include("native.jl")
 

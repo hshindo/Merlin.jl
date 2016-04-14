@@ -6,10 +6,8 @@ type Variable
   backward!
 end
 
-Variable(value, grad) = Variable(value, grad, nothing, Variable[], nothing)
-Variable(value) = Variable(value, zeros(value))
-Variable() = Variable(nothing, nothing)
-constant(value) = Variable(value, nothing)
+Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, Variable[], nothing)
+param(value) = Variable(value, zeros(value))
 
 function forward(f::Functor, args::Vector{Variable})
   v = Variable(nothing, nothing, f, args, nothing)
@@ -29,8 +27,8 @@ function gradient!(var::Variable)
   var.grad == nothing && (var.grad = ones(var.value))
   sorted = topsort(var)
   for v in sorted
-    (v == var || v.backward == nothing) && continue
-    hasgrad(v) || (v.grad = zeros(v.value))
+    (v == var || hasgrad(v)) && continue
+    v.backward == nothing || (v.grad = zeros(v.value))
   end
   for i = length(sorted):-1:1
     v = sorted[i]

@@ -4,9 +4,9 @@ using Merlin
 using JLD
 using Base.LinAlg.BLAS
 
-v = Variable(rand(Float32,10))
-y = Merlin.constant(1) - v
-
+v1 = Variable(rand(Float32,10))
+v2 = Variable(rand(Float32,10))
+v1+v2
 
 gru = GRU(Float32,50,50)
 
