@@ -10,6 +10,10 @@ type SumProduct <: Functor
   weights::Vector{Float64}
 end
 
+@compat function (f::SumProduct)(args)
+  forward(f, args)
+end
+
 function forward!(f::SumProduct, v::Variable)
   for i = 1:length(f.weights)
     vv = v[2i-1], v[2i]

@@ -33,7 +33,7 @@ function Linear{T}(::Type{T}, insize::Int, outsize::Int)
   r = rand(outsize, insize) * 2x - x
   w = convert(Matrix{T}, r)
   b = fill(T(0), outsize, 1)
-  Linear(Variable(w), Variable(b))
+  Linear(Variable(w,zeros(w)), Variable(b,zeros(b)))
 end
 
 mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))

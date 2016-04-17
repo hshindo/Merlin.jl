@@ -6,16 +6,29 @@ type Variable
   backward!
 end
 
-Variable(value=nothing, grad=nothing) = Variable(value, grad, nothing, Variable[], nothing)
-param(value) = Variable(value, zeros(value))
+Variable(value, grad) = Variable(value, grad, nothing, Variable[], nothing)
+Variable(value) = Variable(value, zeros(value))
+Variable(value) = Variable(nothing, nothing)
 
 function forward(f::Functor, args::Vector{Variable})
   v = Variable(nothing, nothing, f, args, nothing)
-  all(a -> a.value != nothing, args) && forward!(f, v)
+  for a in args
+    a.value == nothing && return v
+  end
+  forward!(f, v)
   v
 end
 forward(f::Functor, arg::Variable) = forward(f, [arg])
 forward(f::Functor, args::Variable...) = forward(f, [args...])
+forward{T<:Any}(f::Functor, args::Vector{T}) = forward(f, map(Variable, args))
+forward(f::Functor, arg::Any) = forward(f, [Variable(arg)])
+function forward(f::Functor, args...)
+  vars = Variable[]
+  for a in args
+    v = typeof(a) == Variable ? a : Variable(a, nothing)
+  end
+  forward(f, vars)
+end
 
 Base.getindex(v::Variable, key) = v.args[key]
 Base.setindex!(v::Variable, value, key) = v.args[key] = value
@@ -24,15 +37,15 @@ Base.eltype(v::Variable) = eltype(v.value)
 hasgrad(v::Variable) = v.grad != nothing
 
 function gradient!(var::Variable)
-  var.grad == nothing && (var.grad = ones(var.value))
+  hasgrad(var) || (var.grad = ones(var.value))
   sorted = topsort(var)
   for v in sorted
-    (v == var || hasgrad(v)) && continue
-    v.backward == nothing || (v.grad = zeros(v.value))
+    (v == var || hasgrad(v) || v.backward! == nothing) && continue
+    v.grad = zeros(v.value)
   end
   for i = length(sorted):-1:1
     v = sorted[i]
-    v.backward == nothing || v.backward!()
+    v.backward! == nothing || v.backward!()
   end
 end
 
@@ -52,25 +65,27 @@ function topsort(var::Variable)
   sorted
 end
 
-function numerical_grad(f::Functor, xs::Vector, eps=1e-3)
+"""
+Computes numerical gradient for gradient check.
+"""
+function approx_gradient(f::Functor, x, eps=1e-3)
   x1, x2 = copy(x), copy(x)
   gx = zeros(x)
   for i = 1:length(x)
     x1[i] += eps
     x2[i] -= eps
-    y1 = f(Variable(x1))
-    y2 = f(Variable(x2))
-    gx[i] = sum(y1.value-y2.value) / (2*eps)
+    out1 = f(Variable(x1,zeros(x1)))
+    out2 = f(Variable(x2,zeros(x2)))
+    gx[i] = sum(out1.value - out2.value) / 2eps
     x1[i] -= eps
     x2[i] += eps
   end
   gx
 end
 
-function gradient_check(f::Functor, args::Vector{Variable})
-  out = f(args)
+function test_gradient(f::Functor, x)
+  arg = Variable(x, zeros(x))
+  out = f(arg)
   gradient!(out)
-  gx1 = out.grad
-  gx2 = numerical_grad(f, x)
-  gx1 - gx2
+  arg.grad
 end

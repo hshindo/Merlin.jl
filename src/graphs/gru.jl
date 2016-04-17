@@ -6,8 +6,8 @@ Ref: Chung et al. "Empirical Evaluation of Gated Recurrent Neural Networks on Se
 """
 function GRU{T}(::Type{T}, xsize::Int, hsize::Int)
   # parameters
-  Ws = [param(rand(T,xsize,hsize)) for i=1:3]
-  Us = [param(rand(T,xsize,hsize)) for i=1:3]
+  Ws = [Variable(rand(T,xsize,hsize)) for i=1:3]
+  Us = [Variable(rand(T,xsize,hsize)) for i=1:3]
   # input
   x = Variable()
   h = Variable()

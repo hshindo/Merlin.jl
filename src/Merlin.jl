@@ -8,7 +8,8 @@ abstract Functor
 abstract Optimizer
 
 export CudaArray
-export Variable, param, gradient!, update!, compile
+export Variable, gradient!, approx_gradient
+export compile
 
 include("native.jl")
 
@@ -16,7 +17,7 @@ if haskey(ENV, "USE_CUDA")
   #push!(LOAD_PATH, joinpath(dirname(@__FILE__), "cuda"))
   using CUDA
 else
-  type CudaArray{T,N}
+  type CudaArray{T,N} # Dummy
   end
 end
 
@@ -36,7 +37,6 @@ for name in ["add",
              "relu",
              "reshape",
              "sigmoid",
-             "subtract",
              "tanh",
              "window2d"]
   include("functors/$(name).jl")
