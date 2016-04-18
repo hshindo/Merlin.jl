@@ -8,8 +8,6 @@ abstract Functor
 abstract Optimizer
 
 export CudaArray
-export Variable, gradient!, approx_gradient
-export compile
 
 include("native.jl")
 
@@ -21,22 +19,24 @@ else
   end
 end
 
-include("util.jl")
+#include("util.jl")
 include("variable.jl")
 include("graph.jl")
 include("sequence.jl")
 
 for name in ["add",
+             "blas",
              "concat",
              "crossentropy",
              "linear",
-             "logsoftmax",
              "lookup",
              "max",
              "multiply",
              "relu",
              "reshape",
              "sigmoid",
+             "softmax",
+             "subtract",
              "tanh",
              "window2d"]
   include("functors/$(name).jl")

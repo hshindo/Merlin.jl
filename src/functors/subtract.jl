@@ -4,40 +4,32 @@ type ElemSubtract <: Functor
 end
 
 import Base.-
--(v1::Variable, v2::Variable) = Subtract()([v1,v2])
-import Base.(.-)
-.-(v1::Variable, v2::Variable) = ElemSubtract()([v1,v2])
+-(arg1::Variable, arg2::Variable) = Subtract()(arg1, arg2)
+-(arg1::Variable, arg2::Any) = Subtract()(arg1, arg2)
+-(arg1::Any, arg2::Variable) = Subtract()(arg1, arg2)
+-(arg::Variable) = 0 - arg
 
-@compat (f::Subtract)(args) = forward(f, args)
+import Base.(.-)
+.-(arg1::Variable, arg2::Variable) = ElemSubtract()(arg1, arg2)
+-(arg1::Variable, arg2::Any) = ElemSubtract()(arg1, arg2)
+-(arg1::Any, arg2::Variable) = ElemSubtract()(arg1, arg2)
+
+@compat (f::Subtract)(arg1, arg2) = forward(f, arg1, arg2)
 function forward!(f::Subtract, v::Variable)
-  @assert (length(v.args) == 2)
   v.value = v[1].value - v[2].value
   v.backward! = () -> begin
-    backward!(f, 1.0, v[1].grad, v.grad)
-    backward!(f, -1.0, v[2].grad, v.grad)
+    T = eltype(v)
+    hasgrad(v[1]) && axpy!(T(1), v.grad, v[1].grad)
+    hasgrad(v[2]) && axpy!(T(-1), v.grad, v[2].grad)
   end
 end
 
-backward!{T,N}(f::Subtract, a, gx::Array{T,N}, gy::Array{T,N}) = axpy!(T(a), gy, gx)
-backward!{T,N}(f::Subtract, a, gx::Void, gy::Array{T,N}) = ()
-
-@compat (f::ElemSubtract)(args) = forward(f, args)
+@compat (f::ElemSubtract)(arg1, arg2) = forward(f, arg1, arg2)
 function forward!(f::ElemSubtract, v::Variable)
-  @assert (length(v.args) == 2)
   v.value = v[1].value .- v[2].value
   v.backward! = () -> begin
-    backward!(f, 1.0, v[1].grad, v.grad)
-    backward!(f, -1.0, v[2].grad, v.grad)
+    T = eltype(v)
+    #hasgrad(v[1]) && axpy!(T(1), v.grad, v[1].grad)
+    #hasgrad(v[2]) && axpy!(T(-1), v.grad, v[2].grad)
   end
 end
-
-function backward!{T,N}(f::ElemSubtract, a, gx::Array{T,N}, gy::Array{T,N})
-  if length(gx) == length(gy)
-    axpy!(T(a), gy, gx)
-  else
-    for offset = 1:length(gx):length(gy)
-      axpy!(length(gx), T(a), pointer(gy,offset), stride(gy,1), pointer(gx), stride(gx,1))
-    end
-  end
-end
-backward!{T,N}(f::ElemSubtract, a, gx::Void, gy::Array{T,N}) = ()

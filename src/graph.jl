@@ -5,6 +5,14 @@ type Graph <: Functor
   inids::Vector{Int}
 end
 
+function Graph(funs::Functor...)
+  v = Variable()
+  for f in funs
+    v = f(v)
+  end
+  Graph(v)
+end
+
 function Graph(var::Variable)
   sorted = topsort(var)
   inids = Int[]
@@ -13,12 +21,11 @@ function Graph(var::Variable)
     length(v.args) == 0 && v.value == nothing && push!(inids, i)
     v.value = i
   end
-
   # compile
   for v in sorted
-
+    #compile!(GEMM!, v) && continue
+    #compile!(AXPY!, v) && continue
   end
-
   Graph(sorted, inids)
 end
 

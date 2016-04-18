@@ -1,14 +1,17 @@
+export Variable
+export hasgrad, gradient!, gradient, topsort, approx_gradient
+
 type Variable
   value
   grad
   f
-  args::Vector{Variable}
+  args::Tuple{Vararg{Variable}}
   backward!
 end
 
-Variable(value, grad) = Variable(value, grad, nothing, Variable[], nothing)
+Variable(value, grad) = Variable(value, grad, nothing, (), nothing)
 Variable(value) = Variable(value, zeros(value))
-Variable(value) = Variable(nothing, nothing)
+Variable() = Variable(nothing, nothing)
 
 function forward(f::Functor, args::Vector{Variable})
   v = Variable(nothing, nothing, f, args, nothing)
@@ -19,13 +22,12 @@ function forward(f::Functor, args::Vector{Variable})
   v
 end
 forward(f::Functor, arg::Variable) = forward(f, [arg])
-forward(f::Functor, args::Variable...) = forward(f, [args...])
-forward{T<:Any}(f::Functor, args::Vector{T}) = forward(f, map(Variable, args))
-forward(f::Functor, arg::Any) = forward(f, [Variable(arg)])
-function forward(f::Functor, args...)
+forward(f::Functor, args...) = forward(f, Any[args...])
+function forward(f::Functor, args::Vector{Any})
   vars = Variable[]
   for a in args
     v = typeof(a) == Variable ? a : Variable(a, nothing)
+    push!(vars, v)
   end
   forward(f, vars)
 end
@@ -66,26 +68,36 @@ function topsort(var::Variable)
 end
 
 """
-Computes numerical gradient for gradient check.
+Computes numerical gradient.
 """
-function approx_gradient(f::Functor, x, eps=1e-3)
-  x1, x2 = copy(x), copy(x)
-  gx = zeros(x)
-  for i = 1:length(x)
-    x1[i] += eps
-    x2[i] -= eps
-    out1 = f(Variable(x1,zeros(x1)))
-    out2 = f(Variable(x2,zeros(x2)))
-    gx[i] = sum(out1.value - out2.value) / 2eps
-    x1[i] -= eps
-    x2[i] += eps
+function approx_gradient(f::Functor, xs::Vector{Any}, eps=1e-3)
+  inputs = map(xs) do x
+    grad = applicable(zeros, x) ? zeros(x) : nothing
+    Variable(x, grad)
   end
-  gx
+  for v in inputs
+    hasgrad(v) || continue
+    for k = 1:length(x)
+      v.value[k] += eps
+      y1 = f(inputs).value
+      v.value[k] -= 2eps
+      y2 = f(inputs).value
+      v.value[k] += eps
+      v.grad[k] = sum(y1 - y2) / 2eps
+    end
+  end
+  map(v -> v.grad, inputs)
 end
+approx_gradient(f::Functor, xs::Tuple, eps=1e-3) = approx_gradient(f, Any[xs...], eps)
+approx_gradient(f::Functor, x, eps=1e-3) = approx_gradient(f, Any[x], eps)[1]
 
-function test_gradient(f::Functor, x)
-  arg = Variable(x, zeros(x))
-  out = f(arg)
+function gradient(f::Functor, xs::Vector{Any})
+  inputs = map(xs) do x
+    grad = applicable(zeros, x) ? zeros(x) : nothing
+    Variable(x, grad)
+  end
+  out = f(inputs)
   gradient!(out)
-  arg.grad
+  map(v -> v.grad, inputs)
 end
+gradient(f::Functor, x)
