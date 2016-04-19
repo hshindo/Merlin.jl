@@ -298,10 +298,10 @@
 <li><code>Concat(dim::Int)</code></li>
 </ul>
 <h3 id="example">👉 Example</h3>
-<div class="codehilite"><pre><span></span><span class="n">x1</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
-<span class="n">x2</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<div class="codehilite"><pre><span></span><span class="n">x1</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">x2</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">Concat</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span> <span class="c"># or y = f([x1,x2])</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
 </pre></div>
 
 
@@ -338,7 +338,7 @@
 <li><code>Linear{T}(::Type{T}, insize::Int, outsize::Int)</code></li>
 </ul>
 <h3 id="example_2">👉 Example</h3>
-<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </pre></div>
@@ -370,7 +370,7 @@
 <li>Lookup(insize::Int, outsize::Int)</li>
 </ul>
 <h3 id="example_4">👉 Example</h3>
-<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">([</span><span class="mi">1</span><span class="p">:</span><span class="mi">5</span><span class="p">])</span>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">Lookup</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10000</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </pre></div>
@@ -394,7 +394,7 @@
 <li><code>Max(dim::Int)</code></li>
 </ul>
 <h3 id="example_5">👉 Example</h3>
-<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">Max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </pre></div>
@@ -409,7 +409,7 @@
 <li><code>ReLU()</code></li>
 </ul>
 <h3 id="example_6">👉 Example</h3>
-<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">ReLU</span><span class="p">()</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </pre></div>
@@ -425,7 +425,7 @@
 <li><code>Reshape(dims::Int...)</code></li>
 </ul>
 <h3 id="example_7">👉 Example</h3>
-<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">Reshape</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </pre></div>
@@ -439,7 +439,7 @@
 <li><code>Tanh()</code></li>
 </ul>
 <h3 id="example_8">👉 Example</h3>
-<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">Tanh</span><span class="p">()</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </pre></div>
@@ -453,7 +453,7 @@
 <li><code>Window(w1::Int, w2::Int, s1::Int, s2::Int, p1::Int, p2::Int)</code>     - w1, w2: window sizes     - s1, s2: stride sizes     - p1, p2: padding sizes</li>
 </ul>
 <h3 id="example_9">👉 Example</h3>
-<div class="codehilite"><pre><span></span><span class="c">#x = Variable(rand(Float32,10,5))</span>
+<div class="codehilite"><pre><span></span><span class="c">#x = rand(Float32,10,5)</span>
 <span class="c">#f = Window2D(10, 2, 1, 1, 0, 0)</span>
 <span class="c">#y = f(x)</span>
 </pre></div>
