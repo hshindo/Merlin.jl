@@ -10,7 +10,7 @@ export LogSoftmax, logsoftmax
 
 ### 👉 Example
 ```julia
-x = Variable(rand(Float32,10,5))
+x = rand(Float32,10,5)
 f = Softmax()
 y = f(x)
 ```

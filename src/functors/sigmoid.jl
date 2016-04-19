@@ -7,7 +7,7 @@ export Sigmoid
 
 ### 👉 Example
 ```julia
-x = Variable(rand(Float32,10,5))
+x = rand(Float32,10,5)
 f = Sigmoid()
 y = f(x)
 ```

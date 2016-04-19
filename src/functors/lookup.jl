@@ -9,7 +9,7 @@ Lookup variables.
 
 ### 👉 Example
 ```julia
-x = Variable([1:5])
+x = [1:5]
 f = Lookup(Float32,10000,100)
 y = f(x)
 ```

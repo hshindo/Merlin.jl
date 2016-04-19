@@ -35,8 +35,28 @@ end
   @test check_gradient(LogSoftmax(), x)
 end
 
-# lookup
+@testset "lookup" for i = 1:5
+end
 
-# lookuplinear
+@testset "lookuplinear" for i = 1:5
+end
 
-#
+@testset "max" for i = 1:5
+  x = rand(T, 10, 5, 2)
+  #@test check_gradient(Max(1), x)
+  #@test check_gradient(Max(2), x)
+  #@test check_gradient(Max(3), x)
+end
+
+@testset "activation" for i = 1:5
+  x = rand(T, 10, 5)
+  @test check_gradient(ReLU(), x)
+  @test check_gradient(Sigmoid(), x)
+  @test check_gradient(Tanh(), x)
+end
+
+@testset "window2d" for i = 1:5
+  x = rand(T, 100, 50)
+  f = Window2D(50,2,1,1,5,5)
+  @test check_gradient(f, x)
+end
