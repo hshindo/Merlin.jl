@@ -317,9 +317,9 @@
 <li><code>CrossEntropy(p::Vector{Int})</code></li>
 </ul>
 <h3 id="example_1">👉 Example</h3>
-<div class="codehilite"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">([</span><span class="mi">1</span><span class="p">:</span><span class="mi">10</span><span class="p">])</span>
+<div class="codehilite"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">CrossEntropy</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </pre></div>
 
