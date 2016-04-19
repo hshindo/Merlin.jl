@@ -2,6 +2,8 @@ export Window2D
 
 const WINDOW2D_FWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_fwd_f32)
 const WINDOW2D_BWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f32)
+const WINDOW2D_FWD_F64_HANDLE = Libdl.dlsym(Native.library, :window2d_fwd_f64)
+const WINDOW2D_BWD_F64_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f64)
 
 """
 ## Window2D
@@ -33,7 +35,9 @@ type Window2D <: Functor
 end
 
 fwd_handle(f::Window2D, ::Type{Float32}) = WINDOW2D_FWD_F32_HANDLE
+fwd_handle(f::Window2D, ::Type{Float64}) = WINDOW2D_FWD_F64_HANDLE
 bwd_handle(f::Window2D, ::Type{Float32}) = WINDOW2D_BWD_F32_HANDLE
+bwd_handle(f::Window2D, ::Type{Float64}) = WINDOW2D_BWD_F64_HANDLE
 
 function make_params(f::Window2D)
   w1, w2, s1, s2, p1, p2 = f.w1, f.w2, f.s1, f.s2, f.p1, f.p2
