@@ -1,11 +1,15 @@
-using Base.Test
 using Merlin
+if VERSION >= v"0.5-"
+    using Base.Test
+else
+    using BaseTestNext
+    const Test = BaseTestNext
+end
 
-println("Running tests...")
+tests = ["functors"]
 
-tests = ["concat"]
 for t in tests
-    path = joinpath(dirname(@__FILE__), "functors/$t.jl")
+    path = joinpath(dirname(@__FILE__), "$t.jl")
     println("$path ...")
-    #include(path)
+    include(path)
 end

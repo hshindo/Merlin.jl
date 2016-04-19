@@ -13,6 +13,7 @@ Sequence(funs::Functor...) = Sequence([funs...], Dict())
   end
   v
 end
+@compat (seq::Sequence)(arg) = seq(Variable(arg,nothing))
 
 function update!(opt::Optimizer, seq::Sequence)
   for f in seq.funs

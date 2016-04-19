@@ -12,9 +12,9 @@ Computes cross-entropy between a true distribution \$p\$ and the target distribu
 
 ### 👉 Example
 ```julia
-p = Variable([1:10])
+p = [1:5]
 f = CrossEntropy(p)
-x = Variable(rand(Float32,50,10))
+x = rand(Float32,10,5)
 y = f(x)
 ```
 """

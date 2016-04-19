@@ -1,19 +1,19 @@
+export Add
+export ElemAdd
+
 type Add <: Functor
 end
 type ElemAdd <: Functor
 end
 
 import Base.+
-+(arg1::Variable, arg2::Variable) = Add()(arg1, arg2)
-+(arg1::Variable, arg2::Any) = Add()(arg1, arg2)
-+(arg1::Any, arg2::Variable) = Add()(arg1, arg2)
++(v1::Variable, v2::Variable) = (v1, v2) |> Add()
++(a::Number, v::Variable) = (Variable(a,nothing), v) |> Add()
++(v::Variable, a::Number) = a + v
++(x::Data, v::Variable) = (x, v) |> Add()
++(v::Variable, x::Data) = (x, v) |> Add()
 
-import Base.(.+)
-.+(arg1::Variable, arg2::Variable) = ElemAdd()(arg1, arg2)
-.+(arg1::Any, arg2::Variable) = ElemAdd()(arg1, arg2)
-.+(arg1::Variable, arg2::Any) = ElemAdd()(arg1, arg2)
-
-@compat (f::Add)(arg1, arg2) = forward(f, arg1, arg2)
+@compat (f::Add)(args) = forward(f, args)
 function forward!(f::Add, v::Variable)
   v.value = v[1].value + v[2].value
   v.backward! = () -> begin

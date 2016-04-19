@@ -4,22 +4,19 @@ type ElemMultiply <: Functor
 end
 
 import Base.*
-*(arg1::Variable, arg2::Variable) = Multiply()(arg1, arg2)
-*(arg1::Any, arg2::Variable) = Multiply()(arg1, arg2)
-*(arg1::Variable, arg2::Any) = Multiply()(arg2, arg1)
+*(v1::Variable, v2::Variable) = (v1, v2) |> Multiply()
+*(a::Number, v::Variable) = (Variable(a,nothing), v) |> Multiply()
+*(v::Variable, a::Number) = a * v
+*(x::Data, v::Variable) = (x, v) |> Multiply()
+*(v::Variable, x::Data) = (x, v) |> Multiply()
 
-import Base.(.*)
-.*(arg1::Variable, arg2::Variable) = ElemMultiply()(arg1, arg2)
-.*(arg1::Any, arg2::Variable) = ElemMultiply()(arg1, arg2)
-.*(arg1::Variable, arg2::Any) = ElemMultiply()(arg2, arg1)
-
-@compat (f::Multiply)(arg1, arg2) = forward(f, arg1, arg2)
+@compat (f::Multiply)(args) = forward(f, args)
 function forward!(f::Multiply, v::Variable)
   v.value = v[1].value * v[2].value
   v.backward! = () -> begin
     T = eltype(v)
     hasgrad(v[1]) && gemm!('N', 'T', T(1), v.grad, v[2].value, T(1), v[1].grad)
-    hasgrad(v[1]) && gemm!('T', 'N', T(1), v[1].value, v.grad, T(1), v[2].grad)
+    hasgrad(v[2]) && gemm!('T', 'N', T(1), v[1].value, v.grad, T(1), v[2].grad)
   end
 end
 

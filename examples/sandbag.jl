@@ -3,11 +3,25 @@ workspace()
 using Merlin
 using JLD
 using Base.LinAlg.BLAS
+using Base.Test
 
-x = rand(Float32,5,1)
-y = rand(Float32,5,1)
+@test_approx_eq_eps (1.,) (0.9999,) 1e-3
+
+x = rand(Float32,5)
+y = rand(Float32,5)
+x+y
+check_gradient(Concat(1), x, y)
+
+g1, g2 = approx_gradient(Add(), (x,y))
+g1
+g2
+gg1, gg2 = check_gradient(Add(), x, y)
+gg1
+gg2
+@test_approx_eq_eps
+
 v = Variable(x,nothing)
-z = v - y
+z = v + y
 gradient!(z)
 v.grad
 

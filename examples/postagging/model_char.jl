@@ -23,14 +23,15 @@ end
 
 function forward(m::Model, tokens::Vector{Token})
   wordvec = map(t -> t.wordid, tokens)
-  wordvec = reshape(wordvec, 1, length(wordvec)) |> Variable
+  wordvec = reshape(wordvec, 1, length(wordvec))
   wordmat = m.word_f(wordvec)
   charvecs = map(tokens) do t
-    charvec = reshape(t.charids, 1, length(t.charids)) |> Variable
+    charvec = reshape(t.charids, 1, length(t.charids))
     m.char_f(charvec)
   end
-  charmat = charvecs |> Concat(2)
-  [wordmat, charmat] |> Concat(1) |> m.sent_f
+  #charmat = charvecs |> Concat(2)
+  charmat = Concat(2)(charvecs)
+  (wordmat, charmat) |> Concat(1) |> m.sent_f
 end
 
 function update!(m::Model, opt)

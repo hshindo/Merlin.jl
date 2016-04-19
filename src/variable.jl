@@ -1,15 +1,15 @@
 export Variable
-export hasgrad, gradient!, gradient, topsort, approx_gradient
+export hasgrad, topsort, gradient!, approx_gradient, check_gradient
 
 type Variable
   value
   grad
   f
-  args::Tuple{Vararg{Variable}}
+  args::Vector{Variable}
   backward!
 end
 
-Variable(value, grad) = Variable(value, grad, nothing, (), nothing)
+Variable(value, grad) = Variable(value, grad, nothing, Variable[], nothing)
 Variable(value) = Variable(value, zeros(value))
 Variable() = Variable(nothing, nothing)
 
@@ -21,9 +21,7 @@ function forward(f::Functor, args::Vector{Variable})
   forward!(f, v)
   v
 end
-forward(f::Functor, arg::Variable) = forward(f, [arg])
-forward(f::Functor, args...) = forward(f, Any[args...])
-function forward(f::Functor, args::Vector{Any})
+function forward(f::Functor, args::Tuple)
   vars = Variable[]
   for a in args
     v = typeof(a) == Variable ? a : Variable(a, nothing)
@@ -31,25 +29,13 @@ function forward(f::Functor, args::Vector{Any})
   end
   forward(f, vars)
 end
+forward(f::Functor, args...) = forward(f, args)
 
 Base.getindex(v::Variable, key) = v.args[key]
 Base.setindex!(v::Variable, value, key) = v.args[key] = value
 Base.eltype(v::Variable) = eltype(v.value)
 
 hasgrad(v::Variable) = v.grad != nothing
-
-function gradient!(var::Variable)
-  hasgrad(var) || (var.grad = ones(var.value))
-  sorted = topsort(var)
-  for v in sorted
-    (v == var || hasgrad(v) || v.backward! == nothing) && continue
-    v.grad = zeros(v.value)
-  end
-  for i = length(sorted):-1:1
-    v = sorted[i]
-    v.backward! == nothing || v.backward!()
-  end
-end
 
 function topsort(var::Variable)
   sorted = Variable[]
@@ -67,37 +53,53 @@ function topsort(var::Variable)
   sorted
 end
 
+function gradient!(var::Variable)
+  hasgrad(var) || (var.grad = ones(var.value))
+  sorted = topsort(var)
+  for v in sorted
+    (v == var || hasgrad(v) || v.backward! == nothing) && continue
+    v.grad = zeros(v.value)
+  end
+  for i = length(sorted):-1:1
+    v = sorted[i]
+    v.backward! == nothing || v.backward!()
+  end
+end
+
 """
 Computes numerical gradient.
 """
-function approx_gradient(f::Functor, xs::Vector{Any}, eps=1e-3)
-  inputs = map(xs) do x
-    grad = applicable(zeros, x) ? zeros(x) : nothing
-    Variable(x, grad)
-  end
-  for v in inputs
-    hasgrad(v) || continue
+function approx_gradient{N}(f::Functor, xs::NTuple{N,Data})
+  epsilon = 1e-3
+  map(xs) do x
+    gx = zeros(x)
     for k = 1:length(x)
-      v.value[k] += eps
-      y1 = f(inputs).value
-      v.value[k] -= 2eps
-      y2 = f(inputs).value
-      v.value[k] += eps
-      v.grad[k] = sum(y1 - y2) / 2eps
+      x[k] += epsilon
+      y1 = f(xs).value
+      x[k] -= 2epsilon
+      y2 = f(xs).value
+      x[k] += epsilon
+      gx[k] = sum(y1 - y2) / 2epsilon
     end
+    gx
   end
-  map(v -> v.grad, inputs)
 end
-approx_gradient(f::Functor, xs::Tuple, eps=1e-3) = approx_gradient(f, Any[xs...], eps)
-approx_gradient(f::Functor, x, eps=1e-3) = approx_gradient(f, Any[x], eps)[1]
+approx_gradient(f::Functor, x::Data) = approx_gradient(f, (x,))[1]
 
-function gradient(f::Functor, xs::Vector{Any})
-  inputs = map(xs) do x
-    grad = applicable(zeros, x) ? zeros(x) : nothing
-    Variable(x, grad)
-  end
+"""
+Check gradient.
+"""
+function check_gradient{N}(f::Functor, xs::NTuple{N,Data})
+  inputs = map(Variable, xs)
   out = f(inputs)
   gradient!(out)
-  map(v -> v.grad, inputs)
+  approx_gxs = approx_gradient(f, xs)
+  for i = 1:length(xs)
+    gx1 = inputs[i].grad
+    gx2 = approx_gxs[i]
+    all(d -> abs(d) < 1e-3, gx1 - gx2) || return false
+  end
+  true
 end
-gradient(f::Functor, x)
+#check_gradient(f::Functor, x::Data) = check_gradient(f, (x,))
+check_gradient(f::Functor, xs::Data...) = check_gradient(f, xs)

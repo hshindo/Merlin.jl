@@ -19,6 +19,8 @@ else
   end
 end
 
+typealias Data{T,N} Union{Array{T,N},CudaArray{T,N}}
+
 #include("util.jl")
 include("variable.jl")
 include("graph.jl")
