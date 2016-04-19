@@ -78,6 +78,11 @@ end
   @test check_gradient(Sigmoid(), x)
 end
 
+@testset "softmax" for i = 1:5
+  x = rand(T, 10, 5)
+  @test check_gradient(Softmax(), x)
+end
+
 @testset "subtract" for i = 1:5
   x1 = rand(T, 10, 5)
   x2 = rand(T, 10, 5)

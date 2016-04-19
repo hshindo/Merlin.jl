@@ -25,6 +25,7 @@ function forward!(f::Multiply, v::Variable)
   v.value = v[1].value * v[2].value
   v.backward! = () -> begin
     T = eltype(v)
+    typeof(v[1].value) == Int && println(v[1].value)
     hasgrad(v[1]) && gemm!('N', 'T', T(1), v.grad, v[2].value, T(1), v[1].grad)
     hasgrad(v[2]) && gemm!('T', 'N', T(1), v[1].value, v.grad, T(1), v[2].grad)
   end

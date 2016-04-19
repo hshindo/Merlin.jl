@@ -6,7 +6,8 @@ else
     const Test = BaseTestNext
 end
 
-tests = ["functors"]
+tests = ["functors",
+         "graphs"]
 
 for t in tests
     path = joinpath(dirname(@__FILE__), "$t.jl")

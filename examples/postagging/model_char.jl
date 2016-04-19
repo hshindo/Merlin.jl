@@ -29,7 +29,6 @@ function forward(m::Model, tokens::Vector{Token})
     charvec = reshape(t.charids, 1, length(t.charids))
     m.char_f(charvec)
   end
-  #charmat = charvecs |> Concat(2)
   charmat = Concat(2)(charvecs)
   (wordmat, charmat) |> Concat(1) |> m.sent_f
 end

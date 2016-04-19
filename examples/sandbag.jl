@@ -5,6 +5,15 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
+Ws = [Variable(rand(Float32,100,100)) for i=1:3]
+f = GRU(Float32,100,100)
+f.inids
+f.vars[14].grad
+x = rand(Float32,100,1)
+h = rand(Float32,100,1)
+f(x,h)
+check_gradient(f, x, h)
+
 function ttt()
   x = rand(Float64,10,5,2)
   #y = rand(Float32,10,5,2)
