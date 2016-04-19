@@ -48,4 +48,10 @@ extern "C" {
   void window2d_bwd_f32(const int *params, const float *gy, float *gx, int size_x1, int size_x2) {
     window2d_bwd(params, gy, gx, size_x1, size_x2);
   }
+  void window2d_fwd_f64(const double *x, const int *params, double *y, int size_x1, int size_x2) {
+    window2d_fwd(x, params, y, size_x1, size_x2);
+  }
+  void window2d_bwd_f64(const int *params, const double *gy, double *gx, int size_x1, int size_x2) {
+    window2d_bwd(params, gy, gx, size_x1, size_x2);
+  }
 }

@@ -13,7 +13,7 @@ const WINDOW2D_BWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f32)
 
 ### 👉 Example
 ```julia
-#x = Variable(rand(Float32,10,5))
+#x = rand(Float32,10,5)
 #f = Window2D(10, 2, 1, 1, 0, 0)
 #y = f(x)
 ```
