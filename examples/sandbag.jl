@@ -5,12 +5,25 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
-@test_approx_eq_eps (1.,) (0.9999,) 1e-3
-
-x = rand(Float32,5)
-y = rand(Float32,5)
-x+y
-check_gradient(Concat(1), x, y)
+function ttt()
+  x = rand(Float64,10,5,2)
+  #y = rand(Float32,10,5,2)
+  g1 = Merlin.gradient2(Max(3), copy(x))[1]
+  g2 = approx_gradient(Max(3), copy(x))
+  for k = 1:length(g1)
+    d = g1[k] - g2[k]
+    if abs(d) >= 1e-4
+      println("x...")
+      println(k)
+      k-50 > 0 && println("k-50: $(x[k-50])")
+      k+50 <= length(x) && println("k+50: $(x[k+50])")
+      println(x[k])
+      println(g1[k])
+      println(g2[k])
+    end
+  end
+end
+ttt()
 
 g1, g2 = approx_gradient(Add(), (x,y))
 g1

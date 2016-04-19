@@ -13,6 +13,11 @@ import Base.+
 +(x::Data, v::Variable) = (x, v) |> Add()
 +(v::Variable, x::Data) = (x, v) |> Add()
 
+import Base.(.+)
+.+(v1::Variable, v2::Variable) = (v1, v2) |> ElemAdd()
+.+(x::Data, v::Variable) = (x, v) |> ElemAdd()
+.+(v::Variable, x::Data) = (x, v) |> ElemAdd()
+
 @compat (f::Add)(args) = forward(f, args)
 function forward!(f::Add, v::Variable)
   v.value = v[1].value + v[2].value
@@ -23,7 +28,7 @@ function forward!(f::Add, v::Variable)
   end
 end
 
-@compat (f::ElemAdd)(arg1, arg2) = forward(f, arg1, arg2)
+@compat (f::ElemAdd)(args) = forward(f, args)
 function forward!(f::ElemAdd, v::Variable)
   v.value = v[1].value .+ v[2].value
   v.backward! = () -> begin

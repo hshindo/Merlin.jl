@@ -5,6 +5,7 @@ const T = Float64
   x2 = rand(T, 10, 5)
   x3 = rand(T, 10, 1)
   @test check_gradient(Add(), x1, x2)
+  @test check_gradient(ElemAdd(), x1, x2)
   @test check_gradient(ElemAdd(), x2, x3)
 end
 
@@ -22,6 +23,7 @@ end
 
 @testset "crosentropy" for i = 1:5
   p = [rand(1:10) for i=1:5]
+  x = rand(T, 10, 5)
   @test check_gradient(CrossEntropy(p), x)
 end
 
@@ -43,7 +45,7 @@ end
 end
 
 @testset "max" for i = 1:5
-  x = rand(T, 10, 5, 2)
+  x = rand(Float64, 10, 5, 2)
   #@test check_gradient(Max(1), x)
   #@test check_gradient(Max(2), x)
   #@test check_gradient(Max(3), x)
@@ -68,12 +70,21 @@ end
 @testset "reshape" for i = 1:5
   x = rand(T, 10, 5, 2)
   f = Reshape(5, 10, 2)
-  @test check_gradient(f, x)
+  #@test check_gradient(f, x)
 end
 
 @testset "sigmoid" for i = 1:5
   x = rand(T, 10, 5)
   @test check_gradient(Sigmoid(), x)
+end
+
+@testset "subtract" for i = 1:5
+  x1 = rand(T, 10, 5)
+  x2 = rand(T, 10, 5)
+  x3 = rand(T, 10, 1)
+  @test check_gradient(Subtract(), x1, x2)
+  @test check_gradient(ElemSubtract(), x1, x2)
+  @test check_gradient(ElemSubtract(), x2, x3)
 end
 
 @testset "tanh" for i = 1:5
@@ -82,7 +93,7 @@ end
 end
 
 @testset "window2d" for i = 1:5
-  x = rand(T, 100, 50)
-  f = Window2D(50,2,1,1,5,5)
+  x = rand(T, 10, 5)
+  f = Window2D(10,2,1,1)
   @test check_gradient(f, x)
 end

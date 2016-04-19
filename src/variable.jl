@@ -70,21 +70,31 @@ end
 Computes numerical gradient.
 """
 function approx_gradient{N}(f::Functor, xs::NTuple{N,Data})
-  epsilon = 1e-3
+  epsilon = 1e-4
   map(xs) do x
     gx = zeros(x)
+    orig = copy(x)
     for k = 1:length(x)
-      x[k] += epsilon
+      x[k] = orig[k] + epsilon
       y1 = f(xs).value
-      x[k] -= 2epsilon
+      x[k] = orig[k] - epsilon
       y2 = f(xs).value
-      x[k] += epsilon
+      x[k] = orig[k]
       gx[k] = sum(y1 - y2) / 2epsilon
     end
+    copy!(x, orig)
     gx
   end
 end
 approx_gradient(f::Functor, x::Data) = approx_gradient(f, (x,))[1]
+
+function gradient2{N}(f::Functor, xs::NTuple{N,Data})
+  inputs = map(Variable, xs)
+  out = f(inputs)
+  gradient!(out)
+  map(v -> v.grad, inputs)
+end
+gradient2(f::Functor, xs::Data...) = gradient2(f, xs)
 
 """
 Check gradient.
@@ -97,7 +107,7 @@ function check_gradient{N}(f::Functor, xs::NTuple{N,Data})
   for i = 1:length(xs)
     gx1 = inputs[i].grad
     gx2 = approx_gxs[i]
-    all(d -> abs(d) < 1e-3, gx1 - gx2) || return false
+    all(d -> abs(d) < 1e-4, gx1 - gx2) || return false
   end
   true
 end
