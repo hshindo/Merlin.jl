@@ -50,7 +50,7 @@ end
 function forward!(f::Window2D, v::Variable)
   y, params = window2d(f, v[1].value)
   v.value = y
-  v.backward! = () -> ∇window2d!(f, params, v[1].value, v[1].grad, v.grad)
+  v.backward! = () -> hasgrad(v[1]) && ∇window2d!(f, params, v[1].value, v[1].grad, v.grad)
 end
 
 function window2d{T}(f::Window2D, x::Matrix{T})

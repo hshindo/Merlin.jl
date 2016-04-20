@@ -1,9 +1,9 @@
 export Graph
 
 type Graph <: Functor
-  vars::Vector{Variable} # sorted in bottom-up order
-  tailids::Vector{Vector{Int}}
-  inids::Vector{Int}
+  nodes::Vector{Variable} # sorted in bottom-up order
+  tail_ids::Vector{Vector{Int}}
+  data_ids::Vector{Int}
 end
 
 function Graph(funs::Functor...)
@@ -14,64 +14,64 @@ function Graph(funs::Functor...)
   Graph(v)
 end
 
-function Graph(var::Variable)
-  sorted = topsort(var)
-  inids = Int[]
-  for i in 1:length(sorted)
-    v = sorted[i]
-    length(v.args) == 0 && v.value == nothing && push!(inids, i)
-    #v.value = i
+function Graph(top::Variable)
+  nodes = topsort(top)
+  data_ids = Int[]
+  for i in 1:length(nodes)
+    v = nodes[i]
+    length(v.args) == 0 && v.value == nothing && push!(data_ids, i)
   end
-  for v in sorted
+  for v in nodes
     #compile!(GEMM!, v) && continue
     #compile!(AXPY!, v) && continue
   end
 
   dict = ObjectIdDict()
-  for i = 1:length(sorted)
-    dict[sorted[i]] = i
+  for i = 1:length(nodes)
+    dict[nodes[i]] = i
   end
-  tailids = [Int[] for i=1:length(sorted)]
-  for i = 1:length(sorted)
-    for a in sorted[i].args
-      push!(tailids[i], dict[a])
+  tail_ids = [Int[] for i=1:length(nodes)]
+  for i = 1:length(nodes)
+    for a in nodes[i].args
+      push!(tail_ids[i], dict[a])
     end
   end
-
-  Graph(sorted, tailids, inids)
+  Graph(nodes, tail_ids, data_ids)
 end
 
-Base.getindex(g::Graph, key) = g.vars[key]
+Base.getindex(g::Graph, key) = g.nodes[key]
 
 @compat function (g::Graph)(args::Tuple)
-  @assert (length(g.inids) == length(args))
-  vars = Array(Variable, length(g.vars))
+  @assert (length(g.data_ids) == length(args))
+
+  nodes = Array(Variable, length(g.nodes))
   for i in 1:length(args)
     a = args[i]
     v = typeof(a) == Variable ? a : Variable(a, nothing)
-    vars[g.inids[i]] = v
+    nodes[g.data_ids[i]] = v
   end
 
-  for i = 1:length(vars)
-    isdefined(vars, i) && continue
+  for i = 1:length(nodes)
+    isdefined(nodes, i) && continue
     v = g[i]
-    tails = g.tailids[i]
+    tails = g.tail_ids[i]
     if length(tails) == 0 # param
-      vars[i] = v
+      nodes[i] = v
     elseif length(tails) == 1
-      vars[i] = v.f(vars[tails[1]])
+      nodes[i] = v.f(nodes[tails[1]])
     else
-      args = map(id -> vars[id], tails)
-      vars[i] = v.f(args)
+      inputs = map(id -> nodes[id], tails)
+      nodes[i] = v.f(inputs)
     end
   end
-  vars[end]
+  nodes[end]
 end
 
 @compat (g::Graph)(args...) = g(args)
 
 function update!(opt::Optimizer, g::Graph)
-  for v in g.vars
+  for v in g.nodes
     applicable(update!, opt, v.f) && update!(opt, v.f)
+    hasgrad(v) && update!(opt, v.value, v.grad)
   end
 end

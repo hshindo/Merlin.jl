@@ -59,9 +59,9 @@ for epoch = 1:10
   for i in randperm(length(train_data)) # shuffle
     x = train_data[i]
     y = f(x)
-    label = [1] # assumes the correct label is always '1'.
+    label = [1] # assumes the correct label is always '1'
     loss = CrossEntropy(label)(y)
-    gradient!(loss)
+    gradient!(loss) # computes gradients of every parameters used in decoding
     update!(opt, f)
   end
 end

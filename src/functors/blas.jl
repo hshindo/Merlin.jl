@@ -9,9 +9,9 @@ type GEMM! <: Functor
   beta::Float64
 end
 
-@compat (f::GEMM!)(arg1, arg2, arg3) = forward(f, arg1, arg2, arg3)
+@compat (f::GEMM!)(args) = forward(f, args)
 function forward!(f::GEMM!, v::Variable)
-  T = eltype(v[1])
+  T = eltype(v)
   gemm!('N', 'N', T(f.alpha), v[1].value, v[2].value, T(f.beta), v[3].value)
   v.value = v[3].value
   v.backward! = () -> begin

@@ -6,7 +6,7 @@ Ref: Chung et al. "Empirical Evaluation of Gated Recurrent Neural Networks on Se
 
 ### Functions
 - `GRU{T}(::Type{T}, xsize::Int)`
--- xsize: size if input vector (= size of hidden vector)
+-- xsize: size of input vector (= size of hidden vector)
 
 ### 👉 Example
 ```julia

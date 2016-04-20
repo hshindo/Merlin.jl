@@ -18,7 +18,7 @@ end
 @compat (f::Sigmoid)(arg) = forward(f, arg)
 function forward!(f::Sigmoid, v::Variable)
   v.value = tanh(v[1].value * 0.5) * 0.5 + 0.5
-  v.backward! = () -> ∇sigmoid!(v.value, v[1].grad, v.grad)
+  v.backward! = () -> hasgrad(v[1]) && ∇sigmoid!(v.value, v[1].grad, v.grad)
 end
 
 function ∇sigmoid!{T,N}(y::Array{T,N}, gx::Array{T,N}, gy::Array{T,N})

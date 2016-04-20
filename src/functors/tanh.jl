@@ -18,7 +18,7 @@ end
 @compat (f::Tanh)(arg) = forward(f, arg)
 function forward!(f::Tanh, v::Variable)
   v.value = tanh(v[1].value)
-  v.backward! = () -> ∇tanh!(v.value, v[1].grad, v.grad)
+  v.backward! = () -> hasgrad(v[1]) && ∇tanh!(v.value, v[1].grad, v.grad)
 end
 
 function ∇tanh!{T,N}(y::Array{T,N}, gx::Array{T,N}, gy::Array{T,N})

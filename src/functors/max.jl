@@ -22,7 +22,7 @@ end
 function forward!(f::Max, v::Variable)
   y, idx = findmax(v[1].value, f.dim)
   v.value = y
-  v.backward! = () -> ∇max!(idx, v[1].grad, v.grad)
+  v.backward! = () -> hasgrad(v[1]) && ∇max!(idx, v[1].grad, v.grad)
 end
 
 function ∇max!{T,N}(idx::Array{Int,N}, gx::Array{T,N}, gy::Array{T,N})
