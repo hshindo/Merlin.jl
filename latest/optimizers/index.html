@@ -211,18 +211,6 @@
         <ul>
           
             <li class="anchor">
-              <a title="AdaGrad" href="#adagrad">
-                AdaGrad
-              </a>
-            </li>
-          
-            <li class="anchor">
-              <a title="Adam" href="#adam">
-                Adam
-              </a>
-            </li>
-          
-            <li class="anchor">
               <a title="SGD" href="#sgd">
                 SGD
               </a>
@@ -246,23 +234,22 @@
           
           <p><a id='Optimizers-1'></a></p>
 <h1 id="optimizers">Optimizers</h1>
-<p><a id='Merlin.AdaGrad' href='#Merlin.AdaGrad'>#</a>
-<strong><code>Merlin.AdaGrad</code></strong> &mdash; <em>Type</em>.</p>
-<hr />
-<h2 id="adagrad">AdaGrad</h2>
-<p>AdaGrad implementation. See: http://jmlr.org/papers/v12/duchi11a.html</p>
-<p><a id='Merlin.Adam' href='#Merlin.Adam'>#</a>
-<strong><code>Merlin.Adam</code></strong> &mdash; <em>Type</em>.</p>
-<hr />
-<h2 id="adam">Adam</h2>
-<p>Adam: A Method for Stochastic Optimization See: http://arxiv.org/abs/1412.6980v8</p>
 <p><a id='Merlin.SGD' href='#Merlin.SGD'>#</a>
 <strong><code>Merlin.SGD</code></strong> &mdash; <em>Type</em>.</p>
 <hr />
 <h2 id="sgd">SGD</h2>
-<p>Stochastic Gradient Descent.</p>
+<p>Computes Stochastic Gradient Descent. After updated, gradient is set to be zero.</p>
+<h3 id="functions">Functions</h3>
+<ul>
+<li><code>SGD(rate::Float64)</code></li>
+</ul>
 <h3 id="example">👉 Example</h3>
-<div class="codehilite"><pre><span></span>
+<div class="codehilite"><pre><span></span><span class="n">opt</span> <span class="o">=</span> <span class="n">SGD</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span>
+<span class="c"># compute gradient...</span>
+
+<span class="n">update!</span><span class="p">(</span><span class="n">opt</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="c"># update parameters of `f`</span>
+<span class="n">update!</span><span class="p">(</span><span class="n">opt</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">grad</span><span class="p">)</span> <span class="c"># param -= rate * grad</span>
 </pre></div>
           <aside class="copyright" role="note">
             
