@@ -1,4 +1,3 @@
-ENV["USE_CUDA"] = true
 workspace()
 using Merlin
 

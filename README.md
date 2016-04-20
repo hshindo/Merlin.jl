@@ -28,35 +28,42 @@ julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 ## Usage
 
 ### Decoding
-1. Create `Variable` from `Array` (CPU) or `CudaArray` (CUDA GPU).
-1. Create `Functor`s.
-1. Apply the functors to the variable.
+1. Prepare data as `Array` (CPU) or `CudaArray` (CUDA GPU).
+1. Create `Functor`s (function objects).
+1. Apply the functors to your data.
 
 ``` julia
 using Merlin
 
-x = Variable(rand(Float32,50,5))
-f = Linear(Float32,50,30)
-y = f(x)
+x = rand(Float32,50,5)
+f1 = Linear(Float32,50,30)
+f2 = ReLU()
+y = x |> f1 |> f2 # or y = f2(f1(x))
 ```
 
 ### Training
 1. Create `Optimizer`.
-1. Decode your variables.
+1. Decode your data.
+1. Compute loss.
 1. Compute gradient.
-1. Update `Functor`s with your `Optimizer`.
+1. Update `Functor`s with the `Optimizer`.
 
 ``` julia
 using Merlin
 
 opt = SGD(0.001)
-f = [Linear(Float32,50,30), ReLU(), Linear(Float32,30,10)]
+f = Graph(Linear(Float32,50,30), ReLU(), Linear(Float32,30,10))
+train_data = [rand(Float32,50,1) for i=1:1000]
 
-for i = 1:10
-  x = Variable(rand(Float32,50,20))
-  y = f(x) |> CrossEntropy(...)
-  gradient!(y)
-  update!(opt, f)
+for epoch = 1:10
+  for i in randperm(length(train_data))
+    x = train_data[i]
+    y = f(x)
+    label = [1]
+    loss = CrossEntropy(label)(y)
+    gradient!(loss)
+    update!(opt, f)
+  end
 end
 ```
 
