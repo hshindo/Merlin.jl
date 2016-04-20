@@ -12,8 +12,8 @@ export CudaArray
 include("native.jl")
 
 if haskey(ENV, "USE_CUDA")
-  #push!(LOAD_PATH, joinpath(dirname(@__FILE__), "cuda"))
   using CUDA
+  using CUDNN
 else
   type CudaArray{T,N} # Dummy
   end
@@ -21,7 +21,6 @@ end
 
 typealias Data{T,N} Union{Array{T,N},CudaArray{T,N}}
 
-#include("util.jl")
 include("variable.jl")
 include("graph.jl")
 include("sequence.jl")
