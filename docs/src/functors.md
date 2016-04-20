@@ -1,14 +1,18 @@
 # Functors
 
     {docs}
+    Add
     Concat
     CrossEntropy
     Linear
     LogSoftmax
     Lookup
-    Lookup{T}(::Type{T}, insize::Int, outsize::Int)
     Max
+    Multiply
     ReLU
     Reshape
+    Sigmoid
+    Softmax
+    Subtract
     Tanh
     Window2D

@@ -22,7 +22,7 @@ function train(path)
   for iter = 1:10
     println("iter: $(iter)")
     golds, preds = Int[], Int[]
-    opt.learnrate = 0.0075 / iter
+    opt.rate = 0.0075 / iter
     loss = 0.0
 
     for i in randperm(length(traindata))
