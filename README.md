@@ -52,14 +52,14 @@ y = x |> f1 |> f2 # or y = f2(f1(x))
 using Merlin
 
 opt = SGD(0.001)
-f = Graph(Linear(Float32,50,30), ReLU(), Linear(Float32,30,10))
-train_data = [rand(Float32,50,1) for i=1:1000]
+f = Graph(Linear(Float32,50,30), ReLU(), Linear(Float32,30,10)) # 3-layer network
+train_data = [rand(Float32,50,1) for i=1:1000] # create 1000 training examples of size: (50,1)
 
 for epoch = 1:10
-  for i in randperm(length(train_data))
+  for i in randperm(length(train_data)) # shuffle
     x = train_data[i]
     y = f(x)
-    label = [1]
+    label = [1] # assumes the correct label is always '1'.
     loss = CrossEntropy(label)(y)
     gradient!(loss)
     update!(opt, f)
