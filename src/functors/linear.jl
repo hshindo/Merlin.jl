@@ -11,7 +11,7 @@ f(x) = W^{T}x + b
 
 where \$W\$ is a weight matrix, \$b\$ is a bias vector.
 
-<img src="../assets/linear.png" width="300px">
+<div align="center"><img src="../assets/linear.png" width="300px"></div>
 
 ### Arguments
 * `Linear(w,b)`
