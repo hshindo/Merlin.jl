@@ -27,22 +27,22 @@
         }, 
         {
             "location": "/overview/", 
-            "text": "Overview\n\n\nMerlin.jl provides many primitive functions.\n\n\n\n\nDecoding\n\n\n\n\nCreate \nVariable\n from \nArray\n (CPU) or \nCudaArray\n (CUDA GPU).\n\n\nCreate \nFunctor\ns.\n\n\nApply the functors to the variable.\n\n\n\n\nusing\n \nMerlin\n\n\n\nx\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n50\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nFloat32\n,\n50\n,\n30\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n\n\nTraining\n\n\n\n\nCreate \nOptimizer\n.\n\n\nDecode your variables.\n\n\nCompute gradient.\n\n\nUpdate \nFunctor\ns with your \nOptimizer\n.\n\n\n\n\nusing\n \nMerlin\n\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\nf\n \n=\n \n[\nLinear\n(\nFloat32\n,\n50\n,\n30\n),\n \nReLU\n(),\n \nLinear\n(\nFloat32\n,\n30\n,\n10\n)]\n\n\n\nfor\n \ni\n \n=\n \n1\n:\n10\n\n  \nx\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n50\n,\n20\n))\n\n  \ny\n \n=\n \nf\n(\nx\n)\n \n|\n \nCrossEntropy\n(\n...\n)\n\n  \ngradient!\n(\ny\n)\n\n  \nupdate!\n(\nopt\n,\n \nf\n)\n\n\nend", 
+            "text": "Overview\n\n\n\n\nDecoding\n\n\n\n\nPrepare data as \nArray\n (CPU) or \nCudaArray\n (CUDA GPU).\n\n\nCreate \nFunctor\ns (function objects).\n\n\nApply the functors to your data.\n\n\n\n\nusing\n \nMerlin\n\n\n\nx\n \n=\n \nrand\n(\nFloat32\n,\n50\n,\n5\n)\n\n\nf1\n \n=\n \nLinear\n(\nFloat32\n,\n50\n,\n30\n)\n\n\nf2\n \n=\n \nReLU\n()\n\n\ny\n \n=\n \nx\n \n|\n \nf1\n \n|\n \nf2\n \n# or y = f2(f1(x))\n\n\n\n\n\n\n\n\nTraining\n\n\n\n\nCreate \nOptimizer\n.\n\n\nDecode your data.\n\n\nCompute loss.\n\n\nCompute gradient.\n\n\nUpdate \nFunctor\ns with the \nOptimizer\n.\n\n\n\n\nusing\n \nMerlin\n\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\nf\n \n=\n \nGraph\n(\nLinear\n(\nFloat32\n,\n50\n,\n30\n),\n \nReLU\n(),\n \nLinear\n(\nFloat32\n,\n30\n,\n10\n))\n \n# 3-layer network\n\n\ntrain_data\n \n=\n \n[\nrand\n(\nFloat32\n,\n50\n,\n1\n)\n \nfor\n \ni\n=\n1\n:\n1000\n]\n \n# create 1000 training examples of size: (50,1)\n\n\n\nfor\n \nepoch\n \n=\n \n1\n:\n10\n\n  \nfor\n \ni\n \nin\n \nrandperm\n(\nlength\n(\ntrain_data\n))\n \n# shuffle\n\n    \nx\n \n=\n \ntrain_data\n[\ni\n]\n\n    \ny\n \n=\n \nf\n(\nx\n)\n\n    \nlabel\n \n=\n \n[\n1\n]\n \n# assumes the correct label is always \n1\n\n    \nloss\n \n=\n \nCrossEntropy\n(\nlabel\n)(\ny\n)\n\n    \ngradient!\n(\nloss\n)\n \n# computes gradients of every parameters used in decoding\n\n    \nupdate!\n(\nopt\n,\n \nf\n)\n\n  \nend\n\n\nend", 
             "title": "Overview"
         }, 
         {
             "location": "/overview/#overview", 
-            "text": "Merlin.jl provides many primitive functions.", 
+            "text": "", 
             "title": "Overview"
         }, 
         {
             "location": "/overview/#decoding", 
-            "text": "Create  Variable  from  Array  (CPU) or  CudaArray  (CUDA GPU).  Create  Functor s.  Apply the functors to the variable.   using   Merlin  x   =   Variable ( rand ( Float32 , 50 , 5 ))  f   =   Linear ( Float32 , 50 , 30 )  y   =   f ( x )", 
+            "text": "Prepare data as  Array  (CPU) or  CudaArray  (CUDA GPU).  Create  Functor s (function objects).  Apply the functors to your data.   using   Merlin  x   =   rand ( Float32 , 50 , 5 )  f1   =   Linear ( Float32 , 50 , 30 )  f2   =   ReLU ()  y   =   x   |   f1   |   f2   # or y = f2(f1(x))", 
             "title": "Decoding"
         }, 
         {
             "location": "/overview/#training", 
-            "text": "Create  Optimizer .  Decode your variables.  Compute gradient.  Update  Functor s with your  Optimizer .   using   Merlin  opt   =   SGD ( 0.001 )  f   =   [ Linear ( Float32 , 50 , 30 ),   ReLU (),   Linear ( Float32 , 30 , 10 )]  for   i   =   1 : 10 \n   x   =   Variable ( rand ( Float32 , 50 , 20 )) \n   y   =   f ( x )   |   CrossEntropy ( ... ) \n   gradient! ( y ) \n   update! ( opt ,   f )  end", 
+            "text": "Create  Optimizer .  Decode your data.  Compute loss.  Compute gradient.  Update  Functor s with the  Optimizer .   using   Merlin  opt   =   SGD ( 0.001 )  f   =   Graph ( Linear ( Float32 , 50 , 30 ),   ReLU (),   Linear ( Float32 , 30 , 10 ))   # 3-layer network  train_data   =   [ rand ( Float32 , 50 , 1 )   for   i = 1 : 1000 ]   # create 1000 training examples of size: (50,1)  for   epoch   =   1 : 10 \n   for   i   in   randperm ( length ( train_data ))   # shuffle \n     x   =   train_data [ i ] \n     y   =   f ( x ) \n     label   =   [ 1 ]   # assumes the correct label is always  1 \n     loss   =   CrossEntropy ( label )( y ) \n     gradient! ( loss )   # computes gradients of every parameters used in decoding \n     update! ( opt ,   f ) \n   end  end", 
             "title": "Training"
         }, 
         {
