@@ -7,15 +7,12 @@ docs_dir: 'build'
 
 theme: material
 
-python:
-  version: 2 # for unicode
-  setup_py_install: true
-
 extra_css:
   - assets/Documenter.css
 
 extra_javascript:
-  - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML
+  - mathjax-config.js
+  - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
   #- https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
   #- assets/mathjaxhelper.js
 
@@ -24,8 +21,7 @@ markdown_extensions:
   - extra
   - tables
   - fenced_code
-  - mdx_math:
-    enable_dollar_delimiter: True #for use of inline $..$
+  - pymdownx.arithmatex
 
 pages:
   - Home: index.md

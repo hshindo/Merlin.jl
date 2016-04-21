@@ -15,7 +15,7 @@ before_script:
   - export PATH=$HOME/.local/bin:$PATH
 
 install:
-  #- pip install python-markdown-math
+  - pip install pymdown-extensions
 
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
