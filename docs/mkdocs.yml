@@ -1,5 +1,5 @@
 site_name: Merlin.jl
-site_description: Flexible Neural Network Library in Julia
+site_description: Deep Learning Framework in Julia
 site_author: Hiroyuki Shindo
 repo_url: https://github.com/hshindo/Merlin.jl
 
@@ -7,19 +7,25 @@ docs_dir: 'build'
 
 theme: material
 
+python:
+  version: 2 # for unicode
+  setup_py_install: true
+
 extra_css:
   - assets/Documenter.css
 
 extra_javascript:
-  - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
-  - assets/mathjaxhelper.js
+  - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML
+  #- https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+  #- assets/mathjaxhelper.js
 
 markdown_extensions:
   - codehilite
   - extra
   - tables
   - fenced_code
-  #- mdx_math
+  - mdx_math:
+    enable_dollar_delimiter: True #for use of inline $..$
 
 pages:
   - Home: index.md

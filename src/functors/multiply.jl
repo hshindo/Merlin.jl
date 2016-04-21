@@ -1,5 +1,6 @@
 export Multiply
 export ElemMultiply
+using Base.LinAlg.BLAS # necessary?
 
 type Multiply <: Functor
 end

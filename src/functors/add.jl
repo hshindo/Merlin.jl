@@ -1,5 +1,6 @@
 export Add
 export ElemAdd
+using Base.LinAlg.BLAS # necessary?
 
 type Add <: Functor
 end

@@ -1,5 +1,6 @@
 export Subtract
 export ElemSubtract
+using Base.LinAlg.BLAS # necessary?
 
 type Subtract <: Functor
 end
