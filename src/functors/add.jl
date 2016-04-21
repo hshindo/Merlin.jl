@@ -1,6 +1,5 @@
 export Add
 export ElemAdd
-using Base.LinAlg.BLAS # necessary?
 
 type Add <: Functor
 end
@@ -24,8 +23,8 @@ function forward!(f::Add, v::Variable)
   v.value = v[1].value + v[2].value
   v.backward! = () -> begin
     T = eltype(v)
-    hasgrad(v[1]) && axpy!(T(1), v.grad, v[1].grad)
-    hasgrad(v[2]) && axpy!(T(1), v.grad, v[2].grad)
+    hasgrad(v[1]) && BLAS.axpy!(T(1), v.grad, v[1].grad)
+    hasgrad(v[2]) && BLAS.axpy!(T(1), v.grad, v[2].grad)
   end
 end
 
@@ -40,6 +39,6 @@ end
 
 function backward!{T,N}(f::ElemAdd, gx::Array{T,N}, gy::Array{T,N})
   for offset = 1:length(gx):length(gy)
-    axpy!(length(gx), T(1), pointer(gy,offset), stride(gy,1), pointer(gx), stride(gx,1))
+    BLAS.axpy!(length(gx), T(1), pointer(gy,offset), stride(gy,1), pointer(gx), stride(gx,1))
   end
 end

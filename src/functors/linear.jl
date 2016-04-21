@@ -47,10 +47,10 @@ function forward!(f::Linear, v::Variable)
     T = eltype(v.value)
     gy = v.grad
     w, gw, b, gb = f.w.value, f.w.grad, f.b.value, f.b.grad
-    hasgrad(v[1]) && gemm!('T', 'N', T(1), w, gy, T(1), v[1].grad)
-    gemm!('N', 'T', T(1), gy, v[1].value, T(1), gw)
+    hasgrad(v[1]) && BLAS.gemm!('T', 'N', T(1), w, gy, T(1), v[1].grad)
+    BLAS.gemm!('N', 'T', T(1), gy, v[1].value, T(1), gw)
     for offset = 1:length(b):length(gy)
-      axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
+      BLAS.axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
     end
   end
 end
