@@ -8,12 +8,14 @@ abstract Functor
 abstract Optimizer
 
 include("native.jl")
-include("cuda/cudaarray.jl")
+#include("cuda/cudaarray.jl")
 
 if haskey(ENV, "USE_CUDA")
-  using CUDA
-  using CUDA.RT
-  using CUDNN
+  #using CUDA
+  #using CUDA.RT
+  #using CUDNN
+end
+type CudaArray{T,N}
 end
 
 typealias Data{T,N} Union{Array{T,N},CudaArray{T,N}}
