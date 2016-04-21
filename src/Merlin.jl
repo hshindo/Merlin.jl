@@ -20,6 +20,9 @@ end
 
 typealias Data{T,N} Union{Array{T,N},CudaArray{T,N}}
 
+export argmax
+include("util.jl")
+
 include("variable.jl")
 include("graph.jl")
 include("sequence.jl")
