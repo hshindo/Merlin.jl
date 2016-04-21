@@ -5,7 +5,7 @@ repo_url: https://github.com/hshindo/Merlin.jl
 
 docs_dir: 'build'
 
-theme: readthedocs
+theme: material
 
 extra_css:
   - assets/Documenter.css
