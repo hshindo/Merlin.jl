@@ -35,6 +35,14 @@
 
     
     <url>
+     <loc>None/graph/</loc>
+     <lastmod>2016-04-21</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
      <loc>None/optimizers/</loc>
      <lastmod>2016-04-21</lastmod>
      <changefreq>daily</changefreq>

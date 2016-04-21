@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1">
     
       
-        <title>Overview - Merlin.jl</title>
+        <title>Graph - Merlin.jl</title>
       
       
       
@@ -94,7 +94,7 @@
             
           </span>
         
-        Overview
+        Graph
       </div>
     </div>
     
@@ -173,30 +173,9 @@
           
             
   <li>
-    <a class="current" title="Overview" href="./">
+    <a class="" title="Overview" href="../overview/">
       Overview
     </a>
-    
-      
-        
-      
-      
-        <ul>
-          
-            <li class="anchor">
-              <a title="Decoding" href="#decoding">
-                Decoding
-              </a>
-            </li>
-          
-            <li class="anchor">
-              <a title="Training" href="#training">
-                Training
-              </a>
-            </li>
-          
-        </ul>
-      
     
   </li>
 
@@ -221,9 +200,24 @@
           
             
   <li>
-    <a class="" title="Graph" href="../graph/">
+    <a class="current" title="Graph" href="./">
       Graph
     </a>
+    
+      
+        
+      
+      
+        <ul>
+          
+            <li class="anchor">
+              <a title="👉 Example" href="#example">
+                👉 Example
+              </a>
+            </li>
+          
+        </ul>
+      
     
   </li>
 
@@ -247,43 +241,24 @@
       <article class="article">
         <div class="wrapper">
           
-          <p><a id='Overview-1'></a></p>
-<h1 id="overview">Overview</h1>
-<p>Merlin.jl provides many primitive functions.</p>
-<p><a id='Decoding-1'></a></p>
-<h2 id="decoding">Decoding</h2>
-<ol>
-<li>Create <code>Variable</code> from <code>Array</code> (CPU) or <code>CudaArray</code> (CUDA GPU).</li>
-<li>Create <code>Functor</code>s.</li>
-<li>Apply the functors to the variable.</li>
-</ol>
-<div class="codehilite"><pre><span></span><span class="k">using</span> <span class="n">Merlin</span>
+          <p><a id='Merlin.Graph' href='#Merlin.Graph'>#</a>
+<strong><code>Merlin.Graph</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h1 id="graph">Graph</h1>
+<p><code>Graph</code> is a container of <code>Functor</code>s. The following is an example of Gated Recurrent Unit (GRU).</p>
+<h3 id="example">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="c"># parameters</span>
+<span class="n">Ws</span> <span class="o">=</span> <span class="p">[</span><span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">xsize</span><span class="p">,</span><span class="n">xsize</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">Us</span> <span class="o">=</span> <span class="p">[</span><span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">xsize</span><span class="p">,</span><span class="n">xsize</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="c"># input</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
 
-<span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
-<span class="n">f</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">30</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</pre></div>
-
-
-<p><a id='Training-1'></a></p>
-<h2 id="training">Training</h2>
-<ol>
-<li>Create <code>Optimizer</code>.</li>
-<li>Decode your variables.</li>
-<li>Compute gradient.</li>
-<li>Update <code>Functor</code>s with your <code>Optimizer</code>.</li>
-</ol>
-<div class="codehilite"><pre><span></span><span class="k">using</span> <span class="n">Merlin</span>
-
-<span class="n">opt</span> <span class="o">=</span> <span class="n">SGD</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
-<span class="n">f</span> <span class="o">=</span> <span class="p">[</span><span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">30</span><span class="p">),</span> <span class="n">ReLU</span><span class="p">(),</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">10</span><span class="p">)]</span>
-
-<span class="k">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="mi">10</span>
-  <span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">20</span><span class="p">))</span>
-  <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">|&gt;</span> <span class="n">CrossEntropy</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-  <span class="n">gradient!</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-  <span class="n">update!</span><span class="p">(</span><span class="n">opt</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-<span class="k">end</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">Sigmoid</span><span class="p">()(</span><span class="n">Ws</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">Us</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">h</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">Sigmoid</span><span class="p">()(</span><span class="n">Ws</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">Us</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">h</span><span class="p">)</span>
+<span class="n">h_</span> <span class="o">=</span> <span class="n">Tanh</span><span class="p">()(</span><span class="n">Ws</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">Us</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">r</span><span class="o">.*</span><span class="n">h</span><span class="p">))</span>
+<span class="n">h_next</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">z</span><span class="p">)</span> <span class="o">.*</span> <span class="n">h</span> <span class="o">+</span> <span class="n">z</span> <span class="o">.*</span> <span class="n">h_</span>
+<span class="n">Graph</span><span class="p">(</span><span class="n">h_next</span><span class="p">)</span>
 </pre></div>
           <aside class="copyright" role="note">
             
@@ -301,7 +276,7 @@
   <nav class="pagination" aria-label="Footer">
     <div class="previous">
       
-        <a href=".." title="Home">
+        <a href="../functors/" title="Functors">
           <span class="direction">
             Previous
           </span>
@@ -311,7 +286,7 @@
             </div>
             <div class="stretch">
               <div class="title">
-                Home
+                Functors
               </div>
             </div>
           </div>
@@ -320,14 +295,14 @@
     </div>
     <div class="next">
       
-        <a href="../types/" title="Types">
+        <a href="../optimizers/" title="Optimizers">
           <span class="direction">
             Next
           </span>
           <div class="page">
             <div class="stretch">
               <div class="title">
-                Types
+                Optimizers
               </div>
             </div>
             <div class="button button-next" role="button" aria-label="Next">
