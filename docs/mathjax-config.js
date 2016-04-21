@@ -1,27 +1,26 @@
-/* mathjax-loader.js  file */
-/* ref: http://facelessuser.github.io/pymdown-extensions/extensions/arithmatex/ */
-(function (win, doc) {
-  win.MathJax = {
-    config: ["MMLorHTML.js"],
-    extensions: ["tex2jax.js"],
-    jax: ["input/TeX"],
-    tex2jax: {
-      inlineMath: [ ["\\(","\\)"] ],
-      displayMath: [ ["\\[","\\]"] ]
-    },
-    TeX: {
-      TagSide: "right",
-      TagIndent: ".8em",
-      MultLineWidth: "85%",
-      //equationNumbers: {
-      //  autoNumber: "AMS",
-      //},
-      unicode: {
-        fonts: "STIXGeneral,'Arial Unicode MS'"
-      }
-    },
-    displayAlign: 'center',
-    showProcessingMessages: false,
-    messageStyle: 'none'
-  };
-})(window, document);
+MathJax.Hub.Config({
+  "tex2jax": {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [["$$","$$"], ["\\[","\\]"]],
+    processEscapes: true
+  }
+});
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: [
+    "input/TeX",
+    "output/HTML-CSS",
+    "output/NativeMML"
+  ],
+  extensions: [
+    "MathMenu.js",
+    "MathZoom.js",
+    "TeX/AMSmath.js",
+    "TeX/AMSsymbols.js",
+    "TeX/autobold.js",
+    "TeX/autoload-all.js"
+  ]
+});
+MathJax.Hub.Config({
+  TeX: { equationNumbers: { autoNumber: "AMS" } }
+});
