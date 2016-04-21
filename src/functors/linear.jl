@@ -1,18 +1,22 @@
 export Linear
 
 """
-## Linear
-Computes linear transformation a.k.a. affine transformation.
+    Linear
 
-\$\$ f(x) = W^{\mathrm{T}}x + b \$\$
+Compute linear transformation a.k.a. affine transformation.
+
+``
+f(x) = W^{\mathrm{T}}x + b
+``
 
 where \$W\$ is a weight matrix, \$b\$ is a bias vector.
 
 <img src="../assets/linear.png" width="300px">
 
-### Functions
-- `Linear(w, b)`
-- `Linear{T}(::Type{T}, insize::Int, outsize::Int)`
+### Arguments
+* `w::Int`: weight matrix
+* `b:Int`: bias matrix
+* `Linear{T}(::Type{T}, insize::Int, outsize::Int)`
 
 ### 👉 Example
 ```julia
@@ -26,6 +30,11 @@ type Linear <: Functor
   b::Variable
 end
 
+"""
+    Linear
+
+
+"""
 function Linear{T}(::Type{T}, insize::Int, outsize::Int)
   #r = randn(outsize, insize) * sqrt(1 / insize)
   #r = rand(outsize, insize) * 0.001
