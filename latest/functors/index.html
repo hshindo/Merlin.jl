@@ -1,172 +1,313 @@
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <meta name="author" content="Hiroyuki Shindo">
-  
-  <title>Functors - Merlin.jl</title>
-  
-
-  <link rel="shortcut icon" href="../img/favicon.ico">
-
-  
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
-
-  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="../css/highlight.css">
-  <link href="../assets/Documenter.css" rel="stylesheet">
-
-  
-  <script>
-    // Current page data
-    var mkdocs_page_name = "Functors";
-    var mkdocs_page_input_path = "functors.md";
-    var mkdocs_page_url = "/functors/";
-  </script>
-  
-  <script src="../js/jquery-2.1.1.min.js"></script>
-  <script src="../js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="../js/highlight.pack.js"></script>
-  <script src="../js/theme.js"></script> 
-  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-  <script src="../assets/mathjaxhelper.js"></script>
-
-  
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
+<!--[if lt IE 7 ]><html class="no-js ie6"><![endif]-->
+<!--[if IE 7 ]><html class="no-js ie7"><![endif]-->
+<!--[if IE 8 ]><html class="no-js ie8"><![endif]-->
+<!--[if IE 9 ]><html class="no-js ie9"><![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js"> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1">
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-      <div class="wy-side-nav-search">
-        <a href=".." class="icon icon-home"> Merlin.jl</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-  </form>
-</div>
+      
+        <title>Functors - Merlin.jl</title>
+      
+      
+      
+      
+        <meta name="author" content="Hiroyuki Shindo">
+      
+    
+    <meta property="og:url" content="None">
+    <meta property="og:title" content="Merlin.jl">
+    <meta property="og:image" content="None/../">
+    <meta name="apple-mobile-web-app-title" content="Merlin.jl">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../None">
+    <link rel="icon" type="image/x-icon" href="../None">
+    <style>
+      @font-face {
+      	font-family: 'Icon';
+      	src: url('../assets/fonts/icon.eot?52m981');
+      	src: url('../assets/fonts/icon.eot?#iefix52m981')
+               format('embedded-opentype'),
+      		   url('../assets/fonts/icon.woff?52m981')
+               format('woff'),
+      		   url('../assets/fonts/icon.ttf?52m981')
+               format('truetype'),
+      		   url('../assets/fonts/icon.svg?52m981#icon')
+               format('svg');
+      	font-weight: normal;
+      	font-style: normal;
+      }
+    </style>
+    <link rel="stylesheet" href="../assets/stylesheets/application-54f87043f3.css">
+    
+    
+      
+      
+      
+      <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ubuntu:400,700|Ubuntu+Mono">
+      <style>
+        body, input {
+          font-family: 'Ubuntu', Helvetica, Arial, sans-serif;
+        }
+        pre, code {
+          font-family: 'Ubuntu Mono', 'Courier New', 'Courier', monospace;
+        }
+      </style>
+    
+    
+      <link rel="stylesheet" href="../assets/Documenter.css">
+    
+    <script src="../assets/javascripts/modernizr-4ab42b99fd.js"></script>
+    
+  </head>
+  
+  
+  
+  <body class=" ">
+    
+      
+      
+    
+    <div class="backdrop">
+      <div class="backdrop-paper"></div>
+    </div>
+    <input class="toggle" type="checkbox" id="toggle-drawer">
+    <input class="toggle" type="checkbox" id="toggle-search">
+    <label class="toggle-button overlay" for="toggle-drawer"></label>
+    <header class="header">
+      <nav aria-label="Header">
+  <div class="bar default">
+    <div class="button button-menu" role="button" aria-label="Menu">
+      <label class="toggle-button icon icon-menu" for="toggle-drawer">
+        <span></span>
+      </label>
+    </div>
+    <div class="stretch">
+      <div class="title">
+        
+          <span class="path">
+            
+          </span>
+        
+        Functors
       </div>
+    </div>
+    
+    
+    <div class="button button-search" role="button" aria-label="Search">
+      <label class="toggle-button icon icon-search" title="Search" for="toggle-search"></label>
+    </div>
+  </div>
+  <div class="bar search">
+    <div class="button button-close" role="button" aria-label="Close">
+      <label class="toggle-button icon icon-back" for="toggle-search"></label>
+    </div>
+    <div class="stretch">
+      <div class="field">
+        <input class="query" type="text" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck>
+      </div>
+    </div>
+    <div class="button button-reset" role="button" aria-label="Search">
+      <button class="toggle-button icon icon-close" id="reset-search"></button>
+    </div>
+  </div>
+</nav>
+    </header>
+    <main class="main">
+      
+      <div class="drawer">
+        <nav aria-label="Navigation">
+  
+  <a href="https://github.com/hshindo/Merlin.jl" class="project">
+    <div class="banner">
+      
+      <div class="name">
+        <strong>
+          Merlin.jl
+          <span class="version">
+            
+          </span>
+        </strong>
+        
+          <br>
+          hshindo/Merlin.jl
+        
+      </div>
+    </div>
+  </a>
+  <div class="scrollable">
+    <div class="wrapper">
+      
+        <ul class="repo">
+          <li class="repo-download">
+            
+            <a href="https://github.com/hshindo/Merlin.jl/archive/master.zip" target="_blank" title="Download" data-action="download">
+              <i class="icon icon-download"></i> Download
+            </a>
+          </li>
+          <li class="repo-stars">
+            <a href="https://github.com/hshindo/Merlin.jl/stargazers" target="_blank" title="Stargazers" data-action="star">
+              <i class="icon icon-star"></i> Stars
+              <span class="count">&ndash;</span>
+            </a>
+          </li>
+        </ul>
+        <hr>
+      
+      <div class="toc">
+        <ul>
+          
+            
+  <li>
+    <a class="" title="Home" href="..">
+      Home
+    </a>
+    
+  </li>
 
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        <ul class="current">
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="..">Home</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../overview/">Overview</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../types/">Types</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 current">
-        <a class="current" href="./">Functors</a>
-        
-            <ul>
             
-                <li class="toctree-l3"><a href="#functors">Functors</a></li>
-                
-                    <li><a class="toctree-l4" href="#concat">Concat</a></li>
-                
-                    <li><a class="toctree-l4" href="#crossentropy">CrossEntropy</a></li>
-                
-                    <li><a class="toctree-l4" href="#linear">Linear</a></li>
-                
-                    <li><a class="toctree-l4" href="#logsoftmax">LogSoftmax</a></li>
-                
-                    <li><a class="toctree-l4" href="#lookup">Lookup</a></li>
-                
-                    <li><a class="toctree-l4" href="#max">Max</a></li>
-                
-                    <li><a class="toctree-l4" href="#relu">ReLU</a></li>
-                
-                    <li><a class="toctree-l4" href="#reshape">Reshape</a></li>
-                
-                    <li><a class="toctree-l4" href="#sigmoid">Sigmoid</a></li>
-                
-                    <li><a class="toctree-l4" href="#softmax">Softmax</a></li>
-                
-                    <li><a class="toctree-l4" href="#tanh">Tanh</a></li>
-                
-                    <li><a class="toctree-l4" href="#window2d">Window2D</a></li>
-                
+  <li>
+    <a class="" title="Overview" href="../overview/">
+      Overview
+    </a>
+    
+  </li>
+
+          
             
-            </ul>
-        
-    </li>
-<li>
+  <li>
+    <a class="" title="Types" href="../types/">
+      Types
+    </a>
+    
+  </li>
+
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../graph/">Graph</a>
+            
+  <li>
+    <a class="current" title="Functors" href="./">
+      Functors
+    </a>
+    
+      
         
-    </li>
-<li>
+      
+      
+        <ul>
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../optimizers/">Optimizers</a>
-        
-    </li>
-<li>
+            <li class="anchor">
+              <a title="Concat" href="#concat">
+                Concat
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="CrossEntropy" href="#crossentropy">
+                CrossEntropy
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Linear" href="#linear">
+                Linear
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="LogSoftmax" href="#logsoftmax">
+                LogSoftmax
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Lookup" href="#lookup">
+                Lookup
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Max" href="#max">
+                Max
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="ReLU" href="#relu">
+                ReLU
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Reshape" href="#reshape">
+                Reshape
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Sigmoid" href="#sigmoid">
+                Sigmoid
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Softmax" href="#softmax">
+                Softmax
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Tanh" href="#tanh">
+                Tanh
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Window2D" href="#window2d">
+                Window2D
+              </a>
+            </li>
           
         </ul>
+      
+    
+  </li>
+
+          
+            
+  <li>
+    <a class="" title="Graph" href="../graph/">
+      Graph
+    </a>
+    
+  </li>
+
+          
+            
+  <li>
+    <a class="" title="Optimizers" href="../optimizers/">
+      Optimizers
+    </a>
+    
+  </li>
+
+          
+        </ul>
+        
       </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="..">Merlin.jl</a>
-      </nav>
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="..">Docs</a> &raquo;</li>
-    
-      
-    
-    <li>Functors</li>
-    <li class="wy-breadcrumbs-aside">
-      
-        
-          <a href="https://github.com/hshindo/Merlin.jl" class="icon icon-github"> Edit on GitHub</a>
-        
-      
-    </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main">
-            <div class="section">
-              
-                <p><a id='Functors-1'></a></p>
+    </div>
+  </div>
+</nav>
+      </div>
+      <article class="article">
+        <div class="wrapper">
+          
+          <p><a id='Functors-1'></a></p>
 <h1 id="functors">Functors</h1>
 <p><code>Functor</code> is an abstract type of function object. Every <code>Functor</code> type implements forward and backward computation. The following are concrete types of <code>Functor</code>s.</p>
 <p><a id='Merlin.Concat' href='#Merlin.Concat'>#</a>
@@ -179,10 +320,11 @@
 <li><code>Concat(dim::Int)</code></li>
 </ul>
 <h3 id="example">👉 Example</h3>
-<pre class="codehilite"><code class="language-julia">x1 = rand(Float32,7,5)
-x2 = rand(Float32,10,5)
-f = Concat(1)
-y = f(x1, x2)</code></pre>
+<div class="codehilite"><pre><span></span><span class="n">x1</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">x2</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Concat</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
+</pre></div>
 
 
 <p><a id='Merlin.CrossEntropy' href='#Merlin.CrossEntropy'>#</a>
@@ -201,10 +343,11 @@ f(x;p)=-∑_{x} p log q_{x}
 <li><code>CrossEntropy(p::Vector{Int})</code></li>
 </ul>
 <h3 id="example_1">👉 Example</h3>
-<pre class="codehilite"><code class="language-julia">p = [1:5]
-f = CrossEntropy(p)
-x = rand(Float32,10,5)
-y = f(x)</code></pre>
+<div class="codehilite"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">CrossEntropy</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
 
 
 <p><a id='Merlin.Linear' href='#Merlin.Linear'>#</a>
@@ -226,9 +369,10 @@ f(x) = W^{T}x + b
 <li><code>Linear{T}(::Type{T}, insize::Int, outsize::Int)</code></li>
 </ul>
 <h3 id="example_2">👉 Example</h3>
-<pre class="codehilite"><code class="language-julia">x = rand(Float32,10,5)
-f = Linear(Float32, 10, 3)
-y = f(x)</code></pre>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
 
 
 <p><a id='Merlin.LogSoftmax' href='#Merlin.LogSoftmax'>#</a>
@@ -246,9 +390,10 @@ f(x)=rac{xp(x_{i})}{sum_{j}^{n}xp(x_{j})},;i=1,ldots,n
 <li><code>LogSoftmax()</code></li>
 </ul>
 <h3 id="example_3">👉 Example</h3>
-<pre class="codehilite"><code class="language-julia">x = rand(Float32,10,5)
-f = LogSoftmax()
-y = f(x)</code></pre>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">LogSoftmax</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
 
 
 <p><a id='Merlin.Lookup' href='#Merlin.Lookup'>#</a>
@@ -261,9 +406,10 @@ y = f(x)</code></pre>
 <li>Lookup(insize::Int, outsize::Int)</li>
 </ul>
 <h3 id="example_4">👉 Example</h3>
-<pre class="codehilite"><code class="language-julia">x = [1:5]
-f = Lookup(Float32,10000,100)
-y = f(x)</code></pre>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Lookup</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10000</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
 
 
 <ul>
@@ -287,9 +433,10 @@ y = f(x)</code></pre>
 <li><code>Max(dim::Int)</code></li>
 </ul>
 <h3 id="example_5">👉 Example</h3>
-<pre class="codehilite"><code class="language-julia">x = rand(Float32,10,5)
-f = Max(1)
-y = f(x)</code></pre>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
 
 
 <p><a id='Merlin.ReLU' href='#Merlin.ReLU'>#</a>
@@ -301,9 +448,10 @@ y = f(x)</code></pre>
 <li><code>ReLU()</code></li>
 </ul>
 <h3 id="example_6">👉 Example</h3>
-<pre class="codehilite"><code class="language-julia">x = rand(Float32,10,5)
-f = ReLU()
-y = f(x)</code></pre>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">ReLU</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
 
 
 <p><a id='Merlin.Reshape' href='#Merlin.Reshape'>#</a>
@@ -316,9 +464,10 @@ y = f(x)</code></pre>
 <li><code>Reshape(dims::Int...)</code></li>
 </ul>
 <h3 id="example_7">👉 Example</h3>
-<pre class="codehilite"><code class="language-julia">x = rand(Float32,10,5,3)
-f = Reshape(5,3,10)
-y = f(x)</code></pre>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Reshape</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
 
 
 <p><a id='Merlin.Sigmoid' href='#Merlin.Sigmoid'>#</a>
@@ -329,9 +478,10 @@ y = f(x)</code></pre>
 <li><code>Sigmoid()</code></li>
 </ul>
 <h3 id="example_8">👉 Example</h3>
-<pre class="codehilite"><code class="language-julia">x = rand(Float32,10,5)
-f = Sigmoid()
-y = f(x)</code></pre>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Sigmoid</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
 
 
 <p><a id='Merlin.Softmax' href='#Merlin.Softmax'>#</a>
@@ -348,9 +498,10 @@ f(x)=rac{xp(x_{i})}{sum_{j}^{n}xp(x_{j})},;i=1,ldots,n
 <li><code>Softmax()</code></li>
 </ul>
 <h3 id="example_9">👉 Example</h3>
-<pre class="codehilite"><code class="language-julia">x = rand(Float32,10,5)
-f = Softmax()
-y = f(x)</code></pre>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Softmax</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
 
 
 <p><a id='Merlin.Tanh' href='#Merlin.Tanh'>#</a>
@@ -361,9 +512,10 @@ y = f(x)</code></pre>
 <li><code>Tanh()</code></li>
 </ul>
 <h3 id="example_10">👉 Example</h3>
-<pre class="codehilite"><code class="language-julia">x = rand(Float32,10,5)
-f = Tanh()
-y = f(x)</code></pre>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Tanh</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
 
 
 <p><a id='Merlin.Window2D' href='#Merlin.Window2D'>#</a>
@@ -374,54 +526,87 @@ y = f(x)</code></pre>
 <li><code>Window(w1::Int, w2::Int, s1::Int, s2::Int, p1::Int, p2::Int)</code>     - w1, w2: window sizes     - s1, s2: stride sizes     - p1, p2: padding sizes</li>
 </ul>
 <h3 id="example_11">👉 Example</h3>
-<pre class="codehilite"><code class="language-julia">#x = rand(Float32,10,5)
-#f = Window2D(10, 2, 1, 1, 0, 0)
-#y = f(x)</code></pre>
+<div class="codehilite"><pre><span></span><span class="c">#x = rand(Float32,10,5)</span>
+<span class="c">#f = Window2D(10, 2, 1, 1, 0, 0)</span>
+<span class="c">#y = f(x)</span>
+</pre></div>
+          <aside class="copyright" role="note">
+            
+            Documentation built with
+            <a href="http://www.mkdocs.org" target="_blank">MkDocs</a>
+            using the
+            <a href="http://squidfunk.github.io/mkdocs-material/" target="_blank">
+              Material
+            </a>
+            theme.
+          </aside>
+          
+            <footer class="footer">
               
+  <nav class="pagination" aria-label="Footer">
+    <div class="previous">
+      
+        <a href="../types/" title="Types">
+          <span class="direction">
+            Previous
+          </span>
+          <div class="page">
+            <div class="button button-previous" role="button" aria-label="Previous">
+              <i class="icon icon-back"></i>
+            </div>
+            <div class="stretch">
+              <div class="title">
+                Types
+              </div>
             </div>
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../graph/" class="btn btn-neutral float-right" title="Graph">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="../types/" class="btn btn-neutral" title="Types"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        </a>
       
     </div>
-  
+    <div class="next">
+      
+        <a href="../graph/" title="Graph">
+          <span class="direction">
+            Next
+          </span>
+          <div class="page">
+            <div class="stretch">
+              <div class="title">
+                Graph
+              </div>
+            </div>
+            <div class="button button-next" role="button" aria-label="Next">
+              <i class="icon icon-forward"></i>
+            </div>
+          </div>
+        </a>
+      
+    </div>
+  </nav>
 
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-    
-  </div>
-
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-</footer>
-	  
+            </footer>
+          
+        </div>
+      </article>
+      <div class="results" role="status" aria-live="polite">
+        <div class="scrollable">
+          <div class="wrapper">
+            <div class="meta"></div>
+            <div class="list"></div>
+          </div>
         </div>
       </div>
-
-    </section>
-
-  </div>
-
-<div class="rst-versions" role="note" style="cursor: pointer">
-    <span class="rst-current-version" data-toggle="rst-current-version">
-      
-          <a href="https://github.com/hshindo/Merlin.jl" class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
-      
-      
-        <span><a href="../types/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
-        <span style="margin-left: 15px"><a href="../graph/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
-    </span>
-</div>
-
-</body>
+    </main>
+    <script>
+      var base_url = '..';
+      var repo_id  = 'hshindo/Merlin.jl';
+    </script>
+    <script src="../assets/javascripts/application-997097ee0c.js"></script>
+    
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+      <script src="../assets/mathjaxhelper.js"></script>
+    
+    
+  </body>
 </html>

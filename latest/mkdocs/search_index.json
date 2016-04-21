@@ -2,7 +2,7 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Merlin.jl\n\n\nMerlin.jl\n is a neural network library in \nJulia\n.\n\n\n\n\nInstall\n\n\n#julia\n Pkg.clone(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\n\nRequirements\n\n\n\n\nOptional\n\n\n\n\ncuDNN\n v4 (for CUDA GPU)", 
+            "text": "Merlin.jl\n\n\nMerlin.jl\n is a neural network library in \nJulia\n.\n\n\n\n\nInstall\n\n\n#julia\n Pkg.clone(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\n\n\n\nRequirements\n\n\n\n\nOptional\n\n\n\n\ncuDNN\n v4 (for CUDA GPU)", 
             "title": "Home"
         }, 
         {
@@ -27,7 +27,7 @@
         }, 
         {
             "location": "/overview/", 
-            "text": "Overview\n\n\nMerlin.jl provides many primitive functions.\n\n\n\n\nDecoding\n\n\n\n\nCreate \nVariable\n from \nArray\n (CPU) or \nCudaArray\n (CUDA GPU).\n\n\nCreate \nFunctor\ns.\n\n\nApply the functors to the variable.\n\n\n\n\nusing Merlin\n\nx = Variable(rand(Float32,50,5))\nf = Linear(Float32,50,30)\ny = f(x)\n\n\n\n\n\n\nTraining\n\n\n\n\nCreate \nOptimizer\n.\n\n\nDecode your variables.\n\n\nCompute gradient.\n\n\nUpdate \nFunctor\ns with your \nOptimizer\n.\n\n\n\n\nusing Merlin\n\nopt = SGD(0.001)\nf = [Linear(Float32,50,30), ReLU(), Linear(Float32,30,10)]\n\nfor i = 1:10\n  x = Variable(rand(Float32,50,20))\n  y = f(x) |\n CrossEntropy(...)\n  gradient!(y)\n  update!(opt, f)\nend", 
+            "text": "Overview\n\n\nMerlin.jl provides many primitive functions.\n\n\n\n\nDecoding\n\n\n\n\nCreate \nVariable\n from \nArray\n (CPU) or \nCudaArray\n (CUDA GPU).\n\n\nCreate \nFunctor\ns.\n\n\nApply the functors to the variable.\n\n\n\n\nusing\n \nMerlin\n\n\n\nx\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n50\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nFloat32\n,\n50\n,\n30\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n\n\nTraining\n\n\n\n\nCreate \nOptimizer\n.\n\n\nDecode your variables.\n\n\nCompute gradient.\n\n\nUpdate \nFunctor\ns with your \nOptimizer\n.\n\n\n\n\nusing\n \nMerlin\n\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\nf\n \n=\n \n[\nLinear\n(\nFloat32\n,\n50\n,\n30\n),\n \nReLU\n(),\n \nLinear\n(\nFloat32\n,\n30\n,\n10\n)]\n\n\n\nfor\n \ni\n \n=\n \n1\n:\n10\n\n  \nx\n \n=\n \nVariable\n(\nrand\n(\nFloat32\n,\n50\n,\n20\n))\n\n  \ny\n \n=\n \nf\n(\nx\n)\n \n|\n \nCrossEntropy\n(\n...\n)\n\n  \ngradient!\n(\ny\n)\n\n  \nupdate!\n(\nopt\n,\n \nf\n)\n\n\nend", 
             "title": "Overview"
         }, 
         {
@@ -37,17 +37,17 @@
         }, 
         {
             "location": "/overview/#decoding", 
-            "text": "Create  Variable  from  Array  (CPU) or  CudaArray  (CUDA GPU).  Create  Functor s.  Apply the functors to the variable.   using Merlin\n\nx = Variable(rand(Float32,50,5))\nf = Linear(Float32,50,30)\ny = f(x)", 
+            "text": "Create  Variable  from  Array  (CPU) or  CudaArray  (CUDA GPU).  Create  Functor s.  Apply the functors to the variable.   using   Merlin  x   =   Variable ( rand ( Float32 , 50 , 5 ))  f   =   Linear ( Float32 , 50 , 30 )  y   =   f ( x )", 
             "title": "Decoding"
         }, 
         {
             "location": "/overview/#training", 
-            "text": "Create  Optimizer .  Decode your variables.  Compute gradient.  Update  Functor s with your  Optimizer .   using Merlin\n\nopt = SGD(0.001)\nf = [Linear(Float32,50,30), ReLU(), Linear(Float32,30,10)]\n\nfor i = 1:10\n  x = Variable(rand(Float32,50,20))\n  y = f(x) |  CrossEntropy(...)\n  gradient!(y)\n  update!(opt, f)\nend", 
+            "text": "Create  Optimizer .  Decode your variables.  Compute gradient.  Update  Functor s with your  Optimizer .   using   Merlin  opt   =   SGD ( 0.001 )  f   =   [ Linear ( Float32 , 50 , 30 ),   ReLU (),   Linear ( Float32 , 30 , 10 )]  for   i   =   1 : 10 \n   x   =   Variable ( rand ( Float32 , 50 , 20 )) \n   y   =   f ( x )   |   CrossEntropy ( ... ) \n   gradient! ( y ) \n   update! ( opt ,   f )  end", 
             "title": "Training"
         }, 
         {
             "location": "/types/", 
-            "text": "Types\n\n\nThere are three basic types:\n\n\n\n\nVariable\n\n\nFunctor\n\n\nOptimizer\n\n\n\n\n\n\nVariable\n\n\nVariable\n has \nvalue\n and \ngrad\n.\n\n\n#x = Variable(AFArray(Float32,10,5))\n#x.value\n#x.grad\n\n\n\n\n\n\nFunctor\n\n\nFunctor\n is an abstract type of functors.", 
+            "text": "Types\n\n\nThere are three basic types:\n\n\n\n\nVariable\n\n\nFunctor\n\n\nOptimizer\n\n\n\n\n\n\nVariable\n\n\nVariable\n has \nvalue\n and \ngrad\n.\n\n\n#x = Variable(AFArray(Float32,10,5))\n\n\n#x.value\n\n\n#x.grad\n\n\n\n\n\n\n\n\nFunctor\n\n\nFunctor\n is an abstract type of functors.", 
             "title": "Types"
         }, 
         {
@@ -57,7 +57,7 @@
         }, 
         {
             "location": "/types/#variable", 
-            "text": "Variable  has  value  and  grad .  #x = Variable(AFArray(Float32,10,5))\n#x.value\n#x.grad", 
+            "text": "Variable  has  value  and  grad .  #x = Variable(AFArray(Float32,10,5))  #x.value  #x.grad", 
             "title": "Variable"
         }, 
         {
@@ -67,7 +67,7 @@
         }, 
         {
             "location": "/functors/", 
-            "text": "Functors\n\n\nFunctor\n is an abstract type of function object. Every \nFunctor\n type implements forward and backward computation. The following are concrete types of \nFunctor\ns.\n\n\n#\n\n\nMerlin.Concat\n \n \nType\n.\n\n\n\n\nConcat\n\n\nConcatenates arrays along the given dimension.\n\n\nFunctions\n\n\n\n\nConcat(dim::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx1 = rand(Float32,7,5)\nx2 = rand(Float32,10,5)\nf = Concat(1)\ny = f(x1, x2)\n\n\n\n\n#\n\n\nMerlin.CrossEntropy\n \n \nType\n.\n\n\n\n\nCrossEntropy\n\n\nComputes cross-entropy between a true distribution $p$ and the target distribution $q$.\n\n\n\n\n\nf(x;p)=-\u2211_{x} p log q_{x}\n\n\n\n\n\nFunctions\n\n\n\n\nCrossEntropy(p::Matrix)\n\n\nCrossEntropy(p::Vector{Int})\n\n\n\n\n\ud83d\udc49 Example\n\n\np = [1:5]\nf = CrossEntropy(p)\nx = rand(Float32,10,5)\ny = f(x)\n\n\n\n\n#\n\n\nMerlin.Linear\n \n \nType\n.\n\n\n\n\nLinear\n\n\nCompute linear transformation a.k.a. affine transformation.\n\n\n\n\n\nf(x) = W^{T}x + b\n\n\n\n\n\nwhere $W$ is a weight matrix, $b$ is a bias vector.\n\n\n\n\n\nArguments\n\n\n\n\nLinear(w,b)\n\n\nLinear{T}(::Type{T}, insize::Int, outsize::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = rand(Float32,10,5)\nf = Linear(Float32, 10, 3)\ny = f(x)\n\n\n\n\n#\n\n\nMerlin.LogSoftmax\n \n \nType\n.\n\n\n\n\nLogSoftmax\n\n\nCompute logarith of softmax function.\n\n\n\n\n\nf(x)=\frac{\u001bxp(x_{i})}{sum_{j}^{n}\u001bxp(x_{j})},;i=1,ldots,n\n\n\n\n\n\nFunctions\n\n\n\n\nLogSoftmax()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = rand(Float32,10,5)\nf = LogSoftmax()\ny = f(x)\n\n\n\n\n#\n\n\nMerlin.Lookup\n \n \nType\n.\n\n\n\n\nLookup\n\n\nLookup variables.\n\n\nFunctions\n\n\n\n\nLookup(insize::Int, outsize::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = [1:5]\nf = Lookup(Float32,10000,100)\ny = f(x)\n\n\n\n\n\n\nT: Type\n\n\ninsize::Int\n\n\n\n\noutsize::Int\n\n\n\n\n\n\npath: initial values\n\n\n\n\nT::Type\n\n\n\n\n#\n\n\nMerlin.Max\n \n \nType\n.\n\n\n\n\nMax\n\n\nComputes the maximum value of an array over the given dimensions.\n\n\nFunctions\n\n\n\n\nMax(dim::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = rand(Float32,10,5)\nf = Max(1)\ny = f(x)\n\n\n\n\n#\n\n\nMerlin.ReLU\n \n \nType\n.\n\n\n\n\nReLU\n\n\nRectifier linear unit.\n\n\n\n\nReLU()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = rand(Float32,10,5)\nf = ReLU()\ny = f(x)\n\n\n\n\n#\n\n\nMerlin.Reshape\n \n \nType\n.\n\n\n\n\nReshape\n\n\nReshapes an array with the given dimensions.\n\n\nFunctions\n\n\n\n\nReshape(dims::Int...)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = rand(Float32,10,5,3)\nf = Reshape(5,3,10)\ny = f(x)\n\n\n\n\n#\n\n\nMerlin.Sigmoid\n \n \nType\n.\n\n\n\n\nSigmoid\n\n\n\n\nSigmoid()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = rand(Float32,10,5)\nf = Sigmoid()\ny = f(x)\n\n\n\n\n#\n\n\nMerlin.Softmax\n \n \nType\n.\n\n\n\n\nSoftmax\n\n\n\n\n\nf(x)=\frac{\u001bxp(x_{i})}{sum_{j}^{n}\u001bxp(x_{j})},;i=1,ldots,n\n\n\n\n\n\nFunctions\n\n\n\n\nSoftmax()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = rand(Float32,10,5)\nf = Softmax()\ny = f(x)\n\n\n\n\n#\n\n\nMerlin.Tanh\n \n \nType\n.\n\n\n\n\nTanh\n\n\n\n\nTanh()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx = rand(Float32,10,5)\nf = Tanh()\ny = f(x)\n\n\n\n\n#\n\n\nMerlin.Window2D\n \n \nType\n.\n\n\n\n\nWindow2D\n\n\n\n\nWindow(w1::Int, w2::Int, s1::Int, s2::Int, p1::Int, p2::Int)\n     - w1, w2: window sizes     - s1, s2: stride sizes     - p1, p2: padding sizes\n\n\n\n\n\ud83d\udc49 Example\n\n\n#x = rand(Float32,10,5)\n#f = Window2D(10, 2, 1, 1, 0, 0)\n#y = f(x)", 
+            "text": "Functors\n\n\nFunctor\n is an abstract type of function object. Every \nFunctor\n type implements forward and backward computation. The following are concrete types of \nFunctor\ns.\n\n\n#\n\n\nMerlin.Concat\n \n \nType\n.\n\n\n\n\nConcat\n\n\nConcatenates arrays along the given dimension.\n\n\nFunctions\n\n\n\n\nConcat(dim::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx1\n \n=\n \nrand\n(\nFloat32\n,\n7\n,\n5\n)\n\n\nx2\n \n=\n \nrand\n(\nFloat32\n,\n10\n,\n5\n)\n\n\nf\n \n=\n \nConcat\n(\n1\n)\n\n\ny\n \n=\n \nf\n(\nx1\n,\n \nx2\n)\n\n\n\n\n\n\n#\n\n\nMerlin.CrossEntropy\n \n \nType\n.\n\n\n\n\nCrossEntropy\n\n\nComputes cross-entropy between a true distribution $p$ and the target distribution $q$.\n\n\n\n\n\nf(x;p)=-\u2211_{x} p log q_{x}\n\n\n\n\n\nFunctions\n\n\n\n\nCrossEntropy(p::Matrix)\n\n\nCrossEntropy(p::Vector{Int})\n\n\n\n\n\ud83d\udc49 Example\n\n\np\n \n=\n \n[\n1\n:\n5\n]\n\n\nf\n \n=\n \nCrossEntropy\n(\np\n)\n\n\nx\n \n=\n \nrand\n(\nFloat32\n,\n10\n,\n5\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n#\n\n\nMerlin.Linear\n \n \nType\n.\n\n\n\n\nLinear\n\n\nCompute linear transformation a.k.a. affine transformation.\n\n\n\n\n\nf(x) = W^{T}x + b\n\n\n\n\n\nwhere $W$ is a weight matrix, $b$ is a bias vector.\n\n\n\n\n\nArguments\n\n\n\n\nLinear(w,b)\n\n\nLinear{T}(::Type{T}, insize::Int, outsize::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nrand\n(\nFloat32\n,\n10\n,\n5\n)\n\n\nf\n \n=\n \nLinear\n(\nFloat32\n,\n \n10\n,\n \n3\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n#\n\n\nMerlin.LogSoftmax\n \n \nType\n.\n\n\n\n\nLogSoftmax\n\n\nCompute logarith of softmax function.\n\n\n\n\n\nf(x)=\frac{\u001bxp(x_{i})}{sum_{j}^{n}\u001bxp(x_{j})},;i=1,ldots,n\n\n\n\n\n\nFunctions\n\n\n\n\nLogSoftmax()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nrand\n(\nFloat32\n,\n10\n,\n5\n)\n\n\nf\n \n=\n \nLogSoftmax\n()\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n#\n\n\nMerlin.Lookup\n \n \nType\n.\n\n\n\n\nLookup\n\n\nLookup variables.\n\n\nFunctions\n\n\n\n\nLookup(insize::Int, outsize::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \n[\n1\n:\n5\n]\n\n\nf\n \n=\n \nLookup\n(\nFloat32\n,\n10000\n,\n100\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n\n\nT: Type\n\n\ninsize::Int\n\n\n\n\noutsize::Int\n\n\n\n\n\n\npath: initial values\n\n\n\n\nT::Type\n\n\n\n\n#\n\n\nMerlin.Max\n \n \nType\n.\n\n\n\n\nMax\n\n\nComputes the maximum value of an array over the given dimensions.\n\n\nFunctions\n\n\n\n\nMax(dim::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nrand\n(\nFloat32\n,\n10\n,\n5\n)\n\n\nf\n \n=\n \nMax\n(\n1\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n#\n\n\nMerlin.ReLU\n \n \nType\n.\n\n\n\n\nReLU\n\n\nRectifier linear unit.\n\n\n\n\nReLU()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nrand\n(\nFloat32\n,\n10\n,\n5\n)\n\n\nf\n \n=\n \nReLU\n()\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n#\n\n\nMerlin.Reshape\n \n \nType\n.\n\n\n\n\nReshape\n\n\nReshapes an array with the given dimensions.\n\n\nFunctions\n\n\n\n\nReshape(dims::Int...)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nrand\n(\nFloat32\n,\n10\n,\n5\n,\n3\n)\n\n\nf\n \n=\n \nReshape\n(\n5\n,\n3\n,\n10\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n#\n\n\nMerlin.Sigmoid\n \n \nType\n.\n\n\n\n\nSigmoid\n\n\n\n\nSigmoid()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nrand\n(\nFloat32\n,\n10\n,\n5\n)\n\n\nf\n \n=\n \nSigmoid\n()\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n#\n\n\nMerlin.Softmax\n \n \nType\n.\n\n\n\n\nSoftmax\n\n\n\n\n\nf(x)=\frac{\u001bxp(x_{i})}{sum_{j}^{n}\u001bxp(x_{j})},;i=1,ldots,n\n\n\n\n\n\nFunctions\n\n\n\n\nSoftmax()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nrand\n(\nFloat32\n,\n10\n,\n5\n)\n\n\nf\n \n=\n \nSoftmax\n()\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n#\n\n\nMerlin.Tanh\n \n \nType\n.\n\n\n\n\nTanh\n\n\n\n\nTanh()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nrand\n(\nFloat32\n,\n10\n,\n5\n)\n\n\nf\n \n=\n \nTanh\n()\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\n#\n\n\nMerlin.Window2D\n \n \nType\n.\n\n\n\n\nWindow2D\n\n\n\n\nWindow(w1::Int, w2::Int, s1::Int, s2::Int, p1::Int, p2::Int)\n     - w1, w2: window sizes     - s1, s2: stride sizes     - p1, p2: padding sizes\n\n\n\n\n\ud83d\udc49 Example\n\n\n#x = rand(Float32,10,5)\n\n\n#f = Window2D(10, 2, 1, 1, 0, 0)\n\n\n#y = f(x)", 
             "title": "Functors"
         }, 
         {
@@ -87,7 +87,7 @@
         }, 
         {
             "location": "/functors/#example", 
-            "text": "x1 = rand(Float32,7,5)\nx2 = rand(Float32,10,5)\nf = Concat(1)\ny = f(x1, x2)  #  Merlin.CrossEntropy     Type .", 
+            "text": "x1   =   rand ( Float32 , 7 , 5 )  x2   =   rand ( Float32 , 10 , 5 )  f   =   Concat ( 1 )  y   =   f ( x1 ,   x2 )   #  Merlin.CrossEntropy     Type .", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
@@ -102,7 +102,7 @@
         }, 
         {
             "location": "/functors/#example_1", 
-            "text": "p = [1:5]\nf = CrossEntropy(p)\nx = rand(Float32,10,5)\ny = f(x)  #  Merlin.Linear     Type .", 
+            "text": "p   =   [ 1 : 5 ]  f   =   CrossEntropy ( p )  x   =   rand ( Float32 , 10 , 5 )  y   =   f ( x )   #  Merlin.Linear     Type .", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
@@ -117,7 +117,7 @@
         }, 
         {
             "location": "/functors/#example_2", 
-            "text": "x = rand(Float32,10,5)\nf = Linear(Float32, 10, 3)\ny = f(x)  #  Merlin.LogSoftmax     Type .", 
+            "text": "x   =   rand ( Float32 , 10 , 5 )  f   =   Linear ( Float32 ,   10 ,   3 )  y   =   f ( x )   #  Merlin.LogSoftmax     Type .", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
@@ -132,7 +132,7 @@
         }, 
         {
             "location": "/functors/#example_3", 
-            "text": "x = rand(Float32,10,5)\nf = LogSoftmax()\ny = f(x)  #  Merlin.Lookup     Type .", 
+            "text": "x   =   rand ( Float32 , 10 , 5 )  f   =   LogSoftmax ()  y   =   f ( x )   #  Merlin.Lookup     Type .", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
@@ -147,7 +147,7 @@
         }, 
         {
             "location": "/functors/#example_4", 
-            "text": "x = [1:5]\nf = Lookup(Float32,10000,100)\ny = f(x)   T: Type  insize::Int   outsize::Int    path: initial values   T::Type   #  Merlin.Max     Type .", 
+            "text": "x   =   [ 1 : 5 ]  f   =   Lookup ( Float32 , 10000 , 100 )  y   =   f ( x )    T: Type  insize::Int   outsize::Int    path: initial values   T::Type   #  Merlin.Max     Type .", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
@@ -162,7 +162,7 @@
         }, 
         {
             "location": "/functors/#example_5", 
-            "text": "x = rand(Float32,10,5)\nf = Max(1)\ny = f(x)  #  Merlin.ReLU     Type .", 
+            "text": "x   =   rand ( Float32 , 10 , 5 )  f   =   Max ( 1 )  y   =   f ( x )   #  Merlin.ReLU     Type .", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
@@ -172,7 +172,7 @@
         }, 
         {
             "location": "/functors/#example_6", 
-            "text": "x = rand(Float32,10,5)\nf = ReLU()\ny = f(x)  #  Merlin.Reshape     Type .", 
+            "text": "x   =   rand ( Float32 , 10 , 5 )  f   =   ReLU ()  y   =   f ( x )   #  Merlin.Reshape     Type .", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
@@ -187,7 +187,7 @@
         }, 
         {
             "location": "/functors/#example_7", 
-            "text": "x = rand(Float32,10,5,3)\nf = Reshape(5,3,10)\ny = f(x)  #  Merlin.Sigmoid     Type .", 
+            "text": "x   =   rand ( Float32 , 10 , 5 , 3 )  f   =   Reshape ( 5 , 3 , 10 )  y   =   f ( x )   #  Merlin.Sigmoid     Type .", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
@@ -197,7 +197,7 @@
         }, 
         {
             "location": "/functors/#example_8", 
-            "text": "x = rand(Float32,10,5)\nf = Sigmoid()\ny = f(x)  #  Merlin.Softmax     Type .", 
+            "text": "x   =   rand ( Float32 , 10 , 5 )  f   =   Sigmoid ()  y   =   f ( x )   #  Merlin.Softmax     Type .", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
@@ -212,7 +212,7 @@
         }, 
         {
             "location": "/functors/#example_9", 
-            "text": "x = rand(Float32,10,5)\nf = Softmax()\ny = f(x)  #  Merlin.Tanh     Type .", 
+            "text": "x   =   rand ( Float32 , 10 , 5 )  f   =   Softmax ()  y   =   f ( x )   #  Merlin.Tanh     Type .", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
@@ -222,7 +222,7 @@
         }, 
         {
             "location": "/functors/#example_10", 
-            "text": "x = rand(Float32,10,5)\nf = Tanh()\ny = f(x)  #  Merlin.Window2D     Type .", 
+            "text": "x   =   rand ( Float32 , 10 , 5 )  f   =   Tanh ()  y   =   f ( x )   #  Merlin.Window2D     Type .", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
@@ -232,12 +232,12 @@
         }, 
         {
             "location": "/functors/#example_11", 
-            "text": "#x = rand(Float32,10,5)\n#f = Window2D(10, 2, 1, 1, 0, 0)\n#y = f(x)", 
+            "text": "#x = rand(Float32,10,5)  #f = Window2D(10, 2, 1, 1, 0, 0)  #y = f(x)", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
             "location": "/graph/", 
-            "text": "#\n\n\nMerlin.Graph\n \n \nType\n.\n\n\n\n\nGraph\n\n\nGraph\n is a container of \nFunctor\ns. The following is an example of Gated Recurrent Unit (GRU).\n\n\n\ud83d\udc49 Example\n\n\n# parameters\nWs = [Variable(rand(T,xsize,xsize)) for i=1:3]\nUs = [Variable(rand(T,xsize,xsize)) for i=1:3]\n# input\nx = Variable()\nh = Variable()\n\nr = Sigmoid()(Ws[1]*x + Us[1]*h)\nz = Sigmoid()(Ws[2]*x + Us[2]*h)\nh_ = Tanh()(Ws[3]*x + Us[3]*(r.*h))\nh_next = (1 - z) .* h + z .* h_\nGraph(h_next)", 
+            "text": "#\n\n\nMerlin.Graph\n \n \nType\n.\n\n\n\n\nGraph\n\n\nGraph\n is a container of \nFunctor\ns. The following is an example of Gated Recurrent Unit (GRU).\n\n\n\ud83d\udc49 Example\n\n\n# parameters\n\n\nWs\n \n=\n \n[\nVariable\n(\nrand\n(\nT\n,\nxsize\n,\nxsize\n))\n \nfor\n \ni\n=\n1\n:\n3\n]\n\n\nUs\n \n=\n \n[\nVariable\n(\nrand\n(\nT\n,\nxsize\n,\nxsize\n))\n \nfor\n \ni\n=\n1\n:\n3\n]\n\n\n# input\n\n\nx\n \n=\n \nVariable\n()\n\n\nh\n \n=\n \nVariable\n()\n\n\n\nr\n \n=\n \nSigmoid\n()(\nWs\n[\n1\n]\n*\nx\n \n+\n \nUs\n[\n1\n]\n*\nh\n)\n\n\nz\n \n=\n \nSigmoid\n()(\nWs\n[\n2\n]\n*\nx\n \n+\n \nUs\n[\n2\n]\n*\nh\n)\n\n\nh_\n \n=\n \nTanh\n()(\nWs\n[\n3\n]\n*\nx\n \n+\n \nUs\n[\n3\n]\n*\n(\nr\n.*\nh\n))\n\n\nh_next\n \n=\n \n(\n1\n \n-\n \nz\n)\n \n.*\n \nh\n \n+\n \nz\n \n.*\n \nh_\n\n\nGraph\n(\nh_next\n)", 
             "title": "Graph"
         }, 
         {
@@ -247,12 +247,12 @@
         }, 
         {
             "location": "/graph/#example", 
-            "text": "# parameters\nWs = [Variable(rand(T,xsize,xsize)) for i=1:3]\nUs = [Variable(rand(T,xsize,xsize)) for i=1:3]\n# input\nx = Variable()\nh = Variable()\n\nr = Sigmoid()(Ws[1]*x + Us[1]*h)\nz = Sigmoid()(Ws[2]*x + Us[2]*h)\nh_ = Tanh()(Ws[3]*x + Us[3]*(r.*h))\nh_next = (1 - z) .* h + z .* h_\nGraph(h_next)", 
+            "text": "# parameters  Ws   =   [ Variable ( rand ( T , xsize , xsize ))   for   i = 1 : 3 ]  Us   =   [ Variable ( rand ( T , xsize , xsize ))   for   i = 1 : 3 ]  # input  x   =   Variable ()  h   =   Variable ()  r   =   Sigmoid ()( Ws [ 1 ] * x   +   Us [ 1 ] * h )  z   =   Sigmoid ()( Ws [ 2 ] * x   +   Us [ 2 ] * h )  h_   =   Tanh ()( Ws [ 3 ] * x   +   Us [ 3 ] * ( r .* h ))  h_next   =   ( 1   -   z )   .*   h   +   z   .*   h_  Graph ( h_next )", 
             "title": "\ud83d\udc49 Example"
         }, 
         {
             "location": "/optimizers/", 
-            "text": "Optimizers\n\n\n#\n\n\nMerlin.SGD\n \n \nType\n.\n\n\n\n\nSGD\n\n\nComputes Stochastic Gradient Descent. After updated, gradient is set to be zero.\n\n\nFunctions\n\n\n\n\nSGD(rate::Float64)\n\n\n\n\n\ud83d\udc49 Example\n\n\nopt = SGD(0.001)\nf = Linear(Float32,100,50)\n# compute gradient...\n\nupdate!(opt, f) # update parameters of `f`\nupdate!(opt, param, grad) # param -= rate * grad", 
+            "text": "Optimizers\n\n\n#\n\n\nMerlin.SGD\n \n \nType\n.\n\n\n\n\nSGD\n\n\nComputes Stochastic Gradient Descent. After updated, gradient is set to be zero.\n\n\nFunctions\n\n\n\n\nSGD(rate::Float64)\n\n\n\n\n\ud83d\udc49 Example\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\nf\n \n=\n \nLinear\n(\nFloat32\n,\n100\n,\n50\n)\n\n\n# compute gradient...\n\n\n\nupdate!\n(\nopt\n,\n \nf\n)\n \n# update parameters of `f`\n\n\nupdate!\n(\nopt\n,\n \nparam\n,\n \ngrad\n)\n \n# param -= rate * grad", 
             "title": "Optimizers"
         }, 
         {
@@ -272,7 +272,7 @@
         }, 
         {
             "location": "/optimizers/#example", 
-            "text": "opt = SGD(0.001)\nf = Linear(Float32,100,50)\n# compute gradient...\n\nupdate!(opt, f) # update parameters of `f`\nupdate!(opt, param, grad) # param -= rate * grad", 
+            "text": "opt   =   SGD ( 0.001 )  f   =   Linear ( Float32 , 100 , 50 )  # compute gradient...  update! ( opt ,   f )   # update parameters of `f`  update! ( opt ,   param ,   grad )   # param -= rate * grad", 
             "title": "\ud83d\udc49 Example"
         }
     ]
