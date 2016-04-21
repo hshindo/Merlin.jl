@@ -2,8 +2,7 @@ using Documenter
 using Merlin
 
 makedocs(
-  modules = [Merlin],
-  clean = false
+  modules = [Merlin]
 )
 
 custom_deps() = run(`pip install --user pygments mkdocs mkdocs-material`)
