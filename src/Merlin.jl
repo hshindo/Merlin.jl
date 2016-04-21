@@ -7,16 +7,13 @@ using JLD
 abstract Functor
 abstract Optimizer
 
-export CudaArray
-
 include("native.jl")
+include("cuda/cudaarray.jl")
 
 if haskey(ENV, "USE_CUDA")
   using CUDA
+  using CUDA.RT
   using CUDNN
-else
-  type CudaArray{T,N} # Dummy
-  end
 end
 
 typealias Data{T,N} Union{Array{T,N},CudaArray{T,N}}

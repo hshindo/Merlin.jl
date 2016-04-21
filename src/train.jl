@@ -1,18 +1,26 @@
-function fit(model, train_data, test_data, callback)
-  for epoch = 1:10
+function fit(init::Function, forward::Function, train_data, test_data, num_epochs::Int)
+  for epoch = 1:num_epochs
+    loss = 0.0
+    println("epoch: $(epoch)")
+    init(epoch)
 
+    for i in randperm(length(train_data))
+      x = train_data[i]
+      y = forward(x)
+      loss = ()
+      gradient!(loss)
+      update!()
+    end
   end
 end
 
-function train(path)
-  # data
-  worddict = read_wordlist("$(path)/words.lst")
-  chardict, tagdict = Dict(), Dict()
-  traindata = read_conll("$(path)/wsj_00-18.conll", true, worddict, chardict, tagdict)
-  println("#word: $(length(worddict)), #char: $(length(chardict)), #tag: $(length(tagdict))")
-  #traindata = traindata[1:10000]
-  testdata = read_conll("$(path)/wsj_22-24.conll", false, worddict, chardict, tagdict)
+type Model
+  nn::Functor
+  lossfun::Functor
+  opt
+end
 
+function train()
   # model
   model = Model(path)
   opt = SGD(0.0075)
