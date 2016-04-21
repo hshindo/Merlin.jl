@@ -1,6 +1,18 @@
 environment:
   matrix:
-  - JULIAVERSION: "x64/0.4/julia-0.4-latest-win64.exe"
+  - JULIAVERSION: "julialang/bin/winnt/x64/0.4/julia-0.4-latest-win64.exe"
+  - JULIAVERSION: "julianightlies/bin/winnt/x64/julia-latest-win64.exe"
+
+branches:
+  only:
+    - master
+    - /release-.*/
+
+notifications:
+  - provider: Email
+    on_build_success: false
+    on_build_failure: false
+    on_build_status_changed: false
 
 install:
 # Download most recent Julia Windows binary
