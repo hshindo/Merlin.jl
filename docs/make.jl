@@ -1,4 +1,3 @@
-
 using Documenter
 using Merlin
 
