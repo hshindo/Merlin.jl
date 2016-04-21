@@ -2,7 +2,10 @@ export Softmax, softmax
 
 """
 ## Softmax
-\$ f(x)=\frac{\exp(x_{i})}{\sum_{j}^{n}\exp(x_{j})},\;i=1,\ldots,n \$
+
+```math
+f(x)=\frac{\exp(x_{i})}{\sum_{j}^{n}\exp(x_{j})},\;i=1,\ldots,n
+```
 
 ### Functions
 - `Softmax()`

@@ -2,7 +2,11 @@ export LogSoftmax, logsoftmax
 
 """
 ## LogSoftmax
-\$ f(x)=\frac{\exp(x_{i})}{\sum_{j}^{n}\exp(x_{j})},\;i=1,\ldots,n \$
+Compute logarith of softmax function.
+
+```math
+f(x)=\frac{\exp(x_{i})}{\sum_{j}^{n}\exp(x_{j})},\;i=1,\ldots,n
+```
 
 ### Functions
 - `LogSoftmax()`

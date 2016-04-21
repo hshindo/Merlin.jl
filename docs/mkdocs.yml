@@ -11,7 +11,6 @@ extra_css:
   - assets/Documenter.css
 
 extra_javascript:
-  #- mathjax-config.js
   - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
   - assets/mathjaxhelper.js
 

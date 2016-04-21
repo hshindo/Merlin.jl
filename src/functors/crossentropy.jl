@@ -4,7 +4,9 @@ export CrossEntropy
 ## CrossEntropy
 Computes cross-entropy between a true distribution \$p\$ and the target distribution \$q\$.
 
-\$ f(x; p) = -\sum_{x} p \log q_x \$
+```math
+f(x; p) = -\sum_{x} p \log q_x
+```
 
 ### Functions
 - `CrossEntropy(p::Matrix)`
