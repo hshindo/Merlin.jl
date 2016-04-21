@@ -199,6 +199,82 @@
         
       
       
+        <ul>
+          
+            <li class="anchor">
+              <a title="Concat" href="#concat">
+                Concat
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="CrossEntropy" href="#crossentropy">
+                CrossEntropy
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Linear" href="#linear">
+                Linear
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="LogSoftmax" href="#logsoftmax">
+                LogSoftmax
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Lookup" href="#lookup">
+                Lookup
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Max" href="#max">
+                Max
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="ReLU" href="#relu">
+                ReLU
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Reshape" href="#reshape">
+                Reshape
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Sigmoid" href="#sigmoid">
+                Sigmoid
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Softmax" href="#softmax">
+                Softmax
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Tanh" href="#tanh">
+                Tanh
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Window2D" href="#window2d">
+                Window2D
+              </a>
+            </li>
+          
+        </ul>
+      
     
   </li>
 
@@ -224,22 +300,196 @@
           
           <p><a id='Functors-1'></a></p>
 <h1 id="functors">Functors</h1>
-<div class="codehilite"><pre><span></span>{docs}
-Add
-Concat
-CrossEntropy
-Linear
-LogSoftmax
-Lookup
-Max
-Multiply
-ReLU
-Reshape
-Sigmoid
-Softmax
-Subtract
-Tanh
-Window2D
+<p><a id='Merlin.Concat' href='#Merlin.Concat'>#</a>
+<strong><code>Merlin.Concat</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="concat">Concat</h2>
+<p>Concatenates arrays along the given dimension.</p>
+<h3 id="functions">Functions</h3>
+<ul>
+<li><code>Concat(dim::Int)</code></li>
+</ul>
+<h3 id="example">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="n">x1</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">x2</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Concat</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a id='Merlin.CrossEntropy' href='#Merlin.CrossEntropy'>#</a>
+<strong><code>Merlin.CrossEntropy</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="crossentropy">CrossEntropy</h2>
+<p>Computes cross-entropy between a true distribution $p$ and the target distribution $q$.</p>
+<p>$ f(x; p) = -sum_{x} p log q_x $</p>
+<h3 id="functions_1">Functions</h3>
+<ul>
+<li><code>CrossEntropy(p::Matrix)</code></li>
+<li><code>CrossEntropy(p::Vector{Int})</code></li>
+</ul>
+<h3 id="example_1">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">CrossEntropy</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a id='Merlin.Linear' href='#Merlin.Linear'>#</a>
+<strong><code>Merlin.Linear</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="linear">Linear</h2>
+<p>Computes linear transformation a.k.a. affine transformation.</p>
+<p>$ f(x) = W^{mathrm{T}}x + b $</p>
+<p>where $W$ is a weight matrix, $b$ is a bias vector.</p>
+<p><img src="../assets/linear.png" width="300px"></p>
+<h3 id="functions_2">Functions</h3>
+<ul>
+<li><code>Linear(w, b)</code></li>
+<li><code>Linear{T}(::Type{T}, insize::Int, outsize::Int)</code></li>
+</ul>
+<h3 id="example_2">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a id='Merlin.LogSoftmax' href='#Merlin.LogSoftmax'>#</a>
+<strong><code>Merlin.LogSoftmax</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="logsoftmax">LogSoftmax</h2>
+<p>$ f(x)=rac{xp(x_{i})}{sum_{j}^{n}xp(x_{j})},;i=1,ldots,n $</p>
+<h3 id="functions_3">Functions</h3>
+<ul>
+<li><code>LogSoftmax()</code></li>
+</ul>
+<h3 id="example_3">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">LogSoftmax</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a id='Merlin.Lookup' href='#Merlin.Lookup'>#</a>
+<strong><code>Merlin.Lookup</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="lookup">Lookup</h2>
+<p>Lookup variables.</p>
+<h3 id="functions_4">Functions</h3>
+<ul>
+<li>Lookup(insize::Int, outsize::Int)</li>
+</ul>
+<h3 id="example_4">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Lookup</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10000</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a id='Merlin.Max' href='#Merlin.Max'>#</a>
+<strong><code>Merlin.Max</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="max">Max</h2>
+<p>Computes the maximum value of an array over the given dimensions.</p>
+<h3 id="functions_5">Functions</h3>
+<ul>
+<li><code>Max(dim::Int)</code></li>
+</ul>
+<h3 id="example_5">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a id='Merlin.ReLU' href='#Merlin.ReLU'>#</a>
+<strong><code>Merlin.ReLU</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="relu">ReLU</h2>
+<p>Rectifier linear unit.</p>
+<ul>
+<li><code>ReLU()</code></li>
+</ul>
+<h3 id="example_6">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">ReLU</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a id='Merlin.Reshape' href='#Merlin.Reshape'>#</a>
+<strong><code>Merlin.Reshape</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="reshape">Reshape</h2>
+<p>Reshapes an array with the given dimensions.</p>
+<h3 id="functions_6">Functions</h3>
+<ul>
+<li><code>Reshape(dims::Int...)</code></li>
+</ul>
+<h3 id="example_7">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Reshape</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a id='Merlin.Sigmoid' href='#Merlin.Sigmoid'>#</a>
+<strong><code>Merlin.Sigmoid</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="sigmoid">Sigmoid</h2>
+<ul>
+<li><code>Sigmoid()</code></li>
+</ul>
+<h3 id="example_8">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Sigmoid</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a id='Merlin.Softmax' href='#Merlin.Softmax'>#</a>
+<strong><code>Merlin.Softmax</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="softmax">Softmax</h2>
+<p>$ f(x)=rac{xp(x_{i})}{sum_{j}^{n}xp(x_{j})},;i=1,ldots,n $</p>
+<h3 id="functions_7">Functions</h3>
+<ul>
+<li><code>Softmax()</code></li>
+</ul>
+<h3 id="example_9">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Softmax</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a id='Merlin.Tanh' href='#Merlin.Tanh'>#</a>
+<strong><code>Merlin.Tanh</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="tanh">Tanh</h2>
+<ul>
+<li><code>Tanh()</code></li>
+</ul>
+<h3 id="example_10">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Tanh</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a id='Merlin.Window2D' href='#Merlin.Window2D'>#</a>
+<strong><code>Merlin.Window2D</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<h2 id="window2d">Window2D</h2>
+<ul>
+<li><code>Window(w1::Int, w2::Int, s1::Int, s2::Int, p1::Int, p2::Int)</code>     - w1, w2: window sizes     - s1, s2: stride sizes     - p1, p2: padding sizes</li>
+</ul>
+<h3 id="example_11">👉 Example</h3>
+<div class="codehilite"><pre><span></span><span class="c">#x = rand(Float32,10,5)</span>
+<span class="c">#f = Window2D(10, 2, 1, 1, 0, 0)</span>
+<span class="c">#y = f(x)</span>
 </pre></div>
           <aside class="copyright" role="note">
             
