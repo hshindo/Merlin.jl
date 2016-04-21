@@ -1,16 +1,70 @@
 const T = Float64
 
-@testset "add" begin
-  x1 = rand(T, 10, 5)
-  x2 = rand(T, 10, 5)
-  x3 = rand(T, 10, 1)
-  @test check_gradient(Add(), x1, x2)
-  @test check_gradient(ElemAdd(), x1, x2)
-  @test check_gradient(ElemAdd(), x2, x3)
+@testset "activation" for i = 1:5
+
+  @testset "logsoftmax" begin
+    x = rand(T, 10, 5)
+    @test check_gradient(LogSoftmax(), x)
+  end
+
+  @testset "relu" begin
+    x = rand(T, 10, 5)
+    @test check_gradient(ReLU(), x)
+  end
+
+  @testset "sigmoid" begin
+    x = rand(T, 10, 5)
+    @test check_gradient(Sigmoid(), x)
+  end
+
+  @testset "softmax" begin
+    x = rand(T, 10, 5)
+    @test check_gradient(Softmax(), x)
+  end
+
+  @testset "tanh" begin
+    x = rand(T, 10, 5)
+    @test check_gradient(Tanh(), x)
+  end
 end
 
-# blas
+@testset "loss" for i = 1:5
 
+  @testset "crosentropy" begin
+    p = [rand(1:10) for i=1:5]
+    x = rand(T, 10, 5)
+    @test check_gradient(CrossEntropy(p), x)
+  end
+end
+
+@testset "math" for i = 1:5
+
+  @testset "add" begin
+    x1 = rand(T, 10, 5)
+    x2 = rand(T, 10, 5)
+    x3 = rand(T, 10, 1)
+    @test check_gradient(Add(), x1, x2)
+    @test check_gradient(ElemAdd(), x1, x2)
+    @test check_gradient(ElemAdd(), x2, x3)
+  end
+
+  @testset "multiply" begin
+    x1 = rand(T, 100, 50)
+    x2 = rand(T, 50, 30)
+    x3 = rand(T, 50, 30)
+    @test check_gradient(Multiply(), x1, x2)
+    @test check_gradient(ElemMultiply(), x2, x3)
+  end
+
+  @testset "subtract" begin
+    x1 = rand(T, 10, 5)
+    x2 = rand(T, 10, 5)
+    x3 = rand(T, 10, 1)
+    @test check_gradient(Subtract(), x1, x2)
+    @test check_gradient(ElemSubtract(), x1, x2)
+    @test check_gradient(ElemSubtract(), x2, x3)
+  end
+end
 
 @testset "concat" for i = 1:5
   x1 = rand(T, 10, 5, 2)
@@ -21,21 +75,10 @@ end
   @test check_gradient(Concat(3), x1, x2, x3)
 end
 
-@testset "crosentropy" for i = 1:5
-  p = [rand(1:10) for i=1:5]
-  x = rand(T, 10, 5)
-  @test check_gradient(CrossEntropy(p), x)
-end
-
 @testset "linear" for i = 1:5
   x = rand(T, 10, 5)
   f = Linear(T, 10, 8)
   @test check_gradient(f, x)
-end
-
-@testset "logsoftmax" for i = 1:5
-  x = rand(T, 10, 5)
-  @test check_gradient(LogSoftmax(), x)
 end
 
 @testset "lookup" for i = 1:5
@@ -54,47 +97,10 @@ end
 @testset "maxpooling2d" for i = 1:5
 end
 
-@testset "multiply" for i = 1:5
-  x1 = rand(T, 100, 50)
-  x2 = rand(T, 50, 30)
-  x3 = rand(T, 50, 30)
-  @test check_gradient(Multiply(), x1, x2)
-  @test check_gradient(ElemMultiply(), x2, x3)
-end
-
-@testset "relu" for i = 1:5
-  x = rand(T, 10, 5)
-  @test check_gradient(ReLU(), x)
-end
-
 @testset "reshape" for i = 1:5
   x = rand(T, 10, 5, 2)
   f = Reshape(5, 10, 2)
   #@test check_gradient(f, x)
-end
-
-@testset "sigmoid" for i = 1:5
-  x = rand(T, 10, 5)
-  @test check_gradient(Sigmoid(), x)
-end
-
-@testset "softmax" for i = 1:5
-  x = rand(T, 10, 5)
-  @test check_gradient(Softmax(), x)
-end
-
-@testset "subtract" for i = 1:5
-  x1 = rand(T, 10, 5)
-  x2 = rand(T, 10, 5)
-  x3 = rand(T, 10, 1)
-  @test check_gradient(Subtract(), x1, x2)
-  @test check_gradient(ElemSubtract(), x1, x2)
-  @test check_gradient(ElemSubtract(), x2, x3)
-end
-
-@testset "tanh" for i = 1:5
-  x = rand(T, 10, 5)
-  @test check_gradient(Tanh(), x)
 end
 
 @testset "window2d" for i = 1:5
