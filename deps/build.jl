@@ -1,5 +1,3 @@
-using BinDeps
-
 sources = ["maxpooling2d.cpp", "window2d.cpp"]
 
 compiler = "g++"
