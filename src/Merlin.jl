@@ -6,6 +6,7 @@ using JLD
 
 abstract Functor
 abstract Optimizer
+export update!
 
 include("native.jl")
 #include("cuda/cudaarray.jl")
