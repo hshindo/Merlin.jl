@@ -5,7 +5,7 @@ repo_url: https://github.com/hshindo/Merlin.jl
 
 docs_dir: 'build'
 
-theme: material
+theme: readthedocs
 
 extra_css:
   - assets/Documenter.css
@@ -13,7 +13,6 @@ extra_css:
 extra_javascript:
   #- mathjax-config.js
   - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
-  #- https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
   - assets/mathjaxhelper.js
 
 markdown_extensions:
