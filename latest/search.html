@@ -5,36 +5,32 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta name="description" content="Deep Learning Framework in Julia">
   <meta name="author" content="Hiroyuki Shindo">
   
-  <title>Optimizers - Merlin.jl</title>
+  <title>Merlin.jl</title>
   
 
-  <link rel="shortcut icon" href="../img/favicon.ico">
+  <link rel="shortcut icon" href="./img/favicon.ico">
 
   
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
-  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="../css/highlight.css">
-  <link href="../assets/Documenter.css" rel="stylesheet">
+  <link rel="stylesheet" href="./css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="./css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="./css/highlight.css">
+  <link href="./assets/Documenter.css" rel="stylesheet">
 
   
-  <script>
-    // Current page data
-    var mkdocs_page_name = "Optimizers";
-    var mkdocs_page_input_path = "optimizers.md";
-    var mkdocs_page_url = "/optimizers/";
-  </script>
-  
-  <script src="../js/jquery-2.1.1.min.js"></script>
-  <script src="../js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="../js/highlight.pack.js"></script>
-  <script src="../js/theme.js"></script> 
+  <script src="./js/jquery-2.1.1.min.js"></script>
+  <script src="./js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="./js/highlight.pack.js"></script>
+  <script src="./js/theme.js"></script>
+  <script>var base_url = '.';</script>
+  <script data-main="./mkdocs/js/search.js" src="./mkdocs/js/require.js"></script>
+
   <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-  <script src="../assets/mathjaxhelper.js"></script>
+  <script src="./assets/mathjaxhelper.js"></script>
 
   
 </head>
@@ -46,9 +42,9 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href=".." class="icon icon-home"> Merlin.jl</a>
+        <a href="." class="icon icon-home"> Merlin.jl</a>
         <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
   </form>
 </div>
@@ -59,51 +55,42 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="..">Home</a>
+        <a class="" href=".">Home</a>
         
     </li>
 <li>
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../overview/">Overview</a>
+        <a class="" href="overview/">Overview</a>
         
     </li>
 <li>
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../types/">Types</a>
+        <a class="" href="types/">Types</a>
         
     </li>
 <li>
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../functors/">Functors</a>
+        <a class="" href="functors/">Functors</a>
         
     </li>
 <li>
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../graph/">Graph</a>
+        <a class="" href="graph/">Graph</a>
         
     </li>
 <li>
           
             <li>
-    <li class="toctree-l1 current">
-        <a class="current" href="./">Optimizers</a>
-        
-            <ul>
-            
-                <li class="toctree-l3"><a href="#optimizers">Optimizers</a></li>
-                
-                    <li><a class="toctree-l4" href="#sgd">SGD</a></li>
-                
-            
-            </ul>
+    <li class="toctree-l1 ">
+        <a class="" href="optimizers/">Optimizers</a>
         
     </li>
 <li>
@@ -118,7 +105,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="..">Merlin.jl</a>
+        <a href=".">Merlin.jl</a>
       </nav>
 
       
@@ -126,11 +113,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="..">Docs</a> &raquo;</li>
+    <li><a href=".">Docs</a> &raquo;</li>
     
-      
     
-    <li>Optimizers</li>
     <li class="wy-breadcrumbs-aside">
       
         
@@ -144,35 +129,22 @@
           <div role="main">
             <div class="section">
               
-                <p><a id='Optimizers-1'></a></p>
-<h1 id="optimizers">Optimizers</h1>
-<p><a id='Merlin.SGD' href='#Merlin.SGD'>#</a>
-<strong><code>Merlin.SGD</code></strong> &mdash; <em>Type</em>.</p>
-<hr />
-<h2 id="sgd">SGD</h2>
-<p>Computes Stochastic Gradient Descent. After updated, gradient is set to be zero.</p>
-<h3 id="functions">Functions</h3>
-<ul>
-<li><code>SGD(rate::Float64)</code></li>
-</ul>
-<h3 id="example">👉 Example</h3>
-<pre class="codehilite"><code class="language-julia">opt = SGD(0.001)
-f = Linear(Float32,100,50)
-# compute gradient...
 
-update!(opt, f) # update parameters of `f`
-update!(opt, param, grad) # param -= rate * grad</code></pre>
-              
+  <h1 id="search">Search Results</h1>
+
+  <form id="content_search" action="search.html">
+    <span role="status" aria-live="polite" class="ui-helper-hidden-accessible"></span>
+    <input name="q" id="mkdocs-search-query" type="text" class="search_input search-query ui-autocomplete-input" placeholder="Search the Docs" autocomplete="off" autofocus>
+  </form>
+
+  <div id="mkdocs-search-results">
+    Sorry, page not found.
+  </div>
+
+
             </div>
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-      
-        <a href="../graph/" class="btn btn-neutral" title="Graph"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>
@@ -197,8 +169,6 @@ update!(opt, param, grad) # param -= rate * grad</code></pre>
       
           <a href="https://github.com/hshindo/Merlin.jl" class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
-      
-        <span><a href="../graph/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
     </span>
