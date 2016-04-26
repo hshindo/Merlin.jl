@@ -53,6 +53,20 @@ function topsort(var::Variable)
   sorted
 end
 
+function backward!(var::Variable)
+  hasgrad(var) || (var.grad = ones(var.value))
+  sorted = topsort(var)
+  for v in sorted
+    (v == var || hasgrad(v) || v.backward! == nothing) && continue
+    v.grad = zeros(v.value)
+  end
+  for i = length(sorted):-1:1
+    v = sorted[i]
+    v.backward! == nothing || v.backward!()
+  end
+  sorted
+end
+
 function gradient!(var::Variable)
   hasgrad(var) || (var.grad = ones(var.value))
   sorted = topsort(var)

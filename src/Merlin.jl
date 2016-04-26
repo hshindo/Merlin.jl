@@ -26,6 +26,7 @@ include("util.jl")
 include("variable.jl")
 include("graph.jl")
 include("sequence.jl")
+include("trainer.jl")
 
 for name in [
     "logsoftmax",

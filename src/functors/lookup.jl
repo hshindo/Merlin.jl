@@ -19,7 +19,8 @@ type Lookup <: Functor
   idset::Set{Int}
 end
 
-Lookup(weights::Vector) = Lookup(weights, Set{Int}())
+Lookup(weights::Vector{Variable}) = Lookup(weights, Set{Int}())
+Lookup{T<:AbstractFloat}(weights::Vector{Vector{T}}) = Lookup(map(Variable, weights))
 
 """
 - T: Type

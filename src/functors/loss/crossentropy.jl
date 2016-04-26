@@ -1,5 +1,16 @@
 export CrossEntropy
 
+type CrossEntropy <: Functor
+end
+
+@compat (f::CrossEntropy)(args...) = forward(f, args...)
+function forward!(f::CrossEntropy, v::Variable)
+  p = v[1].value
+  logq = logsoftmax(v[2].value)
+  v.value = crossentropy(p, logq)
+  v.backward! = () -> hasgrad(v[2]) && ∇crossentropy!(p, logq, v[2].grad, v.grad)
+end
+
 """
 ## CrossEntropy
 Computes cross-entropy between a true distribution \$p\$ and the target distribution \$q\$.
@@ -20,6 +31,8 @@ x = rand(Float32,10,5)
 y = f(x)
 ```
 """
+
+#=
 type CrossEntropy <: Functor
   p
 end
@@ -30,6 +43,7 @@ function forward!(f::CrossEntropy, v::Variable)
   v.value = crossentropy(f.p, logq)
   v.backward! = () -> hasgrad(v[1]) && ∇crossentropy!(f.p, logq, v[1].grad, v.grad)
 end
+=#
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
   y = Array(T, 1, size(p,2))
