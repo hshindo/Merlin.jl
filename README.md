@@ -1,12 +1,12 @@
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/Merlin.png" width="150"></p>
 
-This is pre-alpha version. We will make this publicly available in a next few months.
+This is pre-alpha version. We will make it publicly available in a next few months.
 
 # Merlin.jl: deep learning framework in Julia
 
 `Merlin` is a deep learning framework written in [Julia](http://julialang.org/).
 It aims to provide a fast, flexible and compact deep learning library for machine learning.
-Compared with [Mocha.jl](https://github.com/pluskid/Mocha.jl) and other deep learning frameworks, `Merlin` is designed to describe dynamic network structure (e.g. recurrent neural network) more clearly and concisely.
+Our primary goal is to develop a NLP toolkit based on `Merlin`.
 
 `Merlin` is tested against Julia `0.4` and *current* `0.5-dev` on Linux, OS X, and Windows.
 
@@ -26,8 +26,24 @@ julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 ```
 
 ## Usage
-
 - [Documentation (latest)](http://hshindo.github.io/Merlin.jl/latest/)
+
+## Quick Start
+### Decoding
+```julia
+x = rand(Float32,10,5) # initialize random array
+f = Graph(
+  Linear(Float32,10,7),
+  ReLU(),
+  Linear(Float32,7,3)
+)
+y = f(x)
+```
+
+### Training
+```julia
+To be written...
+```
 
 ## Using CUDA
 To be written...
