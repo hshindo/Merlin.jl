@@ -9,19 +9,23 @@ function train(path)
   #traindata = traindata[1:10000]
   testdata = read_conll("$(path)/wsj_22-24.conll", false, worddict, chardict, tagdict)
 
+  train_y = map(x -> map(t -> t.tagid, x), traindata)
+
   # model
   model = Model(path)
-  opt = SGD(0.0075)
-  nn(x::Vector{Token}) = forward(model, x)
-  function toloss(y::Vector{Token}, z::Variable)
-    maxidx = argmax(z.value, 1)
-    p = map(t -> t.tagid, y)
-    CrossEntropy(p)(z)
-  end
-  t = Trainer(nn, toloss, opt)
-  for epoch = 1:10
+  #opt = SGD(0.0075)
+  #nn(x::Vector{Token}) = forward(model, x)
+  #function toloss(y::Vector{Token}, z::Variable)
+  #  maxidx = argmax(z.value, 1)
+  #  p = map(t -> t.tagid, y)
+  #  CrossEntropy(p)(z)
+  #end
+  #t = Trainer(nn, toloss, opt)
+
+  for epoch = 1:5
     println("epoch: $(epoch)")
-    loss = fit(t, traindata, traindata)
+    model.opt.rate = 0.0075 / epoch
+    loss = fit(model, traindata, train_y)
     println("training loss: $(loss)")
     decode(model, testdata)
     println("")

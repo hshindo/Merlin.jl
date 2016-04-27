@@ -1,9 +1,12 @@
 using Merlin
+using Compat
 
 type Model
   word_f
   char_f
   sent_f
+  lossfun
+  opt
 end
 
 function Model(path)
@@ -18,7 +21,13 @@ function Model(path)
                     Linear(T,750,300),
                     ReLU(),
                     Linear(T,300,45))
-  Model(word_f, char_f, sent_f)
+  loss_f = CrossEntropy()
+  opt = SGD(0.0)
+  Model(word_f, char_f, sent_f, loss_f, opt)
+end
+
+@compat function (m::Model)(tokens::Vector{Token})
+  forward(m, tokens)
 end
 
 function forward(m::Model, tokens::Vector{Token})
@@ -33,7 +42,7 @@ function forward(m::Model, tokens::Vector{Token})
   (wordmat, charmat) |> Concat(1) |> m.sent_f
 end
 
-function update!(m::Model, opt)
+function update2!(m::Model, opt)
   for f in (m.word_f, m.char_f, m.sent_f)
     Merlin.update!(opt, f)
   end
