@@ -33,7 +33,7 @@ end
   @testset "crosentropy" begin
     p = [rand(1:10) for i=1:5]
     x = rand(T, 10, 5)
-    @test check_gradient(CrossEntropy(p), x)
+    @test check_gradient(CrossEntropy(), p, x)
   end
 end
 

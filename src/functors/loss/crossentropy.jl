@@ -4,6 +4,7 @@ type CrossEntropy <: Functor
 end
 
 @compat (f::CrossEntropy)(args...) = forward(f, args...)
+@compat (f::CrossEntropy)(args::Tuple) = forward(f, args)
 function forward!(f::CrossEntropy, v::Variable)
   p = v[1].value
   logq = logsoftmax(v[2].value)
