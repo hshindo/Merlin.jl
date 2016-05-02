@@ -43,8 +43,13 @@ mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
 isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 
 @compat (f::Linear)(arg) = forward(f, arg)
+
+forward(f::Linear, x::Variable) = f.w * x .+ f.b
+
 function forward!(f::Linear, v::Variable)
   v.value = f.w.value * v[1].value .+ f.b.value
+  push!(v.args, f.w)
+  push!(v.args, f.b)
   v.backward! = () -> begin
     # dy / dx = w^T * gy, dy / dw = gy * x^T
     T = eltype(v.value)
@@ -56,9 +61,4 @@ function forward!(f::Linear, v::Variable)
       BLAS.axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
     end
   end
-end
-
-function update!(opt::Optimizer, f::Linear)
-  update!(opt, f.w.value, f.w.grad)
-  update!(opt, f.b.value, f.b.grad)
 end

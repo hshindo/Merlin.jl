@@ -15,9 +15,9 @@ Us = [Variable(rand(T,xsize,xsize)) for i=1:3]
 x = Variable()
 h = Variable()
 
-r = Sigmoid()(Ws[1]*x + Us[1]*h)
-z = Sigmoid()(Ws[2]*x + Us[2]*h)
-h_ = Tanh()(Ws[3]*x + Us[3]*(r.*h))
+r = sigmoid(Ws[1]*x + Us[1]*h)
+z = sigmoid(Ws[2]*x + Us[2]*h)
+h_ = tanh(Ws[3]*x + Us[3]*(r.*h))
 h_next = (1 - z) .* h + z .* h_
 Graph(h_next)
 ```
@@ -42,10 +42,6 @@ function Graph(top::Variable)
   for i in 1:length(nodes)
     v = nodes[i]
     length(v.args) == 0 && v.value == nothing && push!(data_ids, i)
-  end
-  for v in nodes
-    #compile!(GEMM!, v) && continue
-    #compile!(AXPY!, v) && continue
   end
 
   dict = ObjectIdDict()
@@ -90,10 +86,3 @@ Base.getindex(g::Graph, key) = g.nodes[key]
 end
 
 @compat (g::Graph)(args...) = g(args)
-
-function update!(opt::Optimizer, g::Graph)
-  for v in g.nodes
-    applicable(update!, opt, v.f) && update!(opt, v.f)
-    hasgrad(v) && update!(opt, v.value, v.grad)
-  end
-end

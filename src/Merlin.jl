@@ -26,37 +26,23 @@ include("util.jl")
 include("variable.jl")
 include("graph.jl")
 include("sequence.jl")
-include("trainer.jl")
+include("training.jl")
 
 for name in [
-    "logsoftmax",
-    "relu",
-    "sigmoid",
-    "softmax",
-    "tanh"]
-  include("functors/activation/$(name).jl")
-end
-
-for name in [
-    "crossentropy"]
-  include("functors/loss/$(name).jl")
-end
-
-for name in [
-    "add",
-    "blas",
-    "multiply",
-    "subtract"]
-  include("functors/math/$(name).jl")
-end
-
-for name in [
-    "concat",
-    "linear",
-    "lookup",
-    "max",
-    "reshape",
-    "window2d"]
+  "blas",
+  "concat",
+  "crossentropy",
+  "linear",
+  "logsoftmax",
+  "lookup",
+  "math",
+  "max",
+  "relu",
+  "reshape",
+  "sigmoid",
+  "softmax",
+  "tanh",
+  "window2d"]
   include("functors/$(name).jl")
 end
 

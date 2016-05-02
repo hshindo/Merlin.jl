@@ -21,6 +21,8 @@ function forward!(f::Sigmoid, v::Variable)
   v.backward! = () -> hasgrad(v[1]) && ∇sigmoid!(v.value, v[1].grad, v.grad)
 end
 
+sigmoid(x::Variable) = Sigmoid()(x)
+
 function ∇sigmoid!{T,N}(y::Array{T,N}, gx::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(y)
     gx[i] += gy[i] * y[i] * (T(1) - y[i])

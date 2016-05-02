@@ -5,14 +5,12 @@ type Model
   word_f
   char_f
   sent_f
-  lossfun
-  opt
 end
 
 function Model(path)
   T = Float32
-  #word_f = Lookup(T, 500000, 100)
-  word_f = Lookup("$(path)/nyt100.lst", T)
+  word_f = Lookup(T, 500000, 100)
+  #word_f = Lookup("$(path)/nyt100.lst", T)
   char_f = Sequence(Lookup(T,100,10),
                     Window2D(10,5,1,1,0,2),
                     Linear(T,50,50),
@@ -21,8 +19,6 @@ function Model(path)
                     Linear(T,750,300),
                     ReLU(),
                     Linear(T,300,45))
-  loss_f = CrossEntropy()
-  opt = SGD(0.0)
   Model(word_f, char_f, sent_f, loss_f, opt)
 end
 
@@ -40,10 +36,4 @@ function forward(m::Model, tokens::Vector{Token})
   end
   charmat = Concat(2)(charvecs)
   (wordmat, charmat) |> Concat(1) |> m.sent_f
-end
-
-function update2!(m::Model, opt)
-  for f in (m.word_f, m.char_f, m.sent_f)
-    Merlin.update!(opt, f)
-  end
 end

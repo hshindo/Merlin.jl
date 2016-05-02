@@ -20,6 +20,7 @@ type Concat <: Functor
 end
 
 @compat (f::Concat)(args) = forward(f, args)
+
 function forward!(f::Concat, v::Variable)
   xs = map(a -> a.value, v.args)
   v.value = concat(f.dim, xs)

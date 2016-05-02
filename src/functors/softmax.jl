@@ -26,6 +26,10 @@ function forward!(f::Softmax, v::Variable)
   v.backward! = () -> hasgrad(v[1]) && ∇softmax2!(v[1].value, v.value, v[1].grad, v.grad)
 end
 
+function softmax_native()
+  Native.softmax()
+end
+
 function softmax{T}(x::Matrix{T})
   y = similar(x)
   max = maximum(x, 1)

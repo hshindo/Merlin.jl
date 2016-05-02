@@ -1,8 +1,9 @@
 """
-BLAS gemm function as follows:
-\$ C = \alpha A B + \beta C \$
+BLAS gemm function:
+```math
+C = \alpha A B + \beta C
+```
 where A, B amd C are matricies
-This is in-place operation.
 """
 type GEMM! <: Functor
   alpha::Float64
@@ -42,9 +43,10 @@ function compile!(::Type{GEMM!}, var::Variable)
 end
 
 """
-BLAS axpy function as follows:
-\$ y = \alpha x + y \$
-This is in-place operation.
+BLAS axpy function:
+```math
+y = \alpha x + y
+```
 """
 type AXPY! <: Functor
   alpha::Float64

@@ -17,6 +17,12 @@ type ReLU <: Functor
 end
 
 @compat (f::ReLU)(arg) = forward(f, arg)
+
+function forward(f::ReLU, args::Tuple{Variable})
+  x = args[1].value
+  
+end
+
 function forward!(f::ReLU, v::Variable)
   v.value = relu(v[1].value)
   v.backward! = () -> hasgrad(v[1]) && ∇relu!(v[1].value, v[1].grad, v.grad)

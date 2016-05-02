@@ -16,7 +16,7 @@ end
 @compat (f::Sequence)(arg::Data) = f(Variable(arg,nothing))
 
 function update!(opt::Optimizer, seq::Sequence)
-  for f in seq.funs
-    applicable(update!, opt, f) && update!(opt, f)
-  end
+  #for f in seq.funs
+  #  applicable(update!, opt, f) && update!(opt, f)
+  #end
 end

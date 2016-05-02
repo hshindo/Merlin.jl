@@ -16,10 +16,8 @@ y = f(x)
 """
 type Lookup <: Functor
   weights::Vector{Variable}
-  idset::Set{Int}
 end
 
-Lookup(weights::Vector{Variable}) = Lookup(weights, Set{Int}())
 Lookup{T<:AbstractFloat}(weights::Vector{Vector{T}}) = Lookup(map(Variable, weights))
 
 """
@@ -52,8 +50,12 @@ function Lookup{T}(path, ::Type{T})
 end
 
 @compat (f::Lookup)(arg) = forward(f, arg)
+
 function forward!(f::Lookup, v::Variable)
   v.value = lookup(f, v[1].value)
+  for id in v[1].value
+    push!(v.args, f.weights[id])
+  end
   v.backward! = () -> ∇lookup!(f, v[1].value, v.grad)
 end
 
@@ -77,13 +79,6 @@ function ∇lookup!{T}(f::Lookup, x::Matrix{Int}, gy::Matrix{T})
     gw = f.weights[x[i]].grad
     BLAS.axpy!(len, T(1), pointer(gy,offset), stride(gy,1), pointer(gw), stride(gw,1))
     offset += len
-    union!(f.idset, x[i])
+    #union!(f.idset, x[i])
   end
-end
-
-function update!(opt::Optimizer, f::Lookup)
-  for id in f.idset
-    update!(opt, f.weights[id].value, f.weights[id].grad)
-  end
-  empty!(f.idset)
 end
