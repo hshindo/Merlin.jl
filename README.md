@@ -26,6 +26,10 @@ Our primary goal is to develop a NLP toolkit based on `Merlin`.
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 ```
+For OSX and Linux,
+```julia
+julia> Pkg.build("Merlin")
+```
 
 ## Usage
 - [Documentation (latest)](http://hshindo.github.io/Merlin.jl/latest/)
