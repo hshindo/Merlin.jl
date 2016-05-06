@@ -21,6 +21,8 @@ const SOFTMAX_F32 = Libdl.dlsym(library, :softmax_fw_f32)
 #const WINDOW2D_FWD_F64_HANDLE = Libdl.dlsym(Native.library, :window2d_fwd_f64)
 #const WINDOW2D_BWD_F64_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f64)
 
-softmax(x::Float32) = ccall(SOFTMAX_F32, Void, (Cfloat,), x)
+function softmax{T}(x::Matrix{T}, y::Matrix{T})
+  ccall(SOFTMAX_F32, Void, (Ptr{T},Cint,Cint,Ptr{T}), x, size(x,1), size(x,2), y)
+end
 
 end

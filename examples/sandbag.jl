@@ -7,13 +7,20 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
+a = Dict(Float32 => 1)
+a[Float32]
+typeof(Type{Float32})
+
+x = rand(Float32,10,5)
+Merlin.Native.softmax(x, x)
+eltype(x)
 # w1-w3 are the hidden layer weight matrices, x1 the input vector
 function ann(w1, w2, w3, x1)
     x2 = w1 * x1
     x2 = log(1. + exp(x2))   # soft RELU unit
     x3 = w2 * x2
     x3 = log(1. + exp(x3))   # soft RELU unit
-    x4 = w3 * x3 
+    x4 = w3 * x3
     1. / (1. + exp(-x4[1]))  # sigmoid output
 end
 

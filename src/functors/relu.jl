@@ -18,11 +18,6 @@ end
 
 @compat (f::ReLU)(arg) = forward(f, arg)
 
-function forward(f::ReLU, args::Tuple{Variable})
-  x = args[1].value
-  
-end
-
 function forward!(f::ReLU, v::Variable)
   v.value = relu(v[1].value)
   v.backward! = () -> hasgrad(v[1]) && ∇relu!(v[1].value, v[1].grad, v.grad)
@@ -48,8 +43,6 @@ function ∇relu!{T,N}(x::Array{T,N}, gx::Array{T,N}, gy::Array{T,N})
   end
 end
 
-function ∇relu{T,N}(varx::CudaArray{T,N}, vary::CudaArray{T,N})
-  x, gx = data(varx)
-  y, gy = data(vary)
+function ∇relu(x::CudaArray, gx::CudaArray, y::CudaArray, gy::CudaArray)
   CUDNN.activation_backward(CUDNN.ACTIVATION_RELU, x, dx, y, dy)
 end

@@ -4,3 +4,4 @@
 *.so
 docs/build/
 docs/site/
+deps/eigen
