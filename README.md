@@ -61,7 +61,12 @@ f = Graph(
 )
 lossfun = CrossEntropy()
 opt = SGD(0.0001)
-fit(data_x, data_y, f, lossfun, opt)
+for epoch = 1:10
+  println("epoch: $(epoch)")
+  loss = fit(data_x, data_y, f, lossfun, opt)
+  println("loss: $(loss)")
+end
+println("finish")
 ```
 
 ## Using CUDA
