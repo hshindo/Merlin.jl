@@ -37,6 +37,8 @@ julia> Pkg.build("Merlin")
 ## Quick Start
 ### Decoding
 ```julia
+using Merlin
+
 x = rand(Float32,10,5)
 f = Graph(
   Linear(Float32,10,7),
@@ -48,7 +50,18 @@ y = f(x)
 
 ### Training
 ```julia
-To be written...
+using Merlin
+
+data_x = [rand(Float32,10,5) for i=1:100]
+data_y = [Int[1,2,3] for i=1:100] # correct labels
+f = Graph(
+  Linear(Float32,10,7),
+  ReLU(),
+  Linear(Float32,7,3)
+)
+lossfun = CrossEntropy()
+opt = SGD(0.0001)
+fit(data_x, data_y, f, lossfun, opt)
 ```
 
 ## Using CUDA
