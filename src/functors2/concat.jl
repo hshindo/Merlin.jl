@@ -20,13 +20,15 @@ type Concat <: Functor
 end
 
 @compat function (f::Concat)(args) = forward(f, args)
-@compat function (f::Concat)(args...) = f(args)
+@compat function (f::Concat)(args...) = forward(f, args)
 
-function forward{T}(xs::Vector{Var{T}})
+function forward{T}(f::Concat, xs::Vector{Var{T}})
   val = concat(f.dim, map(x -> x.val, xs))
   backward! = y -> backward!(f, xs, y)
-  Variable(val, f, xs, backward!)
+  Var(val, f, xs, backward!)
 end
+
+forward(f::Concat, xs::Tuple) = forward(f, Var[xs...])
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
   sum = 0
@@ -49,12 +51,12 @@ function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
 end
 
 function backward!{T<:Array}(f::Concat, xs::Vector{Var{T}}, y::Var{T})
-  gy = get(y.grad)
+  gy = y.grad
   offset = 1
   range = map(s -> 1:s, [size(gy)...])
-  for a in args
-    isnull(a.grad) && continue
-    gx = get(a.grad)
+  for x in args
+    hasgrad(x) || continue
+    gx = x.grad
     s = size(gx, f.dim)
     range[f.dim] = offset:(offset + s - 1)
     axpy!(eltype(gy)(1), gy[range...], gx)

@@ -2,9 +2,9 @@ export CrossEntropy
 
 """
 ## CrossEntropy
-Computes cross-entropy between a true distribution \$p\$ and the target distribution \$q
+Compute cross-entropy between a true distribution: \$p\$ and the target distribution: \$q
 \$p\$ and \$q\$ are assumed to be normalized (sums to one).
-To noamalize 'Variable's, use `LogSoftmax`.
+To noamalize 'Var's, use `LogSoftmax`.
 
 ```math
 f(x;p)=-∑_{x} p \log q_{x}
@@ -17,26 +17,27 @@ f(x;p)=-∑_{x} p \log q_{x}
 ### 👉 Example
 ```julia
 p = [1:5]
-logq = Variable(rand(Float32,10,5)) |> LogSoftmax()
+logq = Var(rand(Float32,10,5)) |> LogSoftmax()
 f = CrossEntropy()
 y = f(p, logq)
 ```
 """
 type CrossEntropy <: Functor
+  p
 end
 
-@compat function (f::CrossEntropy){T}(args::NTuple{2,Variable{T}})
-  p, logq = args[1], args[2]
-  y = crossentropy(p.val, logq.val)
-  backward! = gy -> backward!(p.val, logq.val, v[2].grad, v.grad)
-  Variable(y, f, args, backward!)
+@compat function (f::CrossEntropy){T}(xs::NTuple{2,Var{T}})
+  p, logq = xs[1], xs[2]
+  yval = crossentropy(p.val, logq.val)
+  backward! = y -> backward!(f, p, logq, y)
+  Var(yval, f, args, backward!)
 end
 
-function backward!{T}(p::Vector{Int}, logq::Variable{Matrix{T}}, gy::Matrix{T})
-  isnull(logq.grad) && return
-  for j = 1:length(p)
+function backward!{T}(f::CrossEntropy, p::Var{Vector{Int}}, logq::Var{Matrix{T}}, y::Var{Matrix{T}})
+  hasgrad(logq) && return
+  for j = 1:length(p.val)
     g = gy[j]
-    @inbounds @simd for i = 1:size(logq,1)
+    @inbounds @simd for i = 1:size(logq.val,1)
       delta = ifelse(i == p[j], T(1), T(0))
       gx[i,j] += g * (exp(logq[i,j]) - delta)
     end

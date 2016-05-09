@@ -1,18 +1,34 @@
 export Var
 export backward!, approx_gradient, check_gradient
 
-type Var{T}
-  val::T
+type Var
+  val
   grad
   f
   args::Vector{Var}
   backward!
 end
 
-Var(val, grad) = Var(val, grad, )
+Var(val, grad) = Var(val, grad, nothing, Var[], nothing)
+Var(val) = Var(val, nothing)
+Var() = Var(nothing, nothing)
 
 Base.getindex(v::Var, key) = v.args[key]
 Base.setindex!(v::Var, val, key) = v.args[key] = val
+
+hasgrad(v::Var) = v.grad != nothing
+
+function forward(f::Functor, xs::Vector{Var})
+  forward(f, xs)
+end
+
+function forward(f::Functor, x::Var)
+  forward(f, x)
+end
+
+function forward(f::Functor, xs::Tuple{Vararg{Var}})
+  forward(f, xs)
+end
 
 function topsort(var::Var)
   sorted = Var[]
@@ -31,13 +47,13 @@ function topsort(var::Var)
 end
 
 function backward!(var::Var)
-  isnull(var.grad) && (var.grad = Nullable(ones(var.val)))
+  hasgrad(var) || (var.grad = ones(var.val))
   sorted = topsort(var)
   for v in sorted
     v == var && continue
-    isnull(v.grad) && continue
+    hasgrad(v) || continue
     v.backward! == nothing && continue
-    v.grad = Nullable(zeros(v.val))
+    v.grad = zeros(v.val)
   end
   for i = length(sorted):-1:1
     v = sorted[i]

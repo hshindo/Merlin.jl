@@ -23,8 +23,10 @@ type Convolution{N} <: Functor
   pads::NTuple{N,Int}
 end
 
-function forward(f::Convolution, arg::Variable)
+@compat (f::Convolution)(arg) = forward(f, arg)
 
+function forward(f::Convolution{2}, arg::Var)
+  params = Cint[w1, w2, s1, s2, p1, p2]
 end
 
 function backward!(f::Convolution)

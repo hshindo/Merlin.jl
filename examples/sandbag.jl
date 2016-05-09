@@ -6,6 +6,16 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
+function bench()
+  a = [2.0]
+  b = rand(100,100)
+  for i = 1:10000
+    c = a .* b
+  end
+end
+
+@time bench()
+
 x1 = Variable(rand(10,5))
 x2 = Variable(rand(10))
 x = [x1,x2]
