@@ -1,11 +1,17 @@
 ENV["USE_CUDA"] = true
 workspace()
-using ReverseDiffSource
 using Merlin
 using CUDA
 using JLD
 using Base.LinAlg.BLAS
 using Base.Test
+
+x1 = Variable(rand(Float32,7,5),zeros(Float32,7,5))
+x2 = Variable(rand(Float32,10,5),zeros(Float32,7,5))
+f = Concat(1)
+y = (x1,x2) |> f
+y.backward!(ones(Float32,17,5))
+x2.grad
 
 a = Dict(Float32 => 1)
 a[Float32]

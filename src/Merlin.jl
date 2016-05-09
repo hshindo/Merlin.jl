@@ -5,7 +5,6 @@ using Base.LinAlg.BLAS
 
 abstract Functor
 abstract Optimizer
-export update!
 
 include("native.jl")
 #include("cuda/cudaarray.jl")
@@ -15,6 +14,7 @@ if haskey(ENV, "USE_CUDA")
   #using CUDA.RT
   #using CUDNN
 end
+
 type CudaArray{T,N}
 end
 
@@ -28,6 +28,14 @@ include("graph.jl")
 include("sequence.jl")
 include("training.jl")
 
+for name in [
+  "concat",
+  "crossentropy",
+  "linear"]
+  include("functors2/$(name).jl")
+end
+
+#=
 for name in [
   "blas",
   "concat",
@@ -45,11 +53,14 @@ for name in [
   "window2d"]
   include("functors/$(name).jl")
 end
+=#
 
+#=
 for name in [
     "gru"]
   include("graphs/$(name).jl")
 end
+=#
 
 for name in [
     "adagrad",

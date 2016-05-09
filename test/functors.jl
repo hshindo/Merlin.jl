@@ -1,69 +1,60 @@
 const T = Float64
 
-@testset "activation" for i = 1:5
-
-  @testset "logsoftmax" begin
-    x = rand(T, 10, 5)
-    @test check_gradient(LogSoftmax(), x)
-  end
-
-  @testset "relu" begin
-    x = rand(T, 10, 5)
-    @test check_gradient(ReLU(), x)
-  end
-
-  @testset "sigmoid" begin
-    x = rand(T, 10, 5)
-    @test check_gradient(Sigmoid(), x)
-  end
-
-  @testset "softmax" begin
-    x = rand(T, 10, 5)
-    @test check_gradient(Softmax(), x)
-  end
-
-  @testset "tanh" begin
-    x = rand(T, 10, 5)
-    @test check_gradient(Tanh(), x)
-  end
+@testset "logsoftmax" begin
+  x = rand(T, 10, 5)
+  @test check_gradient(LogSoftmax(), x)
 end
 
-@testset "loss" for i = 1:5
-
-  @testset "crosentropy" begin
-    p = [rand(1:10) for i=1:5]
-    x = rand(T, 10, 5)
-    #@test check_gradient(CrossEntropy(), p, x)
-  end
+@testset "relu" begin
+  x = rand(T, 10, 5)
+  @test check_gradient(ReLU(), x)
 end
 
-@testset "math" for i = 1:5
+@testset "sigmoid" begin
+  x = rand(T, 10, 5)
+  @test check_gradient(Sigmoid(), x)
+end
 
-  @testset "add" begin
-    x1 = rand(T, 10, 5)
-    x2 = rand(T, 10, 5)
-    x3 = rand(T, 10, 1)
-    @test check_gradient(Add(), x1, x2)
-    @test check_gradient(ElemAdd(), x1, x2)
-    @test check_gradient(ElemAdd(), x2, x3)
-  end
+@testset "softmax" begin
+  x = rand(T, 10, 5)
+  @test check_gradient(Softmax(), x)
+end
 
-  @testset "multiply" begin
-    x1 = rand(T, 100, 50)
-    x2 = rand(T, 50, 30)
-    x3 = rand(T, 50, 30)
-    @test check_gradient(Multiply(), x1, x2)
-    @test check_gradient(ElemMultiply(), x2, x3)
-  end
+@testset "tanh" begin
+  x = rand(T, 10, 5)
+  @test check_gradient(Tanh(), x)
+end
 
-  @testset "subtract" begin
-    x1 = rand(T, 10, 5)
-    x2 = rand(T, 10, 5)
-    x3 = rand(T, 10, 1)
-    @test check_gradient(Subtract(), x1, x2)
-    @test check_gradient(ElemSubtract(), x1, x2)
-    @test check_gradient(ElemSubtract(), x2, x3)
-  end
+@testset "crosentropy" begin
+  p = [rand(1:10) for i=1:5]
+  x = rand(T, 10, 5)
+  #@test check_gradient(CrossEntropy(), p, x)
+end
+
+@testset "add" begin
+  x1 = rand(T, 10, 5)
+  x2 = rand(T, 10, 5)
+  x3 = rand(T, 10, 1)
+  @test check_gradient(Add(), x1, x2)
+  @test check_gradient(ElemAdd(), x1, x2)
+  @test check_gradient(ElemAdd(), x2, x3)
+end
+
+@testset "multiply" begin
+  x1 = rand(T, 100, 50)
+  x2 = rand(T, 50, 30)
+  x3 = rand(T, 50, 30)
+  @test check_gradient(Multiply(), x1, x2)
+  @test check_gradient(ElemMultiply(), x2, x3)
+end
+
+@testset "subtract" begin
+  x1 = rand(T, 10, 5)
+  x2 = rand(T, 10, 5)
+  x3 = rand(T, 10, 1)
+  @test check_gradient(Subtract(), x1, x2)
+  @test check_gradient(ElemSubtract(), x1, x2)
+  @test check_gradient(ElemSubtract(), x2, x3)
 end
 
 @testset "concat" for i = 1:5

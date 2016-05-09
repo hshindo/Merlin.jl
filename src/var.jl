@@ -1,47 +1,27 @@
-export Variable
-export hasgrad, topsort, backward!, approx_gradient, check_gradient
+export Var
+export backward!, approx_gradient, check_gradient
 
-type Variable{T}
+type Var{T}
   val::T
-  grad::T
+  grad::Nullable{T}
   f
-  args::Vector{Variable}
+  args::Vector{Var}
   backward!
 end
 
-Variable(val, grad) = Variable(val, grad, nothing, Variable[], nothing)
-Variable(val) = Variable(val, zeros(val))
-Variable() = Variable(nothing, nothing)
+Var{T}(val::T, grad::Nullable{T}) = Variable(val, grad, nothing, Variable[], nothing)
+Var{T}(val::T, grad::T) = Variable(val, Nullable{T}(grad))
+Var{T}(val::T) = Variable(val, Nullable{T}())
+Var() = Var(nothing)
+Var{T}(val::T, f, args, backward!) = Variable(val, Nullable{T}(), f, args, backward!)
 
-function forward(f::Functor, args::Vector{Variable})
-  v = Variable(nothing, nothing, f, args, nothing)
-  for a in args
-    a.val == nothing && return v
-  end
-  forward!(f, v)
-  v
-end
+Base.getindex(v::Var, key) = v.args[key]
+Base.setindex!(v::Var, val, key) = v.args[key] = val
 
-function forward(f::Functor, args::Tuple)
-  vars = Variable[]
-  for a in args
-    v = typeof(a) == Variable ? a : Variable(a, nothing)
-    push!(vars, v)
-  end
-  forward(f, vars)
-end
-forward(f::Functor, args...) = forward(f, args)
-
-Base.getindex(v::Variable, key) = v.args[key]
-Base.setindex!(v::Variable, val, key) = v.args[key] = val
-Base.eltype(v::Variable) = eltype(v.val)
-
-hasgrad(v::Variable) = v.grad != nothing
-
-function topsort(var::Variable)
-  sorted = Variable[]
+function topsort(var::Var)
+  sorted = Var[]
   dict = ObjectIdDict()
-  function visit(v::Variable)
+  function visit(v::Var)
     if !haskey(dict, v)
       dict[v] = v
       for a in v.args
@@ -54,7 +34,7 @@ function topsort(var::Variable)
   sorted
 end
 
-function backward!(var::Variable)
+function backward!(var::Var)
   hasgrad(var) || (var.grad = ones(var.val))
   sorted = topsort(var)
   for v in sorted

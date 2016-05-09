@@ -1,6 +1,6 @@
 export fit
 
-function fit(xs, ys, nn, lossfun, opt)
+function fit(xs, ys, nn, lossfun, opt::Optimizer)
   loss = 0.0
   for i in randperm(length(xs))
     z = nn(xs[i])

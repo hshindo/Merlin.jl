@@ -25,17 +25,18 @@ y = f(x)
 type CrossEntropy <: Functor
 end
 
-@compat (f::CrossEntropy)(args) = forward(f, args)
-
-function forward(f::CrossEntropy, args::Variable...)
-  y = cross(f.p, arg.val)
+@compat function (f::CrossEntropy)(args::NTuple{2,Variable})
+  vp, vq = args[1], args[2]
+  logq = log(vq.val)
+  y = crossentropy(vp.val, vq.val)
   backward! = gy -> begin
-    hasgrad(arg) && ∇crossentropy!(p, logq, v[2].grad, v.grad)
+    hasgrad(q) || return
+    ∇crossentropy!(p.val, logq, v[2].grad, v.grad)
   end
   Variable(y, f, args, backward!)
 end
 
-function cross{T}(p::Matrix{T}, q::Matrix{T})
+function crossentropy{T}(p::Matrix{T}, q::Matrix{T})
   y = Array(T, 1, size(p,2))
   for j = 1:size(p,2)
     s = T(0)
@@ -47,7 +48,8 @@ function cross{T}(p::Matrix{T}, q::Matrix{T})
   y
 end
 
-function backward!(f::CrossEntropy)
+function backward!(f::CrossEntropy, p, q)
+
 end
 
 function forward!(f::CrossEntropy, v::Variable)
@@ -57,28 +59,7 @@ function forward!(f::CrossEntropy, v::Variable)
   v.backward! = () -> hasgrad(v[2]) && ∇crossentropy!(p, logq, v[2].grad, v.grad)
 end
 
-function forward{T,N}(f::CrossEntropy, arg::Variable{Array{T,N}})
-  p = arg.value
-  backward! = v -> begin
 
-  end
-  Variable(y, y, f, [arg], backward!)
-end
-
-
-
-#=
-type CrossEntropy <: Functor
-  p
-end
-
-@compat (f::CrossEntropy)(arg) = forward(f, arg)
-function forward!(f::CrossEntropy, v::Variable)
-  logq = logsoftmax(v[1].value)
-  v.value = crossentropy(f.p, logq)
-  v.backward! = () -> hasgrad(v[1]) && ∇crossentropy!(f.p, logq, v[1].grad, v.grad)
-end
-=#
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
   y = Array(T, 1, size(p,2))
