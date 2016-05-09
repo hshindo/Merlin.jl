@@ -57,7 +57,7 @@ function forward!(f::CrossEntropy, v::Variable)
   v.backward! = () -> hasgrad(v[2]) && ∇crossentropy!(p, logq, v[2].grad, v.grad)
 end
 
-function forward{T,N}(f::CrossEntropy, arg::Variable{Array{T,N}})
+function forward{T,N}(f::CrossEntropy, arg::Variable)
   p = arg.value
   backward! = v -> begin
 

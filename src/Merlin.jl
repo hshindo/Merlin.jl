@@ -28,14 +28,16 @@ include("graph.jl")
 include("sequence.jl")
 include("training.jl")
 
+#=
 for name in [
   "concat",
   "crossentropy",
   "linear"]
   include("functors2/$(name).jl")
 end
+=#
 
-#=
+
 for name in [
   "blas",
   "concat",
@@ -53,7 +55,6 @@ for name in [
   "window2d"]
   include("functors/$(name).jl")
 end
-=#
 
 #=
 for name in [

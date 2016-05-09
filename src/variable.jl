@@ -1,19 +1,17 @@
 export Variable
 export backward!, approx_gradient, check_gradient
 
-type Variable{T}
-  val::T
-  grad::Nullable{T}
+type Variable
+  val
+  grad
   f
   args
   backward!
 end
 
-Variable{T}(val::T, grad::Nullable{T}) = Variable(val, grad, nothing, Variable[], nothing)
-Variable{T}(val::T, grad::T) = Variable(val, Nullable{T}(grad))
-Variable{T}(val::T) = Variable(val, Nullable{T}())
-Variable() = Variable(nothing)
-Variable{T}(val::T, f, args, backward!) = Variable(val, Nullable{T}(), f, args, backward!)
+Variable(val, grad) = Variable(val, grad, nothing, [], nothing)
+Variable(val) = Variable(val, nothing)
+Variable() = Variable(nothing, norhing)
 
 Base.getindex(v::Variable, key) = v.args[key]
 Base.setindex!(v::Variable, val, key) = v.args[key] = val

@@ -3,17 +3,13 @@ export backward!, approx_gradient, check_gradient
 
 type Var{T}
   val::T
-  grad::Nullable{T}
+  grad
   f
   args::Vector{Var}
   backward!
 end
 
-Var{T}(val::T, grad::Nullable{T}) = Variable(val, grad, nothing, Variable[], nothing)
-Var{T}(val::T, grad::T) = Variable(val, Nullable{T}(grad))
-Var{T}(val::T) = Variable(val, Nullable{T}())
-Var() = Var(nothing)
-Var{T}(val::T, f, args, backward!) = Variable(val, Nullable{T}(), f, args, backward!)
+Var(val, grad) = Var(val, grad, )
 
 Base.getindex(v::Var, key) = v.args[key]
 Base.setindex!(v::Var, val, key) = v.args[key] = val
@@ -35,11 +31,13 @@ function topsort(var::Var)
 end
 
 function backward!(var::Var)
-  hasgrad(var) || (var.grad = ones(var.val))
+  isnull(var.grad) && (var.grad = Nullable(ones(var.val)))
   sorted = topsort(var)
   for v in sorted
-    (v == var || hasgrad(v) || v.backward! == nothing) && continue
-    v.grad = zeros(v.val)
+    v == var && continue
+    isnull(v.grad) && continue
+    v.backward! == nothing && continue
+    v.grad = Nullable(zeros(v.val))
   end
   for i = length(sorted):-1:1
     v = sorted[i]
@@ -48,6 +46,7 @@ function backward!(var::Var)
   sorted
 end
 
+#=
 """
 Computes numerical gradient.
 """
@@ -95,3 +94,4 @@ function check_gradient{N}(f::Functor, xs::NTuple{N,Data})
 end
 #check_gradient(f::Functor, x::Data) = check_gradient(f, (x,))
 check_gradient(f::Functor, xs::Data...) = check_gradient(f, xs)
+=#

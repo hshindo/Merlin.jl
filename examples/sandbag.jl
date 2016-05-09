@@ -6,6 +6,12 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
+x1 = Variable(rand(10,5))
+x2 = Variable(rand(10))
+x = [x1,x2]
+a = map(xx -> xx.val, x)
+typeof(a)
+
 x1 = Variable(rand(Float32,7,5),zeros(Float32,7,5))
 x2 = Variable(rand(Float32,10,5),zeros(Float32,7,5))
 f = Concat(1)

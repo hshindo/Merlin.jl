@@ -19,18 +19,12 @@ type Concat <: Functor
   dim::Int
 end
 
-fff{T<:Array}(xs::Vector{T}) = 1
-a = Array[]
-push!(a, [1,2,3])
-push!(a, rand(Int,3,2))
-fff(a)
-
 @compat function (f::Concat)(args) = forward(f, args)
 @compat function (f::Concat)(args...) = f(args)
 
 function forward{T}(xs::Vector{Var{T}})
   val = concat(f.dim, map(x -> x.val, xs))
-  backward! = v -> backward!(f.dim, vars, v)
+  backward! = y -> backward!(f, xs, y)
   Variable(val, f, xs, backward!)
 end
 
