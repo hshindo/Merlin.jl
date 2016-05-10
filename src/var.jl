@@ -91,7 +91,6 @@ approx_gradient(f::Functor, xs::Var...) = approx_gradient(f, Var[xs...])
 Check gradient.
 """
 function check_gradient(f::Functor, xs::Vector{Var})
-  y = f(xs)
   for x in xs
     x.grad = zeros(x.val)
   end

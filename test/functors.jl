@@ -1,5 +1,11 @@
 const T = Float64
 
+@testset "functors" for i = 1:5
+  @testset "concat" begin
+    
+  end
+end
+
 @testset "concat" for i = 1:5
   x1 = Var(rand(T,10,5,2))
   x2 = Var(rand(T,10,5,2))
@@ -21,9 +27,15 @@ end
   @test check_gradient(CrossEntropy(), p, x)
 end
 
-@testset "logsoftmax" begin
+@testset "logsoftmax" for i = 1:5
   x = Var(rand(T,10,5))
-  #@test check_gradient(LogSoftmax(), x)
+  @test check_gradient(LogSoftmax(), x)
+end
+
+@testset "lookup" for i = 1:5
+  x = Var([1:5])
+  f = Lookup(Float32,10000,100)
+  @test check_gradient(f, x)
 end
 
 @testset "relu" begin
