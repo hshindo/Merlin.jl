@@ -21,10 +21,12 @@ y = f(x)
 type LogSoftmax <: Functor
 end
 
-@compat (f::LogSoftmax)(arg) = forward(f, arg)
-function forward!(f::LogSoftmax, v::Variable)
-  v.value = logsoftmax(v[1].value)
-  v.backward! = () -> hasgrad(v[1]) && ∇logsoftmax!(v[1].value, v.value, v[1].grad, v.grad)
+@compat (f::LogSoftmax)(x) = forward(f, x)
+
+function forward(f::LogSoftmax, x::Var)
+  y = logsoftmax(x.val)
+  backward! = gy -> hasgrad(x) && ∇logsoftmax!(x.val, y, x.grad, gy)
+  Var(y, nothing, f, [x], backward!)
 end
 
 function logsoftmax{T}(x::Matrix{T})

@@ -15,64 +15,63 @@ end
 type ElemMultiply <: Functor
 end
 
+@compat (f::Add)(xs) = forward(f, xs)
+@compat (f::ElemAdd)(xs) = forward(f, xs)
+@compat (f::Subtract)(xs) = forward(f, xs)
+@compat (f::ElemSubtract)(xs) = forward(f, xs)
+@compat (f::Multiply)(xs) = forward(f, xs)
+@compat (f::ElemMultiply)(xs) = forward(f, xs)
+
 import Base.+
-+(v1::Variable, v2::Variable) = (v1, v2) |> Add()
-+(a::Number, v::Variable) = (Variable(a,nothing), v) |> Add()
-+(v::Variable, a::Number) = a + v
-+(x::Data, v::Variable) = (x, v) |> Add()
-+(v::Variable, x::Data) = (x, v) |> Add()
++(v1::Var, v2::Var) = (v1, v2) |> Add()
++(x, v::Var) = (Var(x), v) |> Add()
++(v::Var, x) = (Var(x), v) |> Add()
 
 import Base.(.+)
-.+(v1::Variable, v2::Variable) = (v1, v2) |> ElemAdd()
-.+(x::Data, v::Variable) = (x, v) |> ElemAdd()
-.+(v::Variable, x::Data) = (x, v) |> ElemAdd()
+.+(v1::Var, v2::Var) = (v1, v2) |> ElemAdd()
+.+(x, v::Var) = (Var(x), v) |> ElemAdd()
+.+(v::Var, x) = (Var(x), v) |> ElemAdd()
 
 import Base.-
--(v1::Variable, v2::Variable) = (v1, v2) |> Subtract()
--(a::Number, v::Variable) = (Variable(a,nothing), v) |> Subtract()
--(v::Variable, a::Number) = (v, Variable(a,nothing)) |> Subtract()
--(x::Data, v::Variable) = (x, v) |> Subtract()
--(v::Variable, x::Data) = (v, x) |> Subtract()
--(v::Variable) = 0 - v
+-(v1::Var, v2::Var) = (v1, v2) |> Subtract()
+-(x, v::Var) = (Var(x), v) |> Subtract()
+-(v::Var, x) = (Var(x), v) |> Subtract()
+-(v::Var) = 0 - v
 
 import Base.(.-)
-.-(v1::Variable, v2::Variable) = (v1, v2) |> ElemSubtract()
-.-(a::Number, v::Variable) = (Variable(a,nothing), v) |> ElemSubtract()
-.-(v::Variable, a::Number) = (v, Variable(a,nothing)) |> ElemSubtract()
-.-(x::Data, v::Variable) = (x, v) |> ElemSubtract()
-.-(v::Variable, x::Data) = (v, x) |> ElemSubtract()
+.-(v1::Var, v2::Var) = (v1, v2) |> ElemSubtract()
+.-(x, v::Var) = (Var(x), v) |> ElemSubtract()
+.-(v::Var, x) = (Var(x), v) |> ElemSubtract()
 
 import Base.*
-*(v1::Variable, v2::Variable) = (v1, v2) |> Multiply()
-*(a::Number, v::Variable) = (Variable(a,nothing), v) |> Multiply()
-*(v::Variable, a::Number) = (v, Variable(a,nothing)) |> Multiply()
-*(x::Data, v::Variable) = (x, v) |> Multiply()
-*(v::Variable, x::Data) = (x, v) |> Multiply()
+*(v1::Var, v2::Var) = (v1, v2) |> Multiply()
+*(x, v::Var) = (Var(x), v) |> Multiply()
+*(v::Var, x) = (Var(x), v) |> Multiply()
 
 import Base.(.*)
-.*(v1::Variable, v2::Variable) = (v1, v2) |> ElemMultiply()
-.*(a::Number, v::Variable) = (Variable(a,nothing), v) |> ElemMultiply()
-.*(v::Variable, a::Number) = (v, Variable(a,nothing)) |> ElemMultiply()
-.*(x::Data, v::Variable) = (x, v) |> ElemMultiply()
-.*(v::Variable, x::Data) = (x, v) |> ElemMultiply()
+.*(v1::Var, v2::Var) = (v1, v2) |> ElemMultiply()
+.*(x, v::Var) = (Var(x), v) |> ElemMultiply()
+.*(v::Var, x) = (Var(x), v) |> ElemMultiply()
 
-@compat (f::Add)(args) = forward(f, args)
-function forward!(f::Add, v::Variable)
-  v.value = v[1].value + v[2].value
-  v.backward! = () -> begin
-    T = eltype(v)
-    hasgrad(v[1]) && BLAS.axpy!(T(1), v.grad, v[1].grad)
-    hasgrad(v[2]) && BLAS.axpy!(T(1), v.grad, v[2].grad)
+function forward(f::Add, xs::Vector{Var})
+  x1, x2 = xs[1], xs[2]
+  y = x1.val + x2.val
+  backward! = gy -> begin
+    T = eltype(gy)
+    hasgrad(x1) && BLAS.axpy!(T(1), gy, x1.grad)
+    hasgrad(x2) && BLAS.axpy!(T(1), gy, x2.grad)
   end
+  Var(y, nothing, f, xs, backward!)
 end
 
-@compat (f::ElemAdd)(args) = forward(f, args)
-function forward!(f::ElemAdd, v::Variable)
-  v.value = v[1].value .+ v[2].value
-  v.backward! = () -> begin
-    hasgrad(v[1]) && backward!(f, v[1].grad, v.grad)
-    hasgrad(v[2]) && backward!(f, v[2].grad, v.grad)
+function forward(f::ElemAdd, xs::Vector{Var})
+  x1, x2 = xs[1], xs[2]
+  y = x1.val .+ x2.val
+  backward! = gy -> begin
+    hasgrad(x1) && backward!(f, x1.grad, gy)
+    hasgrad(x2) && backward!(f, x2.grad, gy)
   end
+  Var(y, nothing, f, xs, backward!)
 end
 
 function backward!{T,N}(f::ElemAdd, gx::Array{T,N}, gy::Array{T,N})
@@ -81,24 +80,27 @@ function backward!{T,N}(f::ElemAdd, gx::Array{T,N}, gy::Array{T,N})
   end
 end
 
-@compat (f::Subtract)(args) = forward(f, args)
-function forward!(f::Subtract, v::Variable)
-  v.value = v[1].value - v[2].value
-  v.backward! = () -> begin
-    T = eltype(v)
-    hasgrad(v[1]) && axpy!(T(1), v.grad, v[1].grad)
-    hasgrad(v[2]) && axpy!(T(-1), v.grad, v[2].grad)
+function forward(f::Subtract, xs::Vector{Var})
+  x1, x2 = xs[1], xs[2]
+  y = x1.val - x2.val
+  backward! = gy -> begin
+    T = eltype(gy)
+    hasgrad(x1) && axpy!(T(1), gy, x1.grad)
+    hasgrad(x2) && axpy!(T(-1), gy, x2.grad)
   end
+  Var(y, nothing, f, xs, backward!)
 end
 
-@compat (f::ElemSubtract)(args) = forward(f, args)
-function forward!(f::ElemSubtract, v::Variable)
-  v.value = v[1].value .- v[2].value
-  v.backward! = () -> begin
-    T = eltype(v)
-    hasgrad(v[1]) && backward!(f, 1.0, v[1].grad, v.grad)
-    hasgrad(v[2]) && backward!(f, -1.0, v[2].grad, v.grad)
+
+function forward(f::ElemSubtract, xs::Vector{Var})
+  x1, x2 = xs[1], xs[2]
+  y = x1.val .- x2.val
+  backward! = gy -> begin
+    T = eltype(gy)
+    hasgrad(x1) && backward!(f, 1.0, x1.grad, gy)
+    hasgrad(x2) && backward!(f, -1.0, x2.grad, gy)
   end
+  Var(y, nothing, f, xs, backward!)
 end
 
 function backward!{T,N}(f::ElemSubtract, a::Float64, gx::Array{T,N}, gy::Array{T,N})
@@ -107,24 +109,24 @@ function backward!{T,N}(f::ElemSubtract, a::Float64, gx::Array{T,N}, gy::Array{T
   end
 end
 
-@compat (f::Multiply)(args) = forward(f, args)
-function forward!(f::Multiply, v::Variable)
-  v.value = v[1].value * v[2].value
-  v.backward! = () -> begin
-    T = eltype(v)
-    typeof(v[1].value) == Int && println(v[1].value)
-    hasgrad(v[1]) && BLAS.gemm!('N', 'T', T(1), v.grad, v[2].value, T(1), v[1].grad)
-    hasgrad(v[2]) && BLAS.gemm!('T', 'N', T(1), v[1].value, v.grad, T(1), v[2].grad)
+function forward(f::Multiply, xs::Vector{Var})
+  x1, x2 = xs[1], xs[2]
+  y = x1.val * x2.val
+  backward! = gy -> begin
+    T = eltype(gy)
+    hasgrad(x1) && BLAS.gemm!('N', 'T', T(1), gy, x2.val, T(1), x1.grad)
+    hasgrad(x2) && BLAS.gemm!('T', 'N', T(1), x1.val, gy, T(1), x2.grad)
   end
+  Var(y, nothing, f, xs, backward!)
 end
 
-@compat (f::ElemMultiply)(args) = forward(f, args)
-function forward!(f::ElemMultiply, v::Variable)
-  v.value = v[1].value .* v[2].value
-  v.backward! = () -> begin
-    T = eltype(v)
-    hasgrad(v[1]) && backward!(f, v[2].value, v[1].grad, v.grad)
-    hasgrad(v[2]) && backward!(f, v[1].value, v[2].grad, v.grad)
+function forward(f::ElemMultiply, xs::Vector{Var})
+  x1, x2 = xs[1], xs[2]
+  y = x1.val .* x2.val
+  backward! = gy -> begin
+    T = eltype(gy)
+    hasgrad(x1) && backward!(f, x2.val, x1.grad, gy)
+    hasgrad(x2) && backward!(f, x1.val, x2.grad, gy)
   end
 end
 

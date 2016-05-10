@@ -11,24 +11,26 @@ Concatenate arrays along the given dimension.
 ```julia
 x1 = Var(rand(Float32,7,5))
 x2 = Var(rand(Float32,10,5))
-f = Concat(1)
-y = f(x1, x2)
+y = Concat(1)(x1, x2)
 ```
 """
 type Concat <: Functor
   dim::Int
 end
 
-@compat (f::Concat)(args) = forward(f, args)
-@compat (f::Concat)(args...) = forward(f, args)
+@compat (f::Concat)(xs) = forward(f, xs)
+@compat (f::Concat)(xs...) = forward(f, xs)
 
-function forward(f::Concat, vars::Vector{Var})
-  xs = map(v -> v.val, vars)
-  y = concat(f.dim, xs)
-  backward! = gy -> ∇concat!(f.dim, map(v -> v.grad, vars), gy)
-  Var(y, f, vars, backward!)
+function forward(f::Concat, xs::Vector{Var})
+  y = concat(f.dim, map(x -> x.val, xs))
+  backward! = gy -> ∇concat!(f.dim, map(x -> x.grad, xs), gy)
+  Var(y, nothing, f, xs, backward!)
 end
-forward(f::Concat, args::Tuple{Vararg{Var}}) = forward(f, Var[args...])
+
+function forward!(f::Concat, v::Var)
+  v.val = concat(f.dim, map(a -> a.val, v.args))
+  v.backward! = gy -> ∇concat!(f.dim, map(a -> a.grad, v.args), gy)
+end
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
   sum = 0
@@ -43,7 +45,7 @@ function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
   offset = 1
   for x in xs
     s = size(x, dim)
-    range[dim] = offset:(offset + s - 1)
+    range[dim] = offset:(offset+s-1)
     y[range...] = x
     offset += s
   end

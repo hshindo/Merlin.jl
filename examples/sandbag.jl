@@ -7,13 +7,13 @@ using Base.LinAlg.BLAS
 using Base.Test
 
 function bench()
-  a = [2.0]
-  b = rand(100,100)
+  a = [Var(rand(Float32,100,1)) for i=1:30]
+  f = Concat(2)
   for i = 1:10000
-    c = a .* b
+    b = tuple(a...)
+    Merlin.forward(f, b)
   end
 end
-
 @time bench()
 
 x1 = Variable(rand(10,5))

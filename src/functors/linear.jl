@@ -19,33 +19,30 @@ where \$W\$ is a weight matrix, \$b\$ is a bias vector.
 
 ### 👉 Example
 ```julia
-x = Variable(rand(Float32,10,5))
+x = Var(rand(Float32,10,5))
 f = Linear(Float32, 10, 3)
 y = f(x)
 ```
 """
 type Linear <: Functor
-  w::Variable
-  b::Variable
+  w::Var
+  b::Var
 end
 
 function Linear{T}(::Type{T}, insize::Int, outsize::Int)
-  #r = randn(outsize, insize) * sqrt(1 / insize)
-  #r = rand(outsize, insize) * 0.001
   x = sqrt(6 / (outsize+insize))
   r = rand(outsize, insize) * 2x - x
   w = convert(Matrix{T}, r)
   b = fill(T(0), outsize, 1)
-  Linear(Variable(w), Variable(b))
+  Linear(Var(w,zeros(w)), Var(b,zeros(b)))
 end
 
 mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
 isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 
-@compat (f::Linear)(arg) = forward(f, arg)
+@compat (f::Linear)(x) = f.w * x .+ f.b
 
-forward(f::Linear, x::Variable) = f.w * x .+ f.b
-
+#=
 function forward!(f::Linear, v::Variable)
   v.value = f.w.value * v[1].value .+ f.b.value
   push!(v.args, f.w)
@@ -62,3 +59,4 @@ function forward!(f::Linear, v::Variable)
     end
   end
 end
+=#

@@ -9,38 +9,29 @@ Lookup variables.
 
 ### 👉 Example
 ```julia
-x = [1:5]
+x = Var([1:5])
 f = Lookup(Float32,10000,100)
 y = f(x)
 ```
 """
 type Lookup <: Functor
-  weights::Vector{Variable}
+  weights::Vector{Var}
 end
 
-Lookup{T<:AbstractFloat}(weights::Vector{Vector{T}}) = Lookup(map(Variable, weights))
+Lookup{T}(weights::Vector{Vector{T}}) = Lookup(map(w -> Var(w,zeros(w)), weoghts))
 
-"""
-- T: Type
-- insize::Int
-- outsize::Int
-"""
 function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
-  weights = Array(Variable, insize)
+  weights = Array(Var, insize)
   for i = 1:insize
     w = convert(Vector{T}, randn(outsize))
-    weights[i] = Variable(w, zeros(w))
+    weights[i] = Var(w, zeros(w))
   end
   Lookup(weights)
 end
 
-"""
-- path: initial values
-- T::Type
-"""
 function Lookup{T}(path, ::Type{T})
   lines = open(readlines, path)
-  weights = Array(Variable, length(lines))
+  weights = Array(Var, length(lines))
   for i = 1:length(lines)
     items = split(chomp(lines[i]), ' ')
     w = map(x -> parse(T,x), items)
@@ -49,24 +40,26 @@ function Lookup{T}(path, ::Type{T})
   Lookup(weights)
 end
 
-@compat (f::Lookup)(arg) = forward(f, arg)
+@compat (f::Lookup)(x) = forward(f, x)
 
-function forward!(f::Lookup, v::Variable)
-  v.value = lookup(f, v[1].value)
-  for id in v[1].value
-    push!(v.args, f.weights[id])
+function forward(f::Lookup, x::Var)
+  y = lookup(f, x.val)
+  xs = Var[x]
+  for id in x.val
+    push!(xs, f.weights[id])
   end
-  v.backward! = () -> ∇lookup!(f, v[1].value, v.grad)
+  backward! = gy -> ∇lookup!(f, x.val, gy)
+  Var(y, nothing, f, xs, backward!)
 end
 
 function lookup(f::Lookup, x::Matrix{Int})
-  w1 = f.weights[1].value
+  w1 = f.weights[1].val
   len = length(w1)
   T = eltype(w1)
   y = Array(T, len*size(x,1), size(x,2))
   offset = 1
   for i = 1:length(x)
-    copy!(y, offset, f.weights[x[i]].value, 1, len)
+    copy!(y, offset, f.weights[x[i]].val, 1, len)
     offset += len
   end
   y
