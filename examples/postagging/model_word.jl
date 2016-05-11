@@ -6,12 +6,12 @@ end
 
 function Model(path::AbstractString)
   T = Float32
-  sent_f = [Lookup(T,500000,100),
-            #Lookup("$(path)/nyt100.lst", T),
-            Window2D(100,5,1,1,0,2),
-            Linear(T,500,300),
-            ReLU(),
-            Linear(T,300,45)]
+  sent_f = Network(
+    Lookup(T,500000,100),
+    Window2D(100,5,1,1,0,2),
+    Linear(T,500,300),
+    ReLU(),
+    Linear(T,300,45))
   Model(sent_f)
 end
 
