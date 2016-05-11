@@ -41,6 +41,7 @@ If you have installed mingw on Windows, you can build `Merlin` as well.
 using Merlin
 
 x = Var(rand(Float32,10,5))
+# three-layer network
 f = Network(
   Linear(Float32,10,7),
   ReLU(),
@@ -55,6 +56,7 @@ using Merlin
 data_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
 data_y = [Var(Int[1,2,3]) for i=1:100] # correct labels
 
+# three-layer network
 f = Network(
   Linear(Float32,10,7),
   ReLU(),
