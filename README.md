@@ -41,7 +41,7 @@ If you have installed mingw on Windows, you can build `Merlin` as well.
 using Merlin
 
 x = Var(rand(Float32,10,5))
-f = Graph(
+f = Network(
   Linear(Float32,10,7),
   ReLU(),
   Linear(Float32,7,3))
@@ -55,7 +55,7 @@ using Merlin
 data_x = [rand(Float32,10,5) for i=1:100] # input data
 data_y = [Int[1,2,3] for i=1:100] # correct labels
 
-f = Graph(
+f = Network(
   Linear(Float32,10,7),
   ReLU(),
   Linear(Float32,7,3))
