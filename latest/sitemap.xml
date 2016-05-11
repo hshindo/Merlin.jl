@@ -4,7 +4,7 @@
     
     <url>
      <loc>None/</loc>
-     <lastmod>2016-04-21</lastmod>
+     <lastmod>2016-05-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -12,15 +12,7 @@
     
     <url>
      <loc>None/overview/</loc>
-     <lastmod>2016-04-21</lastmod>
-     <changefreq>daily</changefreq>
-    </url>
-    
-
-    
-    <url>
-     <loc>None/types/</loc>
-     <lastmod>2016-04-21</lastmod>
+     <lastmod>2016-05-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -28,7 +20,7 @@
     
     <url>
      <loc>None/functors/</loc>
-     <lastmod>2016-04-21</lastmod>
+     <lastmod>2016-05-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -36,7 +28,7 @@
     
     <url>
      <loc>None/graph/</loc>
-     <lastmod>2016-04-21</lastmod>
+     <lastmod>2016-05-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -44,7 +36,7 @@
     
     <url>
      <loc>None/optimizers/</loc>
-     <lastmod>2016-04-21</lastmod>
+     <lastmod>2016-05-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     

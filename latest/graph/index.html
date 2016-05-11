@@ -182,15 +182,6 @@
           
             
   <li>
-    <a class="" title="Types" href="../types/">
-      Types
-    </a>
-    
-  </li>
-
-          
-            
-  <li>
     <a class="" title="Functors" href="../functors/">
       Functors
     </a>
@@ -205,18 +196,6 @@
     </a>
     
       
-        
-      
-      
-        <ul>
-          
-            <li class="anchor">
-              <a title="👉 Example" href="#example">
-                👉 Example
-              </a>
-            </li>
-          
-        </ul>
       
     
   </li>
@@ -241,24 +220,10 @@
       <article class="article">
         <div class="wrapper">
           
-          <p><a id='Merlin.Graph' href='#Merlin.Graph'>#</a>
-<strong><code>Merlin.Graph</code></strong> &mdash; <em>Type</em>.</p>
-<hr />
-<h1 id="graph">Graph</h1>
-<p><code>Graph</code> is a container of <code>Functor</code>s. The following is an example of Gated Recurrent Unit (GRU).</p>
-<h3 id="example">👉 Example</h3>
-<div class="codehilite"><pre><span></span><span class="c"># parameters</span>
-<span class="n">Ws</span> <span class="o">=</span> <span class="p">[</span><span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">xsize</span><span class="p">,</span><span class="n">xsize</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
-<span class="n">Us</span> <span class="o">=</span> <span class="p">[</span><span class="n">Variable</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="n">T</span><span class="p">,</span><span class="n">xsize</span><span class="p">,</span><span class="n">xsize</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
-<span class="c"># input</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
-<span class="n">h</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
-
-<span class="n">r</span> <span class="o">=</span> <span class="n">Sigmoid</span><span class="p">()(</span><span class="n">Ws</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">Us</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">h</span><span class="p">)</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">Sigmoid</span><span class="p">()(</span><span class="n">Ws</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">Us</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">h</span><span class="p">)</span>
-<span class="n">h_</span> <span class="o">=</span> <span class="n">Tanh</span><span class="p">()(</span><span class="n">Ws</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">Us</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">r</span><span class="o">.*</span><span class="n">h</span><span class="p">))</span>
-<span class="n">h_next</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">z</span><span class="p">)</span> <span class="o">.*</span> <span class="n">h</span> <span class="o">+</span> <span class="n">z</span> <span class="o">.*</span> <span class="n">h_</span>
-<span class="n">Graph</span><span class="p">(</span><span class="n">h_next</span><span class="p">)</span>
+            <h1>Graph</h1>
+          
+          <div class="codehilite"><pre><span></span>{docs}
+Graph
 </pre></div>
           <aside class="copyright" role="note">
             
