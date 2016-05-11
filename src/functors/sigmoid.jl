@@ -4,24 +4,18 @@ export Sigmoid
 ## Sigmoid
 
 - `Sigmoid()`
-
-### 👉 Example
-```julia
-x = rand(Float32,10,5)
-f = Sigmoid()
-y = f(x)
-```
+- `sigmoid()`
 """
 type Sigmoid <: Functor
 end
 
-@compat (f::Sigmoid)(arg) = forward(f, arg)
-function forward!(f::Sigmoid, v::Variable)
-  v.value = tanh(v[1].value * 0.5) * 0.5 + 0.5
-  v.backward! = () -> hasgrad(v[1]) && ∇sigmoid!(v.value, v[1].grad, v.grad)
+@compat function (f::Sigmoid)(xs::Vector{Var})
+  x = xs[1]
+  y = tanh(x.val * 0.5) * 0.5 + 0.5
+  backward! = gy -> hasgrad(x) && ∇sigmoid!(y, x.grad, gy)
+  Var(y, nothing, f, xs, backward!)
 end
-
-sigmoid(x::Variable) = Sigmoid()(x)
+@compat (f::Sigmoid)(x::Var) = f([x])
 
 function ∇sigmoid!{T,N}(y::Array{T,N}, gx::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(y)

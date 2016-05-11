@@ -2,83 +2,36 @@ export CrossEntropy
 
 """
 ## CrossEntropy
-Computes cross-entropy between a true distribution \$p\$ and the target distribution \$q
+Compute cross-entropy between a true distribution: \$p\$ and the target distribution: \$q_x\$.
 \$p\$ and \$q\$ are assumed to be normalized (sums to one).
-To noamalize 'Variable's, use `Softmax`.
+To noamalize 'Var's, use `LogSoftmax`.
 
 ```math
 f(x;p)=-∑_{x} p \log q_{x}
 ```
 
 ### Functions
-- `CrossEntropy(p::Matrix)`
-- `CrossEntropy(p::Vector{Int})`
+- `CrossEntropy()`
 
 ### 👉 Example
 ```julia
-p = [1:5]
+p = Var([1:5])
+x = Var(rand(Float32,10,5))
 f = CrossEntropy()
-x = Variable(rand(Float32,10,5))
-y = f(x)
+y = f(p, q)
 ```
 """
 type CrossEntropy <: Functor
 end
 
-@compat (f::CrossEntropy)(args) = forward(f, args)
-
-function forward(f::CrossEntropy, args::Variable...)
-  y = cross(f.p, arg.val)
-  backward! = gy -> begin
-    hasgrad(arg) && ∇crossentropy!(p, logq, v[2].grad, v.grad)
-  end
-  Variable(y, f, args, backward!)
+@compat function (f::CrossEntropy)(xs::Vector{Var})
+  p, q = xs[1], xs[2]
+  logq = logsoftmax(q.val)
+  y = crossentropy(p.val, logq)
+  backward! = gy -> hasgrad(q) && ∇crossentropy!(p.val, logq, q.grad, gy)
+  Var(y, nothing, f, xs, backward!)
 end
-
-function cross{T}(p::Matrix{T}, q::Matrix{T})
-  y = Array(T, 1, size(p,2))
-  for j = 1:size(p,2)
-    s = T(0)
-    @inbounds @simd for i = 1:size(p,1)
-      s += -p[i,j] * log(q[i,j])
-    end
-    y[j] = s
-  end
-  y
-end
-
-function backward!(f::CrossEntropy)
-end
-
-function forward!(f::CrossEntropy, v::Variable)
-  p = v[1].value
-  logq = logsoftmax(v[2].value)
-  v.value = crossentropy(p, logq)
-  v.backward! = () -> hasgrad(v[2]) && ∇crossentropy!(p, logq, v[2].grad, v.grad)
-end
-
-function forward{T,N}(f::CrossEntropy, arg::Variable)
-  p = arg.value
-  backward! = v -> begin
-
-  end
-  Variable(y, y, f, [arg], backward!)
-end
-
-
-
-#=
-type CrossEntropy <: Functor
-  p
-end
-
-@compat (f::CrossEntropy)(arg) = forward(f, arg)
-function forward!(f::CrossEntropy, v::Variable)
-  logq = logsoftmax(v[1].value)
-  v.value = crossentropy(f.p, logq)
-  v.backward! = () -> hasgrad(v[1]) && ∇crossentropy!(f.p, logq, v[1].grad, v.grad)
-end
-=#
+@compat (f::CrossEntropy)(xs...) = f([xs...])
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
   y = Array(T, 1, size(p,2))

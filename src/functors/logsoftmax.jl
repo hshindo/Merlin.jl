@@ -13,7 +13,7 @@ f(x)=\frac{\exp(x_{i})}{\sum_{j}^{n}\exp(x_{j})},\;i=1,\ldots,n
 
 ### 👉 Example
 ```julia
-x = rand(Float32,10,5)
+x = Var(rand(Float32,10,5))
 f = LogSoftmax()
 y = f(x)
 ```
@@ -21,11 +21,13 @@ y = f(x)
 type LogSoftmax <: Functor
 end
 
-@compat (f::LogSoftmax)(arg) = forward(f, arg)
-function forward!(f::LogSoftmax, v::Variable)
-  v.value = logsoftmax(v[1].value)
-  v.backward! = () -> hasgrad(v[1]) && ∇logsoftmax!(v[1].value, v.value, v[1].grad, v.grad)
+@compat function (f::LogSoftmax)(xs::Vector{Var})
+  x = xs[1]
+  y = logsoftmax(x.val)
+  backward! = gy -> hasgrad(x) && ∇logsoftmax!(x.val, y, x.grad, gy)
+  Var(y, nothing, f, xs, backward!)
 end
+@compat (f::LogSoftmax)(x::Var) = f([x])
 
 function logsoftmax{T}(x::Matrix{T})
   y = similar(x)

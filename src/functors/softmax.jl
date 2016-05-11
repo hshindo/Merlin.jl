@@ -1,4 +1,4 @@
-export Softmax, softmax
+export Softmax
 
 """
 ## Softmax
@@ -12,7 +12,7 @@ f(x)=\frac{\exp(x_{i})}{\sum_{j}^{n}\exp(x_{j})},\;i=1,\ldots,n
 
 ### 👉 Example
 ```julia
-x = rand(Float32,10,5)
+x = Var(rand(Float32,10,5))
 f = Softmax()
 y = f(x)
 ```
@@ -20,11 +20,13 @@ y = f(x)
 type Softmax <: Functor
 end
 
-@compat (f::Softmax)(arg) = forward(f, arg)
-function forward!(f::Softmax, v::Variable)
-  v.value = softmax(v[1].value)
-  v.backward! = () -> hasgrad(v[1]) && ∇softmax2!(v[1].value, v.value, v[1].grad, v.grad)
+@compat function (f::Softmax)(xs::Vector{Var})
+  x = xs[1]
+  y = softmax(x.val)
+  backward! = gy -> hasgrad(x) && ∇softmax2!(x.val, y, x.grad, gy)
+  Var(y, nothing, f, xs, backward!)
 end
+@compat (f::Softmax)(x::Var) = f([x])
 
 function softmax{T}(x::Matrix{T})
   y = similar(x)

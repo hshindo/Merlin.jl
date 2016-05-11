@@ -18,29 +18,20 @@ end
 type CudaArray{T,N}
 end
 
-typealias Data{T,N} Union{Array{T,N},CudaArray{T,N}}
+typealias DataArray Union{Array,CudaArray}
 
 export argmax
 include("util.jl")
 
-include("variable.jl")
-include("graph.jl")
-include("sequence.jl")
+include("var.jl")
+#include("graph.jl")
+#include("sequence.jl")
 include("training.jl")
 
-#=
 for name in [
+  #"blas",
   "concat",
-  "crossentropy",
-  "linear"]
-  include("functors2/$(name).jl")
-end
-=#
-
-
-for name in [
-  "blas",
-  "concat",
+  "conv",
   "crossentropy",
   "linear",
   "logsoftmax",
@@ -48,11 +39,12 @@ for name in [
   "math",
   "max",
   "relu",
-  "reshape",
+  #"reshape",
   "sigmoid",
   "softmax",
   "tanh",
-  "window2d"]
+  #"window2d"
+  ]
   include("functors/$(name).jl")
 end
 

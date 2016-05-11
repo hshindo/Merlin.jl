@@ -47,7 +47,7 @@ function make_params(f::Window2D)
 end
 
 @compat (f::Window2D)(arg) = forward(f, arg)
-function forward!(f::Window2D, v::Variable)
+function forward!(f::Window2D, v::Var)
   y, params = window2d(f, v[1].value)
   v.value = y
   v.backward! = () -> hasgrad(v[1]) && ∇window2d!(f, params, v[1].value, v[1].grad, v.grad)

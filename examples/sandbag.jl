@@ -6,6 +6,53 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
+x1 = Var(rand(Float32,5,2))
+x2 = Var(rand(Float32,5,2))
+y = x1 .- x2
+x1.grad = zeros(x1.val)
+x2.grad = zeros(x2.val)
+backward!(y)
+
+rand(1:5,10)
+[1:5]
+macro check_grad(a)
+  println(a.args[3])
+end
+
+@check_grad parse(Int, "5")
+0.00016595 < 1e-4
+exp(log(0.00020003319) - log(2e-4))
+x1 = Var(rand(Float32,5,2))
+x2 = Var(rand(Float32,5,2))
+checkgrad(Add(),x1,x2)
+
+x = Var(rand(Float32,10,5))
+f = Linear(Float32,10,7)
+checkgrad(f,x)
+
+@time f(x)
+@Merlin.check_grad f(x)
+
+f.w * x .+ f.b
+check_gradient(f, x)
+
+a = backward!(y)
+
+
+f = Conv(Float32,5,(10,2),(1,1),(0,0))
+x = Var(rand(Float32,50,10))
+y = f(x)
+
+function bench()
+  a = [Var(rand(Float32,100,1)) for i=1:30]
+  f = Concat(2)
+  for i = 1:10000
+    b = tuple(a...)
+    Merlin.forward(f, b)
+  end
+end
+@time bench()
+
 x1 = Variable(rand(10,5))
 x2 = Variable(rand(10))
 x = [x1,x2]

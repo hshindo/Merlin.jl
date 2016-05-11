@@ -4,24 +4,18 @@ export Tanh
 ## Tanh
 
 - `Tanh()`
-
-### 👉 Example
-```julia
-x = rand(Float32,10,5)
-f = Tanh()
-y = f(x)
-```
+- `tanh()`
 """
 type Tanh <: Functor
 end
 
-@compat (f::Tanh)(arg) = forward(f, arg)
-function forward!(f::Tanh, v::Variable)
-  v.value = tanh(v[1].value)
-  v.backward! = () -> hasgrad(v[1]) && ∇tanh!(v.value, v[1].grad, v.grad)
+@compat function (f::Tanh)(xs::Vector{Var})
+  x = xs[1]
+  y = tanh(x.val)
+  backward! = gy -> hasgrad(x) && ∇tanh!(y, x.grad, gy)
+  Var(y, nothing, f, xs, backward!)
 end
-
-tanh(x::Variable) = Tanh()(x)
+@compat (f::Tanh)(x::Var) = f([x])
 
 function ∇tanh!{T,N}(y::Array{T,N}, gx::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(gx)

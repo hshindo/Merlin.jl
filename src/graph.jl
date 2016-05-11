@@ -1,29 +1,17 @@
 export Graph
 
 """
-# Graph
+## Graph
 
 `Graph` is a container of `Functor`s.
 The following is an example of Gated Recurrent Unit (GRU).
 
 ### 👉 Example
 ```julia
-# parameters
-Ws = [Variable(rand(T,xsize,xsize)) for i=1:3]
-Us = [Variable(rand(T,xsize,xsize)) for i=1:3]
-# input
-x = Variable()
-h = Variable()
-
-r = sigmoid(Ws[1]*x + Us[1]*h)
-z = sigmoid(Ws[2]*x + Us[2]*h)
-h_ = tanh(Ws[3]*x + Us[3]*(r.*h))
-h_next = (1 - z) .* h + z .* h_
-Graph(h_next)
 ```
 """
 type Graph <: Functor
-  nodes::Vector{Variable} # sorted in bottom-up order
+  nodes::Vector{Var} # sorted in bottom-up order
   tail_ids::Vector{Vector{Int}}
   data_ids::Vector{Int}
 end

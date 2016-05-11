@@ -8,7 +8,7 @@ Rectifier linear unit.
 
 ### 👉 Example
 ```julia
-x = rand(Float32,10,5)
+x = Var(rand(Float32,10,5))
 f = ReLU()
 y = f(x)
 ```
@@ -16,12 +16,13 @@ y = f(x)
 type ReLU <: Functor
 end
 
-@compat (f::ReLU)(arg) = forward(f, arg)
-
-function forward!(f::ReLU, v::Variable)
-  v.value = relu(v[1].value)
-  v.backward! = () -> hasgrad(v[1]) && ∇relu!(v[1].value, v[1].grad, v.grad)
+@compat function (f::ReLU)(xs::Vector{Var})
+  x = xs[1]
+  y = relu(x.val)
+  backward! = gy -> hasgrad(x) && ∇relu!(x.val, x.grad, gy)
+  Var(y, nothing, f, xs, backward!)
 end
+@compat (f::ReLU)(x::Var) = f([x])
 
 function relu{T,N}(x::Array{T,N})
   y = similar(x)
