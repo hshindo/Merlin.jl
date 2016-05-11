@@ -9,15 +9,13 @@ export Sigmoid
 type Sigmoid <: Functor
 end
 
-@compat (f::Sigmoid)(x) = forward(f, x)
-
-function forward!(f::Sigmoid, x::Var)
+@compat function (f::Sigmoid)(xs::Vector{Var})
+  x = xs[1]
   y = tanh(x.val * 0.5) * 0.5 + 0.5
   backward! = gy -> hasgrad(x) && ∇sigmoid!(y, x.grad, gy)
-  Var(y, nothing, f, [x], backward!)
+  Var(y, nothing, f, xs, backward!)
 end
-
-sigmoid(x::Var) = Sigmoid()(x)
+@compat (f::Sigmoid)(x::Var) = f([x])
 
 function ∇sigmoid!{T,N}(y::Array{T,N}, gx::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(y)

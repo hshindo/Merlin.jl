@@ -18,6 +18,8 @@ end
 type CudaArray{T,N}
 end
 
+typealias DataArray Union{Array,CudaArray}
+
 export argmax
 include("util.jl")
 
@@ -29,7 +31,7 @@ include("training.jl")
 for name in [
   #"blas",
   "concat",
-  "conv".
+  "conv",
   "crossentropy",
   "linear",
   "logsoftmax",
@@ -39,9 +41,9 @@ for name in [
   "relu",
   #"reshape",
   "sigmoid",
-  #"softmax",
+  "softmax",
   "tanh",
-  #"window2d"]
+  #"window2d"
   ]
   include("functors/$(name).jl")
 end

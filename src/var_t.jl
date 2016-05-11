@@ -1,24 +1,34 @@
 export Var
-export backward!, approx_grad, checkgrad
+export backward!, approx_gradient, check_gradient
 
-type Var
-  val
-  grad
+type Var{T}
+  val::T
+  grad::T
   f
   args::Vector{Var}
   backward!
 end
 
-function Var(val; grad=nothing, f=nothing, args=Var[], (backward!)=nothing)
-  Var(val, grad, f, args, backward!)
-end
-Var() = Var(nothing)
+Var(val, grad) = Var(val, grad, nothing, Var[], nothing)
+Var{T}(val::T) = Var(val, similar(val,eltype(val),0))
+Var() = Var(nothing, nothing)
 
 Base.getindex(v::Var, key) = v.args[key]
 Base.setindex!(v::Var, val, key) = v.args[key] = val
 
-hasgrad(v::Var) = v.grad != nothing
-isleaf(v::Var) = length(v.args) == 0
+hasgrad(v::Var) = length(v.grad) > 0
+
+function forward{T}(f::Functor, x::Var{T})
+  forward(f, x)
+end
+
+function forward{T<:Var}(f::Functor, xs::Tuple{Vararg{T}})
+  forward(f, Var[xs...])
+end
+
+function forward{T}(f::Functor, xs::Vector{Var{T}})
+  forward(f, xs)
+end
 
 function topsort(var::Var)
   sorted = Var[]
@@ -39,9 +49,10 @@ end
 function backward!(var::Var)
   hasgrad(var) || (var.grad = ones(var.val))
   sorted = topsort(var)
-  i = 1
   for v in sorted
-    (v == var || hasgrad(v) || v.backward! == nothing) && continue
+    v == var && continue
+    hasgrad(v) || continue
+    v.backward! == nothing && continue
     v.grad = zeros(v.val)
   end
   for i = length(sorted):-1:1
@@ -54,8 +65,8 @@ end
 """
 Compute numerical gradient.
 """
-function approx_grad(f::Functor, xs::Vector{Var})
-  epsilon = 1e-3
+function approx_gradient{T<:Var}(f::Functor, xs::Vector{T})
+  epsilon = 1e-4
   map(xs) do x
     x = x.val
     gx = zeros(x)
@@ -72,17 +83,18 @@ function approx_grad(f::Functor, xs::Vector{Var})
     gx
   end
 end
+approx_gradient(f::Functor, xs::Var...) = approx_gradient(f, Var[xs...])
 
 """
 Check gradient.
 """
-function checkgrad(f::Functor, xs::Vector{Var})
+function check_gradient{T<:Var}(f::Functor, xs::Vector{T})
   y = f(xs)
   for x in xs
     x.grad = zeros(x.val)
   end
   backward!(y)
-  approx_gxs = approx_grad(f, xs)
+  approx_gxs = approx_gradient(f, xs)
   for i = 1:length(xs)
     gx1 = xs[i].grad
     gx2 = approx_gxs[i]
@@ -90,4 +102,4 @@ function checkgrad(f::Functor, xs::Vector{Var})
   end
   true
 end
-checkgrad(f::Functor, xs::Var...) = checkgrad(f, [xs...])
+check_gradient(f::Functor, xs::Var...) = check_gradient(f, Var[xs...])

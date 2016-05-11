@@ -16,20 +16,13 @@ y = f(x)
 type ReLU <: Functor
 end
 
-@compat (f::ReLU)(x) = forward(f, x)
-
-function forward!(f::ReLU, x::Var)
+@compat function (f::ReLU)(xs::Vector{Var})
+  x = xs[1]
   y = relu(x.val)
   backward! = gy -> hasgrad(x) && ∇relu!(x.val, x.grad, gy)
-  Var(y, f, [x], backward!)
+  Var(y, nothing, f, xs, backward!)
 end
-
-#=
-function forward!(f::ReLU, x::Var)
-  v.value = relu(v[1].value)
-  v.backward! = () -> hasgrad(v[1]) && ∇relu!(v[1].value, v[1].grad, v.grad)
-end
-=#
+@compat (f::ReLU)(x::Var) = f([x])
 
 function relu{T,N}(x::Array{T,N})
   y = similar(x)

@@ -9,15 +9,13 @@ export Tanh
 type Tanh <: Functor
 end
 
-@compat (f::Tanh)(x) = forward(f, x)
-
-function forward!(f::Tanh, x::Var)
+@compat function (f::Tanh)(xs::Vector{Var})
+  x = xs[1]
   y = tanh(x.val)
   backward! = gy -> hasgrad(x) && ∇tanh!(y, x.grad, gy)
-  Var(y, nothing, f, [x], backward!)
+  Var(y, nothing, f, xs, backward!)
 end
-
-tanh(x::Var) = Tanh()(x)
+@compat (f::Tanh)(x::Var) = f([x])
 
 function ∇tanh!{T,N}(y::Array{T,N}, gx::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(gx)

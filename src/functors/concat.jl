@@ -18,18 +18,10 @@ type Concat <: Functor
   dim::Int
 end
 
-@compat (f::Concat)(xs) = forward(f, xs)
-@compat (f::Concat)(xs...) = forward(f, xs)
-
-function forward(f::Concat, xs::Vector{Var})
+@compat function (f::Concat)(xs::Vector{Var})
   y = concat(f.dim, map(x -> x.val, xs))
   backward! = gy -> ∇concat!(f.dim, map(x -> x.grad, xs), gy)
   Var(y, nothing, f, xs, backward!)
-end
-
-function forward!(f::Concat, v::Var)
-  v.val = concat(f.dim, map(a -> a.val, v.args))
-  v.backward! = gy -> ∇concat!(f.dim, map(a -> a.grad, v.args), gy)
 end
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})

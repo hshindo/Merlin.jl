@@ -24,7 +24,7 @@ function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
   weights = Array(Var, insize)
   for i = 1:insize
     w = convert(Vector{T}, randn(outsize))
-    weights[i] = Var(w, zeros(w))
+    weights[i] = Var(w, grad=zeros(w))
   end
   Lookup(weights)
 end
@@ -40,17 +40,17 @@ function Lookup{T}(path, ::Type{T})
   Lookup(weights)
 end
 
-@compat (f::Lookup)(x) = forward(f, x)
-
-function forward(f::Lookup, x::Var)
+@compat function (f::Lookup)(xs::Vector{Var})
+  x = xs[1]
   y = lookup(f, x.val)
-  xs = Var[x]
+  xs = [x]
   for id in x.val
     push!(xs, f.weights[id])
   end
   backward! = gy -> ∇lookup!(f, x.val, gy)
   Var(y, nothing, f, xs, backward!)
 end
+@compat (f::Lookup)(x::Var) = f([x])
 
 function lookup(f::Lookup, x::Matrix{Int})
   w1 = f.weights[1].val

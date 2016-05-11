@@ -15,35 +15,23 @@ f(x;p)=-∑_{x} p \log q_{x}
 
 ### 👉 Example
 ```julia
-p = [1:5]
-logq = Var(rand(Float32,10,5)) |> LogSoftmax()
+p = Var([1:5])
+x = Var(rand(Float32,10,5))
 f = CrossEntropy()
-y = f(p, logq)
+y = f(p, q)
 ```
 """
 type CrossEntropy <: Functor
 end
 
-@compat (f::CrossEntropy)(xs) = forward(f, xs)
-@compat (f::CrossEntropy)(xs...) = forward(f, xs)
-
-function forward(f::CrossEntropy, xs::Vector{Var})
+@compat function (f::CrossEntropy)(xs::Vector{Var})
   p, q = xs[1], xs[2]
   logq = logsoftmax(q.val)
   y = crossentropy(p.val, logq)
-  backward! = gy -> hasgrad(q) && ∇crossentropy!(p, logq, q.grad, gy)
+  backward! = gy -> hasgrad(q) && ∇crossentropy!(p.val, logq, q.grad, gy)
   Var(y, nothing, f, xs, backward!)
 end
-
-function backward!{T}(f::CrossEntropy, p::Vector{Int}, logq::Matrix{T}, y::Matrix{T})
-  for j = 1:length(p.val)
-    g = gy[j]
-    @inbounds @simd for i = 1:size(logq.val,1)
-      delta = ifelse(i == p[j], T(1), T(0))
-      gx[i,j] += g * (exp(logq[i,j]) - delta)
-    end
-  end
-end
+@compat (f::CrossEntropy)(xs...) = f([xs...])
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
   y = Array(T, 1, size(p,2))

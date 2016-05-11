@@ -1,119 +1,40 @@
 const T = Float64
 
 @testset "functors" for i = 1:5
-  @testset "concat" begin
-    
+  x = Var(rand(T,10,5))
+  x1 = Var(rand(T,10,5))
+  x2 = Var(rand(T,10,5))
+  x3 = Var(rand(T,10,5))
+
+  @test checkgrad(Concat(1), x1, x2, x3)
+  @test checkgrad(Concat(2), x1, x2, x3)
+  #@test checkgrad(Concat(3), x1, x2, x3)
+
+  #@test checkgrad(Conv(5,(3,3),(1,1),(1,1)), x)
+
+  @testset "crosentropy" begin
+    p = Var(rand(1:10,size(x.val,2)))
+    #@test checkgrad(CrossEntropy(), p, x)
   end
-end
 
-@testset "concat" for i = 1:5
-  x1 = Var(rand(T,10,5,2))
-  x2 = Var(rand(T,10,5,2))
-  x3 = Var(rand(T,10,5,2))
-  @test check_gradient(Concat(1), x1, x2, x3)
-  @test check_gradient(Concat(2), x1, x2, x3)
-  @test check_gradient(Concat(3), x1, x2, x3)
-end
+  @test checkgrad(Linear(T,10,7), x)
+  #@test checkgrad(LogSoftmax(), x)
 
-@testset "conv" for i = 1:5
-  x = Var(rand(T,10,5))
-  f = Conv(5, (3,3), (1,1), (1,1))
-  @test check_gradient(f, x)
-end
+  @testset "lookup" begin
+    xx = Var(rand(1:5,100))
+    f = Lookup(Float32,100,100)
+    #@test checkgrad(f, xx)
+  end
 
-@testset "crosentropy" for i = 1:5
-  p = Var(rand(1:10))
-  x = Var(rand(T,10,5))
-  @test check_gradient(CrossEntropy(), p, x)
-end
+  @test checkgrad(ReLU(), x)
+  @test checkgrad(Sigmoid(), x)
+  @test checkgrad(Softmax(), x)
+  @test checkgrad(Tanh(), x)
 
-@testset "logsoftmax" for i = 1:5
-  x = Var(rand(T,10,5))
-  @test check_gradient(LogSoftmax(), x)
-end
-
-@testset "lookup" for i = 1:5
-  x = Var([1:5])
-  f = Lookup(Float32,10000,100)
-  @test check_gradient(f, x)
-end
-
-@testset "relu" begin
-  x = Var(rand(T,10,5))
-  @test check_gradient(ReLU(), x)
-end
-
-@testset "sigmoid" begin
-  x = Var(rand(T,10,5))
-  @test check_gradient(Sigmoid(), x)
-end
-
-@testset "softmax" begin
-  x = Var(rand(T,10,5))
-  #@test check_gradient(Softmax(), x)
-end
-
-@testset "tanh" begin
-  x = Var(rand(T,10,5))
-  @test check_gradient(Tanh(), x)
-end
-
-@testset "add" begin
-  x1 = rand(T, 10, 5)
-  x2 = rand(T, 10, 5)
-  x3 = rand(T, 10, 1)
-  @test check_gradient(Add(), x1, x2)
-  @test check_gradient(ElemAdd(), x1, x2)
-  @test check_gradient(ElemAdd(), x2, x3)
-end
-
-@testset "multiply" begin
-  x1 = rand(T, 100, 50)
-  x2 = rand(T, 50, 30)
-  x3 = rand(T, 50, 30)
-  @test check_gradient(Multiply(), x1, x2)
-  @test check_gradient(ElemMultiply(), x2, x3)
-end
-
-@testset "subtract" begin
-  x1 = rand(T, 10, 5)
-  x2 = rand(T, 10, 5)
-  x3 = rand(T, 10, 1)
-  @test check_gradient(Subtract(), x1, x2)
-  @test check_gradient(ElemSubtract(), x1, x2)
-  @test check_gradient(ElemSubtract(), x2, x3)
-end
-
-@testset "linear" for i = 1:5
-  x = rand(T, 10, 5)
-  f = Linear(T, 10, 8)
-  @test check_gradient(f, x)
-end
-
-@testset "lookup" for i = 1:5
-end
-
-@testset "lookuplinear" for i = 1:5
-end
-
-@testset "max" for i = 1:5
-  x = rand(Float64, 10, 5, 2)
-  #@test check_gradient(Max(1), x)
-  #@test check_gradient(Max(2), x)
-  #@test check_gradient(Max(3), x)
-end
-
-@testset "maxpooling2d" for i = 1:5
-end
-
-@testset "reshape" for i = 1:5
-  x = rand(T, 10, 5, 2)
-  f = Reshape(5, 10, 2)
-  #@test check_gradient(f, x)
-end
-
-@testset "window2d" for i = 1:5
-  x = rand(T, 10, 5)
-  f = Window2D(10,2,1,1)
-  @test check_gradient(f, x)
+  @test checkgrad(Add(), x1, x2)
+  @test checkgrad(ElemAdd(), x1, x2)
+  @test checkgrad(Subtract(), x1, x2)
+  @test checkgrad(ElemSubtract(), x1, x2)
+  @test checkgrad(Mult(), Var(rand(T,10,5)), Var(rand(T,5,3)))
+  @test checkgrad(ElemMult(), x2, x3)
 end
