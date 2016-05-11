@@ -39,7 +39,7 @@ julia> Pkg.build("Merlin")
 ```julia
 using Merlin
 
-x = rand(Float32,10,5)
+x = Var(rand(Float32,10,5))
 f = Graph(
   Linear(Float32,10,7),
   ReLU(),
@@ -61,12 +61,12 @@ f = Graph(
 )
 lossfun = CrossEntropy()
 opt = SGD(0.0001)
+
 for epoch = 1:10
   println("epoch: $(epoch)")
   loss = fit(data_x, data_y, f, lossfun, opt)
   println("loss: $(loss)")
 end
-println("finish")
 ```
 
 ## Using CUDA
