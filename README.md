@@ -52,8 +52,8 @@ y = f(x)
 ```julia
 using Merlin
 
-data_x = [rand(Float32,10,5) for i=1:100] # input data
-data_y = [Int[1,2,3] for i=1:100] # correct labels
+data_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
+data_y = [Var(Int[1,2,3]) for i=1:100] # correct labels
 
 f = Network(
   Linear(Float32,10,7),

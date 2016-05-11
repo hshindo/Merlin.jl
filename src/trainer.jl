@@ -11,10 +11,10 @@ function fit(t::Trainer, xs, ys)
   for i in randperm(length(xs))
     z = t.f(xs[i])
     l = t.lossfun(ys[i], z)
-    loss += sum(l.value)
+    loss += sum(l.val)
     vars = backward!(l)
     for v in vars
-      length(v.args) == 0 && hasgrad(v) && update!(t.opt, v.value, v.grad)
+      length(v.args) == 0 && hasgrad(v) && update!(t.opt, v.val, v.grad)
     end
   end
   loss

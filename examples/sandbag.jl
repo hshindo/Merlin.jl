@@ -6,6 +6,22 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
+data_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
+data_y = [Var(Int[1,2,3]) for i=1:100] # correct labels
+
+f = Network(
+  Linear(Float32,10,7),
+  ReLU(),
+  Linear(Float32,7,3))
+t = Trainer(f, CrossEntropy(), SGD(0.0001))
+
+for epoch = 1:10
+  println("epoch: $(epoch)")
+  loss = fit(t, data_x, data_y)
+  println("loss: $(loss)")
+end
+
+
 f = CrossEntropy()
 x1 = Var([1,2,3])
 x2 = Var(rand(Float32,10,3))

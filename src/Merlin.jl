@@ -24,7 +24,7 @@ export argmax
 include("util.jl")
 
 include("var.jl")
-include("networks.jl")
+include("network.jl")
 include("trainer.jl")
 
 for name in [
