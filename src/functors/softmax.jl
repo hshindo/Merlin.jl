@@ -20,13 +20,12 @@ y = f(x)
 type Softmax <: Functor
 end
 
-@compat function (f::Softmax)(xs::Vector{Var})
-  x = xs[1]
+function forward(f::Softmax, args::Vector{Var})
+  x = args[1]
   y = softmax(x.val)
   backward! = gy -> hasgrad(x) && ∇softmax2!(x.val, y, x.grad, gy)
-  Var(y, nothing, f, xs, backward!)
+  Var(y, nothing, f, args, backward!)
 end
-@compat (f::Softmax)(x::Var) = f([x])
 
 function softmax{T}(x::Matrix{T})
   y = similar(x)

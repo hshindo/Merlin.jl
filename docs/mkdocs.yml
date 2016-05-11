@@ -23,9 +23,8 @@ markdown_extensions:
 
 pages:
   - Home: index.md
-  - Overview: overview.md
   - Functors: functors.md
-  - Graph: graph.md
+  - Network: network.md
   - Optimizers: optimizers.md
 #  - Examples:
 #    - POS-Tagging: 'examples/pos-tagging.md'

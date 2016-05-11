@@ -10,7 +10,6 @@ end
 function Model(path)
   T = Float32
   word_f = Lookup(T, 500000, 100)
-  #word_f = Lookup("$(path)/nyt100.lst", T)
   char_f = Sequence(Lookup(T,100,10),
                     Window2D(10,5,1,1,0,2),
                     Linear(T,50,50),
@@ -19,14 +18,10 @@ function Model(path)
                     Linear(T,750,300),
                     ReLU(),
                     Linear(T,300,45))
-  Model(word_f, char_f, sent_f, loss_f, opt)
+  Model(word_f, char_f, sent_f)
 end
 
 @compat function (m::Model)(tokens::Vector{Token})
-  forward(m, tokens)
-end
-
-function forward(m::Model, tokens::Vector{Token})
   wordvec = map(t -> t.wordid, tokens)
   wordvec = reshape(wordvec, 1, length(wordvec))
   wordmat = m.word_f(wordvec)

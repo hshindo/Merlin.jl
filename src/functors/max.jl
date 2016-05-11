@@ -18,13 +18,13 @@ type Max <: Functor
   dim::Int
 end
 
-@compat function (f::Max)(xs::Vector{Var})
-  x = xs[1]
+function forward(f::Max, args::Vector{Var})
+  isnothing(args) && return Var()
+  x = args[1]
   y, idx = findmax(x.val, f.dim)
   backward! = gy -> hasgrad(x) && backward!(f, idx, x.grad, gy)
-  Var(y, nothing, f, xs, backward!)
+  Var(y, nothing, f, args, backward!)
 end
-@compat (f::Max)(x::Var) = f([x])
 
 function backward!{T,N}(f::Max, idx::Array{Int,N}, gx::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(idx)

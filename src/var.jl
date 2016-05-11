@@ -18,7 +18,13 @@ Base.getindex(v::Var, key) = v.args[key]
 Base.setindex!(v::Var, val, key) = v.args[key] = val
 
 hasgrad(v::Var) = v.grad != nothing
-isleaf(v::Var) = length(v.args) == 0
+
+function forward0(f::Functor, args::Vector{Var})
+  any(a -> a.val == nothing, args) && return Var(nothing, f=f, args=args)
+  forward(f, args)
+end
+forward0(f::Functor, arg::Var) = forward0(f, [arg])
+forward0{N}(f::Functor, args::NTuple{N,Var}) = forward0(f, [args...])
 
 function topsort(var::Var)
   sorted = Var[]
@@ -39,7 +45,6 @@ end
 function backward!(var::Var)
   hasgrad(var) || (var.grad = ones(var.val))
   sorted = topsort(var)
-  i = 1
   for v in sorted
     (v == var || hasgrad(v) || v.backward! == nothing) && continue
     v.grad = zeros(v.val)
@@ -54,17 +59,17 @@ end
 """
 Compute numerical gradient.
 """
-function approx_grad(f::Functor, xs::Vector{Var})
+function approx_grad(f::Functor, args::Vector{Var})
   epsilon = 1e-3
-  map(xs) do x
+  map(args) do x
     x = x.val
     gx = zeros(x)
     origx = copy(x)
     for k = 1:length(x)
       x[k] = origx[k] + epsilon
-      y1 = f(xs).val
+      y1 = f(args).val
       x[k] = origx[k] - epsilon
-      y2 = f(xs).val
+      y2 = f(args).val
       x[k] = origx[k]
       gx[k] = sum(y1 - y2) / 2epsilon
     end
@@ -76,18 +81,18 @@ end
 """
 Check gradient.
 """
-function checkgrad(f::Functor, xs::Vector{Var})
-  y = f(xs)
-  for x in xs
+function checkgrad(f::Functor, args::Vector{Var})
+  y = f(args)
+  for x in args
     x.grad = zeros(x.val)
   end
   backward!(y)
-  approx_gxs = approx_grad(f, xs)
-  for i = 1:length(xs)
-    gx1 = xs[i].grad
+  approx_gxs = approx_grad(f, args)
+  for i = 1:length(args)
+    gx1 = args[i].grad
     gx2 = approx_gxs[i]
     all(d -> abs(d) < 1e-4, gx1 - gx2) || return false
   end
   true
 end
-checkgrad(f::Functor, xs::Var...) = checkgrad(f, [xs...])
+checkgrad(f::Functor, args::Var...) = checkgrad(f, [args...])

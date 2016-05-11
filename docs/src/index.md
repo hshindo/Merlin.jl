@@ -1,15 +1,9 @@
 # Merlin.jl
 
-[Merlin.jl](https://github.com/hshindo/Merlin.jl) is a deep learning framework in [Julia](http://julialang.org/).
+`Merlin` is a deep learning framework written in [Julia](http://julialang.org/).
+It aims to provide a fast, flexible and compact deep learning library for machine learning.
 
-## Installation
-```julia
-# julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
-```
+See README.md for basic usage.
 
-## Requirements
-- Julia 0.4 or 0.5-dev
-- g++ (for OSX or Linux)
-
-## Optional
-- [cuDNN](https://developer.nvidia.com/cudnn) v4 (for CUDA GPU)
+`Merlin` provides some primitive functions (`functor`s).
+See `Functor` for more information about each functors.

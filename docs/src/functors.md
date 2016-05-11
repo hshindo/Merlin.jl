@@ -16,4 +16,3 @@ The following are concrete types of `Functor`s.
     Sigmoid
     Softmax
     Tanh
-    Window2D

@@ -9,8 +9,8 @@ Lookup variables.
 
 ### 👉 Example
 ```julia
-x = Var([1:5])
-f = Lookup(Float32,10000,100)
+x = Var(rand(1:1000,5,3))
+f = Lookup(Float32,1000,100)
 y = f(x)
 ```
 """
@@ -40,17 +40,16 @@ function Lookup{T}(path, ::Type{T})
   Lookup(weights)
 end
 
-@compat function (f::Lookup)(xs::Vector{Var})
-  x = xs[1]
+function forward(f::Lookup, args::Vector{Var})
+  x = args[1]
   y = lookup(f, x.val)
-  xs = [x]
+  args = Var[]
   for id in x.val
-    push!(xs, f.weights[id])
+    push!(args, f.weights[id])
   end
   backward! = gy -> ∇lookup!(f, x.val, gy)
-  Var(y, nothing, f, xs, backward!)
+  Var(y, nothing, f, args, backward!)
 end
-@compat (f::Lookup)(x::Var) = f([x])
 
 function lookup(f::Lookup, x::Matrix{Int})
   w1 = f.weights[1].val
@@ -66,7 +65,7 @@ function lookup(f::Lookup, x::Matrix{Int})
 end
 
 function ∇lookup!{T}(f::Lookup, x::Matrix{Int}, gy::Matrix{T})
-  len = length(f.weights[1].value)
+  len = length(f.weights[1].val)
   offset = 1
   for i = 1:length(x)
     gw = f.weights[x[i]].grad

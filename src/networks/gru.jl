@@ -10,7 +10,7 @@ Ref: Chung et al. "Empirical Evaluation of Gated Recurrent Neural Networks on Se
 
 ### 👉 Example
 ```julia
-xs = [rand(Float32,10,5) for i=1:10]
+xs = [Var(rand(Float32,10,5)) for i=1:10]
 f = GRU(Float32,10)
 h = ones(x)
 for x in xs
@@ -19,20 +19,13 @@ end
 ```
 """
 function GRU{T}(::Type{T}, xsize::Int)
-  Ws = [Variable(rand(T,xsize,xsize)) for i=1:3]
-  Us = [Variable(rand(T,xsize,xsize)) for i=1:3]
-  x = Variable()
-  h = Variable()
-  r = sigmoid(Ws[1]*x + Us[1]*h)
-  z = sigmoid(Ws[2]*x + Us[2]*h)
-  h_ = tanh(Ws[3]*x + Us[3]*(r.*h))
+  Ws = [Var(rand(T,xsize,xsize),grad=zeros(T,xsize,xsize)) for i=1:3]
+  Us = [Var(rand(T,xsize,xsize),grad=zeros(T,xsize,xsize)) for i=1:3]
+  x = Var()
+  h = Var()
+  r = Sigmoid()(Ws[1]*x + Us[1]*h)
+  z = Sigmoid()(Ws[2]*x + Us[2]*h)
+  h_ = Tanh()(Ws[3]*x + Us[3]*(r.*h))
   h_next = (1 - z) .* h + z .* h_
-  Graph(h_next)
-end
-
-"""
-LSTM
-"""
-function LSTM()
-  
+  Network(h_next)
 end

@@ -9,7 +9,7 @@ Reshapes an array with the given dimensions.
 
 ### 👉 Example
 ```julia
-x = rand(Float32,10,5,3)
+x = Var(rand(Float32,10,5,3))
 f = Reshape(5,3,10)
 y = f(x)
 ```
@@ -20,12 +20,13 @@ end
 
 Reshape(dims::Int...) = Reshape(dims)
 
-@compat (f::Reshape)(arg) = forward(f, arg)
-function forward!(f::Reshape, v::Variable)
-  s = size(v[1].value)
-  v.value = reshape(v[1].value, f.dims)
-  v.backward! = () -> begin
-    T = eltype(v)
-    hasgrad(v[1]) && axpy!(T(1), v.grad, v[1].grad)
+function forward(f::Reshape, args::Vector{Var})
+  x = args[1]
+  s = size(x.val)
+  y = copy(reshape(x.val, f.dims))
+  backward! = gy -> begin
+    T = eltype(gy)
+    hasgrad(x) && BLAS.axpy!(T(1), gy, x.grad)
   end
+  Var(y, nothing, f, args, backward!)
 end

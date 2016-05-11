@@ -18,10 +18,10 @@ type Concat <: Functor
   dim::Int
 end
 
-@compat function (f::Concat)(xs::Vector{Var})
-  y = concat(f.dim, map(x -> x.val, xs))
-  backward! = gy -> ∇concat!(f.dim, map(x -> x.grad, xs), gy)
-  Var(y, nothing, f, xs, backward!)
+function forward(f::Concat, args::Vector{Var})
+  y = concat(f.dim, map(a -> a.val, args))
+  backward! = gy -> ∇concat!(f.dim, map(a -> a.grad, args), gy)
+  Var(y, nothing, f, args, backward!)
 end
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
@@ -50,7 +50,7 @@ function ∇concat!{T,N}(dim::Int, gxs::Vector{Array{T,N}}, gy::Array{T,N})
   for gx in gxs
     s = size(gx, dim)
     range[dim] = offset:(offset+s-1)
-    axpy!(T(1), gy[range...], gx)
+    BLAS.axpy!(T(1), gy[range...], gx)
     offset += s
   end
 end
