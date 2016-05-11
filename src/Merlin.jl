@@ -38,11 +38,10 @@ for name in [
   "math",
   "max",
   "relu",
-  #"reshape",
+  "reshape",
   "sigmoid",
   "softmax",
   "tanh",
-  #"window2d"
   ]
   include("functors/$(name).jl")
 end
@@ -57,6 +56,7 @@ for name in [
   Add,ElemAdd,Subtract,ElemSubtract,Mult,ElemMult,
   Max,
   ReLU,
+  Reshape,
   Sigmoid,
   Softmax,
   Tanh
