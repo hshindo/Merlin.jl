@@ -2,48 +2,13 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Merlin.jl\n\n\nMerlin.jl\n is a deep learning framework in \nJulia\n.\n\n\n\n\nInstallation\n\n\n# julia\n Pkg.clone(\nhttps://github.com/hshindo/Merlin.jl.git\n)\n\n\n\n\n\n\n\n\nRequirements\n\n\n\n\nJulia 0.4 or 0.5-dev\n\n\ng++ (for OSX or Linux)\n\n\n\n\n\n\nOptional\n\n\n\n\ncuDNN\n v4 (for CUDA GPU)", 
+            "text": "Merlin.jl\n\n\nMerlin\n is a deep learning framework written in \nJulia\n. It aims to provide a fast, flexible and compact deep learning library for machine learning.\n\n\nSee README.md for basic usage.\n\n\nMerlin\n provides some primitive functions (\nfunctor\ns). See \nFunctor\n for more information about each functors.", 
             "title": "Home"
         }, 
         {
             "location": "/#merlinjl", 
-            "text": "Merlin.jl  is a deep learning framework in  Julia .", 
+            "text": "Merlin  is a deep learning framework written in  Julia . It aims to provide a fast, flexible and compact deep learning library for machine learning.  See README.md for basic usage.  Merlin  provides some primitive functions ( functor s). See  Functor  for more information about each functors.", 
             "title": "Merlin.jl"
-        }, 
-        {
-            "location": "/#installation", 
-            "text": "# julia  Pkg.clone( https://github.com/hshindo/Merlin.jl.git )", 
-            "title": "Installation"
-        }, 
-        {
-            "location": "/#requirements", 
-            "text": "Julia 0.4 or 0.5-dev  g++ (for OSX or Linux)", 
-            "title": "Requirements"
-        }, 
-        {
-            "location": "/#optional", 
-            "text": "cuDNN  v4 (for CUDA GPU)", 
-            "title": "Optional"
-        }, 
-        {
-            "location": "/overview/", 
-            "text": "Overview\n\n\n\n\nDecoding\n\n\n\n\nPrepare data as \nArray\n (CPU) or \nCudaArray\n (CUDA GPU).\n\n\nCreate \nFunctor\ns (function objects).\n\n\nApply the functors to your data.\n\n\n\n\nusing\n \nMerlin\n\n\n\nx\n \n=\n \nrand\n(\nFloat32\n,\n50\n,\n5\n)\n\n\nf1\n \n=\n \nLinear\n(\nFloat32\n,\n50\n,\n30\n)\n\n\nf2\n \n=\n \nReLU\n()\n\n\ny\n \n=\n \nx\n \n|\n \nf1\n \n|\n \nf2\n \n# or y = f2(f1(x))\n\n\n\n\n\n\n\n\nTraining\n\n\n\n\nCreate \nOptimizer\n.\n\n\nDecode your data.\n\n\nCompute loss.\n\n\nCompute gradient.\n\n\nUpdate \nFunctor\ns with the \nOptimizer\n.\n\n\n\n\nusing\n \nMerlin\n\n\n\nopt\n \n=\n \nSGD\n(\n0.001\n)\n\n\nf\n \n=\n \nGraph\n(\nLinear\n(\nFloat32\n,\n50\n,\n30\n),\n \nReLU\n(),\n \nLinear\n(\nFloat32\n,\n30\n,\n10\n))\n \n# 3-layer network\n\n\ntrain_data\n \n=\n \n[\nrand\n(\nFloat32\n,\n50\n,\n1\n)\n \nfor\n \ni\n=\n1\n:\n1000\n]\n \n# create 1000 training examples of size: (50,1)\n\n\n\nfor\n \nepoch\n \n=\n \n1\n:\n10\n\n  \nfor\n \ni\n \nin\n \nrandperm\n(\nlength\n(\ntrain_data\n))\n \n# shuffle\n\n    \nx\n \n=\n \ntrain_data\n[\ni\n]\n\n    \ny\n \n=\n \nf\n(\nx\n)\n\n    \nlabel\n \n=\n \n[\n1\n]\n \n# assumes the correct label is always \n1\n\n    \nloss\n \n=\n \nCrossEntropy\n(\nlabel\n)(\ny\n)\n\n    \ngradient!\n(\nloss\n)\n \n# computes gradients of every parameters used in decoding\n\n    \nupdate!\n(\nopt\n,\n \nf\n)\n\n  \nend\n\n\nend", 
-            "title": "Overview"
-        }, 
-        {
-            "location": "/overview/#overview", 
-            "text": "", 
-            "title": "Overview"
-        }, 
-        {
-            "location": "/overview/#decoding", 
-            "text": "Prepare data as  Array  (CPU) or  CudaArray  (CUDA GPU).  Create  Functor s (function objects).  Apply the functors to your data.   using   Merlin  x   =   rand ( Float32 , 50 , 5 )  f1   =   Linear ( Float32 , 50 , 30 )  f2   =   ReLU ()  y   =   x   |   f1   |   f2   # or y = f2(f1(x))", 
-            "title": "Decoding"
-        }, 
-        {
-            "location": "/overview/#training", 
-            "text": "Create  Optimizer .  Decode your data.  Compute loss.  Compute gradient.  Update  Functor s with the  Optimizer .   using   Merlin  opt   =   SGD ( 0.001 )  f   =   Graph ( Linear ( Float32 , 50 , 30 ),   ReLU (),   Linear ( Float32 , 30 , 10 ))   # 3-layer network  train_data   =   [ rand ( Float32 , 50 , 1 )   for   i = 1 : 1000 ]   # create 1000 training examples of size: (50,1)  for   epoch   =   1 : 10 \n   for   i   in   randperm ( length ( train_data ))   # shuffle \n     x   =   train_data [ i ] \n     y   =   f ( x ) \n     label   =   [ 1 ]   # assumes the correct label is always  1 \n     loss   =   CrossEntropy ( label )( y ) \n     gradient! ( loss )   # computes gradients of every parameters used in decoding \n     update! ( opt ,   f ) \n   end  end", 
-            "title": "Training"
         }, 
         {
             "location": "/functors/", 
@@ -56,9 +21,19 @@
             "title": "Functors"
         }, 
         {
-            "location": "/graph/", 
-            "text": "{docs}\nGraph", 
-            "title": "Graph"
+            "location": "/network/", 
+            "text": "#\n\n\nMerlin.Network\n \n \nType\n.\n\n\nNetwork\n\n\nNetwork\n is a container of \nFunctor\ns.\n\n\n\ud83d\udc49 Example\n\n\n\n\n\n\n\n\nsource", 
+            "title": "Network"
+        }, 
+        {
+            "location": "/network/#network", 
+            "text": "Network  is a container of  Functor s.", 
+            "title": "Network"
+        }, 
+        {
+            "location": "/network/#example", 
+            "text": "source", 
+            "title": "\ud83d\udc49 Example"
         }, 
         {
             "location": "/optimizers/", 

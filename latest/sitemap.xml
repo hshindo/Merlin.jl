@@ -11,14 +11,6 @@
 
     
     <url>
-     <loc>None/overview/</loc>
-     <lastmod>2016-05-11</lastmod>
-     <changefreq>daily</changefreq>
-    </url>
-    
-
-    
-    <url>
      <loc>None/functors/</loc>
      <lastmod>2016-05-11</lastmod>
      <changefreq>daily</changefreq>
@@ -27,7 +19,7 @@
 
     
     <url>
-     <loc>None/graph/</loc>
+     <loc>None/network/</loc>
      <lastmod>2016-05-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
