@@ -6,8 +6,17 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
-x1 = Var(rand(Float32,5,2))
-x2 = Var(rand(Float32,5,2))
+f = CrossEntropy()
+x1 = Var([1,2,3])
+x2 = Var(rand(Float32,10,3))
+f([x1,x2])
+
+f = GRU(Float32,10)
+f.data_ids
+
+x1 = Var(rand(Float32,10,1))
+x2 = Var(rand(Float32,10,1))
+f(x1,x2)
 y = x1 .- x2
 x1.grad = zeros(x1.val)
 x2.grad = zeros(x2.val)

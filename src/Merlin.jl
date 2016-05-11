@@ -24,7 +24,7 @@ export argmax
 include("util.jl")
 
 include("var.jl")
-#include("graph.jl")
+include("network.jl")
 #include("sequence.jl")
 include("training.jl")
 
@@ -48,12 +48,28 @@ for name in [
   include("functors/$(name).jl")
 end
 
-#=
+for name in [
+  Concat,
+  Conv,
+  CrossEntropy,
+  Linear,
+  LogSoftmax,
+  Lookup,
+  Add,ElemAdd,Subtract,ElemSubtract,Mult,ElemMult,
+  Max,
+  ReLU,
+  Sigmoid,
+  Softmax,
+  Tanh
+  ]
+  @eval @compat (f::$name)(args) = forward0(f, args)
+  @eval @compat (f::$name)(args...) = f(args)
+end
+
 for name in [
     "gru"]
   include("graphs/$(name).jl")
 end
-=#
 
 for name in [
     "adagrad",

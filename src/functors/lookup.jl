@@ -40,17 +40,16 @@ function Lookup{T}(path, ::Type{T})
   Lookup(weights)
 end
 
-@compat function (f::Lookup)(xs::Vector{Var})
-  x = xs[1]
+function (f::Lookup, args::Vector{Var})
+  x = args[1]
   y = lookup(f, x.val)
-  xs = [x]
+  args = [x]
   for id in x.val
-    push!(xs, f.weights[id])
+    push!(args, f.weights[id])
   end
   backward! = gy -> ∇lookup!(f, x.val, gy)
-  Var(y, nothing, f, xs, backward!)
+  Var(y, nothing, f, args, backward!)
 end
-@compat (f::Lookup)(x::Var) = f([x])
 
 function lookup(f::Lookup, x::Matrix{Int})
   w1 = f.weights[1].val

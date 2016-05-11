@@ -21,13 +21,12 @@ y = f(x)
 type LogSoftmax <: Functor
 end
 
-@compat function (f::LogSoftmax)(xs::Vector{Var})
-  x = xs[1]
+function forward(f::LogSoftmax, args::Vector{Var})
+  x = args[1]
   y = logsoftmax(x.val)
   backward! = gy -> hasgrad(x) && ∇logsoftmax!(x.val, y, x.grad, gy)
-  Var(y, nothing, f, xs, backward!)
+  Var(y, nothing, f, args, backward!)
 end
-@compat (f::LogSoftmax)(x::Var) = f([x])
 
 function logsoftmax{T}(x::Matrix{T})
   y = similar(x)

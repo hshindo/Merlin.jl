@@ -18,7 +18,7 @@ const T = Float64
   end
 
   @test checkgrad(Linear(T,10,7), x)
-  #@test checkgrad(LogSoftmax(), x)
+  @test checkgrad(LogSoftmax(), x)
 
   @testset "lookup" begin
     xx = Var(rand(1:5,100))

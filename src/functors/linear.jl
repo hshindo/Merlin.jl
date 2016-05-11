@@ -40,8 +40,7 @@ end
 mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
 isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 
-@compat (f::Linear)(xs::Vector{Var}) = f.w * xs[1] .+ f.b
-@compat (f::Linear)(x::Var) = f([x])
+forward(f::Linear, args::Vector{Var}) = f.w * args[1] .+ f.b
 
 #=
 function forward!(f::Linear, v::Variable)

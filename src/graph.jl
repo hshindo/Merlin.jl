@@ -17,19 +17,19 @@ type Graph <: Functor
 end
 
 function Graph(funs::Functor...)
-  v = Variable()
+  v = Var()
   for f in funs
     v = f(v)
   end
   Graph(v)
 end
 
-function Graph(top::Variable)
+function Graph(top::Var)
   nodes = topsort(top)
   data_ids = Int[]
   for i in 1:length(nodes)
     v = nodes[i]
-    length(v.args) == 0 && v.value == nothing && push!(data_ids, i)
+    length(v.args) == 0 && v.val == nothing && push!(data_ids, i)
   end
 
   dict = ObjectIdDict()
@@ -47,14 +47,12 @@ end
 
 Base.getindex(g::Graph, key) = g.nodes[key]
 
-@compat function (g::Graph)(args::Tuple)
+@compat function (g::Graph)(args::Vector{Var})
   @assert (length(g.data_ids) == length(args))
 
-  nodes = Array(Variable, length(g.nodes))
+  nodes = Array(Var, length(g.nodes))
   for i in 1:length(args)
-    a = args[i]
-    v = typeof(a) == Variable ? a : Variable(a, nothing)
-    nodes[g.data_ids[i]] = v
+    nodes[g.data_ids[i]] = args[i]
   end
 
   for i = 1:length(nodes)
@@ -72,5 +70,4 @@ Base.getindex(g::Graph, key) = g.nodes[key]
   end
   nodes[end]
 end
-
-@compat (g::Graph)(args...) = g(args)
+@compat (g::Graph)(args::Var...) = g([args...])
