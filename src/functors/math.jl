@@ -80,8 +80,8 @@ end
   y = x1.val - x2.val
   backward! = gy -> begin
     T = eltype(gy)
-    hasgrad(x1) && axpy!(T(1), gy, x1.grad)
-    hasgrad(x2) && axpy!(T(-1), gy, x2.grad)
+    hasgrad(x1) && BLAS.axpy!(T(1), gy, x1.grad)
+    hasgrad(x2) && BLAS.axpy!(T(-1), gy, x2.grad)
   end
   Var(y, nothing, f, xs, backward!)
 end
@@ -100,7 +100,7 @@ end
 
 function ∇elemsubtract!{T,N}(a::Float64, gx::Array{T,N}, gy::Array{T,N})
   for offset = 1:length(gx):length(gy)
-    axpy!(length(gx), T(a), pointer(gy,offset), stride(gy,1), pointer(gx), stride(gx,1))
+    BLAS.axpy!(length(gx), T(a), pointer(gy,offset), stride(gy,1), pointer(gx), stride(gx,1))
   end
 end
 

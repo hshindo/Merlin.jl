@@ -50,7 +50,7 @@ function ∇concat!{T,N}(dim::Int, gxs::Vector{Array{T,N}}, gy::Array{T,N})
   for gx in gxs
     s = size(gx, dim)
     range[dim] = offset:(offset+s-1)
-    axpy!(T(1), gy[range...], gx)
+    BLAS.axpy!(T(1), gy[range...], gx)
     offset += s
   end
 end
