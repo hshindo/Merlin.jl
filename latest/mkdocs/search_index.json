@@ -12,13 +12,153 @@
         }, 
         {
             "location": "/functors/", 
-            "text": "Functors\n\n\nFunctor\n is an abstract type of function object. Every \nFunctor\n implements forward and backward computation. The following are concrete types of \nFunctor\ns.\n\n\n{docs}\nConcat\nCrossEntropy\nLinear\nLogSoftmax\nLookup\nMax\nReLU\nReshape\nSigmoid\nSoftmax\nTanh\nWindow2D", 
+            "text": "Functors\n\n\nFunctor\n is an abstract type of function object. Every \nFunctor\n implements forward and backward computation. The following are concrete types of \nFunctor\ns.\n\n\n#\n\n\nMerlin.Concat\n \n \nType\n.\n\n\nConcat\n\n\nConcatenate arrays along the given dimension.\n\n\nFunctions\n\n\n\n\nConcat(dim::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx1\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n7\n,\n5\n))\n\n\nx2\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\ny\n \n=\n \nConcat\n(\n1\n)(\nx1\n,\n \nx2\n)\n\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.CrossEntropy\n \n \nType\n.\n\n\nCrossEntropy\n\n\nCompute cross-entropy between a true distribution: $p$ and the target distribution: $q_x$.\n\n\n\n\n\np\n\n\n\n\n\nand $q$ are assumed to be normalized (sums to one). To noamalize 'Var's, use \nLogSoftmax\n.\n\n\n\n\n\nf(x;p)=-\u2211_{x} p log q_{x}\n\n\n\n\n\nFunctions\n\n\n\n\nCrossEntropy()\n\n\n\n\n\ud83d\udc49 Example\n\n\np\n \n=\n \nVar\n([\n1\n:\n5\n])\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nCrossEntropy\n()\n\n\ny\n \n=\n \nf\n(\np\n,\n \nq\n)\n\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.Linear\n \n \nType\n.\n\n\nLinear\n\n\nCompute linear transformation a.k.a. affine transformation.\n\n\n\n\n\nf(x) = W^{T}x + b\n\n\n\n\n\nwhere $W$ is a weight matrix, $b$ is a bias vector.\n\n\n\n\n\nArguments\n\n\n\n\nLinear(w,b)\n\n\nLinear{T}(::Type{T}, insize::Int, outsize::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nFloat32\n,\n \n10\n,\n \n3\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.LogSoftmax\n \n \nType\n.\n\n\nLogSoftmax\n\n\nCompute logarith of softmax function.\n\n\n\n\n\nf(x)=\frac{\u001bxp(x_{i})}{sum_{j}^{n}\u001bxp(x_{j})},;i=1,ldots,n\n\n\n\n\n\nFunctions\n\n\n\n\nLogSoftmax()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nLogSoftmax\n()\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.Lookup\n \n \nType\n.\n\n\nLookup\n\n\nLookup variables.\n\n\nFunctions\n\n\n\n\nLookup(insize::Int, outsize::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\n1\n:\n1000\n,\n5\n,\n3\n))\n\n\nf\n \n=\n \nLookup\n(\nFloat32\n,\n1000\n,\n100\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.Max\n \n \nType\n.\n\n\nMax\n\n\nCompute the maximum value of an array over the given dimensions.\n\n\nFunctions\n\n\n\n\nMax(dim::Int)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nMax\n(\n1\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.ReLU\n \n \nType\n.\n\n\nReLU\n\n\nRectifier linear unit.\n\n\n\n\nReLU()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nReLU\n()\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.Reshape\n \n \nType\n.\n\n\nReshape\n\n\nReshapes an array with the given dimensions.\n\n\nFunctions\n\n\n\n\nReshape(dims::Int...)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n,\n3\n))\n\n\nf\n \n=\n \nReshape\n(\n5\n,\n3\n,\n10\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.Sigmoid\n \n \nType\n.\n\n\nSigmoid\n\n\n\n\nSigmoid()\n\n\nsigmoid()\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.Softmax\n \n \nType\n.\n\n\nSoftmax\n\n\n\n\n\nf(x)=\frac{\u001bxp(x_{i})}{sum_{j}^{n}\u001bxp(x_{j})},;i=1,ldots,n\n\n\n\n\n\nFunctions\n\n\n\n\nSoftmax()\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nSoftmax\n()\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.Tanh\n \n \nType\n.\n\n\nTanh\n\n\n\n\nTanh()\n\n\ntanh()\n\n\n\n\nsource", 
             "title": "Functors"
         }, 
         {
             "location": "/functors/#functors", 
-            "text": "Functor  is an abstract type of function object. Every  Functor  implements forward and backward computation. The following are concrete types of  Functor s.  {docs}\nConcat\nCrossEntropy\nLinear\nLogSoftmax\nLookup\nMax\nReLU\nReshape\nSigmoid\nSoftmax\nTanh\nWindow2D", 
+            "text": "Functor  is an abstract type of function object. Every  Functor  implements forward and backward computation. The following are concrete types of  Functor s.  #  Merlin.Concat     Type .", 
             "title": "Functors"
+        }, 
+        {
+            "location": "/functors/#concat", 
+            "text": "Concatenate arrays along the given dimension.", 
+            "title": "Concat"
+        }, 
+        {
+            "location": "/functors/#functions", 
+            "text": "Concat(dim::Int)", 
+            "title": "Functions"
+        }, 
+        {
+            "location": "/functors/#example", 
+            "text": "x1   =   Var ( rand ( Float32 , 7 , 5 ))  x2   =   Var ( rand ( Float32 , 10 , 5 ))  y   =   Concat ( 1 )( x1 ,   x2 )   source  #  Merlin.CrossEntropy     Type .", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#crossentropy", 
+            "text": "Compute cross-entropy between a true distribution: $p$ and the target distribution: $q_x$.   \np   and $q$ are assumed to be normalized (sums to one). To noamalize 'Var's, use  LogSoftmax .   \nf(x;p)=-\u2211_{x} p log q_{x}", 
+            "title": "CrossEntropy"
+        }, 
+        {
+            "location": "/functors/#functions_1", 
+            "text": "CrossEntropy()", 
+            "title": "Functions"
+        }, 
+        {
+            "location": "/functors/#example_1", 
+            "text": "p   =   Var ([ 1 : 5 ])  x   =   Var ( rand ( Float32 , 10 , 5 ))  f   =   CrossEntropy ()  y   =   f ( p ,   q )   source  #  Merlin.Linear     Type .", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#linear", 
+            "text": "Compute linear transformation a.k.a. affine transformation.   \nf(x) = W^{T}x + b   where $W$ is a weight matrix, $b$ is a bias vector.", 
+            "title": "Linear"
+        }, 
+        {
+            "location": "/functors/#arguments", 
+            "text": "Linear(w,b)  Linear{T}(::Type{T}, insize::Int, outsize::Int)", 
+            "title": "Arguments"
+        }, 
+        {
+            "location": "/functors/#example_2", 
+            "text": "x   =   Var ( rand ( Float32 , 10 , 5 ))  f   =   Linear ( Float32 ,   10 ,   3 )  y   =   f ( x )   source  #  Merlin.LogSoftmax     Type .", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#logsoftmax", 
+            "text": "Compute logarith of softmax function.   \nf(x)=\frac{\u001bxp(x_{i})}{sum_{j}^{n}\u001bxp(x_{j})},;i=1,ldots,n", 
+            "title": "LogSoftmax"
+        }, 
+        {
+            "location": "/functors/#functions_2", 
+            "text": "LogSoftmax()", 
+            "title": "Functions"
+        }, 
+        {
+            "location": "/functors/#example_3", 
+            "text": "x   =   Var ( rand ( Float32 , 10 , 5 ))  f   =   LogSoftmax ()  y   =   f ( x )   source  #  Merlin.Lookup     Type .", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#lookup", 
+            "text": "Lookup variables.", 
+            "title": "Lookup"
+        }, 
+        {
+            "location": "/functors/#functions_3", 
+            "text": "Lookup(insize::Int, outsize::Int)", 
+            "title": "Functions"
+        }, 
+        {
+            "location": "/functors/#example_4", 
+            "text": "x   =   Var ( rand ( 1 : 1000 , 5 , 3 ))  f   =   Lookup ( Float32 , 1000 , 100 )  y   =   f ( x )   source  #  Merlin.Max     Type .", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#max", 
+            "text": "Compute the maximum value of an array over the given dimensions.", 
+            "title": "Max"
+        }, 
+        {
+            "location": "/functors/#functions_4", 
+            "text": "Max(dim::Int)", 
+            "title": "Functions"
+        }, 
+        {
+            "location": "/functors/#example_5", 
+            "text": "x   =   Var ( rand ( Float32 , 10 , 5 ))  f   =   Max ( 1 )  y   =   f ( x )   source  #  Merlin.ReLU     Type .", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#relu", 
+            "text": "Rectifier linear unit.   ReLU()", 
+            "title": "ReLU"
+        }, 
+        {
+            "location": "/functors/#example_6", 
+            "text": "x   =   Var ( rand ( Float32 , 10 , 5 ))  f   =   ReLU ()  y   =   f ( x )   source  #  Merlin.Reshape     Type .", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#reshape", 
+            "text": "Reshapes an array with the given dimensions.", 
+            "title": "Reshape"
+        }, 
+        {
+            "location": "/functors/#functions_5", 
+            "text": "Reshape(dims::Int...)", 
+            "title": "Functions"
+        }, 
+        {
+            "location": "/functors/#example_7", 
+            "text": "x   =   Var ( rand ( Float32 , 10 , 5 , 3 ))  f   =   Reshape ( 5 , 3 , 10 )  y   =   f ( x )   source  #  Merlin.Sigmoid     Type .", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#sigmoid", 
+            "text": "Sigmoid()  sigmoid()   source  #  Merlin.Softmax     Type .", 
+            "title": "Sigmoid"
+        }, 
+        {
+            "location": "/functors/#softmax", 
+            "text": "f(x)=\frac{\u001bxp(x_{i})}{sum_{j}^{n}\u001bxp(x_{j})},;i=1,ldots,n", 
+            "title": "Softmax"
+        }, 
+        {
+            "location": "/functors/#functions_6", 
+            "text": "Softmax()", 
+            "title": "Functions"
+        }, 
+        {
+            "location": "/functors/#example_8", 
+            "text": "x   =   Var ( rand ( Float32 , 10 , 5 ))  f   =   Softmax ()  y   =   f ( x )   source  #  Merlin.Tanh     Type .", 
+            "title": "\ud83d\udc49 Example"
+        }, 
+        {
+            "location": "/functors/#tanh", 
+            "text": "Tanh()  tanh()   source", 
+            "title": "Tanh"
         }, 
         {
             "location": "/network/", 
