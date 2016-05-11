@@ -44,8 +44,7 @@ x = Var(rand(Float32,10,5))
 f = Graph(
   Linear(Float32,10,7),
   ReLU(),
-  Linear(Float32,7,3)
-)
+  Linear(Float32,7,3))
 y = f(x)
 ```
 
@@ -59,8 +58,7 @@ data_y = [Int[1,2,3] for i=1:100] # correct labels
 f = Graph(
   Linear(Float32,10,7),
   ReLU(),
-  Linear(Float32,7,3)
-)
+  Linear(Float32,7,3))
 lossfun = CrossEntropy()
 opt = SGD(0.0001)
 
