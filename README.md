@@ -10,13 +10,13 @@ This is pre-alpha version. We will make it publicly available in a next few mont
 It aims to provide a fast, flexible and compact deep learning library for machine learning.
 Our primary goal is to develop a NLP toolkit based on `Merlin`.
 
-`Merlin` is tested against Julia `0.4` on Linux, OS X, and Windows.
+`Merlin` is tested against Julia `0.4` and `nightly` on Linux, OS X, and Windows.
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/v2u1kyjy61ph0ihn/branch/master?svg=true)](https://ci.appveyor.com/project/hshindo/merlin-jl/branch/master)
 
 ## Requirements
-- Julia 0.4
+- Julia 0.4 or later
 - g++ (for OSX or Linux)
 
 ## Optional
@@ -30,6 +30,7 @@ For OSX and Linux,
 ```julia
 julia> Pkg.build("Merlin")
 ```
+If you have installed mingw on Windows, you can build `Merlin` as well.
 
 ## Usage
 - [Documentation (latest)](http://hshindo.github.io/Merlin.jl/latest/)
@@ -52,8 +53,9 @@ y = f(x)
 ```julia
 using Merlin
 
-data_x = [rand(Float32,10,5) for i=1:100]
+data_x = [rand(Float32,10,5) for i=1:100] # input data
 data_y = [Int[1,2,3] for i=1:100] # correct labels
+
 f = Graph(
   Linear(Float32,10,7),
   ReLU(),
