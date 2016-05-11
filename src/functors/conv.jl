@@ -24,12 +24,12 @@ type Conv{N} <: Functor
   filter_dims::NTuple{N,Int}
   stride_dims::NTuple{N,Int}
   pad_dims::NTuple{N,Int}
-  l::Functor
+  linear::Functor
 end
 
 function Conv{T}(::Type{T}, num_filter, filter_dims, stride_dims, pad_dims)
-  l = Linear(T, num_filter, prod(filter_dims))
-  Conv(num_filter, filter_dims, stride_dims, pad_dims, l)
+  linear = Linear(T, num_filter, prod(filter_dims))
+  Conv(num_filter, filter_dims, stride_dims, pad_dims, linear)
 end
 
 fw_handle(f::Conv{2}, ::Type{Float32}) = WINDOW2D_FWD_F32_HANDLE
@@ -42,10 +42,7 @@ function forward(f::Conv{2}, args::Vector{Var})
   fd, sd, pd = f.filter_dims, f.stride_dims, f.pad_dims
   params = Cint[fd..., sd..., pd...]
   y = conv(f, params, x.val)
-  backward! = gy -> begin
-    hasgrad(x) || return
-    ∇conv!(f, params, x.grad, gy)
-  end
+  backward! = gy -> hasgrad(x) && ∇conv!(f, params, x.grad, gy)
   Var(y, nothing, f, args, backward!)
 end
 
