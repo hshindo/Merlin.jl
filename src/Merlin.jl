@@ -24,9 +24,8 @@ export argmax
 include("util.jl")
 
 include("var.jl")
-include("network.jl")
-#include("sequence.jl")
-include("training.jl")
+include("networks.jl")
+include("trainer.jl")
 
 for name in [
   #"blas",
@@ -68,7 +67,7 @@ end
 
 for name in [
     "gru"]
-  include("graphs/$(name).jl")
+  include("networks/$(name).jl")
 end
 
 for name in [

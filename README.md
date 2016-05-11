@@ -59,12 +59,11 @@ f = Network(
   Linear(Float32,10,7),
   ReLU(),
   Linear(Float32,7,3))
-lossfun = CrossEntropy()
-opt = SGD(0.0001)
+t = Trainer(f, CrossEntropy(), SGD(0.0001))
 
 for epoch = 1:10
   println("epoch: $(epoch)")
-  loss = fit(data_x, data_y, f, lossfun, opt)
+  loss = fit(t, data_x, data_y)
   println("loss: $(loss)")
 end
 ```

@@ -7,7 +7,7 @@ else
 end
 
 tests = ["functors",
-         "graphs"]
+         "networks"]
 
 for t in tests
     path = joinpath(dirname(@__FILE__), "$t.jl")
