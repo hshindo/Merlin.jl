@@ -1,10 +1,13 @@
-ENV["USE_CUDA"] = true
 workspace()
+ENV["USE_CUDA"] = true
 using Merlin
 using CUDA
 using JLD
 using Base.LinAlg.BLAS
 using Base.Test
+
+x = CudaArray(Float32,4,3,2,1)
+softmax(x)
 
 f = Lookup(Float32,1000,100)
 x = Var(rand(1:1000,5,2))
