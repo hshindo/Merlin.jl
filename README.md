@@ -20,7 +20,7 @@ Our primary goal is to develop a NLP toolkit based on `Merlin`.
 - g++ (for OSX or Linux)
 
 ## Optional
-- [cuDNN](https://developer.nvidia.com/cudnn) v4 (to use CUDA GPU)
+- [cuDNN](https://developer.nvidia.com/cudnn) v5 (to use CUDA GPU)
 
 ## Installation
 ```julia
@@ -43,7 +43,7 @@ using Merlin
 x = Var(rand(Float32,10,5))
 f = Network(
   Linear(Float32,10,7),
-  ReLU(),
+  Activation("relu"),
   Linear(Float32,7,3))
 y = f(x)
 ```
@@ -57,7 +57,7 @@ data_y = [Var(Int[1,2,3]) for i=1:100] # correct labels
 
 f = Network(
   Linear(Float32,10,7),
-  ReLU(),
+  Activation("relu"),
   Linear(Float32,7,3))
 t = Trainer(f, CrossEntropy(), SGD(0.0001))
 
