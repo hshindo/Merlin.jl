@@ -7,18 +7,16 @@ abstract Functor
 abstract Optimizer
 
 include("native.jl")
-#include("cuda/cudaarray.jl")
 
 if haskey(ENV, "USE_CUDA")
-  #using CUDA
-  #using CUDA.RT
-  #using CUDNN
+  using CUDA
+  using CUDNN
+else
+  type CuArray{T,N}
+  end
 end
 
-type CudaArray{T,N}
-end
-
-typealias DataArray Union{Array,CudaArray}
+typealias DataArray Union{Array,CuArray}
 
 export argmax
 include("util.jl")
@@ -28,6 +26,7 @@ include("network.jl")
 include("trainer.jl")
 
 for name in [
+  "activation",
   #"blas",
   "concat",
   "conv",
@@ -37,16 +36,14 @@ for name in [
   "lookup",
   "math",
   "max",
-  "relu",
   "reshape",
-  "sigmoid",
   "softmax",
-  "tanh",
   ]
   include("functors/$(name).jl")
 end
 
 for name in [
+  Activation,
   Concat,
   Conv,
   CrossEntropy,
@@ -55,11 +52,8 @@ for name in [
   Lookup,
   Add,ElemAdd,Subtract,ElemSubtract,Mult,ElemMult,
   Max,
-  ReLU,
   Reshape,
-  Sigmoid,
   Softmax,
-  Tanh
   ]
   @eval @compat (f::$name)(args) = forward0(f, args)
   @eval @compat (f::$name)(args...) = f(args)

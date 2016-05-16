@@ -42,6 +42,15 @@ isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
 
 forward(f::Linear, args::Vector{Var}) = f.w * args[1] .+ f.b
 
+function ∇linear!(w::Var, b::Var)
+  w, gw, b, gb = f.w.value, f.w.grad, f.b.value, f.b.grad
+  hasgrad(v[1]) && BLAS.gemm!('T', 'N', T(1), w, gy, T(1), v[1].grad)
+  BLAS.gemm!('N', 'T', T(1), gy, v[1].value, T(1), gw)
+  for offset = 1:length(b):length(gy)
+    BLAS.axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
+  end
+end
+
 #=
 function forward!(f::Linear, v::Variable)
   v.value = f.w.value * v[1].value .+ f.b.value

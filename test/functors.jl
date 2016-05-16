@@ -6,6 +6,12 @@ const T = Float64
   x2 = Var(rand(T,10,5))
   x3 = Var(rand(T,10,5))
 
+  @testset "activation" begin
+    @test checkgrad(Activation("relu"), x)
+    @test checkgrad(Activation("tanh"), x)
+    @test checkgrad(Activation("sigmoid"), x)
+  end
+
   @test checkgrad(Concat(1), x1, x2, x3)
   @test checkgrad(Concat(2), x1, x2, x3)
   #@test checkgrad(Concat(3), x1, x2, x3)
@@ -27,9 +33,6 @@ const T = Float64
   @test checkgrad(Mult(), Var(rand(T,10,5)), Var(rand(T,5,3)))
   @test checkgrad(ElemMult(), x2, x3)
 
-  #@test checkgrad(ReLU(), x)
   @test checkgrad(Reshape(5,2,5), x)
-  @test checkgrad(Sigmoid(), x)
   @test checkgrad(Softmax(), x)
-  @test checkgrad(Tanh(), x)
 end

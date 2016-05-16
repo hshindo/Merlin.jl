@@ -23,9 +23,9 @@ function GRU{T}(::Type{T}, xsize::Int)
   Us = [Var(rand(T,xsize,xsize),grad=zeros(T,xsize,xsize)) for i=1:3]
   x = Var()
   h = Var()
-  r = Sigmoid()(Ws[1]*x + Us[1]*h)
-  z = Sigmoid()(Ws[2]*x + Us[2]*h)
-  h_ = Tanh()(Ws[3]*x + Us[3]*(r.*h))
+  r = Activation("sigmoid")(Ws[1]*x + Us[1]*h)
+  z = Activation("sigmoid")(Ws[2]*x + Us[2]*h)
+  h_ = Activation("tanh")(Ws[3]*x + Us[3]*(r.*h))
   h_next = (1 - z) .* h + z .* h_
   Network(h_next)
 end
