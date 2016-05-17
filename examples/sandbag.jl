@@ -6,8 +6,11 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
-x = CudaArray(Float32,4,3,2,1)
-softmax(x)
+x = CuArray(Float32,4,3,2,1)
+x = Var(x)
+f = Activation("relu")
+y = f(x)
+Array(x.val)
 
 f = Lookup(Float32,1000,100)
 x = Var(rand(1:1000,5,2))
