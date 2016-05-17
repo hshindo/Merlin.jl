@@ -4,10 +4,12 @@ This is pre-alpha version. We will make it publicly available in a next few mont
 
 [NLP Demo (temporary)](http://158.199.141.203/)
 
-# Merlin.jl: deep learning framework in Julia
+# Merlin: deep learning framework in Julia
 
 `Merlin` is a deep learning framework written in [Julia](http://julialang.org/).
+
 It aims to provide a fast, flexible and compact deep learning library for machine learning.
+
 Our primary goal is to develop a NLP toolkit based on `Merlin`.
 
 `Merlin` is tested against Julia `0.4` and `nightly` on Linux, OS X, and Windows.
@@ -16,7 +18,7 @@ Our primary goal is to develop a NLP toolkit based on `Merlin`.
 [![Build status](https://ci.appveyor.com/api/projects/status/v2u1kyjy61ph0ihn/branch/master?svg=true)](https://ci.appveyor.com/project/hshindo/merlin-jl/branch/master)
 
 Documentation:
-[![][https://img.shields.io/badge/docs-latest-blue.svg]][http://hshindo.github.io/Merlin.jl/latest/]
+[![](https://img.shields.io/badge/docs-latest-blue.svg)](http://hshindo.github.io/Merlin.jl/latest/)
 
 ## Requirements
 - Julia 0.4 or later
