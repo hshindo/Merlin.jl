@@ -29,7 +29,7 @@ for name in [
   "activation",
   #"blas",
   "concat",
-  "conv",
+  "convolution",
   "crossentropy",
   "linear",
   "logsoftmax",
@@ -45,7 +45,7 @@ end
 for name in [
   Activation,
   Concat,
-  Conv,
+  Convolution,
   CrossEntropy,
   Linear,
   LogSoftmax,
