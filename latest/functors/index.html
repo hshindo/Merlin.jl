@@ -222,8 +222,12 @@
 <strong><code>Merlin.Activation</code></strong> &mdash; <em>Type</em>.</p>
 <p>Activation function.</p>
 <ul>
-<li><code>Activation(mode::AbstractString)</code>     - mode: relu | tanh | sigmoid</li>
+<li><code>Activation(mode::AbstractString)</code></li>
 </ul>
+<div class="codehilite"><pre><span></span>- mode: relu | tanh | sigmoid
+</pre></div>
+
+
 <p><strong>👉 Example</strong></p>
 <div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
 <span class="n">f</span> <span class="o">=</span> <span class="n">Activation</span><span class="p">(</span><span class="s">&quot;relu&quot;</span><span class="p">)</span>
@@ -231,7 +235,7 @@
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/d3f06cd0156f188b1241d838f1da79b7a971e852/src/functors/activation.jl#L3-15' class='documenter-source'>source</a><br>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/4e566cb541c9dde10f8f70fb014cb1f98f6bfba7/src/functors/activation.jl#L3-16' class='documenter-source'>source</a><br>
 <a id='Merlin.Concat' href='#Merlin.Concat'>#</a>
 <strong><code>Merlin.Concat</code></strong> &mdash; <em>Type</em>.</p>
 <p><strong>Concat</strong></p>
@@ -247,7 +251,7 @@
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/d3f06cd0156f188b1241d838f1da79b7a971e852/src/functors/concat.jl#L3-16' class='documenter-source'>source</a><br>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/4e566cb541c9dde10f8f70fb014cb1f98f6bfba7/src/functors/concat.jl#L3-16' class='documenter-source'>source</a><br>
 <a id='Merlin.CrossEntropy' href='#Merlin.CrossEntropy'>#</a>
 <strong><code>Merlin.CrossEntropy</code></strong> &mdash; <em>Type</em>.</p>
 <p><strong>CrossEntropy</strong></p>
@@ -271,7 +275,7 @@ $$</p>
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/d3f06cd0156f188b1241d838f1da79b7a971e852/src/functors/crossentropy.jl#L3-24' class='documenter-source'>source</a><br>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/4e566cb541c9dde10f8f70fb014cb1f98f6bfba7/src/functors/crossentropy.jl#L3-24' class='documenter-source'>source</a><br>
 <a id='Merlin.Linear' href='#Merlin.Linear'>#</a>
 <strong><code>Merlin.Linear</code></strong> &mdash; <em>Type</em>.</p>
 <p><strong>Linear</strong></p>
@@ -294,7 +298,7 @@ $$</p>
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/d3f06cd0156f188b1241d838f1da79b7a971e852/src/functors/linear.jl#L3-26' class='documenter-source'>source</a><br>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/4e566cb541c9dde10f8f70fb014cb1f98f6bfba7/src/functors/linear.jl#L3-26' class='documenter-source'>source</a><br>
 <a id='Merlin.LogSoftmax' href='#Merlin.LogSoftmax'>#</a>
 <strong><code>Merlin.LogSoftmax</code></strong> &mdash; <em>Type</em>.</p>
 <p><strong>LogSoftmax</strong></p>
@@ -313,7 +317,7 @@ $$</p>
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/d3f06cd0156f188b1241d838f1da79b7a971e852/src/functors/logsoftmax.jl#L3-20' class='documenter-source'>source</a><br>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/4e566cb541c9dde10f8f70fb014cb1f98f6bfba7/src/functors/logsoftmax.jl#L3-20' class='documenter-source'>source</a><br>
 <a id='Merlin.Lookup' href='#Merlin.Lookup'>#</a>
 <strong><code>Merlin.Lookup</code></strong> &mdash; <em>Type</em>.</p>
 <p><strong>Lookup</strong></p>
@@ -329,7 +333,7 @@ $$</p>
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/d3f06cd0156f188b1241d838f1da79b7a971e852/src/functors/lookup.jl#L3-16' class='documenter-source'>source</a><br>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/4e566cb541c9dde10f8f70fb014cb1f98f6bfba7/src/functors/lookup.jl#L3-16' class='documenter-source'>source</a><br>
 <a id='Merlin.Max' href='#Merlin.Max'>#</a>
 <strong><code>Merlin.Max</code></strong> &mdash; <em>Type</em>.</p>
 <p><strong>Max</strong></p>
@@ -345,7 +349,7 @@ $$</p>
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/d3f06cd0156f188b1241d838f1da79b7a971e852/src/functors/max.jl#L3-16' class='documenter-source'>source</a><br>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/4e566cb541c9dde10f8f70fb014cb1f98f6bfba7/src/functors/max.jl#L3-16' class='documenter-source'>source</a><br>
 <a id='Merlin.Reshape' href='#Merlin.Reshape'>#</a>
 <strong><code>Merlin.Reshape</code></strong> &mdash; <em>Type</em>.</p>
 <p><strong>Reshape</strong></p>
@@ -361,7 +365,7 @@ $$</p>
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/d3f06cd0156f188b1241d838f1da79b7a971e852/src/functors/reshape.jl#L3-16' class='documenter-source'>source</a><br>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/4e566cb541c9dde10f8f70fb014cb1f98f6bfba7/src/functors/reshape.jl#L3-16' class='documenter-source'>source</a><br>
 <a id='Merlin.Softmax' href='#Merlin.Softmax'>#</a>
 <strong><code>Merlin.Softmax</code></strong> &mdash; <em>Type</em>.</p>
 <p><strong>Softmax</strong></p>
@@ -382,7 +386,7 @@ $$</p>
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/d3f06cd0156f188b1241d838f1da79b7a971e852/src/functors/softmax.jl#L3-23' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/4e566cb541c9dde10f8f70fb014cb1f98f6bfba7/src/functors/softmax.jl#L3-23' class='documenter-source'>source</a><br></p>
           <aside class="copyright" role="note">
             
             Documentation built with
