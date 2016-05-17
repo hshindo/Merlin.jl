@@ -15,12 +15,15 @@ Our primary goal is to develop a NLP toolkit based on `Merlin`.
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/v2u1kyjy61ph0ihn/branch/master?svg=true)](https://ci.appveyor.com/project/hshindo/merlin-jl/branch/master)
 
+Documentation:
+[![][https://img.shields.io/badge/docs-latest-blue.svg]][http://hshindo.github.io/Merlin.jl/latest/]
+
 ## Requirements
 - Julia 0.4 or later
 - g++ (for OSX or Linux)
 
-## Optional
-- [cuDNN](https://developer.nvidia.com/cudnn) v5 (to use CUDA GPU)
+If you use CUDA GPU, the following is required.
+- [cuDNN](https://developer.nvidia.com/cudnn) v5
 
 ## Installation
 ```julia
@@ -31,17 +34,15 @@ For OSX and Linux,
 julia> Pkg.build("Merlin")
 ```
 which generates `libmerlin.so` on `deps/`.
-For Windows, we prepare `libmerlin.dll` on `deps/`, but
-if you have installed mingw on Windows, you can build `Merlin.jl` as well.
 
-### CUDA
+For Windows, `libmerlin.dll` is already prepared on `deps/`, however,
+if you have installed mingw(x64), you can build `Merlin.jl` as well.
+
+To enable CUDA, install the following two packages:
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/CUDA.jl.git")
 julia> Pkg.clone("https://github.com/hshindo/CUDNN.jl.git")
 ```
-
-## Usage
-- [Documentation (latest)](http://hshindo.github.io/Merlin.jl/latest/)
 
 ## Quick Start
 ### Decoding

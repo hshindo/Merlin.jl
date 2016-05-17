@@ -3,10 +3,11 @@ export Activation
 """
 Activation function.
 
+## Functions
 - `Activation(mode::AbstractString)`
     - mode: relu | tanh | sigmoid
 
-### 👉 Example
+## 👉 Example
 ```julia
 x = Var(rand(Float32,10,5))
 f = Activation("relu")
@@ -55,9 +56,9 @@ function sigmoid{T}(x::Array{T})
   y
 end
 
-relu(x::CuArray) = CUDNN.activation!(ActivationDesc(CUDNN_ACTIVATION_RELU), x, similar(x))
-Base.tanh(x::CuArray) = CUDNN.activation!(ActivationDesc(CUDNN_ACTIVATION_TANH), x, similar(x))
-sigmoid(x::CuArray) = CUDNN.activation!(ActivationDesc(CUDNN_ACTIVATION_SIGMOID), x, similar(x))
+relu(x::CuArray) = CUDNN.activation(ActivationDesc(CUDNN_ACTIVATION_RELU), x)
+Base.tanh(x::CuArray) = CUDNN.activation!(ActivationDesc(CUDNN_ACTIVATION_TANH), x)
+sigmoid(x::CuArray) = CUDNN.activation!(ActivationDesc(CUDNN_ACTIVATION_SIGMOID), x)
 
 function ∇relu!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
   @inbounds @simd for i = 1:length(x)
