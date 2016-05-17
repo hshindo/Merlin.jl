@@ -30,7 +30,15 @@ For OSX and Linux,
 ```julia
 julia> Pkg.build("Merlin")
 ```
-If you have installed mingw on Windows, you can build `Merlin` as well.
+which generates `libmerlin.so` on `deps/`.
+For Windows, we prepare `libmerlin.dll` on `deps/`, but
+if you have installed mingw on Windows, you can build `Merlin.jl` as well.
+
+### CUDA
+```julia
+julia> Pkg.clone("https://github.com/hshindo/CUDA.jl.git")
+julia> Pkg.clone("https://github.com/hshindo/CUDNN.jl.git")
+```
 
 ## Usage
 - [Documentation (latest)](http://hshindo.github.io/Merlin.jl/latest/)
@@ -67,6 +75,3 @@ for epoch = 1:10
   println("loss: $(loss)")
 end
 ```
-
-## Using CUDA
-To be written...
