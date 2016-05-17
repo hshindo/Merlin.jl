@@ -1,13 +1,12 @@
 export Concat
 
 """
-## Concat
 Concatenate arrays along the given dimension.
 
-### Functions
+## Functions
 - `Concat(dim::Int)`
 
-### 👉 Example
+## 👉 Example
 ```julia
 x1 = Var(rand(Float32,7,5))
 x2 = Var(rand(Float32,10,5))
