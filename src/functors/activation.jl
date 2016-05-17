@@ -1,7 +1,6 @@
 export Activation
 
 """
-## Activation
 Activation function.
 
 - `Activation(mode::AbstractString)`
@@ -79,13 +78,13 @@ function ∇sigmoid!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
 end
 
 function ∇relu!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-  CUDNN.∇activation!(CUDNN.ACTIVATION_RELU, y, dy, x, dx; beta=1.0)
+  CUDNN.∇activation!(CUDNN_ACTIVATION_RELU, y, dy, x, dx; beta=1.0)
 end
 
 function ∇tanh!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-  CUDNN.∇activation!(CUDNN.ACTIVATION_TANH, y, dy, x, dx; beta=1.0)
+  CUDNN.∇activation!(CUDNN_ACTIVATION_TANH, y, dy, x, dx; beta=1.0)
 end
 
 function ∇sigmoid!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-  CUDNN.∇activation!(CUDNN.ACTIVATION_SIGMOID, y, dy, x, dx; beta=1.0)
+  CUDNN.∇activation!(CUDNN_ACTIVATION_SIGMOID, y, dy, x, dx; beta=1.0)
 end
