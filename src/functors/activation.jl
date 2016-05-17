@@ -4,7 +4,6 @@ export Activation
 Activation function.
 
 - `Activation(mode::AbstractString)`
-
     - mode: relu | tanh | sigmoid
 
 ### 👉 Example
