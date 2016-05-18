@@ -1,2 +1,3 @@
-    {docs}
-    Network
+```@docs
+Network
+```

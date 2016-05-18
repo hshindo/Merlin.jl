@@ -1,4 +1,5 @@
 # Optimizers
 
-    {docs}
-    SGD
+```@docs
+SGD
+```
