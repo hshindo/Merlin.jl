@@ -1,12 +1,10 @@
 export Linear
 
 """
-## Linear
-
 Compute linear transformation a.k.a. affine transformation.
 
 ```math
-f(x) = W^{T}x + b
+f(x) = Wx + b
 ```
 
 where \$W\$ is a weight matrix, \$b\$ is a bias vector.
@@ -29,11 +27,11 @@ type Linear <: Functor
   b::Var
 end
 
-function Linear{T}(::Type{T}, insize::Int, outsize::Int)
-  x = sqrt(6 / (outsize+insize))
-  r = rand(outsize, insize) * 2x - x
+function Linear{T}(::Type{T}, indim::Int, outdim::Int)
+  x = sqrt(6 / (indim + outdim))
+  r = rand(outdim, indim) * 2x - x
   w = convert(Matrix{T}, r)
-  b = fill(T(0), outsize, 1)
+  b = fill(T(0), outdim, 1)
   Linear(Var(w,grad=zeros(w)), Var(b,grad=zeros(b)))
 end
 

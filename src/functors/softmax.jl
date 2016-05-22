@@ -1,24 +1,20 @@
 export Softmax, softmax
 
 """
-## Softmax
+Computes softmax along the second axis.
 
 ```math
-f(x)=\frac{\exp(x_{i})}{\sum_{j}^{n}\exp(x_{j})},\;i=1,\ldots,n
+f(x) = \frac{\exp(x_{i})}{\sum_{j}^{n}\exp(x_{j})}
 ```
 
 ```math
 p(x) = {\\exp(f(x)) \\over \\sum_{x_2} \\exp(f(x))}
 ```
 
-### Functions
-- `Softmax()`
-
-### 👉 Example
+## 👉 Example
 ```julia
 x = Var(rand(Float32,10,5))
-f = Softmax()
-y = f(x)
+y = softmax(x)
 ```
 """
 type Softmax <: Functor
@@ -29,6 +25,23 @@ function forward(f::Softmax, args::Vector{Var})
   y = softmax(x.val)
   backward! = gy -> hasgrad(x) && ∇softmax!(x.grad, y, gy)
   Var(y, nothing, f, args, backward!)
+end
+
+softmax(x::Var) = Softmax()(x)
+
+function softmax{T}(x::Matrix{T})
+  if haskey(Native.libdict, "softmax")
+    h = Native.libdict["softmax"]
+  else
+    code = """
+    void softmax_($Ctype *x, $Ctype *y) {
+    }
+    """
+    h = Native.compile()
+  end
+  y = similar(x)
+  ccall(h, Void, (Ptr{T},Ptr{T}), x, y)
+  y
 end
 
 function softmax{T}(x::Matrix{T})

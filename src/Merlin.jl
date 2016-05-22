@@ -27,11 +27,10 @@ include("trainer.jl")
 
 for name in [
   "activation",
-  #"blas",
   "concat",
-  "convolution",
   "crossentropy",
   "linear",
+  "convolution",
   "logsoftmax",
   "lookup",
   "math",

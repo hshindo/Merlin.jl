@@ -16,13 +16,33 @@ catch y
   throw(y)
 end
 
-#const SOFTMAX_F32 = Libdl.dlsym(library, :softmax_fw_f32)
-#const WINDOW2D_BWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f32)
-#const WINDOW2D_FWD_F64_HANDLE = Libdl.dlsym(Native.library, :window2d_fwd_f64)
-#const WINDOW2D_BWD_F64_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f64)
+function compile(code, name)
+  path = joinpath(dirname(@__FILE__), "..", "deps")
+  open(joinpath(path,"$(name).c"), "w") do f
+    write(f, code)
+  end
+  run(`gcc -fPIC -Wall -O3 -shared -o $(name).dll $path`)
+  #lib = Libdl.dlopen(libpath2)
+  #h = Libdl.dlsym(lib, symbol(name))
+  #libdict["a"] = h
+end
 
-#function softmax{T}(x::Matrix{T}, y::Matrix{T})
-#  ccall(SOFTMAX_F32, Void, (Ptr{T},Cint,Cint,Ptr{T}), x, size(x,1), size(x,2), y)
-#end
+"""
+Create a global symbol for ccall
+"""
+macro dlsym(func, lib)
+  z, zlocal = gensym(string(func)), gensym()
+  eval(current_module(),:(global $z = C_NULL))
+  z = esc(z)
+  quote
+    let $zlocal::Ptr{Void} = $z::Ptr{Void}
+      if $zlocal == C_NULL
+        $zlocal = dlsym($(esc(lib))::Ptr{Void}, $(esc(func)))
+        global $z = $zlocal
+      end
+      $zlocal
+    end
+  end
+end
 
 end

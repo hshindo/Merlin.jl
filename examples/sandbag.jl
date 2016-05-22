@@ -6,75 +6,47 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
-x = CuArray(Float32,4,3,2,1)
-x = Var(x)
-f = Activation("relu")
-y = f(x)
-Array(x.val)
+Native.compile(str, "testname")
 
-f = Lookup(Float32,1000,100)
-x = Var(rand(1:1000,5,2))
-y = f(x)
-x.grad = zeros(x.val)
-backward!(y)
-x.grad
-Merlin.approx_grad(f,[x])
-checkgrad(f,x)
+str = "#include <stdio.h>\nmain(){puts(\"Hello world\");return 0;}"
+cmd = `$(str) | g++ -Wall -O3 -shared -xc -o a.dll -`
+run(cmd)
 
-x1 = Var([1,2,3])
-x2 = Var(rand(Float32,10,3))
-f([x1,x2])
+x = CuArray(rand(Float32,5,4,3,2))
+xx = Array(x)
+f = Convolution(Float32, (3,4), (2,2), (1,1), (0,0))
+w = CuArray(f.w.val)
+ww = Array(w)
 
-f = GRU(Float32,10)
-f.data_ids
+y_cpu = Merlin.convolution(f, xx)
+y_cpu = reshape(y_cpu, 12, 24)
+y_cpu = reshape(ww, 4, 12) * y_cpu
+y_cpu = reshape(y_cpu, 4, 3, 4, 2)
+vec(y_cpu)
 
-x1 = Var(rand(Float32,10,1))
-x2 = Var(rand(Float32,10,1))
-f(x1,x2)
-y = x1 .- x2
-x1.grad = zeros(x1.val)
-x2.grad = zeros(x2.val)
-backward!(y)
+y_gpu = Merlin.convolution(f, x, w)
+y_gpu = Array(y_gpu)
+vec(y_gpu)
 
-rand(1:5,10)
-[1:5]
-macro check_grad(a)
-  println(a.args[3])
-end
+x = rand(Float32,500,500,10)
+f = Convolution(Float32, (3,5), (2,2), (1,1), (0,0))
+y = zeros(Float32, 4*499*499*10)
+sizes = Cint[500,500,10,2,2,1,1,0,0]
 
-@check_grad parse(Int, "5")
-0.00016595 < 1e-4
-exp(log(0.00020003319) - log(2e-4))
-x1 = Var(rand(Float32,5,2))
-x2 = Var(rand(Float32,5,2))
-checkgrad(Add(),x1,x2)
-
-x = Var(rand(Float32,10,5))
-f = Linear(Float32,10,7)
-checkgrad(f,x)
-
-@time f(x)
-@Merlin.check_grad f(x)
-
-f.w * x .+ f.b
-check_gradient(f, x)
-
-a = backward!(y)
-
-
-f = Conv(Float32,5,(10,2),(1,1),(0,0))
-x = Var(rand(Float32,50,10))
-y = f(x)
+x = rand(Float32,5,4,3)
+y = zeros(Float32, 4*3*4*3)
+sizes = Cint[5,4,3,2,2,0,0,1,1]
+Merlin.conv_test(x, y, sizes)
 
 function bench()
-  a = [Var(rand(Float32,100,1)) for i=1:30]
-  f = Concat(2)
-  for i = 1:10000
-    b = tuple(a...)
-    Merlin.forward(f, b)
+  #a = rand(Float32,100,1000)
+  #b = rand(Float32,1000,100)
+  for i = 1:1000
+    Merlin.conv_test(x, y, sizes)
   end
 end
 @time bench()
+y
 
 x1 = Variable(rand(10,5))
 x2 = Variable(rand(10))
