@@ -6,12 +6,6 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
-Native.compile(str, "testname")
-
-str = "#include <stdio.h>\nmain(){puts(\"Hello world\");return 0;}"
-cmd = `$(str) | g++ -Wall -O3 -shared -xc -o a.dll -`
-run(cmd)
-
 x = CuArray(rand(Float32,5,4,3,2))
 xx = Array(x)
 f = Convolution(Float32, (3,4), (2,2), (1,1), (0,0))
@@ -28,21 +22,30 @@ y_gpu = Merlin.convolution(f, x, w)
 y_gpu = Array(y_gpu)
 vec(y_gpu)
 
-x = rand(Float32,500,500,10)
-f = Convolution(Float32, (3,5), (2,2), (1,1), (0,0))
-y = zeros(Float32, 4*499*499*10)
-sizes = Cint[500,500,10,2,2,1,1,0,0]
+dir = joinpath(dirname(@__FILE__), "..", "lib")
+libname = "softmax_float_10_5.dll"
+libpath = joinpath(dir, libname)
+h = Merlin.Native.softmax_float_10_5
+Libdl.dlclose(Merlin.Native.)
 
-x = rand(Float32,5,4,3)
-y = zeros(Float32, 4*3*4*3)
-sizes = Cint[5,4,3,2,2,0,0,1,1]
-Merlin.conv_test(x, y, sizes)
+softmax(x)
+
+dir = joinpath(dirname(@__FILE__), "..", "deps")
+const HANDLE = Libdl.dlsym(Merlin.Native.library, :softmax_fw_f32)
 
 function bench()
+  x = rand(Float32,1000,1000)
+  #size1, size2 = size(x)
+  #h = eval(Merlin.Native, Symbol(join(["softmax","float",size1,size2], "_")))
   #a = rand(Float32,100,1000)
   #b = rand(Float32,1000,100)
-  for i = 1:1000
-    Merlin.conv_test(x, y, sizes)
+  for i = 1:1
+    y = similar(x)
+    #ccall(h, Void, (Ptr{Float32},Ptr{Float32}), x, y)
+    #y
+    ccall(HANDLE, Void, (Ptr{Float32},Cint,Cint,Ptr{Float32}), x, 1000,1000,y)
+    y
+    #Merlin.softmax(x)
   end
 end
 @time bench()

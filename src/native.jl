@@ -16,33 +16,34 @@ catch y
   throw(y)
 end
 
-function compile(code, name)
-  path = joinpath(dirname(@__FILE__), "..", "deps")
-  open(joinpath(path,"$(name).c"), "w") do f
-    write(f, code)
+"""
+JIT compiler.
+- `src`: source code
+- `sym`: function name
+"""
+function compile(src, sym, compiler="g++")
+  dir = joinpath(dirname(@__FILE__), "..", "lib")
+  symstr = string(sym)
+  srcpath = joinpath(dir, "$(symstr).c")
+  libname = @windows? "$(symstr).dll" : "$(symstr).so"
+  libpath = joinpath(dir, libname)
+  if isdefined(sym)
+    println("ok")
+    Libdl.dlclose(eval(sym))
   end
-  run(`gcc -fPIC -Wall -O3 -shared -o $(name).dll $path`)
-  #lib = Libdl.dlopen(libpath2)
-  #h = Libdl.dlsym(lib, symbol(name))
-  #libdict["a"] = h
-end
+  open(srcpath, "w") do f
+    write(f, src)
+  end
 
-"""
-Create a global symbol for ccall
-"""
-macro dlsym(func, lib)
-  z, zlocal = gensym(string(func)), gensym()
-  eval(current_module(),:(global $z = C_NULL))
-  z = esc(z)
-  quote
-    let $zlocal::Ptr{Void} = $z::Ptr{Void}
-      if $zlocal == C_NULL
-        $zlocal = dlsym($(esc(lib))::Ptr{Void}, $(esc(func)))
-        global $z = $zlocal
-      end
-      $zlocal
-    end
+  @windows? begin
+    run(`$compiler -Wall -O3 -shared -o $libpath $srcpath`)
+  end : begin
+    run(`$compiler -fPIC -Wall -O3 -shared -o $libpath $srcpath`)
   end
+
+  lib = Libdl.dlopen(libpath)
+  h = Libdl.dlsym(lib, :run)
+  eval(:(global $sym = $h))
 end
 
 end

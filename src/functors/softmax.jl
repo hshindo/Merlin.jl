@@ -1,4 +1,4 @@
-export Softmax, softmax
+export softmax
 
 """
 Computes softmax along the second axis.
@@ -27,24 +27,55 @@ function forward(f::Softmax, args::Vector{Var})
   Var(y, nothing, f, args, backward!)
 end
 
+"""
+Computes softmax
+"""
 softmax(x::Var) = Softmax()(x)
 
 function softmax{T}(x::Matrix{T})
-  if haskey(Native.libdict, "softmax")
-    h = Native.libdict["softmax"]
+  CT = "float"
+  size1, size2 = size(x)
+  sym = Symbol(join(["softmax",CT,size1,size2], "_"))
+  if isdefined(Native, sym)
+    h = eval(Native, sym)
   else
-    code = """
-    void softmax_($Ctype *x, $Ctype *y) {
-    }
-    """
-    h = Native.compile()
+    src = """
+    #include <algorithm>
+    #include <math.h>
+    using namespace std;
+
+    float Exp(float x) { return expf(x); }
+    double Exp(double x) { return exp(x); }
+    float Log(float x) { return logf(x); }
+    double Log(double x) { return log(x); }
+
+    extern "C" {
+      void run($CT *x, $CT *y) {
+        for (int m2 = 0; m2 < $(size2); m2++) {
+          int offset = m2*$(size1);
+          $CT x_max = x[offset];
+          for (int m1 = 1; m1 < $(size1); m1++) x_max = std::max(x_max, x[m1 + offset]);
+
+          $CT sum = static_cast<$CT>(0);
+          for (int m1 = 0; m1 < $(size1); m1++) {
+            int i = m1 + offset;
+            y[i] = Exp(x[i] - x_max);
+            sum += y[i];
+          }
+
+          $CT invsum = 1 / sum;
+          for (int m1 = 0; m1 < $(size1); m1++) y[m1 + offset] *= invsum;
+        }
+      }
+    }"""
+    h = Native.compile(src, sym)
   end
   y = similar(x)
   ccall(h, Void, (Ptr{T},Ptr{T}), x, y)
   y
 end
 
-function softmax{T}(x::Matrix{T})
+function softmax2{T}(x::Matrix{T})
   y = similar(x)
   max = maximum(x, 1)
   for j = 1:size(x,2)
