@@ -6,7 +6,7 @@ else
     const Test = BaseTestNext
 end
 
-tests = ["functors",
+tests = ["functions",
          "networks"]
 
 for t in tests

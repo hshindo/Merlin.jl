@@ -1,24 +1,21 @@
-export Reshape
-
 """
-## Reshape
-Reshapes an array with the given dimensions.
+Reshape an array according to the given dimensions.
 
-### Functions
-- `Reshape(dims::Int...)`
+## Parameters
+- x::Var
+- dims::Int...
 
 ### 👉 Example
 ```julia
 x = Var(rand(Float32,10,5,3))
-f = Reshape(5,3,10)
-y = f(x)
+y = reshape(x, 5, 3, 5, 2)
 ```
 """
+Base.reshape(x::Var, dims::Int...) = forward0(Reshape(dims), [x])
+
 type Reshape <: Functor
   dims
 end
-
-Reshape(dims::Int...) = Reshape(dims)
 
 function forward(f::Reshape, args::Vector{Var})
   x = args[1]

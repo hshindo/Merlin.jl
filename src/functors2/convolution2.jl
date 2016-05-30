@@ -1,42 +1,42 @@
 export Convolution
 
-const WINDOW2D_FWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_fwd_f32)
-const WINDOW2D_BWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f32)
-#const WINDOW2D_FWD_F64_HANDLE = Libdl.dlsym(Native.library, :window2d_fwd_f64)
-#const WINDOW2D_BWD_F64_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f64)
-
 """
 N-dimensional convolution function.
 
 ## Functions
 - `Convolution{T,N}(::Type{T}, filterdims, stridedims, paddims)`
-- `nfilters::NTuple{2,Int}`: number of filters
-- `filterdims::NTuple{N,Int}`: filter size
-- `stridedims::NTuple{N,Int}`: stride size
-- `paddims::NTuple{N,Int}`: padding size
+- `nfilters::Tuple{Int,Int}`: number of input and output filters.
+- `filterdims::NTuple{N,Int}`: filter size.
+- `stridedims::NTuple{N,Int}`: stride size (default value: 1).
+- `paddims::NTuple{N,Int}`: padding size (default value: 0).
 
 ## 👉 Example
 ```julia
 x = Var(rand(Float32,5,4,3,2))
-w = Var(rand(Float32,2,2,3,4))
-b = Var()
-f = Convolution(Float32, (), (1,1), (1,1))
-y = f(x)
+f = Convolution(Float32, (3,4), (2,2)) # 2-d convolution
+y = f(x) # output size: (4,3,4,2)
 ```
 """
 type Convolution{T,N} <: Functor
-  nfilters::Int
+  w::Var
+  channels::Tuple{Int,Int}
   filterdims::NTuple{N,Int}
   stridedims::NTuple{N,Int}
   paddims::NTuple{N,Int}
   w::Var
 end
 
-function Convolution{T}(::Type{T}, filterdims, stridedims, paddims)
-  l = Linear(T, prod(channeldims), prod(filterdims))
-  Convolution{T,N}(filterdims, stridedims, paddims, l.w)
+function Convolution{T,N}(::Type{T}, channels::NTuple{N,Int}, filterdims, stridedims, paddims)
+  l = Linear(T, prod(nfilters), prod(filterdims))
+  Convolution{T,N}(nfilters, filterdims, stridedims, paddims, l)
 end
 
+@compat (f::Convolution)(x::Var) = forward0(f, [x])
+
+const WINDOW2D_FWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_fwd_f32)
+const WINDOW2D_BWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f32)
+#const WINDOW2D_FWD_F64_HANDLE = Libdl.dlsym(Native.library, :window2d_fwd_f64)
+#const WINDOW2D_BWD_F64_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f64)
 fw_handle(f::Convolution{Float32,2}) = WINDOW2D_FWD_F32_HANDLE
 #fw_handle(f::Convolution{Float64,2}) = WINDOW2D_FWD_F64_HANDLE
 bw_handle(f::Convolution{Float32,2}) = WINDOW2D_BWD_F32_HANDLE
@@ -46,7 +46,7 @@ function forward(f::Convolution, args::Vector{Var})
   x = args[1]
   y = convolution(f, x.val)
   backward! = gy -> begin
-    #hasgrad(x) || return
+    hasgrad(x) || return
     #∇window(f, params, x.grad, gy)
     #∇conv!(f, params, x.grad, gy)
   end
@@ -54,58 +54,33 @@ function forward(f::Convolution, args::Vector{Var})
 end
 
 function outsize{T,N}(f::Convolution{T,N}, x)
-  dims = Array(Int, N+2)
+  dims = Array(Int, N)
   for i = 1:N
     dims[i] = (size(x,i) + 2*f.paddims[i] - f.filterdims[i]) ÷ f.stridedims[i] + 1
   end
-  dims[N+1] = f.channeldims[2]
-  dims[N+2] = size(x, N+2)
-  tuple(dims...)
+  dims
 end
 
-"""
-Convolution based on GEMM
-"""
-function conv_test2{T}(x::Array{T}, y::Array{T}, sizes::Vector{Cint})
-  #h = IM2COL_FWD_F32_HANDLE
-  h = IM2COL_FWD_F32_HANDLE
-  ccall(h, Void,
-    (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint),
-    x, y, sizes[1], sizes[2], sizes[3], sizes[4], sizes[5], sizes[6],
-    sizes[7], sizes[8], sizes[9])
-  y
-end
-function conv_test{T}(x::Array{T}, y::Array{T}, sizes::Vector{Cint})
-  h = WINDOW2D_FWD_F32_HANDLE
-  ccall(h, Void,
-    (Ptr{T}, Ptr{T}, Ptr{Cint}),
-    x, y, sizes)
-  y
-end
+function convolution{T}(f::Convolution{T,2}, x::Array{T,4})
+  n = size(x,4)
+  o = outsize(f, x)
+  work = similar(x, prod(o)*prod(f.filterdims)*f.nfilters[1]*size(x,4))
+  sizex = Cint[size(x,1), size(x,2), size(x,3)*size(x,4)]
+  params = Cint[f.filterdims..., f.stridedims...,f.paddims...]
+  ccall(fw_handle(f), Void, (Ptr{T},Ptr{T},Ptr{Cint},Ptr{Cint}), x, work, sizex, params)
 
-function convolution{T,N}(f::Convolution{T,N}, x::Array{T})
-  y = similar(x, 288)
-  h = fw_handle(f)
-  s = size(x)
-  sizes = Cint[s[1:end-2]..., s[end-1]*s[end], f.filterdims..., f.stridedims..., f.paddims...]
-  ccall(h, Void,
-    (Ptr{T}, Ptr{T}, Ptr{Cint}),
-    x, y, sizes)
-  y
+  y = similar(x, o..., f.nfilters[2], size(x,4))
+  u = length(work) / n
+  u2 =
+  for i = 1:size(x,4)
+    ww = pointer_to_array(pointer(work,i*u),u)
+    yy = pointer_to_array(pointer(y,i*u),u)
+    gemm!('N', 'N', T(1), ww, f.w.val, T(0), yy)
+  end
 end
 
 function convolution{T,N}(f::Convolution{T,N}, x::CuArray{T}, w::CuArray{T})
   CUDNN.convolution!(x, w, f.paddims, f.stridedims, similar(x, outsize(f,x)...))
-end
-
-function window{T}(f::Convolution{T,2}, params::Vector{Cint}, x::Array{T})
-  n1 = (size(x,1) + 2*pd[1] - fd[1]) ÷ sd[1] + 1
-  n2 = (size(x,2) + 2*pd[2] - fd[2]) ÷ sd[2] + 1
-  y = Array(T, fd[1]*fd[2], n1*n2)
-  ccall(fw_handle(f,T), Void,
-    (Ptr{T}, Ptr{Cint}, Ptr{T}, Cint, Cint),
-    x, params, y, size(x,1), size(x,2))
-  y
 end
 
 function ∇window{T}(f::Convolution{T,2}, params::Vector{Cint}, x::Array{T}, gy::Array{T})
@@ -116,6 +91,7 @@ function ∇window{T}(f::Convolution{T,2}, params::Vector{Cint}, x::Array{T}, gy
   gx
 end
 
+#=
 function aaaaa(f::Convolution)
   T = "float"
   cpp = """
@@ -147,3 +123,4 @@ function aaaaa(f::Convolution)
   }"""
   cpp
 end
+=#

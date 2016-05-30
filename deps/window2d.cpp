@@ -2,11 +2,11 @@
 #include <stdio.h>
 
 template <typename T>
-void window2d_fwd(T *x, T *y, int *sizes) {
-  int x1 = sizes[0], x2 = sizes[1], x3 = sizes[2];
-  int w1 = sizes[3], w2 = sizes[4];
-  int s1 = sizes[5], s2 = sizes[6];
-  int p1 = sizes[7], p2 = sizes[8];
+void window2d_fwd(T *x, T *y, int *size_x, int *params) {
+  int x1 = size_x[0], x2 = size_x[1], x3 = size_x[2];
+  int w1 = params[0], w2 = params[1];
+  int s1 = params[2], s2 = params[3];
+  int p1 = params[4], p2 = params[5];
   int n1 = (x1 + 2 * p1 - w1) / s1 + 1;
   int n2 = (x2 + 2 * p2 - w2) / s2 + 1;
   int o = 0;
@@ -83,7 +83,7 @@ void window2d_fwd2(T *x, T *y, int *sizes) {
 */
 
 extern "C" {
-  void window2d_fwd_f32(float *x, float *y, int *sizes) { window2d_fwd(x, y, sizes); }
+  void window2d_fwd_f32(float *x, float *y, int *size_x, int *params) { window2d_fwd(x, y, size_x, params); }
   //void window2d_fwd_f64(double *x, double *y, int *sizes) { window2d_fwd(x, y, sizes); }
   void window2d_bwd_f32(float *gx, float *gy, int *sizes) { window2d_bwd(gx, gy, sizes); }
   //void window2d_bwd_f64(double *gx, double *gy, int *sizes) { window2d_bwd(gx, gy, sizes); }

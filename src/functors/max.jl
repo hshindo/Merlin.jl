@@ -1,32 +1,28 @@
-export Max
+type Max
+  dim::Int
+end
+
+@compat function (f::Max)(x::Var)
+  y, idx = findmax(x.value, f.dim)
+  function ∇max!(y)
+    x = y[1]
+    hasgrad(x) && ∇max!(idx, x.grad, y.grad)
+  end
+  Var(y, f, [x], ∇max!)
+end
 
 """
-## Max
-Compute the maximum value of an array over the given dimensions.
-
-### Functions
-- `Max(dim::Int)`
+Compute the maximum value along the given dimensions.
 
 ### 👉 Example
 ```julia
 x = Var(rand(Float32,10,5))
-f = Max(1)
-y = f(x)
+y = max(x, 1)
 ```
 """
-type Max <: Functor
-  dim::Int
-end
+Base.max(x::Var, dim::Int) = Max(dim)(x)
 
-function forward(f::Max, args::Vector{Var})
-  isnothing(args) && return Var()
-  x = args[1]
-  y, idx = findmax(x.val, f.dim)
-  backward! = gy -> hasgrad(x) && backward!(f, idx, x.grad, gy)
-  Var(y, nothing, f, args, backward!)
-end
-
-function backward!{T,N}(f::Max, idx::Array{Int,N}, gx::Array{T,N}, gy::Array{T,N})
+function ∇max!{T,N}(idx::Array{Int,N}, gx::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(idx)
     gx[idx[i]] += gy[i]
   end

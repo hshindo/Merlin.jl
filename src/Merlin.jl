@@ -3,7 +3,6 @@ module Merlin
 using Compat
 using Base.LinAlg.BLAS
 
-abstract Functor
 abstract Optimizer
 
 include("native.jl")
@@ -16,52 +15,42 @@ else
   end
 end
 
-typealias DataArray Union{Array,CuArray}
-
-export argmax
 include("util.jl")
-
+export argmax
 include("var.jl")
-include("network.jl")
-include("trainer.jl")
+export Var, gradient!
+include("gradient.jl")
+export approx_grad, checkgrad
+#include("network.jl")
+#include("trainer.jl")
+
+macro init0(x, f)
+  quote
+    $(x).value == nothing && return Var(nothing, $f, [$x], nothing)
+  end
+end
 
 for name in [
   "activation",
   "concat",
-  "crossentropy",
-  "linear",
-  "convolution",
-  "logsoftmax",
-  "lookup",
+  #"convolution",
+  #"crossentropy",
+  #"linear",
+  #"lookup",
   "math",
   "max",
-  "reshape",
+  #"reshape",
   "softmax",
   ]
   include("functors/$(name).jl")
 end
 
-for name in [
-  Activation,
-  Concat,
-  Convolution,
-  CrossEntropy,
-  Linear,
-  LogSoftmax,
-  Lookup,
-  Add,ElemAdd,Subtract,ElemSubtract,Mult,ElemMult,
-  Max,
-  Reshape,
-  Softmax,
-  ]
-  @eval @compat (f::$name)(args) = forward0(f, args)
-  @eval @compat (f::$name)(args...) = f(args)
-end
-
+#=
 for name in [
     "gru"]
   include("networks/$(name).jl")
 end
+=#
 
 for name in [
     "adagrad",

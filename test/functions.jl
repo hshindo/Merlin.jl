@@ -1,23 +1,33 @@
 const T = Float64
 
-@testset "functors" for i = 1:5
+@testset "functions" for i = 1:5
+
   x = Var(rand(T,10,5))
+  @test checkgrad(relu, x)
+  @test checkgrad(tanh, x)
+  @test checkgrad(sigmoid, x)
+
   x1 = Var(rand(T,10,5))
   x2 = Var(rand(T,10,5))
   x3 = Var(rand(T,10,5))
-
-  @testset "activation" begin
-    #@test checkgrad(Activation("relu"), x)
-    @test checkgrad(Activation("tanh"), x)
-    @test checkgrad(Activation("sigmoid"), x)
-  end
-
-  @test checkgrad(Concat(1), x1, x2, x3)
-  @test checkgrad(Concat(2), x1, x2, x3)
+  #@test checkgrad(Concat(1), x1, x2, x3)
+  #@test checkgrad(Concat(2), x1, x2, x3)
   #@test checkgrad(Concat(3), x1, x2, x3)
 
-  #@test checkgrad(Conv(5,(3,3),(1,1),(1,1)), x)
+  x = Var(rand(Float32,10,5))
+  @test checkgrad(softmax, x)
+  @test checkgrad(logsoftmax, x)
 
+  x1 = Var(rand(T,10,5))
+  x2 = Var(rand(T,10,1))
+  x3 = Var(rand(T,5,7))
+  @test checkgrad(+, x1, x2)
+  @test checkgrad(-, x1, x2)
+  @test checkgrad(.*, x1, x1)
+  @test checkgrad(*, x1, x3)
+
+  #@test checkgrad(Conv(5,(3,3),(1,1),(1,1)), x)
+#=
   @testset "crosentropy" begin
     p = Var(rand(1:10,size(x.val,2)))
     #@test checkgrad(CrossEntropy(), p, x)
@@ -35,4 +45,5 @@ const T = Float64
 
   @test checkgrad(Reshape(5,2,5), x)
   @test checkgrad(Softmax(), x)
+  =#
 end

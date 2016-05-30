@@ -1,7 +1,11 @@
-export softmax, logsoftmax
+export softmax
 
 """
 Compute softmax along the second axis.
+
+```math
+f(x) = \frac{\exp(x_{i})}{\sum_{j}^{n}\exp(x_{j})}
+```
 
 ```math
 p(x) = {\\exp(f(x)) \\over \\sum_{x_2} \\exp(f(x))}
@@ -13,9 +17,23 @@ x = Var(rand(Float32,10,5))
 y = softmax(x)
 ```
 """
-function softmax(x::Var)
-  y = softmax(x.value)
-  Var(y, softmax, [x], ∇softmax!)
+softmax(x::Var) = forward0(Softmax(), [x])
+
+"""
+- x::input
+"""
+logsoftmax(x::Var) = forward0(LogSoftmax(), [x])
+
+type Softmax <: Functor
+end
+type LogSoftmax <: Functor
+end
+
+function forward(f::Softmax, args::Vector{Var})
+  x = args[1]
+  y = softmax(x.val)
+  backward! = gy -> hasgrad(x) && ∇softmax!(x.grad, y, gy)
+  Var(y, nothing, f, args, backward!)
 end
 
 function softmax{T}(x::Matrix{T})
@@ -38,8 +56,6 @@ function softmax(x::CuArray)
   y = similar(x)
   CUDNN.softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x, y)
 end
-
-∇softmax!(y::Var) = hasgrad(y[1]) && ∇softmax!(y[1].grad, y.value, y.grad)
 
 function ∇softmax2!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
   # d yi / d xj = yi * (delta (i=j) - yj)
@@ -110,13 +126,11 @@ function softmax_native{T}(x::Matrix{T})
   y
 end
 
-"""
-Logarithm of softmax function.
-See `softmax` for detail.
-"""
-function logsoftmax(x::Var)
-  y = logsoftmax(x.value)
-  Var(y, logsoftmax, [x], ∇logsoftmax!)
+function forward(f::LogSoftmax, args::Vector{Var})
+  x = args[1]
+  y = logsoftmax(x.val)
+  backward! = gy -> hasgrad(x) && ∇logsoftmax!(x.val, y, x.grad, gy)
+  Var(y, nothing, f, args, backward!)
 end
 
 function logsoftmax{T}(x::Matrix{T})
@@ -135,9 +149,7 @@ function logsoftmax{T}(x::Matrix{T})
   y
 end
 
-∇logsoftmax!(y::Var) = hasgrad(y[1]) && ∇logsoftmax!(y[1].value, y[1].grad, y.value, y.grad)
-
-function ∇logsoftmax!{T}(x::Matrix{T}, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
+function ∇logsoftmax!{T}(x::Matrix{T}, y::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
   # d yj / d xi = delta(i=j) - exp(yi)
   for d = 1:size(x,2)
     for i = 1:size(x,1)

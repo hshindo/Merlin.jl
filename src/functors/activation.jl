@@ -1,42 +1,11 @@
-export Activation
+export relu, sigmoid
 
 """
-Activation function.
-
-## Functions
-- `Activation(mode::AbstractString)`
-    - mode: relu | tanh | sigmoid
-
-## 👉 Example
-```julia
-x = Var(rand(Float32,10,5))
-f = Activation("relu")
-y = f(x)
-```
+Rectifier Linear Unit.
 """
-type Activation <: Functor
-  mode
-end
-
-function forward(f::Activation, args::Vector{Var})
-  x = args[1]
-  y = activation(f.mode, x.val)
-  backward! = gy -> hasgrad(x) && ∇activation!(f.mode, x.val, x.grad, y, gy)
-  Var(y, nothing, f, args, backward!)
-end
-
-function activation(mode::AbstractString, x)
-  mode == "relu" && return relu(x)
-  mode == "tanh" && return tanh(x)
-  mode == "sigmoid" && return sigmoid(x)
-  throw("Invalid mode: $(mode)")
-end
-
-function ∇activation!(mode::AbstractString, x, gx, y, gy)
-  mode == "relu" && return ∇relu!(x, gx, y, gy)
-  mode == "tanh" && return ∇tanh!(x, gx, y, gy)
-  mode == "sigmoid" && return ∇sigmoid!(x, gx, y, gy)
-  throw("Invalid mode: $(mode)")
+function relu(x::Var)
+  typeof(x.value) == Symbol && return Var(nothing, relu, [x])
+  Var(relu(x.value), relu, [x], ∇relu!)
 end
 
 function relu{T}(x::Array{T})
@@ -45,6 +14,30 @@ function relu{T}(x::Array{T})
     y[i] = max(x[i], T(0))
   end
   y
+end
+
+relu(x::CuArray) = CUDNN.activation(ActivationDesc(CUDNN_ACTIVATION_RELU), x)
+
+function ∇relu!(y::Var)
+  x = y[1]
+  hasgrad(x) || return
+  ∇relu!(x.value, x.grad, y.value, y.grad)
+end
+
+function ∇relu!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
+  @inbounds @simd for i = 1:length(x)
+    gx[i] += ifelse(x[i]>T(0), gy[i], T(0))
+  end
+end
+
+function ∇relu!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
+  CUDNN.∇activation!(CUDNN_ACTIVATION_RELU, y, dy, x, dx; beta=1.0)
+end
+
+""
+function sigmoid(x::Var)
+  typeof(x.value) == Symbol && return Var(x.value, sigmoid, [x])
+  Var(sigmoid(x.value), sigmoid, [x], ∇sigmoid!)
 end
 
 function sigmoid{T}(x::Array{T})
@@ -56,20 +49,12 @@ function sigmoid{T}(x::Array{T})
   y
 end
 
-relu(x::CuArray) = CUDNN.activation(ActivationDesc(CUDNN_ACTIVATION_RELU), x)
-Base.tanh(x::CuArray) = CUDNN.activation!(ActivationDesc(CUDNN_ACTIVATION_TANH), x)
 sigmoid(x::CuArray) = CUDNN.activation!(ActivationDesc(CUDNN_ACTIVATION_SIGMOID), x)
 
-function ∇relu!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
-  @inbounds @simd for i = 1:length(x)
-    gx[i] += ifelse(x[i]>T(0), gy[i], T(0))
-  end
-end
-
-function ∇tanh!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
-  @inbounds @simd for i = 1:length(x)
-    gx[i] += gy[i] * (T(1) - y[i] * y[i])
-  end
+function ∇sigmoid!(y::Var)
+  x = y[1]
+  hasgrad(x) || return
+  ∇sigmoid!(x.value, x.grad, y.value, y.grad)
 end
 
 function ∇sigmoid!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
@@ -78,14 +63,30 @@ function ∇sigmoid!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
   end
 end
 
-function ∇relu!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-  CUDNN.∇activation!(CUDNN_ACTIVATION_RELU, y, dy, x, dx; beta=1.0)
+function ∇sigmoid!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
+  CUDNN.∇activation!(CUDNN_ACTIVATION_SIGMOID, y, dy, x, dx; beta=1.0)
+end
+
+""
+function Base.tanh(x::Var)
+  typeof(x.value) == Symbol && return Var(x.value, tanh, [x])
+  Var(tanh(x.value), tanh, [x], ∇tanh!)
+end
+
+Base.tanh(x::CuArray) = CUDNN.activation!(ActivationDesc(CUDNN_ACTIVATION_TANH), x)
+
+function ∇tanh!(y::Var)
+  x = y[1]
+  hasgrad(x) || return
+  ∇tanh!(x.value, x.grad, y.value, y.grad)
+end
+
+function ∇tanh!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
+  @inbounds @simd for i = 1:length(gx)
+    gx[i] += gy[i] * (T(1) - y[i] * y[i])
+  end
 end
 
 function ∇tanh!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
   CUDNN.∇activation!(CUDNN_ACTIVATION_TANH, y, dy, x, dx; beta=1.0)
-end
-
-function ∇sigmoid!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-  CUDNN.∇activation!(CUDNN_ACTIVATION_SIGMOID, y, dy, x, dx; beta=1.0)
 end

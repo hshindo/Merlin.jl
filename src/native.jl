@@ -16,25 +16,25 @@ catch y
   throw(y)
 end
 
+end
+
 """
 JIT compiler.
 - `src`: source code
 - `sym`: function name
 """
-function compile(src, sym, compiler="g++")
+function cppcompile(src, sym::Symbol)
   dir = joinpath(dirname(@__FILE__), "..", "lib")
   symstr = string(sym)
   srcpath = joinpath(dir, "$(symstr).c")
   libname = @windows? "$(symstr).dll" : "$(symstr).so"
   libpath = joinpath(dir, libname)
-  if isdefined(sym)
-    println("ok")
-    Libdl.dlclose(eval(sym))
-  end
+  #Libdl.dlclose(eval(sym))
+
+  compiler = "g++"
   open(srcpath, "w") do f
     write(f, src)
   end
-
   @windows? begin
     run(`$compiler -Wall -O3 -shared -o $libpath $srcpath`)
   end : begin
@@ -43,7 +43,5 @@ function compile(src, sym, compiler="g++")
 
   lib = Libdl.dlopen(libpath)
   h = Libdl.dlsym(lib, :run)
-  eval(:(global $sym = $h))
-end
-
+  @eval global $sym = $h
 end
