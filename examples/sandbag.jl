@@ -6,75 +6,68 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
-x = CuArray(Float32,4,3,2,1)
-x = Var(x)
-f = Activation("relu")
+f = GRU(Float32,100)
+x = Var(rand(Float32,100,1))
+h = Var(rand(Float32,100,1))
+f(x,h)
+
+f = Lookup(Float32, 1000, 100)
+x1 = Var(rand(1:1000,5,3))
 y = f(x)
-Array(x.val)
 
-f = Lookup(Float32,1000,100)
-x = Var(rand(1:1000,5,2))
-y = f(x)
-x.grad = zeros(x.val)
-backward!(y)
-x.grad
-Merlin.approx_grad(f,[x])
-checkgrad(f,x)
+x1 = Var(rand(Float32,10,5))
+x2 = Var(rand(Float32,10,5))
+y = x1 + x2
+y = checkgrad(()->relu(x1), x1)
 
-x1 = Var([1,2,3])
-x2 = Var(rand(Float32,10,3))
-f([x1,x2])
+x2 = Var(rand(Float32,5,10))
 
-f = GRU(Float32,10)
-f.data_ids
+checkgrad(logsoftmax, x1)
 
-x1 = Var(rand(Float32,10,1))
-x2 = Var(rand(Float32,10,1))
-f(x1,x2)
-y = x1 .- x2
-x1.grad = zeros(x1.val)
-x2.grad = zeros(x2.val)
-backward!(y)
+x = Var(rand(Float32,5,4,3,2))
+w = Var(rand(Float32,2,2,3,4)) # 2-d convolution
+y = convolution(x, w)
 
-rand(1:5,10)
-[1:5]
-macro check_grad(a)
-  println(a.args[3])
-end
+x = CuArray(rand(Float32,5,4,3,2))
+xx = Array(x)
+f = Convolution(Float32, (3,4), (2,2), (1,1), (0,0))
+w = CuArray(f.w.val)
+ww = Array(w)
 
-@check_grad parse(Int, "5")
-0.00016595 < 1e-4
-exp(log(0.00020003319) - log(2e-4))
-x1 = Var(rand(Float32,5,2))
-x2 = Var(rand(Float32,5,2))
-checkgrad(Add(),x1,x2)
+y_cpu = Merlin.convolution(f, xx)
+y_cpu = reshape(y_cpu, 12, 24)
+y_cpu = reshape(ww, 4, 12) * y_cpu
+y_cpu = reshape(y_cpu, 4, 3, 4, 2)
+vec(y_cpu)
 
-x = Var(rand(Float32,10,5))
-f = Linear(Float32,10,7)
-checkgrad(f,x)
+y_gpu = Merlin.convolution(f, x, w)
+y_gpu = Array(y_gpu)
+vec(y_gpu)
 
-@time f(x)
-@Merlin.check_grad f(x)
+dir = joinpath(dirname(@__FILE__), "..", "lib")
+libname = "softmax_float_10_5.dll"
+libpath = joinpath(dir, libname)
+h = Merlin.Native.softmax_float_10_5
+Libdl.dlclose(Merlin.Native.)
 
-f.w * x .+ f.b
-check_gradient(f, x)
+x = rand(Float32,10,10)
+softmax(x)
 
-a = backward!(y)
-
-
-f = Conv(Float32,5,(10,2),(1,1),(0,0))
-x = Var(rand(Float32,50,10))
-y = f(x)
+dir = joinpath(dirname(@__FILE__), "..", "deps")
+const HANDLE = Libdl.dlsym(Merlin.Native.library, :softmax_fw_f32)
 
 function bench()
-  a = [Var(rand(Float32,100,1)) for i=1:30]
-  f = Concat(2)
-  for i = 1:10000
-    b = tuple(a...)
-    Merlin.forward(f, b)
+  x = rand(Float32,100,100)
+  #size1, size2 = size(x)
+  #h = eval(Merlin.Native, Symbol(join(["softmax","float",size1,size2], "_")))
+  #a = rand(Float32,100,1000)
+  #b = rand(Float32,1000,100)
+  for i = 1:1000
+    Merlin.softmax2(x)
   end
 end
 @time bench()
+y
 
 x1 = Variable(rand(10,5))
 x2 = Variable(rand(10))

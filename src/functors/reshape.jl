@@ -1,32 +1,20 @@
-export Reshape
+type Reshape
+  dims
+end
 
 """
-## Reshape
-Reshapes an array with the given dimensions.
-
-### Functions
-- `Reshape(dims::Int...)`
+Reshape an array according to the given dimensions.
 
 ### 👉 Example
 ```julia
 x = Var(rand(Float32,10,5,3))
-f = Reshape(5,3,10)
-y = f(x)
+y = reshape(x, 5, 3, 5, 2)
 ```
 """
-type Reshape <: Functor
-  dims
-end
+Base.reshape(x::Var, dims::Int...) = forward(Reshape(dims), [x])
 
-Reshape(dims::Int...) = Reshape(dims)
+forward!(f::Reshape, y::Var) = y.value = copy(reshape(y[1].value, f.dims))
 
-function forward(f::Reshape, args::Vector{Var})
-  x = args[1]
-  s = size(x.val)
-  y = copy(reshape(x.val, f.dims))
-  backward! = gy -> begin
-    T = eltype(gy)
-    hasgrad(x) && BLAS.axpy!(T(1), gy, x.grad)
-  end
-  Var(y, nothing, f, args, backward!)
-end
+backward!(f::Reshape, y::Var) = hasgrad(y[1]) && ∇reshape!(y[1].grad, y.grad)
+
+∇reshape!{T}(gx::Array{T}, gy::Array{T}) = BLAS.axpy!(T(1), gy, gx)

@@ -1,127 +1,56 @@
-export Add, ElemAdd
-export Subtract, ElemSubtract
-export Mult, ElemMult
+type Plus; end
+type Minus; end
+type Times; end
+type ElemTimes; end
 
-type Add <: Functor
-end
-type ElemAdd <: Functor
-end
-type Subtract <: Functor
-end
-type ElemSubtract <: Functor
-end
-type Mult <: Functor
-end
-type ElemMult <: Functor
-end
+import Base: +, -, *, .*
++(x1::Var, x2::Var) = forward(Plus(), [x1,x2])
+-(x1::Var, x2::Var) = forward(Minus(), [x1,x2])
+*(x1::Var, x2::Var) = forward(Times(), [x1,x2])
+.*(x1::Var, x2::Var) = forward(ElemTimes(), [x1,x2])
 
-import Base.+
-+(v1::Var, v2::Var) = Add()(v1, v2)
-+(x::DataArray, v::Var) = Add()(Var(x), v)
-+(v::Var, x::DataArray) = Add()(v, Var(x))
-
-import Base.(.+)
-.+(v1::Var, v2::Var) = ElemAdd()(v1, v2)
-.+(x, v::Var) = ElemAdd()(Var(x), v)
-.+(v::Var, x) = ElemAdd()(v, Var(x))
-
-import Base.-
--(v1::Var, v2::Var) = Subtract()(v1, v2)
--(x, v::Var) = Subtract()(Var(x), v)
--(v::Var, x) = Subtract()(v, Var(x))
--(v::Var) = 0 - v
-
-import Base.(.-)
-.-(v1::Var, v2::Var) = ElemSubtract()(v1, v2)
-.-(x, v::Var) = ElemSubtract()(Var(x), v)
-.-(v::Var, x) = ElemSubtract()(v, Var(x))
-
-import Base.*
-*(v1::Var, v2::Var) = Mult()(v1, v2)
-*(x, v::Var) = Mult()(Var(x), v)
-*(v::Var, x) = Mult()(v, Var(x))
-
-import Base.(.*)
-.*(v1::Var, v2::Var) = ElemMult()(v1, v2)
-.*(x, v::Var) = ElemMult()(Var(x), v)
-.*(v::Var, x) = ElemMult()(v, Var(x))
-
-function forward(f::Add, args::Vector{Var})
-  x1, x2 = args[1], args[2]
-  y = x1.val + x2.val
-  backward! = gy -> begin
-    T = eltype(gy)
-    hasgrad(x1) && BLAS.axpy!(T(1), gy, x1.grad)
-    hasgrad(x2) && BLAS.axpy!(T(1), gy, x2.grad)
-  end
-  Var(y, nothing, f, args, backward!)
-end
-
-function forward(f::ElemAdd, args::Vector{Var})
-  x1, x2 = args[1], args[2]
-  y = x1.val .+ x2.val
-  backward! = gy -> begin
-    hasgrad(x1) && ∇elemadd!(x1.grad, gy)
-    hasgrad(x2) && ∇elemadd!(x2.grad, gy)
-  end
-  Var(y, nothing, f, args, backward!)
-end
-
-function ∇elemadd!{T,N}(gx::Array{T,N}, gy::Array{T,N})
-  for offset = 1:length(gx):length(gy)
-    BLAS.axpy!(length(gx), T(1), pointer(gy,offset), stride(gy,1), pointer(gx), stride(gx,1))
+for f in (:+, :-, :.*)
+  @eval begin
+    $f(x1::Number, x2::Var) = $f(Var([x1]), x2)
+    $f(x1::Var, x2::Number) = $f(x1, Var([x2]))
   end
 end
 
-function forward(f::Subtract, args::Vector{Var})
-  x1, x2 = args[1], args[2]
-  y = x1.val - x2.val
-  backward! = gy -> begin
-    T = eltype(gy)
-    hasgrad(x1) && BLAS.axpy!(T(1), gy, x1.grad)
-    hasgrad(x2) && BLAS.axpy!(T(-1), gy, x2.grad)
-  end
-  Var(y, nothing, f, args, backward!)
+forward!(f::Plus, y::Var) = y.value = y[1].value .+ y[2].value
+forward!(f::Minus, y::Var) = y.value = y[1].value .- y[2].value
+forward!(f::Times, y::Var) = y.value = y[1].value * y[2].value
+forward!(f::ElemTimes, y::Var) = y.value = y[1].value .* y[2].value
+
+function backward!(f::Plus, y::Var)
+  hasgrad(y[1]) && ∇plus!(1.0, y[1].grad, y.grad)
+  hasgrad(y[2]) && ∇plus!(1.0, y[2].grad, y.grad)
 end
 
-function forward(f::ElemSubtract, args::Vector{Var})
-  x1, x2 = args[1], args[2]
-  y = x1.val .- x2.val
-  backward! = gy -> begin
-    hasgrad(x1) && ∇elemsubtract!(1.0, x1.grad, gy)
-    hasgrad(x2) && ∇elemsubtract!(-1.0, x2.grad, gy)
-  end
-  Var(y, nothing, f, args, backward!)
+function backward!(f::Minus, y::Var)
+  hasgrad(y[1]) && ∇plus!(1.0, y[1].grad, y.grad)
+  hasgrad(y[2]) && ∇plus!(-1.0, y[2].grad, y.grad)
 end
 
-function ∇elemsubtract!{T,N}(a::Float64, gx::Array{T,N}, gy::Array{T,N})
+function backward!(f::Times, y::Var)
+  T = eltype(y.value)
+  x1, x2 = y[1], y[2]
+  hasgrad(x1) && BLAS.gemm!('N', 'T', T(1), y.grad, x2.value, T(1), x1.grad)
+  hasgrad(x2) && BLAS.gemm!('T', 'N', T(1), x1.value, y.grad, T(1), x2.grad)
+end
+
+function backward!(f::ElemTimes, y::Var)
+  x1, x2 = y[1], y[2]
+  hasgrad(x1) && ∇elemtimes!(x2.value, x1.grad, y.grad)
+  hasgrad(x2) && ∇elemtimes!(x1.value, x2.grad, y.grad)
+end
+
+function ∇plus!{T}(a::Float64, gx::Array{T}, gy::Array{T})
   for offset = 1:length(gx):length(gy)
     BLAS.axpy!(length(gx), T(a), pointer(gy,offset), stride(gy,1), pointer(gx), stride(gx,1))
   end
 end
 
-function forward(f::Mult, args::Vector{Var})
-  x1, x2 = args[1], args[2]
-  y = x1.val * x2.val
-  backward! = gy -> begin
-    T = eltype(gy)
-    hasgrad(x1) && BLAS.gemm!('N', 'T', T(1), gy, x2.val, T(1), x1.grad)
-    hasgrad(x2) && BLAS.gemm!('T', 'N', T(1), x1.val, gy, T(1), x2.grad)
-  end
-  Var(y, nothing, f, args, backward!)
-end
-
-function forward(f::ElemMult, args::Vector{Var})
-  x1, x2 = args[1], args[2]
-  y = x1.val .* x2.val
-  backward! = gy -> begin
-    hasgrad(x1) && ∇elemmult!(x2.val, x1.grad, gy)
-    hasgrad(x2) && ∇elemmult!(x1.val, x2.grad, gy)
-  end
-  Var(y, nothing, f, args, backward!)
-end
-
-function ∇elemmult!{T,N}(x2::Array{T,N}, gx1::Array{T,N}, gy::Array{T,N})
+function ∇elemtimes!{T,N}(x2::Array{T,N}, gx1::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(gx1)
     gx1[i] += gy[i] * x2[i]
   end

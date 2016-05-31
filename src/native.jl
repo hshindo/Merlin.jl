@@ -16,13 +16,32 @@ catch y
   throw(y)
 end
 
-#const SOFTMAX_F32 = Libdl.dlsym(library, :softmax_fw_f32)
-#const WINDOW2D_BWD_F32_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f32)
-#const WINDOW2D_FWD_F64_HANDLE = Libdl.dlsym(Native.library, :window2d_fwd_f64)
-#const WINDOW2D_BWD_F64_HANDLE = Libdl.dlsym(Native.library, :window2d_bwd_f64)
+end
 
-#function softmax{T}(x::Matrix{T}, y::Matrix{T})
-#  ccall(SOFTMAX_F32, Void, (Ptr{T},Cint,Cint,Ptr{T}), x, size(x,1), size(x,2), y)
-#end
+"""
+JIT compiler.
+- `src`: source code
+- `sym`: function name
+"""
+function cppcompile(src, sym::Symbol)
+  dir = joinpath(dirname(@__FILE__), "..", "lib")
+  symstr = string(sym)
+  srcpath = joinpath(dir, "$(symstr).c")
+  libname = @windows? "$(symstr).dll" : "$(symstr).so"
+  libpath = joinpath(dir, libname)
+  #Libdl.dlclose(eval(sym))
 
+  compiler = "g++"
+  open(srcpath, "w") do f
+    write(f, src)
+  end
+  @windows? begin
+    run(`$compiler -Wall -O3 -shared -o $libpath $srcpath`)
+  end : begin
+    run(`$compiler -fPIC -Wall -O3 -shared -o $libpath $srcpath`)
+  end
+
+  lib = Libdl.dlopen(libpath)
+  h = Libdl.dlsym(lib, :run)
+  @eval global $sym = $h
 end

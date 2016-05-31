@@ -1,76 +1,71 @@
 export Lookup
 
 """
-## Lookup
-Lookup variables.
-
-### Functions
-- Lookup(insize::Int, outsize::Int)
+Lookup variables and concat.
 
 ### 👉 Example
 ```julia
+f = Lookup(Float32, 1000, 100)
 x = Var(rand(1:1000,5,3))
-f = Lookup(Float32,1000,100)
 y = f(x)
 ```
 """
-type Lookup <: Functor
-  weights::Vector{Var}
+type Lookup
+  ws::Vector{Var}
 end
 
-Lookup{T}(weights::Vector{Vector{T}}) = Lookup(map(w -> Var(w,zeros(w)), weoghts))
-
 function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
-  weights = Array(Var, insize)
+  ws = Array(Var, insize)
   for i = 1:insize
     w = convert(Vector{T}, randn(outsize))
-    weights[i] = Var(w, grad=zeros(w))
+    ws[i] = Var(w, grad=true)
   end
-  Lookup(weights)
+  Lookup(ws)
 end
 
 function Lookup{T}(path, ::Type{T})
   lines = open(readlines, path)
-  weights = Array(Var, length(lines))
+  ws = Array(Var, length(lines))
   for i = 1:length(lines)
     items = split(chomp(lines[i]), ' ')
     w = map(x -> parse(T,x), items)
-    weights[i] = Variable(w, zeros(w))
+    ws[i] = Var(w, grad=true)
   end
-  Lookup(weights)
+  Lookup(ws)
 end
 
-function forward(f::Lookup, args::Vector{Var})
-  x = args[1]
-  y = lookup(f, x.val)
-  args = Var[]
-  for id in x.val
-    push!(args, f.weights[id])
+@compat (f::Lookup)(x::Var) = forward(f, [x])
+
+function forward!(f::Lookup, y::Var)
+  x = y[1]
+  y.value = lookup(f.ws, x.value)
+  y.args = Var[]
+  for i in IntSet(x.value)
+    push!(y.args, f.ws[i])
   end
-  backward! = gy -> ∇lookup!(f, x.val, gy)
-  Var(y, nothing, f, args, backward!)
 end
 
-function lookup(f::Lookup, x::Matrix{Int})
-  w1 = f.weights[1].val
+backward!(f::Lookup, y::Var) = ∇lookup!(f.ws, y[1].value, y.grad)
+
+function lookup(ws::Vector{Var}, x::Matrix{Int})
+  w1 = ws[1].value
   len = length(w1)
   T = eltype(w1)
   y = Array(T, len*size(x,1), size(x,2))
   offset = 1
   for i = 1:length(x)
-    copy!(y, offset, f.weights[x[i]].val, 1, len)
+    copy!(y, offset, ws[x[i]].value, 1, len)
     offset += len
   end
   y
 end
 
-function ∇lookup!{T}(f::Lookup, x::Matrix{Int}, gy::Matrix{T})
-  len = length(f.weights[1].val)
+function ∇lookup!{T}(ws::Vector{Var}, x::Matrix{Int}, gy::Matrix{T})
+  len = length(ws[1].value)
   offset = 1
   for i = 1:length(x)
-    gw = f.weights[x[i]].grad
+    gw = ws[x[i]].grad
     BLAS.axpy!(len, T(1), pointer(gy,offset), stride(gy,1), pointer(gw), stride(gw,1))
     offset += len
-    #union!(f.idset, x[i])
   end
 end

@@ -1,8 +1,5 @@
-export Linear
-
 """
-Compute linear transformation.
-
+Return weight matrix and bias vector.
 ### 👉 Example
 ```julia
 f = Linear(Float32, 10, 3)
@@ -10,19 +7,19 @@ x = Var(rand(Float32,10,5))
 y = f(x)
 ```
 """
-type Linear
+type Linear <: Functor
   w::Var
   b::Var
 end
 
-@compat (f::Linear)(x::Var) = f.w * x + f.b
+@compat (f::Linear)(x::Var) = forward0(f, [x])
 
 function Linear{T}(::Type{T}, indim::Int, outdim::Int)
   x = sqrt(6 / (indim + outdim))
   r = rand(outdim, indim) * 2x - x
   w = convert(Matrix{T}, r)
   b = fill(T(0), outdim, 1)
-  Linear(Var(w,grad=true), Var(b,grad=true))
+  Linear(Var(w,grad=zeros(w)), Var(b,grad=zeros(b)))
 end
 
 mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
