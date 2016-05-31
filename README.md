@@ -55,21 +55,27 @@ There are two ways to define a network structure in `Merlin`:
 1. Sequential structure
 A sequential structure such as three-layer network can be defined as follows:
 ```julia
-f = Network(
-  Linear(Float32,10,7),
-  Activation("relu"),
-  Linear(Float32,7,3))
+f = Graph(
+  x = Var()
+  x = Linear(Float32,10,7)(x)
+  x = relu(x)
+  x = Linear(Float32,7,3)(x)
+  x
+)
 ```
 
 2. Graph structure
 A more complex graph structure can be define as follows:
 ```julia
-x, h = Var(), Var()
-r = Activation("sigmoid")(Ws[1]*x + Us[1]*h)
-z = Activation("sigmoid")(Ws[2]*x + Us[2]*h)
-h_ = Activation("tanh")(Ws[3]*x + Us[3]*(r.*h))
+Ws = [Var(rand(T,xsize,xsize),grad=true) for i=1:3]
+Us = [Var(rand(T,xsize,xsize),grad=true) for i=1:3]
+x = Var()
+h = Var()
+r = sigmoid(Ws[1]*x + Us[1]*h)
+z = sigmoid(Ws[2]*x + Us[2]*h)
+h_ = tanh(Ws[3]*x + Us[3]*(r.*h))
 h_next = (1 - z) .* h + z .* h_
-Network(h_next)
+Graph(h_next)
 ```
 
 ### Decoding
@@ -77,10 +83,13 @@ Network(h_next)
 using Merlin
 
 x = Var(rand(Float32,10,5))
-f = Network(
-  Linear(Float32,10,7),
-  Activation("relu"),
-  Linear(Float32,7,3))
+f = Graph(
+  x = Var()
+  x = Linear(Float32,10,7)(x)
+  x = relu(x)
+  x = Linear(Float32,7,3)(x)
+  x
+)
 y = f(x)
 ```
 
