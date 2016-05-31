@@ -6,13 +6,22 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
-x1 = Var(:x1)
-y = relu(x1)
+f = GRU(Float32,100)
+x = Var(rand(Float32,100,1))
+h = Var(rand(Float32,100,1))
+f(x,h)
 
+f = Lookup(Float32, 1000, 100)
+x1 = Var(rand(1:1000,5,3))
+y = f(x)
 
 x1 = Var(rand(Float32,10,5))
+x2 = Var(rand(Float32,10,5))
+y = x1 + x2
+y = checkgrad(()->relu(x1), x1)
+
 x2 = Var(rand(Float32,5,10))
-y = logsoftmax(x1)
+
 checkgrad(logsoftmax, x1)
 
 x = Var(rand(Float32,5,4,3,2))

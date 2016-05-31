@@ -1,5 +1,8 @@
 export softmax, logsoftmax
 
+type Softmax; end
+type LogSoftmax; end
+
 """
 Compute softmax along the second axis.
 
@@ -10,13 +13,18 @@ p(x) = {\\exp(f(x)) \\over \\sum_{x_2} \\exp(f(x))}
 ## 👉 Example
 ```julia
 x = Var(rand(Float32,10,5))
-y = softmax(x)
+y1 = softmax(x)
+y2 = logsoftmax(x)
 ```
 """
-function softmax(x::Var)
-  y = softmax(x.value)
-  Var(y, softmax, [x], ∇softmax!)
-end
+softmax(x::Var) = forward(Softmax(), [x])
+logsoftmax(x::Var) = forward(LogSoftmax(), [x])
+
+forward!(f::Softmax, y::Var) = y.value = softmax(y[1].value)
+forward!(f::LogSoftmax, y::Var) = y.value = logsoftmax(y[1].value)
+
+backward!(f::Softmax, y::Var) = hasgrad(y[1]) && ∇softmax!(y[1].grad, y.value, y.grad)
+backward!(f::LogSoftmax, y::Var) = hasgrad(y[1]) && ∇logsoftmax!(y[1].value, y[1].grad, y.value, y.grad)
 
 function softmax{T}(x::Matrix{T})
   y = similar(x)
@@ -35,11 +43,8 @@ function softmax{T}(x::Matrix{T})
 end
 
 function softmax(x::CuArray)
-  y = similar(x)
-  CUDNN.softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x, y)
+  CUDNN.softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x, similar(x))
 end
-
-∇softmax!(y::Var) = hasgrad(y[1]) && ∇softmax!(y[1].grad, y.value, y.grad)
 
 function ∇softmax2!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
   # d yi / d xj = yi * (delta (i=j) - yj)
@@ -66,7 +71,36 @@ function ∇softmax!(gx::CuArray, y::CuArray, gy::CuArray)
   CUDNN.∇softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
 end
 
-# Currently, softmax_native is 3 times slower than softmax_julia
+function logsoftmax{T}(x::Matrix{T})
+  y = similar(x)
+  max = maximum(x, 1)
+  for j = 1:size(x,2)
+    sum = T(0)
+    @inbounds @simd for i = 1:size(x,1)
+      sum += exp(x[i,j] - max[j])
+    end
+    logz = log(sum)
+    @inbounds @simd for i = 1:size(x,1)
+      y[i,j] = x[i,j] - max[j] - logz
+    end
+  end
+  y
+end
+
+function ∇logsoftmax!{T}(x::Matrix{T}, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
+  # d yj / d xi = delta(i=j) - exp(yi)
+  for d = 1:size(x,2)
+    for i = 1:size(x,1)
+      expy = exp(y[i, d])
+      for j = 1:size(x,1)
+        delta = i == j ? T(1) : T(0)
+        gx[i,d] += gy[j,d] * (delta - expy)
+      end
+    end
+  end
+end
+
+# experimental
 function softmax_native{T}(x::Matrix{T})
   CT = "float"
   size1, size2 = size(x)
@@ -108,44 +142,4 @@ function softmax_native{T}(x::Matrix{T})
   y = similar(x)
   ccall(h, Void, (Ptr{T},Ptr{T}), x, y)
   y
-end
-
-"""
-Logarithm of softmax function.
-See `softmax` for detail.
-"""
-function logsoftmax(x::Var)
-  y = logsoftmax(x.value)
-  Var(y, logsoftmax, [x], ∇logsoftmax!)
-end
-
-function logsoftmax{T}(x::Matrix{T})
-  y = similar(x)
-  max = maximum(x, 1)
-  for j = 1:size(x,2)
-    sum = T(0)
-    @inbounds @simd for i = 1:size(x,1)
-      sum += exp(x[i,j] - max[j])
-    end
-    logz = log(sum)
-    @inbounds @simd for i = 1:size(x,1)
-      y[i,j] = x[i,j] - max[j] - logz
-    end
-  end
-  y
-end
-
-∇logsoftmax!(y::Var) = hasgrad(y[1]) && ∇logsoftmax!(y[1].value, y[1].grad, y.value, y.grad)
-
-function ∇logsoftmax!{T}(x::Matrix{T}, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
-  # d yj / d xi = delta(i=j) - exp(yi)
-  for d = 1:size(x,2)
-    for i = 1:size(x,1)
-      expy = exp(y[i, d])
-      for j = 1:size(x,1)
-        delta = i == j ? T(1) : T(0)
-        gx[i,d] += gy[j,d] * (delta - expy)
-      end
-    end
-  end
 end

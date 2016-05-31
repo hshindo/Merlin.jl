@@ -1,7 +1,7 @@
 export Trainer, fit
 
 type Trainer
-  f::Functor
+  f
   lossfun
   opt::Optimizer
 end
@@ -12,9 +12,9 @@ function fit(t::Trainer, xs, ys)
     z = t.f(xs[i])
     l = t.lossfun(ys[i], z)
     loss += sum(l.val)
-    vars = backward!(l)
+    vars = gradient!(l)
     for v in vars
-      length(v.args) == 0 && hasgrad(v) && update!(t.opt, v.val, v.grad)
+      isempty(v.args) && hasgrad(v) && update!(t.opt, v.val, v.grad)
     end
   end
   loss

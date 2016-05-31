@@ -3,47 +3,47 @@ const T = Float64
 @testset "functions" for i = 1:5
 
   x = Var(rand(T,10,5))
-  @test checkgrad(relu, x)
-  @test checkgrad(tanh, x)
-  @test checkgrad(sigmoid, x)
+  for f in [relu, tanh, sigmoid]
+    @test checkgrad(() -> f(x), x)
+  end
 
-  x1 = Var(rand(T,10,5))
-  x2 = Var(rand(T,10,5))
-  x3 = Var(rand(T,10,5))
-  #@test checkgrad(Concat(1), x1, x2, x3)
-  #@test checkgrad(Concat(2), x1, x2, x3)
-  #@test checkgrad(Concat(3), x1, x2, x3)
+  x1 = Var(rand(T,10,5,2))
+  x2 = Var(rand(T,10,5,2))
+  x3 = Var(rand(T,10,5,2))
+  for dim = 1:3
+    @test checkgrad(() -> concat(dim,x1,x2,x3), x1, x2, x3)
+  end
 
-  x = Var(rand(Float32,10,5))
-  @test checkgrad(softmax, x)
-  @test checkgrad(logsoftmax, x)
+  p = Var([1:5;])
+  q = Var(rand(Float32,10,5))
+  @test checkgrad(() -> crossentropy(p,q), q)
+
+  x = Var(rand(T,10,5))
+  f = Linear(T, 10, 7)
+  @test checkgrad(() -> f(x), x)
+
+  x = Var(rand(1:1000,5,3))
+  f = Lookup(Float32, 1000, 100)
+  y = f(x)
 
   x1 = Var(rand(T,10,5))
   x2 = Var(rand(T,10,1))
   x3 = Var(rand(T,5,7))
-  @test checkgrad(+, x1, x2)
-  @test checkgrad(-, x1, x2)
-  @test checkgrad(.*, x1, x1)
-  @test checkgrad(*, x1, x3)
+  @test checkgrad(() -> x1+x2, x1, x2)
+  @test checkgrad(() -> x1-x2, x1, x2)
+  @test checkgrad(() -> x1.*x1, x1, x1)
+  @test checkgrad(() -> x1*x3, x1, x3)
 
-  #@test checkgrad(Conv(5,(3,3),(1,1),(1,1)), x)
-#=
-  @testset "crosentropy" begin
-    p = Var(rand(1:10,size(x.val,2)))
-    #@test checkgrad(CrossEntropy(), p, x)
+  x = Var(rand(T,10,5))
+  for dim = 1:2
+    y = max(1, x)
+    gradient!(y)
   end
 
-  @test checkgrad(Linear(T,10,7), x)
-  @test checkgrad(LogSoftmax(), x)
+  x = Var(rand(T,10,5))
+  @test checkgrad(() -> reshape(x, 2, 5, 5), x)
 
-  @test checkgrad(Add(), x1, x2)
-  @test checkgrad(ElemAdd(), x1, x2)
-  @test checkgrad(Subtract(), x1, x2)
-  @test checkgrad(ElemSubtract(), x1, x2)
-  @test checkgrad(Mult(), Var(rand(T,10,5)), Var(rand(T,5,3)))
-  @test checkgrad(ElemMult(), x2, x3)
-
-  @test checkgrad(Reshape(5,2,5), x)
-  @test checkgrad(Softmax(), x)
-  =#
+  x = Var(rand(T,10,5))
+  @test checkgrad(() -> softmax(x), x)
+  @test checkgrad(() -> logsoftmax(x), x)
 end

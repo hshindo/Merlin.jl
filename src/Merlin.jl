@@ -18,11 +18,11 @@ end
 include("util.jl")
 export argmax
 include("var.jl")
-export Var, gradient!
+export Var, forward, gradient!
 include("gradient.jl")
 export approx_grad, checkgrad
-#include("network.jl")
-#include("trainer.jl")
+include("graph.jl")
+include("trainer.jl")
 
 macro init0(x, f)
   quote
@@ -34,23 +34,21 @@ for name in [
   "activation",
   "concat",
   #"convolution",
-  #"crossentropy",
-  #"linear",
-  #"lookup",
+  "crossentropy",
+  "linear",
+  "lookup",
   "math",
   "max",
-  #"reshape",
+  "reshape",
   "softmax",
   ]
   include("functors/$(name).jl")
 end
 
-#=
 for name in [
     "gru"]
   include("networks/$(name).jl")
 end
-=#
 
 for name in [
     "adagrad",

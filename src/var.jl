@@ -1,21 +1,24 @@
 type Var
   value
-  f
-  args
-  backward!
   grad
+  f
+  args::Vector{Var}
 end
 
-function Var(value, f=nothing, args=[], (backward!)=nothing)
-  Var(value, f, args, backward!, nothing)
-end
+Var(value; grad=false) = Var(value, grad ? zeros(value) : nothing, nothing, Var[])
 Var() = Var(nothing)
-#Var(value; grad=true) = Var(value, nothing, [], nothing, zeros(value))
 
 Base.getindex(v::Var, key) = v.args[key]
 Base.setindex!(v::Var, value, key) = v.args[key] = value
 
 hasgrad(v::Var) = v.grad != nothing
+
+function forward(f, args::Vector{Var})
+  any(a -> a.value == nothing, args) && return Var(nothing, nothing, f, args)
+  y = Var(nothing, nothing, f, args)
+  forward!(f, y)
+  y
+end
 
 function topsort(var::Var)
   sorted = Var[]
@@ -38,13 +41,12 @@ function gradient!(var::Var)
   hasgrad(var) || (var.grad = ones(var.value))
   for i = 1:length(sorted)-1 # excludes top
     v = sorted[i]
-    hasgrad(v) && continue
-    length(v.args) == 0 && continue
+    (hasgrad(v) || isempty(v.args)) && continue
     v.grad = zeros(v.value)
   end
   for i = length(sorted):-1:1
     v = sorted[i]
-    v.backward! == nothing || v.backward!(v)
+    v.f == nothing || backward!(v.f, v)
   end
   sorted
 end
