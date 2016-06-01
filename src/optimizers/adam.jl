@@ -5,7 +5,7 @@ export Adam
 Adam: A Method for Stochastic Optimization
 See: http://arxiv.org/abs/1412.6980v8
 """
-type Adam <: Optimizer
+type Adam
   alpha::Float64
   beta1::Float64
   beta2::Float64

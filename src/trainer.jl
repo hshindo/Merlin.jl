@@ -3,7 +3,7 @@ export Trainer, fit
 type Trainer
   f
   lossfun
-  opt::Optimizer
+  opt
 end
 
 function fit(t::Trainer, xs, ys)
