@@ -1,8 +1,6 @@
 ## Interop with Caffe
 
-- get src/caffe/caffe.proto
-- install protocol buffer version 2.x
-- 
+First, generate caffe.jl and caffe_pb.jl from caffe.proto using ProtoBuf.jl.
 
 ```
 git clone caffe
