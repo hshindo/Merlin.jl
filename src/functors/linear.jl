@@ -3,8 +3,6 @@ export Linear
 """
     linear(w::Var, x::Var, [b::Var])
 
-    linear{T}(::Type{T}, dimx::Int, dimy::Int, x::Var)
-
 Compute linear function (a.k.a. affine transformation).
 
 ```math
@@ -14,8 +12,9 @@ f(x) = w^{\mathrm{T}}x + b
 ### 👉 Example
 ```julia
 w = Var(rand(Float32,7,10))
+b = Var(rand(Float32,7))
 x = Var(rand(Float32,10,5))
-y = linear(w, x)
+y = linear(w, x, b)
 ```
 """
 
@@ -25,16 +24,19 @@ linear(w::Var, x::Var, b::Var) = init(Linear(), [w,x,b])
 
 function forward(f::Linear, w, x, b)
   y = w * x
-  b == nothing || broadcast!(.+, y, b)
+  broadcast!(.+, y, b)
   f, y
 end
-forward(f::Linear, w, x) = forward(f, w, x, nothing)
 
 function backward!(f::Linear, y::Var)
   w, gw = y[1].value, y[1].grad
   x, gx = y[2].value, y[2].grad
   b, gb = y[3].value, y[3].grad
-  hasgrad(y[1]) &&
+  T = eltype(y.value)
+  hasgrad(y[1]) && BLAS.gemm!('N', 'T', T(1), gy, gx, T(1), gw)
+  hasgrad(y[2]) && BLAS.gemm!('T', 'N', T(1), w, gy, T(1), gx)
+  s = sum(y.value, 2)
+  broadcast!(+, gb, s)
 end
 
 function ∇linear!(w::Var, b::Var, x::Var)

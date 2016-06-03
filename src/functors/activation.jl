@@ -21,21 +21,20 @@ type Tanh; end
 
 for (t,f,df) in [(:ReLU,:relu,:∇relu!), (:Sigmoid,:sigmoid,:∇sigmoid!), (:Tanh,:tanh,:∇tanh!)]
   @eval begin
-    $f(x::Var) = init($t(), [x])
-    forward(f::$t, xs::Vector{Var}) = f, $f(xs[1].value)
+    $f(x::Var) = forward($t(), x)
     backward!(f::$t, y::Var) = hasgrad(y[1]) && $df(y[1].value, y[1].grad, y.value, y.grad)
   end
 end
 
-function relu{T}(x::Array{T})
+@compat function (f::ReLU){T}(x::Array{T})
   y = similar(x)
   @inbounds @simd for i = 1:length(x)
     y[i] = max(x[i], T(0))
   end
-  y
+  f, y
 end
 
-relu(x::CuArray) = CUDNN.activation(ActivationDesc(CUDNN_ACTIVATION_RELU), x)
+@compat (f::ReLU)(x::CuArray) = f, CUDNN.activation(ActivationDesc(CUDNN_ACTIVATION_RELU), x)
 
 function ∇relu!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
   @inbounds @simd for i = 1:length(x)

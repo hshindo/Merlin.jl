@@ -54,6 +54,8 @@ if haskey(ENV, "USE_CUDA")
 else
   type CuArray{T,N}
   end
+  typealias CuVector{T} CuArray{T,1}
+  typealias CuMatrix{T} CuArray{T,2}
 end
 
 include("util.jl")
