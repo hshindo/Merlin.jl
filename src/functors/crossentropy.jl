@@ -5,14 +5,19 @@ type CrossEntropy
 end
 
 """
+    crossentropy(p::Var, q::Var)
+
 Compute cross-entropy between two distributions \$p\$ and \$q\$,
-where \$p\$ is correct labels and \$q\$ is predicted un-normalized scores.
-- \$p\$: `Var` of `Vector{Int}` or `Matrix`.
-- \$q\$: `Var` of `Matrix`.
+where \$p\$ is usually correct labels and \$q\$ is predicted values.
 
 ```math
 f(p,q)=-∑_{x} p_{x} \log q_{x}
 ```
+
+## Arguments
+* \$p\$: variable of `Vector{Int}` or `Matrix{Float}`.
+If \$p\$ is `Matrix{Float}`, it must be normalized.
+* \$q\$: variable of `Matrix{Float}`.
 
 ### 👉 Example
 ```julia
@@ -21,13 +26,13 @@ q = Var(rand(Float32,10,5))
 y = crossentropy(p, q)
 ```
 """
-crossentropy(p::Var, q::Var) = forward(CrossEntropy(nothing), [p,q])
+crossentropy(p::Var, q::Var) = init(CrossEntropy(nothing), [p,q])
 
-function forward!(f::CrossEntropy, y::Var)
-  p, q = y[1], y[2]
+function forward(f::CrossEntropy, args::Vector{Var})
+  p, q = args[1], args[2]
   logq = logsoftmax(q.value)
-  y.value = crossentropy(p.value, logq)
-  y.f = CrossEntropy(logq)
+  y = crossentropy(p.value, logq)
+  CrossEntropy(logq), y
 end
 
 function backward!(f::CrossEntropy, y::Var)

@@ -8,39 +8,41 @@ const WINDOW2D_BWD_F64 = Libdl.dlsym(library, :window2d_bwd_f64)
 
 """
 N-d convolution function.
+Currently, only 2-d is supported.
 
 ## 👉 Example
 ```julia
 x = Var(rand(Float32,5,4,3,2))
-f = Conv((2,2,3,4),(1,1),(0,0))
-y = f(x)
+w = Var(rand(Float32,2,2,3,4))
+y = conv(w, x, stride=(1,1), pad=(0,0), bias=true)
 ```
 """
-type Conv{T,N}
-  w::Var
+type Conv{N}
   stride::NTuple{N,Int}
   pad::NTuple{N,Int}
 end
 
-function Conv(w::Var, stride, pad)
-  T = eltype(w.value)
-  N = length(stride)
-  Conv{T,N}(w, stride, pad)
+handle(::Type{Conv{2}}, ::Type{Float32}) = WINDOW2D_FWD_F32, WINDOW2D_BWD_F32
+handle(::Type{Conv{2}}, ::Type{Float64}) = WINDOW2D_FWD_F64, WINDOW2D_BWD_F64
+
+function conv(w::Var, x::Var; stride=(), pad=(), b::Var=Var())
+  N = ndims(w.value) - 2
+  isempty(stride) && (stride = ntuple(_ -> 1, N))
+  isempty(pad) && (pad = ntuple(_ -> 0, N))
+  f = Conv(stride, pad)
+  args = [w, x]
+  b.value == nothing || push!(args, b)
+  forward(f, args)
 end
 
-@compat function (f::Conv)(x::Var)
-
-end
-
-function forward{T}(f::Conv, x::Array{T,4})
-  h = WINDOW2D_FWD_F32
-  w = f.w.value
+function forward{T}(f::Conv{2}, w::Array{T,4}, x::Array{T,4})
+  h = handle(Conv{2}, T)[1]
   xsize = Cint[size(x,1), size(x,2), size(x,3)*size(x,4)]
-  params = Cint[size(w,1), size(w,2), f.stride..., f.pad...]
+  params = Cint[size(w,1), size(w,2), stride..., pad...]
 
   dims = Array(Int, 2)
   for i = 1:length(dims)
-    dims[i] = (size(x,i) + 2*f.pad[i] - size(w,i)) ÷ f.stride[i] + 1
+    dims[i] = (size(x,i) + 2*pad[i] - size(w,i)) ÷ stride[i] + 1
   end
   work = similar(x, prod(dims), size(w,1)*size(w,2)*size(w,3), size(x,4))
   ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Ptr{Cint}), x, work, xsize, params)
@@ -50,14 +52,10 @@ function forward{T}(f::Conv, x::Array{T,4})
   for i = 1:size(x,4)
     BLAS.gemm!('N', 'N', T(1), slice(work,:,:,i), w, T(0), slice(y,:,:,i))
   end
-  reshape(y, dims[1], dims[2], size(y,2), size(y,3))
+  y = reshape(y, dims[1], dims[2], size(y,2), size(y,3))
+  y, f
 end
 
-function conv{T}(f::Conv, x::CuArray{T}, w::CuArray{T})
-  dims = Array(Int, 2)
-  for i = 1:length(dims)
-    dims[i] = (size(x,i) + 2*f.pad[i] - size(w,i)) ÷ f.stride[i] + 1
-  end
-  push!(dims, size(w,4), size(x,4))
-  CUDNN.convolution!(x, w, f.pad, f.stride, similar(x, dims...))
+function forward(f::Conv{2}, w::CuArray, x::CuArray)
+  CUDNN.convolution(x, w, f.pad, f.stride)
 end

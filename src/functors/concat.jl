@@ -5,8 +5,9 @@ type Concat
 end
 
 """
+    concat(dim::Int, xs::Var...)
+
 Concatenate arrays along the given dimension.
-- `concat(dim::Int, xs::Var...)`
 
 ## 👉 Example
 ```julia
@@ -15,8 +16,14 @@ x2 = Var(rand(Float32,10,5))
 y = concat(1, x1, x2)
 ```
 """
-concat(dim::Int, xs::Var...) = forward0(Concat(dim), [xs...])
-forward(f::Concat, args::Vector{Var}) = Var(concat(f.dim, map(a -> a.value, y.args)), f, args)
+concat(dim::Int, xs::Var...) = concat(dim, [xs...])
+
+"""
+    concat(dim::Int, xs::Vector{Var})
+"""
+concat(dim::Int, xs::Vector{Var}) = init(Concat(dim), xs)
+
+forward(f::Concat, xs::Vector{Var}) = f, concat(f.dim, map(x -> x.value, xs))
 backward!(f::Concat, y::Var) = ∇concat!(f.dim, map(a -> a.grad, y.args), y.grad)
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})

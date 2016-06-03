@@ -3,6 +3,8 @@ module Merlin
 using Compat
 using Base.LinAlg.BLAS
 
+include("caffe/Caffe.jl")
+
 @windows? begin
   const libname = "libmerlin.dll"
 end : begin
@@ -57,7 +59,7 @@ end
 include("util.jl")
 export argmax
 include("var.jl")
-export Var, forward, gradient!
+export Var, param, forward, gradient!
 include("gradient.jl")
 export approx_grad, checkgrad
 include("graph.jl")

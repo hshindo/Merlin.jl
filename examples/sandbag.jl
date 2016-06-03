@@ -1,20 +1,29 @@
 workspace()
 ENV["USE_CUDA"] = true
 using Merlin
+using Merlin.Caffe
 using CUDA
 using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
-x1 = rand(10,5)
+np = Caffe.load("C:/Users/hshindo/Desktop/VGG_ILSVRC_19_layers.caffemodel")
+p = np["conv5_3"].convolution_param
+
+x1 = Var(rand(10,5))
+y = relu(x1)
+y.value
+
 x2 = rand(5,7)
 y = zeros(10,7)
 gemm!('N', 'N', 1., x1, x2, 0., y)
 
+Var(rand(Float32,5,4))
+
 x = Var(rand(Float32,5,4,3,2))
 w = Var(rand(Float32,2,2,3,4)) # 2-d convolution
-f = Conv(w, (1,1), (0,0))
-y = forward(f, x.value)
+f = Conv(w, Var(), (1,1), (0,0))
+y = f(x)
 
 xx = CuArray(x.value)
 ww = CuArray(w.value)

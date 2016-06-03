@@ -1,14 +1,28 @@
 export relu, sigmoid
 import Base.tanh
 
+"""
+Compute activation function. The supported functions are:
+
+* `relu(x)`: rectifier linear unit
+* `sigmoid(x)`
+* `tanh(x)`
+
+## 👉 Example
+```julia
+x = Var(rand(Float32,10,5))
+y = relu(x)
+```
+"""
+
 type ReLU; end
 type Sigmoid; end
 type Tanh; end
 
 for (t,f,df) in [(:ReLU,:relu,:∇relu!), (:Sigmoid,:sigmoid,:∇sigmoid!), (:Tanh,:tanh,:∇tanh!)]
   @eval begin
-    $f(x::Var) = forward0($t(), x)
-    forward(f::$t, args::Vector{Var}) = Var($f(args[1].value), nothing, f, args)
+    $f(x::Var) = init($t(), [x])
+    forward(f::$t, xs::Vector{Var}) = f, $f(xs[1].value)
     backward!(f::$t, y::Var) = hasgrad(y[1]) && $df(y[1].value, y[1].grad, y.value, y.grad)
   end
 end

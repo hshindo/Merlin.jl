@@ -1,34 +1,42 @@
 export Linear
 
 """
-Compute linear transformation.
+    linear(w::Var, x::Var, [b::Var])
+
+    linear{T}(::Type{T}, dimx::Int, dimy::Int, x::Var)
+
+Compute linear function (a.k.a. affine transformation).
+
+```math
+f(x) = w^{\mathrm{T}}x + b
+```
 
 ### 👉 Example
 ```julia
-f = Linear(Float32, 10, 3)
+w = Var(rand(Float32,7,10))
 x = Var(rand(Float32,10,5))
-y = f(x)
+y = linear(w, x)
 ```
 """
-type Linear
-  w::Var
-  b::Var
+
+type Linear; end
+
+linear(w::Var, x::Var, b::Var) = init(Linear(), [w,x,b])
+
+function forward(f::Linear, w, x, b)
+  y = w * x
+  b == nothing || broadcast!(.+, y, b)
+  f, y
+end
+forward(f::Linear, w, x) = forward(f, w, x, nothing)
+
+function backward!(f::Linear, y::Var)
+  w, gw = y[1].value, y[1].grad
+  x, gx = y[2].value, y[2].grad
+  b, gb = y[3].value, y[3].grad
+  hasgrad(y[1]) &&
 end
 
-@compat (f::Linear)(x::Var) = f.w * x + f.b
-
-function Linear{T}(::Type{T}, indim::Int, outdim::Int)
-  x = sqrt(6 / (indim + outdim))
-  r = rand(outdim, indim) * 2x - x
-  w = convert(Matrix{T}, r)
-  b = fill(T(0), outdim, 1)
-  Linear(Var(w,grad=true), Var(b,grad=true))
-end
-
-mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
-isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
-
-#=
 function ∇linear!(w::Var, b::Var, x::Var)
   w, gw, b, gb = w.value, w.grad, b.value, b.grad
   hasgrad(v[1]) && BLAS.gemm!('T', 'N', T(1), w, gy, T(1), v[1].grad)
@@ -37,6 +45,26 @@ function ∇linear!(w::Var, b::Var, x::Var)
     BLAS.axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
   end
 end
+
+#=
+function Linear{T}(::Type{T}, indim::Int, outdim::Int, x=Var())
+  x = sqrt(6 / (indim + outdim))
+  r = rand(outdim, indim) * 2x - x
+  w = convert(Matrix{T}, r)
+  b = fill(T(0), outdim, 1)
+  Linear(w, b, x)
+end
+=#
+
+#forward(l::Linear) = l.w * l.w + l.b
+
+#@compat (f::Linear)(x::Var) = f.w * x + f.b
+
+mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
+isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
+
+#=
+
 =#
 
 #=
