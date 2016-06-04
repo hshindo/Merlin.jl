@@ -4,12 +4,14 @@
 
 ```julia
 x = Var(rand(Float32,10,5))
-
+y = Linear(Float32,10,7)(x)
+y = relu(y)
+y = Linear(Float32,7,3)(y)
+y
 ```
 
 ## Forward and Backward Computation
-```@example
-using Merlin #hide
+```julia
 x = param(rand(Float32,10,5))
 f = Linear(Float32,10,7)
 y = f(x)
@@ -17,7 +19,7 @@ gradient!(y)
 ```
 
 ## Training
-Rather than manually call `gradient!`, Merlin provides `fit` function for training model.
+Rather than call `gradient!` manually, Merlin provides `fit` function for training your model.
 ```julia
 using Merlin
 
@@ -31,4 +33,4 @@ for epoch = 1:10
   println("loss: $(loss)")
 end
 ```
-where `fit` tales five arguments: `decode`, `loss function`, `optimizer`.
+where `fit` tales five arguments: `decode`, `loss function`, `optimizer`, `data_x` and `data_y`.
