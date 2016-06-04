@@ -1,9 +1,9 @@
-# Functors
-
-`Functor` is an abstract type of function object.
-Every `Functor` implements forward and backward computation.
-The following are concrete types of `Functor`s.
+# Functions
 
 ```@docs
 relu(x)
+sigmoid(x)
+tanh(x)
+concat(dim, xs...)
+crossentropy(p::Var, q::Var)
 ```
