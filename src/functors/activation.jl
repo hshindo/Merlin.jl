@@ -4,8 +4,9 @@ import Base.tanh
 for (f,df) in [(:relu,:∇relu!), (:sigmoid,:∇sigmoid!), (:tanh,:∇tanh!)]
   @eval begin
     function $f(x::Var)
+      y = $f(x.value)
       df(gy) = hasgrad(x) && $df(x.value, x.grad, y, gy)
-      Var($f(x.value), nothing, df, [x])
+      Var(y, nothing, df, [x])
     end
   end
 end
