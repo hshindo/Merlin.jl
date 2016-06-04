@@ -1,28 +1,27 @@
 export AdaGrad
 
 """
-## AdaGrad
 AdaGrad implementation.
 See: http://jmlr.org/papers/v12/duchi11a.html
 """
-type AdaGrad <: Optimizer
+type AdaGrad
   alpha::Float64
   states::ObjectIdDict
 end
 
 AdaGrad(alpha::Float64) = AdaGrad(alpha, ObjectIdDict())
 
-function update!{T}(opt::AdaGrad, param::Array{T}, grad::Array{T})
-  state = get!(opt.states, param, nothing)
+function update!{T}(opt::AdaGrad, value::Array{T}, grad::Array{T})
+  state = get!(opt.states, value, nothing)
   if state == nothing
-    sqgrad = zeros(T, length(param))
-    opt.states[param] = sqgrad
+    sqgrad = zeros(T, length(value))
+    opt.states[value] = sqgrad
   else
     sqgrad = state::Array{T}
   end
-  for i = 1:length(grad)
+  @inbounds @simd for i = 1:length(grad)
     sqgrad[i] += grad[i] * grad[i]
-    param[i] -= T(opt.alpha) * grad[i] / (sqrt(sqgrad[i]) + T(1e-8))
+    value[i] -= T(opt.alpha) * grad[i] / (sqrt(sqgrad[i]) + T(1e-8))
   end
   fill!(grad, T(0.0))
 end

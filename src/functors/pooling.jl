@@ -1,18 +1,49 @@
-export MaxPooling2D
+export maxpooling, avepooling
 
-const MAXPOOLING2D_FWD_F32_HANDLE = Libdl.dlsym(Native.library, :maxpooling2d_fwd_f32)
-const MAXPOOLING2D_BWD_F32_HANDLE = Libdl.dlsym(Native.library, :maxpooling2d_bwd_f32)
+const MAXPOOLING2D_FWD_F32 = Libdl.dlsym(Native.library, :maxpooling2d_fwd_f32)
+const MAXPOOLING2D_BWD_F32 = Libdl.dlsym(Native.library, :maxpooling2d_bwd_f32)
 
 """
-### Functions
-- `MaxPooling(w1::Int, w2::Int, s1::Int, s2::Int)`
-    - w1, w2: window sizes
-    - s1, s2: stride sizes
-
 ### 👉 Example
 ```julia
 ```
 """
+
+type MaxPooling{N}
+  window::NTuple{N,Int}
+  stride::NTuple{N,Int}
+  pad::NTuple{N,Int}
+end
+
+function maxpooling{N}(x::Var, window::NTuple{N,Int}, stride=(), pad=())
+  isempty(stride) && (stride = map(_ -> 1, window))
+  isempty(pad) && (pad = map(_ -> 1, window))
+  f = MaxPooling(window, stride, pad)
+  x.value == nothing && return Var(f, [x])
+  forward(f, [x])
+end
+
+function forward(f::MaxPooling, args::Vector{Var})
+
+end
+
+function backward(f::MaxPooling, y::Var)
+end
+
+function maxpooling(x::Array, window, stride, pad)
+  h
+end
+
+type AvePooling{N}
+  window::NTuple{N,Int}
+  stride::NTuple{N,Int}
+  pad::NTuple{N,Int}
+end
+
+function forward(f::AvePooling)
+end
+
+#=
 type MaxPooling2D <: Functor
   w1::Int
   w2::Int
@@ -62,3 +93,4 @@ function ∇maxpooling2d{T}(f::MaxPooling2D, x::Matrix{T}, maxind::Matrix{Int32}
     (Ptr{Cint}, Ptr{T}, Ptr{T}, Cint), maxind, gy, gx, length(gy))
   gx
 end
+=#

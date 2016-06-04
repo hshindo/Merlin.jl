@@ -1,18 +1,19 @@
 export crossentropy
 
-type CrossEntropy
-  logq
-end
-
 """
+    crossentropy(p::Var, q::Var)
+
 Compute cross-entropy between two distributions \$p\$ and \$q\$,
-where \$p\$ is correct labels and \$q\$ is predicted un-normalized scores.
-- \$p\$: `Var` of `Vector{Int}` or `Matrix`.
-- \$q\$: `Var` of `Matrix`.
+where \$p\$ is usually correct labels and \$q\$ is predicted values.
 
 ```math
 f(p,q)=-∑_{x} p_{x} \log q_{x}
 ```
+
+## Arguments
+* \$p\$: variable of `Vector{Int}` or `Matrix{Float}`.
+\$p\$ must be normalized.
+* \$q\$: variable of `Matrix{Float}`.
 
 ### 👉 Example
 ```julia
@@ -21,19 +22,12 @@ q = Var(rand(Float32,10,5))
 y = crossentropy(p, q)
 ```
 """
-crossentropy(p::Var, q::Var) = forward(CrossEntropy(nothing), [p,q])
 
-function forward!(f::CrossEntropy, y::Var)
-  p, q = y[1], y[2]
+function crossentropy(p::Var, q::Var)
   logq = logsoftmax(q.value)
-  y.value = crossentropy(p.value, logq)
-  y.f = CrossEntropy(logq)
-end
-
-function backward!(f::CrossEntropy, y::Var)
-  p, q = y[1], y[2]
-  hasgrad(p) && throw("Not implemented yet.")
-  hasgrad(q) && ∇crossentropy!(p.value, f.logq, q.grad, y.grad)
+  y = crossentropy(p.value, logq)
+  f(gy) = hasgrad(q) && ∇crossentropy!(p.value, logq, q.grad, gy)
+  Var(y, nothing, f, [q])
 end
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})

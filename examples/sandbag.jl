@@ -1,32 +1,56 @@
 workspace()
 ENV["USE_CUDA"] = true
 using Merlin
+using Merlin.Caffe
 using CUDA
 using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
-f = GRU(Float32,100)
-x = Var(rand(Float32,100,1))
-h = Var(rand(Float32,100,1))
-f(x,h)
+[1,2,3]
+w = Var(rand(Float32,10,100))
+x = Var([[1 3 5]])
+y = lookup(w, x)
 
-f = Lookup(Float32, 1000, 100)
-x1 = Var(rand(1:1000,5,3))
-y = f(x)
 
-x1 = Var(rand(Float32,10,5))
-x2 = Var(rand(Float32,10,5))
-y = x1 + x2
-y = checkgrad(()->relu(x1), x1)
+x = Var(rand(Float32,10,5))
+relu(x)
 
-x2 = Var(rand(Float32,5,10))
+x = [param(rand(Float32,100,100)) for i=1:10]
 
-checkgrad(logsoftmax, x1)
+function bench()
+  x = param(rand(Float32,100,100))
+  for i = 1:1000
+    y = softmax(x)
+    gradient!(y)
+  end
+end
+
+@time bench()
+
+np = Caffe.load("C:/Users/hshindo/Desktop/VGG_ILSVRC_19_layers.caffemodel")
+p = np["conv5_3"].convolution_param
+
+x1 = Var(rand(10,5))
+y = relu(x1)
+y.value
+
+x2 = rand(5,7)
+y = zeros(10,7)
+gemm!('N', 'N', 1., x1, x2, 0., y)
+
+Var(rand(Float32,5,4))
 
 x = Var(rand(Float32,5,4,3,2))
 w = Var(rand(Float32,2,2,3,4)) # 2-d convolution
-y = convolution(x, w)
+f = Conv(w, Var(), (1,1), (0,0))
+y = f(x)
+
+xx = CuArray(x.value)
+ww = CuArray(w.value)
+yy = conv(f, xx, ww)
+z = Array(yy)
+z - y
 
 x = CuArray(rand(Float32,5,4,3,2))
 xx = Array(x)
@@ -57,13 +81,13 @@ dir = joinpath(dirname(@__FILE__), "..", "deps")
 const HANDLE = Libdl.dlsym(Merlin.Native.library, :softmax_fw_f32)
 
 function bench()
-  x = rand(Float32,100,100)
-  #size1, size2 = size(x)
-  #h = eval(Merlin.Native, Symbol(join(["softmax","float",size1,size2], "_")))
-  #a = rand(Float32,100,1000)
-  #b = rand(Float32,1000,100)
+  x1 = rand(500,100,3)
+  x2 = rand(100,100)
   for i = 1:1000
-    Merlin.softmax2(x)
+    for j = 1:3
+      #a = pointer_to_array(pointer(x1, (j-1)*50000), (500, 100))
+      gemm('N', 'N', slice(x1,:,:,j), x2)
+    end
   end
 end
 @time bench()

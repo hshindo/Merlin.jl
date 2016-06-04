@@ -5,21 +5,20 @@ C = \alpha A B + \beta C
 ```
 where A, B amd C are matricies
 """
-type GEMM! <: Functor
+type GEMM!
   alpha::Float64
   beta::Float64
 end
 
-@compat (f::GEMM!)(args) = forward(f, args)
-function forward!(f::GEMM!, v::Variable)
+@compat (f::GEMM!)(x) = forward0(f, x)
+
+function forward!(f::GEMM!, v::Var)
   T = eltype(v)
   gemm!('N', 'N', T(f.alpha), v[1].value, v[2].value, T(f.beta), v[3].value)
   v.value = v[3].value
-  v.backward! = () -> begin
-  end
 end
 
-function match(pat::Variable, var::Variable)
+function match(pat::Var, var::Var)
   typeof(pat.f) == typeof(var.f) || return false
   length(pat.args) <= length(var.args) || return false
   i, j = 1, 1
@@ -28,7 +27,7 @@ function match(pat::Variable, var::Variable)
   end
 end
 
-function compile!(::Type{GEMM!}, var::Variable)
+function compile!(::Type{GEMM!}, var::Var)
   typeof(var.f) == Add || return false
   index = findfirst(a -> typeof(a.f) == Multiply, var.args)
   index == 0 && return false
@@ -48,16 +47,16 @@ BLAS axpy function:
 y = \alpha x + y
 ```
 """
-type AXPY! <: Functor
+type AXPY!
   alpha::Float64
 end
 
-function forward!(f::AXPY!, v::Variable)
+function forward!(f::AXPY!, v::Var)
   @assert (length(v.args) == 2)
   T = eltype(v[1])
   axpy!(v[1].value, v[2].value)
 end
 
-function compile!(::Type{AXPY!}, var::Variable)
+function compile!(::Type{AXPY!}, var::Var)
   false
 end

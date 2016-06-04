@@ -1,12 +1,29 @@
 export relu, sigmoid
+import Base.tanh
 
-type ReLU
+for (f,df) in [(:relu,:∇relu!), (:sigmoid,:∇sigmoid!), (:tanh,:∇tanh!)]
+  @eval begin
+    function $f(x::Var)
+      y = $f(x.value)
+      df(gy) = hasgrad(x) && $df(x.value, x.grad, y, gy)
+      Var(y, nothing, df, [x])
+    end
+  end
 end
 
-relu(x::Var) = forward(ReLU(), [x])
-forward!(f::ReLU, y::Var) = y.value = relu(y[1].value)
-backward!(f::ReLU, y::Var) = hasgrad(y[1]) && ∇relu!(y[1].value, y[1].grad, y.value, y.grad)
+"""
+Compute activation function. The supported functions are:
 
+* `relu(x)`: rectifier linear unit
+* `sigmoid(x)`
+* `tanh(x)`
+
+## 👉 Example
+```julia
+x = Var(rand(Float32,10,5))
+y = relu(x)
+```
+"""
 function relu{T}(x::Array{T})
   y = similar(x)
   @inbounds @simd for i = 1:length(x)
@@ -15,7 +32,17 @@ function relu{T}(x::Array{T})
   y
 end
 
+function sigmoid{T}(x::Array{T})
+  y = similar(x)
+  @inbounds @simd for i = 1:length(x)
+    y[i] = 1 / (1 + exp(-x[i]))
+  end
+  y
+end
+
 relu(x::CuArray) = CUDNN.activation(ActivationDesc(CUDNN_ACTIVATION_RELU), x)
+sigmoid(x::CuArray) = CUDNN.activation(ActivationDesc(CUDNN_ACTIVATION_SIGMOID), x)
+tanh(x::CuArray) = CUDNN.activation(ActivationDesc(CUDNN_ACTIVATION_TANH), x)
 
 function ∇relu!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
   @inbounds @simd for i = 1:length(x)
@@ -23,46 +50,11 @@ function ∇relu!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
   end
 end
 
-function ∇relu!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-  CUDNN.∇activation!(CUDNN_ACTIVATION_RELU, y, dy, x, dx; beta=1.0)
-end
-
-type Sigmoid
-end
-
-sigmoid(x::Var) = forward(Sigmoid(), [x])
-forward!(f::Sigmoid, y::Var) = y.value = sigmoid(y[1].value)
-backward!(f::Sigmoid, y::Var) = hasgrad(y[1]) && ∇sigmoid!(y[1].value, y[1].grad, y.value, y.grad)
-
-function sigmoid{T}(x::Array{T})
-  y = similar(x)
-  @inbounds @simd for i = 1:length(x)
-    #y[i] = tanh(x[i]*0.5) * 0.5 + 0.5
-    y[i] = 1 / (1 + exp(-x[i]))
-  end
-  y
-end
-
-sigmoid(x::CuArray) = CUDNN.activation!(ActivationDesc(CUDNN_ACTIVATION_SIGMOID), x)
-
 function ∇sigmoid!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
   @inbounds @simd for i = 1:length(x)
     gx[i] += gy[i] * y[i] * (T(1) - y[i])
   end
 end
-
-function ∇sigmoid!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-  CUDNN.∇activation!(CUDNN_ACTIVATION_SIGMOID, y, dy, x, dx; beta=1.0)
-end
-
-type Tanh
-end
-
-Base.tanh(x::Var) = forward(Tanh(), [x])
-forward!(f::Tanh, y::Var) = y.value = tanh(y[1].value)
-backward!(f::Tanh, y::Var) = hasgrad(y[1]) && ∇tanh!(y[1].value, y[1].grad, y.value, y.grad)
-
-Base.tanh(x::CuArray) = CUDNN.activation!(ActivationDesc(CUDNN_ACTIVATION_TANH), x)
 
 function ∇tanh!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
   @inbounds @simd for i = 1:length(gx)
@@ -70,6 +62,14 @@ function ∇tanh!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
   end
 end
 
+function ∇relu!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
+  CUDNN.∇activation!(CUDNN_ACTIVATION_RELU, y, dy, x, dx, beta=1.0)
+end
+
+function ∇sigmoid!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
+  CUDNN.∇activation!(CUDNN_ACTIVATION_SIGMOID, y, dy, x, dx, beta=1.0)
+end
+
 function ∇tanh!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-  CUDNN.∇activation!(CUDNN_ACTIVATION_TANH, y, dy, x, dx; beta=1.0)
+  CUDNN.∇activation!(CUDNN_ACTIVATION_TANH, y, dy, x, dx, beta=1.0)
 end

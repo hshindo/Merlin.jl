@@ -36,7 +36,7 @@ For OSX and Linux,
 ```julia
 julia> Pkg.build("Merlin")
 ```
-which generates `libmerlin.so` on `deps/`.
+which generates `libmerlin.so` in `deps/`.
 
 For Windows, `libmerlin.dll` is already prepared on `deps/`, however,
 if you have installed mingw(x64), you can build `Merlin.jl` as well.
@@ -48,12 +48,8 @@ julia> Pkg.clone("https://github.com/hshindo/CUDNN.jl.git")
 ```
 
 ## Quick Start
-
-### Network Definition
-There are two ways to define a network structure in `Merlin`:
-
-1. Sequential structure
-A sequential structure such as three-layer network can be defined as follows:
+### Static Network
+A three-layer network can be defined as follows:
 ```julia
 f = Graph(
   x = Var()
@@ -62,35 +58,32 @@ f = Graph(
   x = Linear(Float32,7,3)(x)
   x
 )
-```
-
-2. Graph structure
-A more complex graph structure can be define as follows:
-```julia
-Ws = [Var(rand(T,xsize,xsize),grad=true) for i=1:3]
-Us = [Var(rand(T,xsize,xsize),grad=true) for i=1:3]
-x = Var()
-h = Var()
-r = sigmoid(Ws[1]*x + Us[1]*h)
-z = sigmoid(Ws[2]*x + Us[2]*h)
-h_ = tanh(Ws[3]*x + Us[3]*(r.*h))
-h_next = (1 - z) .* h + z .* h_
-Graph(h_next)
-```
-
-### Decoding
-```julia
-using Merlin
-
 x = Var(rand(Float32,10,5))
-f = Graph(
-  x = Var()
-  x = Linear(Float32,10,7)(x)
-  x = relu(x)
-  x = Linear(Float32,7,3)(x)
-  x
-)
 y = f(x)
+```
+
+Similarly, GRU (gated recurrent unit) can be defined as follows.
+```julia
+gru = Graph(
+  T = Float32
+  xsize = 100
+  ws = [param(rand(T,xsize,xsize)) for i=1:3]
+  us = [param(rand(T,xsize,xsize)) for i=1:3]
+  x = Var()
+  h = Var()
+  r = sigmoid(ws[1]*x + us[1]*h)
+  z = sigmoid(ws[2]*x + us[2]*h)
+  h_ = tanh(ws[3]*x + us[3]*(r.*h))
+  h_next = (1 - z) .* h + z .* h_
+  h_next
+)
+x = Var(rand(Float32,100))
+y = gru(x)
+```
+
+### Dynamic Network
+```julia
+
 ```
 
 ### Training
@@ -98,17 +91,12 @@ y = f(x)
 using Merlin
 
 data_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
-data_y = [Var(Int[1,2,3]) for i=1:100] # correct labels
+data_y = [Var([1,2,3]) for i=1:100] # correct labels
 
-f = Network(
-  Linear(Float32,10,7),
-  Activation("relu"),
-  Linear(Float32,7,3))
-t = Trainer(f, CrossEntropy(), SGD(0.0001))
-
+opt = SGD(0.0001)
 for epoch = 1:10
   println("epoch: $(epoch)")
-  loss = fit(t, data_x, data_y)
+  loss = fit(f, crossentropy, opt, data_x, data_y)
   println("loss: $(loss)")
 end
 ```

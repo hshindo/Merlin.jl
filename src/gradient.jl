@@ -1,3 +1,34 @@
+function topsort(var::Var)
+  sorted = Var[]
+  dict = ObjectIdDict()
+  function visit(v::Var)
+    if !haskey(dict, v)
+      dict[v] = v
+      for a in v.args
+        visit(a)
+      end
+      push!(sorted, v)
+    end
+  end
+  visit(var)
+  sorted
+end
+
+function gradient!(var::Var)
+  sorted = topsort(var)
+  hasgrad(var) || (var.grad = ones(var.value))
+  for i = 1:length(sorted)-1 # excludes top
+    v = sorted[i]
+    (hasgrad(v) || isempty(v.args)) && continue
+    v.grad = zeros(v.value)
+  end
+  for i = length(sorted):-1:1
+    v = sorted[i]
+    v.f == nothing || v.f(v.grad)
+  end
+  sorted
+end
+
 """
 Compute numerical gradient.
 """
