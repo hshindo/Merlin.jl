@@ -7,6 +7,6 @@ makedocs(
 
 deploydocs(
   #deps = Deps.pip("mkdocs", "mkdocs-material", "python-markdown-math", "pygments"),
-  deps = Deps.pip("pygments", "mkdocs", "python-markdown-math"),
+  deps = Deps.pip("pygments", "mkdocs", "python-markdown-math", "mkdocs-material"),
   repo = "github.com/hshindo/Merlin.jl.git",
 )
