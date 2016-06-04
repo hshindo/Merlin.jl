@@ -7,6 +7,7 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
+[1,2,3]
 w = Var(rand(Float32,10,100))
 x = Var([[1 3 5]])
 y = lookup(w, x)
