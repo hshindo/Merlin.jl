@@ -28,8 +28,8 @@ docs_dir: 'build'
 
 pages:
   - Home: index.md
-  - Functors: functors.md
-  - Network: network.md
+  - Functions: functions.md
+  - Graph: graph.md
   - Optimizers: optimizers.md
 #  - Examples:
 #    - POS-Tagging: 'examples/pos-tagging.md'
