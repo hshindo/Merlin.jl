@@ -191,6 +191,12 @@
               </a>
             </li>
           
+            <li class="anchor">
+              <a title="Training" href="#training">
+                Training
+              </a>
+            </li>
+          
         </ul>
       
     
@@ -268,41 +274,40 @@
 <li>Apply functions to the variables.</li>
 </ul>
 <div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">7</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">relu</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">3</span><span class="p">)(</span><span class="n">y</span><span class="p">)</span>
+<span class="n">y</span>
 </pre></div>
 
 
 <p><a id='Forward-and-Backward-Computation-1'></a></p>
 <h2 id="forward-and-backward-computation">Forward and Backward Computation</h2>
-<p>```@example
-using Merlin #hide
-x = param(rand(Float32,10,5))
-f = Linear(Float32,10,7)
-y = f(x)
-gradient!(y)</p>
-<div class="codehilite"><pre><span></span><span class="nt">&lt;a</span> <span class="na">id=</span><span class="s">&#39;Training-1&#39;</span><span class="nt">&gt;&lt;/a&gt;</span>
-
-## Training
-
-
-Rather than manually call `gradient!`, Merlin provides `fit` function for training model.
-
-
-```julia
-using Merlin
-
-data_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
-data_y = [Var([1,2,3]) for i=1:100] # correct labels
-
-opt = SGD(0.0001)
-for epoch = 1:10
-  println(&quot;epoch: $(epoch)&quot;)
-  loss = fit(f, crossentropy, opt, data_x, data_y)
-  println(&quot;loss: $(loss)&quot;)
-end
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">param</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">gradient!</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 </pre></div>
 
 
-<p>where <code>fit</code> tales five arguments: <code>decode</code>, <code>loss function</code>, <code>optimizer</code>.</p>
+<p><a id='Training-1'></a></p>
+<h2 id="training">Training</h2>
+<p>Rather than call <code>gradient!</code> manually, Merlin provides <code>fit</code> function for training your model.</p>
+<div class="codehilite"><pre><span></span><span class="k">using</span> <span class="n">Merlin</span>
+
+<span class="n">data_x</span> <span class="o">=</span> <span class="p">[</span><span class="n">Var</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">:</span><span class="mi">100</span><span class="p">]</span> <span class="c"># input data</span>
+<span class="n">data_y</span> <span class="o">=</span> <span class="p">[</span><span class="n">Var</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">:</span><span class="mi">100</span><span class="p">]</span> <span class="c"># correct labels</span>
+
+<span class="n">opt</span> <span class="o">=</span> <span class="n">SGD</span><span class="p">(</span><span class="mf">0.0001</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">epoch</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="mi">10</span>
+  <span class="n">println</span><span class="p">(</span><span class="s">&quot;epoch: </span><span class="si">$(epoch)</span><span class="s">&quot;</span><span class="p">)</span>
+  <span class="n">loss</span> <span class="o">=</span> <span class="n">fit</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">crossentropy</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">data_x</span><span class="p">,</span> <span class="n">data_y</span><span class="p">)</span>
+  <span class="n">println</span><span class="p">(</span><span class="s">&quot;loss: </span><span class="si">$(loss)</span><span class="s">&quot;</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+
+<p>where <code>fit</code> tales five arguments: <code>decode</code>, <code>loss function</code>, <code>optimizer</code>, <code>data_x</code> and <code>data_y</code>.</p>
           <aside class="copyright" role="note">
             
             Documentation built with

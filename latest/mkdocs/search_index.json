@@ -12,18 +12,23 @@
         }, 
         {
             "location": "/overview/", 
-            "text": "Overview\n\n\n\n\nWrap data with \nVar\n.\n\n\nApply functions to the variables.\n\n\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\n\n\n\n\n\n\nForward and Backward Computation\n\n\n```@example\nusing Merlin #hide\nx = param(rand(Float32,10,5))\nf = Linear(Float32,10,7)\ny = f(x)\ngradient!(y)\n\n\na\n \nid=\nTraining-1\n/a\n\n\n## Training\n\n\nRather than manually call `gradient!`, Merlin provides `fit` function for training model.\n\n\n```julia\nusing Merlin\n\ndata_x = [Var(rand(Float32,10,5)) for i=1:100] # input data\ndata_y = [Var([1,2,3]) for i=1:100] # correct labels\n\nopt = SGD(0.0001)\nfor epoch = 1:10\n  println(\nepoch: $(epoch)\n)\n  loss = fit(f, crossentropy, opt, data_x, data_y)\n  println(\nloss: $(loss)\n)\nend\n\n\n\n\n\nwhere \nfit\n tales five arguments: \ndecode\n, \nloss function\n, \noptimizer\n.", 
+            "text": "Overview\n\n\n\n\nWrap data with \nVar\n.\n\n\nApply functions to the variables.\n\n\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\ny\n \n=\n \nLinear\n(\nFloat32\n,\n10\n,\n7\n)(\nx\n)\n\n\ny\n \n=\n \nrelu\n(\ny\n)\n\n\ny\n \n=\n \nLinear\n(\nFloat32\n,\n7\n,\n3\n)(\ny\n)\n\n\ny\n\n\n\n\n\n\n\n\nForward and Backward Computation\n\n\nx\n \n=\n \nparam\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nFloat32\n,\n10\n,\n7\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\ngradient!\n(\ny\n)\n\n\n\n\n\n\n\n\nTraining\n\n\nRather than call \ngradient!\n manually, Merlin provides \nfit\n function for training your model.\n\n\nusing\n \nMerlin\n\n\n\ndata_x\n \n=\n \n[\nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n \nfor\n \ni\n=\n1\n:\n100\n]\n \n# input data\n\n\ndata_y\n \n=\n \n[\nVar\n([\n1\n,\n2\n,\n3\n])\n \nfor\n \ni\n=\n1\n:\n100\n]\n \n# correct labels\n\n\n\nopt\n \n=\n \nSGD\n(\n0.0001\n)\n\n\nfor\n \nepoch\n \n=\n \n1\n:\n10\n\n  \nprintln\n(\nepoch: \n$(epoch)\n)\n\n  \nloss\n \n=\n \nfit\n(\nf\n,\n \ncrossentropy\n,\n \nopt\n,\n \ndata_x\n,\n \ndata_y\n)\n\n  \nprintln\n(\nloss: \n$(loss)\n)\n\n\nend\n\n\n\n\n\n\nwhere \nfit\n tales five arguments: \ndecode\n, \nloss function\n, \noptimizer\n, \ndata_x\n and \ndata_y\n.", 
             "title": "Overview"
         }, 
         {
             "location": "/overview/#overview", 
-            "text": "Wrap data with  Var .  Apply functions to the variables.   x   =   Var ( rand ( Float32 , 10 , 5 ))", 
+            "text": "Wrap data with  Var .  Apply functions to the variables.   x   =   Var ( rand ( Float32 , 10 , 5 ))  y   =   Linear ( Float32 , 10 , 7 )( x )  y   =   relu ( y )  y   =   Linear ( Float32 , 7 , 3 )( y )  y", 
             "title": "Overview"
         }, 
         {
             "location": "/overview/#forward-and-backward-computation", 
-            "text": "```@example\nusing Merlin #hide\nx = param(rand(Float32,10,5))\nf = Linear(Float32,10,7)\ny = f(x)\ngradient!(y)  a   id= Training-1 /a \n\n## Training\n\n\nRather than manually call `gradient!`, Merlin provides `fit` function for training model.\n\n\n```julia\nusing Merlin\n\ndata_x = [Var(rand(Float32,10,5)) for i=1:100] # input data\ndata_y = [Var([1,2,3]) for i=1:100] # correct labels\n\nopt = SGD(0.0001)\nfor epoch = 1:10\n  println( epoch: $(epoch) )\n  loss = fit(f, crossentropy, opt, data_x, data_y)\n  println( loss: $(loss) )\nend  where  fit  tales five arguments:  decode ,  loss function ,  optimizer .", 
+            "text": "x   =   param ( rand ( Float32 , 10 , 5 ))  f   =   Linear ( Float32 , 10 , 7 )  y   =   f ( x )  gradient! ( y )", 
             "title": "Forward and Backward Computation"
+        }, 
+        {
+            "location": "/overview/#training", 
+            "text": "Rather than call  gradient!  manually, Merlin provides  fit  function for training your model.  using   Merlin  data_x   =   [ Var ( rand ( Float32 , 10 , 5 ))   for   i = 1 : 100 ]   # input data  data_y   =   [ Var ([ 1 , 2 , 3 ])   for   i = 1 : 100 ]   # correct labels  opt   =   SGD ( 0.0001 )  for   epoch   =   1 : 10 \n   println ( epoch:  $(epoch) ) \n   loss   =   fit ( f ,   crossentropy ,   opt ,   data_x ,   data_y ) \n   println ( loss:  $(loss) )  end   where  fit  tales five arguments:  decode ,  loss function ,  optimizer ,  data_x  and  data_y .", 
+            "title": "Training"
         }, 
         {
             "location": "/functions/", 
