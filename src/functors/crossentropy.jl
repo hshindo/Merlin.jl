@@ -6,14 +6,11 @@ doc"""
 Compute cross-entropy between two distributions $p$ and $q$,
 where $p$ is usually correct labels and $q$ is predicted values.
 
-```math
-f(p,q)=-∑_{x} p_{x} \log q_{x}
-```
+$ f(p,q)=-∑_{x} p_{x} \log q_{x} $
 
 ## Arguments
-* $p$: variable of `Vector{Int}` or `Matrix{Float}`.
-$p$ must be normalized.
-* $q$: variable of `Matrix{Float}`.
+* p: variable of `Vector{Int}` or `Matrix{Float}`. p must be normalized.
+* q: variable of `Matrix{Float}`.
 
 ### 👉 Example
 ```julia
