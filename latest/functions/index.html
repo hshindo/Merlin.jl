@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1">
     
       
-        <title>Optimizers - Merlin.jl</title>
+        <title>Functions - Merlin.jl</title>
       
       
       
@@ -96,7 +96,7 @@
             
           </span>
         
-        Optimizers
+        Functions
       </div>
     </div>
     
@@ -175,9 +175,14 @@
           
             
   <li>
-    <a class="" title="Functions" href="../functions/">
+    <a class="current" title="Functions" href="./">
       Functions
     </a>
+    
+      
+        
+      
+      
     
   </li>
 
@@ -193,14 +198,9 @@
           
             
   <li>
-    <a class="current" title="Optimizers" href="./">
+    <a class="" title="Optimizers" href="../optimizers/">
       Optimizers
     </a>
-    
-      
-        
-      
-      
     
   </li>
 
@@ -215,12 +215,24 @@
       <article class="article">
         <div class="wrapper">
           
-          <p><a id='Optimizers-1'></a></p>
-<h1 id="optimizers">Optimizers</h1>
-<p><a id='Merlin.SGD' href='#Merlin.SGD'>#</a>
-<strong><code>Merlin.SGD</code></strong> &mdash; <em>Type</em>.</p>
-<p>Stochastic Gradient Descent.</p>
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f8337a0831610704685b9f4b4d09e011ad982336/src/optimizers/sgd.jl#L3-5' class='documenter-source'>source</a><br></p>
+          <p><a id='Functors-1'></a></p>
+<h1 id="functors">Functors</h1>
+<p><code>Functor</code> is an abstract type of function object. Every <code>Functor</code> implements forward and backward computation. The following are concrete types of <code>Functor</code>s.</p>
+<p><a id='Merlin.relu-Tuple{Any}' href='#Merlin.relu-Tuple{Any}'>#</a>
+<strong><code>Merlin.relu</code></strong> &mdash; <em>Method</em>.</p>
+<p>Compute activation function. The supported functions are:</p>
+<ul>
+<li><code>relu(x)</code>: rectifier linear unit</li>
+<li><code>sigmoid(x)</code></li>
+<li><code>tanh(x)</code></li>
+</ul>
+<p><strong>👉 Example</strong></p>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f8337a0831610704685b9f4b4d09e011ad982336/src/functors/activation.jl#L14-26' class='documenter-source'>source</a><br></p>
           <aside class="copyright" role="note">
             
             Documentation built with
@@ -237,7 +249,7 @@
   <nav class="pagination" aria-label="Footer">
     <div class="previous">
       
-        <a href="../graph/" title="Graph">
+        <a href=".." title="Home">
           <span class="direction">
             Previous
           </span>
@@ -247,7 +259,7 @@
             </div>
             <div class="stretch">
               <div class="title">
-                Graph
+                Home
               </div>
             </div>
           </div>
@@ -255,6 +267,22 @@
       
     </div>
     <div class="next">
+      
+        <a href="../graph/" title="Graph">
+          <span class="direction">
+            Next
+          </span>
+          <div class="page">
+            <div class="stretch">
+              <div class="title">
+                Graph
+              </div>
+            </div>
+            <div class="button button-next" role="button" aria-label="Next">
+              <i class="icon icon-forward"></i>
+            </div>
+          </div>
+        </a>
       
     </div>
   </nav>

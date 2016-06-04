@@ -4,23 +4,23 @@
     
     <url>
      <loc>None/</loc>
-     <lastmod>2016-05-17</lastmod>
+     <lastmod>2016-06-04</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
 
     
     <url>
-     <loc>None/functors/</loc>
-     <lastmod>2016-05-17</lastmod>
+     <loc>None/functions/</loc>
+     <lastmod>2016-06-04</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
 
     
     <url>
-     <loc>None/network/</loc>
-     <lastmod>2016-05-17</lastmod>
+     <loc>None/graph/</loc>
+     <lastmod>2016-06-04</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -28,7 +28,7 @@
     
     <url>
      <loc>None/optimizers/</loc>
-     <lastmod>2016-05-17</lastmod>
+     <lastmod>2016-06-04</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
