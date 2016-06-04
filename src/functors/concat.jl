@@ -1,11 +1,8 @@
 export concat
 
-type Concat
-  dim::Int
-end
-
 """
     concat(dim::Int, xs::Var...)
+    concat(dim::Int, xs::Vector{Var})
 
 Concatenate arrays along the given dimension.
 
@@ -16,11 +13,15 @@ x2 = Var(rand(Float32,10,5))
 y = concat(1, x1, x2)
 ```
 """
-concat(dim::Int, xs::Var...) = init(Concat(dim), xs)
+concat(dim::Int, xs::Var...) = concat(dim, [xs...])
 
-backward!(f::Concat, y::Var) = ∇concat!(f.dim, map(a -> a.grad, y.args), y.grad)
+function concat(dim::Int, xs::Vector{Var})
+  y = concat(dim, map(x -> x.value, xs))
+  f(gy) = ∇concat!(dim, map(x -> x.grad, xs), gy)
+  Var(y, nothing, f, xs)
+end
 
-@compat function (f::Concat){T,N}(xs::Array{T,N}...)
+function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
   sum = 0
   for x in xs
     sum += size(x, dim)
@@ -37,7 +38,7 @@ backward!(f::Concat, y::Var) = ∇concat!(f.dim, map(a -> a.grad, y.args), y.gra
     y[range...] = x
     offset += s
   end
-  f, y
+  y
 end
 
 function ∇concat!{T,N}(dim::Int, gxs::Vector{Array{T,N}}, gy::Array{T,N})

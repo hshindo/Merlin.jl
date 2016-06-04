@@ -1,9 +1,8 @@
 export softmax, logsoftmax
 
-type Softmax; end
-type LogSoftmax; end
-
 """
+    softmax(x::Var)
+
 Compute softmax along the second axis.
 
 ```math
@@ -17,14 +16,17 @@ y1 = softmax(x)
 y2 = logsoftmax(x)
 ```
 """
-softmax(x::Var) = forward(Softmax(), [x])
-logsoftmax(x::Var) = forward(LogSoftmax(), [x])
+function softmax(x::Var)
+  y = softmax(x.value)
+  f(gy) = hasgrad(x) && ∇softmax!(x.grad, y, gy)
+  Var(y, nothing, f, [x])
+end
 
-forward!(f::Softmax, y::Var) = y.value = softmax(y[1].value)
-forward!(f::LogSoftmax, y::Var) = y.value = logsoftmax(y[1].value)
-
-backward!(f::Softmax, y::Var) = hasgrad(y[1]) && ∇softmax!(y[1].grad, y.value, y.grad)
-backward!(f::LogSoftmax, y::Var) = hasgrad(y[1]) && ∇logsoftmax!(y[1].value, y[1].grad, y.value, y.grad)
+function logsoftmax(x::Var)
+  y = logsoftmax(x.value)
+  f(gy) = hasgrad(x) && ∇logsoftmax!(x.grad, y, gy)
+  Var(y, nothing, f, [x])
+end
 
 function softmax{T}(x::Matrix{T})
   y = similar(x)

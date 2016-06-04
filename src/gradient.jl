@@ -24,7 +24,7 @@ function gradient!(var::Var)
   end
   for i = length(sorted):-1:1
     v = sorted[i]
-    v.f == nothing || backward!(v.f, v)
+    v.f == nothing || v.f(v.grad)
   end
   sorted
 end

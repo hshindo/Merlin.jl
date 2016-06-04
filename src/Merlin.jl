@@ -65,7 +65,7 @@ export Var, param, forward, gradient!
 include("gradient.jl")
 export approx_grad, checkgrad
 include("graph.jl")
-include("trainer.jl")
+include("training.jl")
 
 for name in [
   "activation",

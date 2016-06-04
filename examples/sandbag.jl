@@ -7,6 +7,26 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
+w = Var(rand(Float32,10,100))
+x = Var([[1 3 5]])
+y = lookup(w, x)
+
+
+x = Var(rand(Float32,10,5))
+relu(x)
+
+x = [param(rand(Float32,100,100)) for i=1:10]
+
+function bench()
+  x = param(rand(Float32,100,100))
+  for i = 1:1000
+    y = softmax(x)
+    gradient!(y)
+  end
+end
+
+@time bench()
+
 np = Caffe.load("C:/Users/hshindo/Desktop/VGG_ILSVRC_19_layers.caffemodel")
 p = np["conv5_3"].convolution_param
 

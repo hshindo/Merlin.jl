@@ -1,9 +1,5 @@
 export crossentropy
 
-type CrossEntropy
-  logq
-end
-
 """
     crossentropy(p::Var, q::Var)
 
@@ -16,7 +12,7 @@ f(p,q)=-∑_{x} p_{x} \log q_{x}
 
 ## Arguments
 * \$p\$: variable of `Vector{Int}` or `Matrix{Float}`.
-If \$p\$ is `Matrix{Float}`, it must be normalized.
+\$p\$ must be normalized.
 * \$q\$: variable of `Matrix{Float}`.
 
 ### 👉 Example
@@ -26,19 +22,12 @@ q = Var(rand(Float32,10,5))
 y = crossentropy(p, q)
 ```
 """
-crossentropy(p::Var, q::Var) = init(CrossEntropy(nothing), [p,q])
 
-function forward(f::CrossEntropy, args::Vector{Var})
-  p, q = args[1], args[2]
+function crossentropy(p::Var, q::Var)
   logq = logsoftmax(q.value)
   y = crossentropy(p.value, logq)
-  CrossEntropy(logq), y
-end
-
-function backward!(f::CrossEntropy, y::Var)
-  p, q = y[1], y[2]
-  hasgrad(p) && throw("Not implemented yet.")
-  hasgrad(q) && ∇crossentropy!(p.value, f.logq, q.grad, y.grad)
+  f(gy) = hasgrad(q) && ∇crossentropy!(p.value, logq, q.grad, gy)
+  Var(y, nothing, f, [q])
 end
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
