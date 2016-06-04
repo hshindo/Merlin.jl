@@ -27,7 +27,7 @@ If you use CUDA GPU, the following is required.
 - [cuDNN](https://developer.nvidia.com/cudnn) v5
 
 ## Installation
-First, install Julia. Version 0.4.x is recommended.
+First, install Julia. Currently, version 0.4.x is recommended.
 Then, clone the package from here:
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
@@ -36,33 +36,37 @@ For OSX and Linux,
 ```julia
 julia> Pkg.build("Merlin")
 ```
-which generates `libmerlin.so` in `deps/`.
+which generates `libmerlin.so` on `deps/`.
 
-For Windows, `libmerlin.dll` is already prepared on `deps/`, however,
-if you have installed mingw(x64), you can build `Merlin.jl` as well.
+For Windows, `libmerlin.dll` is provided on `deps/`, however,
+if you have installed `g++` with mingw-x64, you can build `Merlin.jl` as well.
 
-To enable CUDA, install the following two packages:
+To use CUDA GPU, install the following packages:
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/CUDA.jl.git")
 julia> Pkg.clone("https://github.com/hshindo/CUDNN.jl.git")
 ```
 
 ## Quick Start
+`Merlin` provides two ways of neural network.
+
 ### Static Network
-A three-layer network can be defined as follows:
+A three-layer network can be constructed as follows:
 ```julia
 f = Graph(
+  T = Float32
   x = Var()
-  x = Linear(Float32,10,7)(x)
+  x = Linear(T,10,7)(x)
   x = relu(x)
-  x = Linear(Float32,7,3)(x)
+  x = Linear(T,7,3)(x)
   x
 )
 x = Var(rand(Float32,10,5))
 y = f(x)
 ```
+where `x = Var()` is a place-holder of input.
 
-Similarly, GRU (gated recurrent unit) can be defined as follows.
+Similarly, GRU (gated recurrent unit) can be defined as follows:
 ```julia
 gru = Graph(
   T = Float32

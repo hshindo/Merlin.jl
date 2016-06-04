@@ -1,22 +1,10 @@
 export relu, sigmoid
 import Base.tanh
 
-for (f,df) in [(:relu,:∇relu!), (:sigmoid,:∇sigmoid!), (:tanh,:∇tanh!)]
-  @eval begin
-    function $f(x::Var)
-      y = $f(x.value)
-      df(gy) = hasgrad(x) && $df(x.value, x.grad, y, gy)
-      Var(y, nothing, df, [x])
-    end
-  end
-end
-
 """
-Compute activation function. The supported functions are:
+    relu(x::Var)
 
-* `relu(x)`: rectifier linear unit
-* `sigmoid(x)`
-* `tanh(x)`
+Rectifier liner unit.
 
 ## 👉 Example
 ```julia
@@ -24,6 +12,30 @@ x = Var(rand(Float32,10,5))
 y = relu(x)
 ```
 """
+function relu(x::Var)
+  y = relu(x.value)
+  df(gy) = hasgrad(x) && ∇relu!(x.value, x.grad, y, gy)
+  Var(y, nothing, df, [x])
+end
+
+"""
+    sigmoid(x::Var)
+"""
+function sigmoid(x::Var)
+  y = sigmoid(x.value)
+  df(gy) = hasgrad(x) && ∇sigmoid!(x.value, x.grad, y, gy)
+  Var(y, nothing, df, [x])
+end
+
+"""
+    tanh(x::Var)
+"""
+function tanh(x::Var)
+  y = tanh(x.value)
+  df(gy) = hasgrad(x) && ∇tanh!(x.value, x.grad, y, gy)
+  Var(y, nothing, df, [x])
+end
+
 function relu{T}(x::Array{T})
   y = similar(x)
   @inbounds @simd for i = 1:length(x)
