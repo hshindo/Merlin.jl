@@ -18,11 +18,35 @@ relu(x)
 
 x = [param(rand(Float32,100,100)) for i=1:10]
 
+function a1(arg1::Int, arg2::Int, arg3::Int, arg4::Int)
+  x = rand(Int,100)
+  a = 0
+  for aa in args
+    a += aa
+  end
+  for xx in x
+    a += xx
+  end
+end
+
+function a2(args::Vector{Int})
+  x = rand(Int,100)
+  a = 0
+  for aa in args
+    a += aa
+  end
+  for xx in x
+    a += xx
+  end
+end
+
 function bench()
-  x = param(rand(Float32,100,100))
-  for i = 1:1000
-    y = softmax(x)
-    gradient!(y)
+  r1 = [1,2,3]
+  #r1 = rand(100,100)
+  #r2 = rand(100,100)
+  for i = 1:10000
+    #a1(r1...)
+    a2(r1)
   end
 end
 

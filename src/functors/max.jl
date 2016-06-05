@@ -13,8 +13,8 @@ y = max(x, 1)
 """
 function max(x::Var, dim::Int)
   y, idx = findmax(x.value, dim)
-  f(gy) = hasgrad(x) && ∇max!(idx, x.grad, gy)
-  Var(y, nothing, f, [x])
+  df(gy) = hasgrad(x) && ∇max!(idx, x.grad, gy)
+  Var(y, df, [x])
 end
 
 function ∇max!{T,N}(idx::Array{Int,N}, gx::Array{T,N}, gy::Array{T,N})

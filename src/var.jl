@@ -1,39 +1,20 @@
 type Var
   value
-  grad
-  f
-  args
-end
-
-Var(value) = Var(value, nothing, nothing, Var[])
-Var() = Var(nothing)
-param(value) = Var(value, zeros(value), nothing, Var[])
-
-Base.getindex(v::Var, key) = v.args[key]
-Base.setindex!(v::Var, value, key) = v.args[key] = value
-
-hasgrad(v::Var) = v.grad != nothing
-
-#=
-type Var
-  value
-  grad
   f
   args::Vector{Var}
+  grad
 end
 
-Var(value) = Var(value, nothing, nothing, Var[])
+Var(value, f=nothing, args=Var[], grad=nothing) = Var(value, f, args, grad)
 Var() = Var(nothing)
-param(value) = Var(value, zeros(value), nothing, Var[])
+param(value) = Var(value, nothing, Var[], zeros(value))
 
 Base.getindex(v::Var, key) = v.args[key]
 Base.setindex!(v::Var, value, key) = v.args[key] = value
 
 hasgrad(v::Var) = v.grad != nothing
 
-function init(f, args::Vector{Var})
-  #any(a -> a.value == nothing, args) && return Var(nothing, nothing, f, args)
-  f, y = forward(f, map(a -> a.value, args))
-  Var(y, nothing, f, args)
+function forward(f, args::Vector{Var})
+  any(a -> a.value == nothing, args) && return Var(nothing, nothing, f, args)
+  f(args)
 end
-=#

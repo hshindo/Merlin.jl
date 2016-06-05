@@ -1,5 +1,15 @@
 export concat
 
+type Concat
+  dim::Int
+end
+
+@compat function (f::Concat)(xs::Vector{Var})
+  y = concat(f.dim, map(x -> x.value, xs))
+  df(gy) = ∇concat!(f.dim, map(x -> x.grad, xs), gy)
+  Var(y, df, xs)
+end
+
 """
     concat(dim::Int, xs::Var...)
     concat(dim::Int, xs::Vector{Var})
@@ -14,12 +24,7 @@ y = concat(1, x1, x2)
 ```
 """
 concat(dim::Int, xs::Var...) = concat(dim, [xs...])
-
-function concat(dim::Int, xs::Vector{Var})
-  y = concat(dim, map(x -> x.value, xs))
-  f(gy) = ∇concat!(dim, map(x -> x.grad, xs), gy)
-  Var(y, nothing, f, xs)
-end
+concat(dim::Int, xs::Vector{Var}) = forward(Concat(dim), xs)
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
   sum = 0

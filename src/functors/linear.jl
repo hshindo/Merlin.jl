@@ -5,6 +5,20 @@ type Linear
   b::Var
 end
 
+@compat function (f::Linear)(args::Vector{Var})
+  w, b, x = f.w, f.b, args[1]
+  y = w.value * x.value
+  broadcast!(.+, y, b.value)
+  function df(gy)
+    T = eltype(gy)
+    hasgrad(w) && BLAS.gemm!('N', 'T', T(1), gy, x.grad, T(1), w.grad)
+    hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w.value, gy, T(1), x.grad)
+    #s = sum(gy, 2)
+    #broadcast!(+, gb, s)
+  end
+  Var(y, df, [w,x,b])
+end
+
 function Linear{T}(::Type{T}, indim::Int, outdim::Int)
   x = sqrt(6 / (indim + outdim))
   r = rand(outdim, indim) * 2x - x
@@ -13,16 +27,13 @@ function Linear{T}(::Type{T}, indim::Int, outdim::Int)
   Linear(Var(w), Var(b))
 end
 
-@compat (f::Linear)(x::Var) = linear(f.w, x, f.b)
-
-"""
-    linear(w::Var, x::Var, [b::Var])
+doc"""
+    linear(w, x, [b])
 
 Compute linear function (a.k.a. affine transformation).
 
-```math
-f(x) = w^{\mathrm{T}}x + b
-```
+$ f(x) = w * x + b $
+where $w$, $x$, $b$ are matrices.
 
 ### 👉 Example
 ```julia
@@ -31,19 +42,7 @@ f = Linear(Float32,10,7)
 y = f(x)
 ```
 """
-function linear(w::Var, x::Var, b::Var)
-  y = w.value * x.value
-  broadcast!(.+, y, b.value)
-  f(gy) = ∇linear!(w, x, b, gy)
-  Var(y, nothing, f, [w,x,b])
-end
-
-function ∇linear!{T}(w::Var, x::Var, b::Var, gy::Array{T})
-  hasgrad(w) && BLAS.gemm!('N', 'T', T(1), gy, x.grad, T(1), w.grad)
-  hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w.value, gy, T(1), x.grad)
-  #s = sum(gy, 2)
-  #broadcast!(+, gb, s)
-end
+linear(w, x, b=Var()) = forward(Linear(), [w,x,b])
 
 #=
 function ∇linear!(w::Var, b::Var, x::Var)
