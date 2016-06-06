@@ -1,5 +1,5 @@
 workspace()
-ENV["USE_CUDA"] = true
+ENV["USE_CUDA"] = false
 using Merlin
 using Merlin.Caffe
 using CUDA
@@ -7,14 +7,35 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
+gru = GRU(Float32,100)
+x = param(rand(Float32,100,1))
+h = param(rand(Float32,100,1))
+y = gru(:x=>x, :h=>h)
+
+y = gru(:x => , :h => Var(rand(Float32,100)))
+y.value
+
+f = @graph begin
+  T = Float32
+  x = Var(:x)
+  x = Linear(T, 10, 5)(x)
+  x = relu(x)
+  x = Linear(T, 5, 3)(x)
+  x
+end
+
+y = f(:x => Var(rand(Float32,10,5)))
+
+y = f((:x,Var(rand(Float32,10,5))))
+
 [1,2,3]
 w = Var(rand(Float32,10,100))
 x = Var([[1 3 5]])
 y = lookup(w, x)
 
-
 x = Var(rand(Float32,10,5))
-relu(x)
+f = Linear(Float32,10,7)
+f(x)
 
 x = [param(rand(Float32,100,100)) for i=1:10]
 

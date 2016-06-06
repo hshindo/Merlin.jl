@@ -28,10 +28,12 @@ If you use CUDA GPU, the following is required.
 
 ## Installation
 First, install Julia. Currently, version 0.4.x is recommended.
+
 Then, clone the package from here:
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 ```
+
 For OSX and Linux,
 ```julia
 julia> Pkg.build("Merlin")
@@ -39,7 +41,7 @@ julia> Pkg.build("Merlin")
 which generates `libmerlin.so` on `deps/`.
 
 For Windows, `libmerlin.dll` is provided on `deps/`, however,
-if you have installed `g++` with mingw-x64, you can build `Merlin.jl` as well.
+if you have installed `g++` with mingw-x64, you can build `Merlin.jl` on Windows.
 
 To use CUDA GPU, install the following packages:
 ```julia
@@ -48,49 +50,69 @@ julia> Pkg.clone("https://github.com/hshindo/CUDNN.jl.git")
 ```
 
 ## Quick Start
-`Merlin` provides two ways of neural network.
+Basically,
+1. Wrap your data with variable type: `Var`.
+2. Apply functions to your `Var`.
+
+`Merlin` provides two ways for constructing neural networks: static network and dynamic network.
 
 ### Static Network
-A three-layer network can be constructed as follows:
+Static network can be defined by `@graph` macro.
+For example, a three-layer network can be constructed as follows:
 ```julia
-f = Graph(
+using Merlin
+
+f = @graph begin
   T = Float32
-  x = Var()
+  x = Var(:x)
   x = Linear(T,10,7)(x)
   x = relu(x)
   x = Linear(T,7,3)(x)
   x
-)
-x = Var(rand(Float32,10,5))
-y = f(x)
+end
+x = Var(rand(Float32,10,5)) # input variable
+y = f(:x=>x)
 ```
-where `x = Var()` is a place-holder of input.
+where `Var(:<name>)` is a place-holder of input variable with name: <name>.
 
-Similarly, GRU (gated recurrent unit) can be defined as follows:
+Similarly, GRU (gated recurrent unit) can be constructed as follows:
 ```julia
-gru = Graph(
+gru = @graph begin
   T = Float32
   xsize = 100
   ws = [param(rand(T,xsize,xsize)) for i=1:3]
   us = [param(rand(T,xsize,xsize)) for i=1:3]
-  x = Var()
-  h = Var()
+  x = Var(:x)
+  h = Var(:h)
   r = sigmoid(ws[1]*x + us[1]*h)
   z = sigmoid(ws[2]*x + us[2]*h)
   h_ = tanh(ws[3]*x + us[3]*(r.*h))
   h_next = (1 - z) .* h + z .* h_
   h_next
-)
-x = Var(rand(Float32,100))
-y = gru(x)
+end
+x = Var(rand(Float32,100,1))
+h = Var(ones(Float32,100,1))
+y = gru(:x=>x, :h=>h)
 ```
 
 ### Dynamic Network
-```julia
+Dynamic network is a imperative style of constructing computation graph.
 
+In dynamic network, computational graph is constructed incrementally.
+
+This style is very handy for description of recurrent neural network (RNN).
+```julia
+using Merlin
+
+T = Float32
+x = Var(rand(T,10,5))
+x = Linear(T,10,7)(x)
+x = relu(x)
+x = Linear(T,7,3)(x)
 ```
 
 ### Training
+`Merlin` provides a `fit` function for training your model.
 ```julia
 using Merlin
 
@@ -104,3 +126,4 @@ for epoch = 1:10
   println("loss: $(loss)")
 end
 ```
+See documentation for more details.

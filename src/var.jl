@@ -6,7 +6,6 @@ type Var
 end
 
 Var(value, f=nothing, args=Var[], grad=nothing) = Var(value, f, args, grad)
-Var() = Var(nothing)
 param(value) = Var(value, nothing, Var[], zeros(value))
 
 Base.getindex(v::Var, key) = v.args[key]
@@ -15,6 +14,9 @@ Base.setindex!(v::Var, value, key) = v.args[key] = value
 hasgrad(v::Var) = v.grad != nothing
 
 function forward(f, args::Vector{Var})
-  any(a -> a.value == nothing, args) && return Var(nothing, nothing, f, args)
-  f(args)
+  if any(a -> typeof(a.value) == Symbol, args)
+    Var(Symbol(), f, args)
+  else
+    f(args)
+  end
 end

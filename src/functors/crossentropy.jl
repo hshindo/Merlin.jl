@@ -6,21 +6,20 @@ type CrossEntropy; end
   p, q = args[1], args[2]
   logq = logsoftmax(q.value)
   y = crossentropy(p.value, logq)
-  f(gy) = hasgrad(q) && ∇crossentropy!(p.value, logq, q.grad, gy)
-  Var(y, nothing, f, [q])
+  df(gy) = hasgrad(q) && ∇crossentropy!(p.value, logq, q.grad, gy)
+  Var(y, df, [q])
 end
 
 doc"""
-    crossentropy(p::Var, q::Var)
+    crossentropy(p, q)
 
-Compute cross-entropy between two distributions $p$ and $q$,
-where $p$ is usually correct labels and $q$ is predicted values.
+Compute cross-entropy between two distributions $p$ and $q$.
 
 $ f(p,q)=-∑_{x} p_{x} \log q_{x} $
 
 ## Arguments
-* p: variable of `Vector{Int}` or `Matrix{Float}`. p must be normalized.
-* q: variable of `Matrix{Float}`.
+* p: var of `Vector{Int}` or `Matrix{Float}`. p must be normalized.
+* q: var of `Matrix{Float}`.
 
 ### 👉 Example
 ```julia

@@ -30,12 +30,6 @@ end
     relu(x)
 
 Rectifier liner unit.
-
-## 👉 Example
-```julia
-x = Var(rand(Float32,10,5))
-y = relu(x)
-```
 """
 relu(x::Var) = forward(ReLU(), [x])
 
@@ -45,7 +39,7 @@ relu(x::Var) = forward(ReLU(), [x])
 sigmoid(x::Var) = forward(Sigmoid(), [x])
 
 """
-    tanh(x::Var)
+    tanh(x)
 """
 tanh(x::Var) = forward(Tanh(), [x])
 

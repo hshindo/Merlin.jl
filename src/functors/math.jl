@@ -1,37 +1,58 @@
-import Base: +, -, *, .*
+import Base: +, .+, -, .-, *, .*
 
-for f in (:+, :-, :.*)
+type Plus; end
+type ElemPlus; end
+type Minus; end
+type ElemMinus; end
+type Times; end
+type ElemTimes; end
+
+for op in [:+, :-, :*]
   @eval begin
-    $f(x1::Number, x2::Var) = $f(Var([x1]), x2)
-    $f(x1::Var, x2::Number) = $f(x1, Var([x2]))
+    $op(x1::Number, x2::Var) = $op(Var(x1), x2)
+    $op(x1::Var, x2::Number) = $op(x1, Var(x2))
   end
 end
 
-function +(x1::Var, x2::Var)
-  y = x1.value .+ x2.value
-  function df(gy)
-    hasgrad(x1) && ∇plus!(1.0, x1.grad, gy)
-    hasgrad(x2) && ∇plus!(1.0, x2.grad, gy)
+for (op,t) in [(:+,:Plus), (:.+,:ElemPlus)]
+  @eval begin
+    $op(x1::Var, x2::Var) = forward($t(), [x1,x2])
+
+    @compat function (f::$t)(args::Vector{Var})
+      x1, x2 = args[1], args[2]
+      y = $op(x1.value, x2.value)
+      function df(gy)
+        hasgrad(x1) && ∇plus!(1.0, x1.grad, gy)
+        hasgrad(x2) && ∇plus!(1.0, x2.grad, gy)
+      end
+      Var(y, df, [x1,x2])
+    end
   end
-  Var(y, df, [x1,x2])
 end
 
 function ∇plus!{T}(a::Float64, gx::Array{T}, gy::Array{T})
-  #for offset = 1:length(gx):length(gy)
-  #  BLAS.axpy!(length(gx), T(a), pointer(gy,offset), stride(gy,1), pointer(gx), stride(gx,1))
-  #end
-end
-
-function -(x1::Var, x2::Var)
-  y = x1.value .- x2.value
-  function df(gy)
-    hasgrad(x1) && ∇plus!(1.0, x1.grad, gy)
-    hasgrad(x2) && ∇plus!(-1.0, x2.grad, gy)
+  for offset = 1:length(gx):length(gy)
+    BLAS.axpy!(length(gx), T(a), pointer(gy,offset), stride(gy,1), pointer(gx), stride(gx,1))
   end
-  Var(y, df, [x1,x2])
 end
 
-function *(x1::Var, x2::Var)
+for (op,t) in [(:-,:Minus), (:.-,:ElemMinus)]
+  @eval begin
+    $op(x1::Var, x2::Var) = forward($t(), [x1,x2])
+    @compat function (f::$t)(args::Vector{Var})
+      x1, x2 = args[1], args[2]
+      y = $op(x1.value, x2.value)
+      function df(gy)
+        hasgrad(x1) && ∇plus!(1.0, x1.grad, gy)
+        hasgrad(x2) && ∇plus!(-1.0, x2.grad, gy)
+      end
+      Var(y, df, [x1,x2])
+    end
+  end
+end
+
+@compat function (f::Times)(args::Vector{Var})
+  x1, x2 = args[1], args[2]
   y = x1.value * x2.value
   function df(gy)
     T = eltype(gy)
@@ -40,8 +61,10 @@ function *(x1::Var, x2::Var)
   end
   Var(y, df, [x1,x2])
 end
+*(x1::Var, x2::Var) = forward(Times(), [x1,x2])
 
-function .*(x1::Var, x2::Var)
+@compat function (f::ElemTimes)(args::Vector{Var})
+  x1, x2 = args[1], args[2]
   y = x1.value .* x2.value
   function df(gy)
     hasgrad(x1) && ∇elemtimes!(x2.value, x1.grad, gy)
@@ -49,6 +72,7 @@ function .*(x1::Var, x2::Var)
   end
   Var(y, df, [x1,x2])
 end
+.*(x1::Var, x2::Var) = forward(ElemTimes(), [x1,x2])
 
 function ∇elemtimes!{T,N}(x2::Array{T,N}, gx1::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(gx1)

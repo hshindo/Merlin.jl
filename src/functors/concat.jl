@@ -15,13 +15,6 @@ end
     concat(dim::Int, xs::Vector{Var})
 
 Concatenate arrays along the given dimension.
-
-## 👉 Example
-```julia
-x1 = Var(rand(Float32,7,5))
-x2 = Var(rand(Float32,10,5))
-y = concat(1, x1, x2)
-```
 """
 concat(dim::Int, xs::Var...) = concat(dim, [xs...])
 concat(dim::Int, xs::Vector{Var}) = forward(Concat(dim), xs)

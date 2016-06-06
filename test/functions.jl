@@ -20,23 +20,27 @@ const T = Float64
 
   x = Var(rand(T,10,5))
   f = Linear(T, 10, 7)
-  #@test checkgrad(() -> f(x), x)
-#=
-  x = Var(rand(1:1000,5,3))
-  f = Lookup(Float32, 1000, 100)
-  y = f(x)
+  f.b = param(rand(T, size(f.b.value)))
+  @test checkgrad(() -> f(x), x, f.w, f.b)
+
+  #x = Var(rand(1:1000,5,3))
+  #f = Lookup(Float32, 1000, 100)
+  #y = f(x)
 
   x1 = Var(rand(T,10,5))
-  x2 = Var(rand(T,10,1))
-  x3 = Var(rand(T,5,7))
+  x2 = Var(rand(T,10,5))
+  x3 = Var(rand(T,10,1))
+  x4 = Var(rand(T,5,7))
   @test checkgrad(() -> x1+x2, x1, x2)
+  @test checkgrad(() -> x1.+x3, x1, x3)
   @test checkgrad(() -> x1-x2, x1, x2)
-  @test checkgrad(() -> x1.*x1, x1, x1)
-  @test checkgrad(() -> x1*x3, x1, x3)
+  @test checkgrad(() -> x1.-x3, x1, x3)
+  @test checkgrad(() -> x1*x4, x1, x4)
+  @test checkgrad(() -> x1.*x2, x1, x2)
 
   x = Var(rand(T,10,5))
-  for dim = 1:2
-    y = max(1, x)
+  for dim = 1:ndims(x.value)
+    y = max(x, dim)
     gradient!(y)
   end
 
@@ -44,7 +48,6 @@ const T = Float64
   @test checkgrad(() -> reshape(x, 2, 5, 5), x)
 
   x = Var(rand(T,10,5))
-  @test checkgrad(() -> softmax(x), x)
-  @test checkgrad(() -> logsoftmax(x), x)
-=#
+  #@test checkgrad(() -> softmax(x), x)
+  #@test checkgrad(() -> logsoftmax(x), x)
 end

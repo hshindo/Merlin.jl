@@ -1,21 +1,22 @@
 import Base.max
 
+type Max
+  dim::Int
+end
+
+@compat function (f::Max)(args::Vector{Var})
+  x = args[1]
+  y, idx = findmax(x.value, f.dim)
+  df(gy) = hasgrad(x) && ∇max!(idx, x.grad, gy)
+  Var(y, df, [x])
+end
+
 """
     max(x::Var, dim::Int)
 
 Compute the maximum value along the given dimensions.
-
-### 👉 Example
-```julia
-x = Var(rand(Float32,10,5))
-y = max(x, 1)
-```
 """
-function max(x::Var, dim::Int)
-  y, idx = findmax(x.value, dim)
-  df(gy) = hasgrad(x) && ∇max!(idx, x.grad, gy)
-  Var(y, df, [x])
-end
+max(x::Var, dim::Int) = forward(Max(dim), [x])
 
 function ∇max!{T,N}(idx::Array{Int,N}, gx::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(idx)
