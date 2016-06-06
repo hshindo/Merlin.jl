@@ -1,8 +1,8 @@
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/Merlin.png" width="150"></p>
 
-This is pre-alpha version. We will make it publicly available in a next few months.
+This is alpha version.
 
-[NLP Demo (temporary)](http://158.199.141.203/)
+[NLP Demo](http://158.199.141.203/)
 
 # Merlin: deep learning framework in Julia
 
@@ -15,9 +15,6 @@ Our primary goal is to develop a natural language processing toolkit based on `M
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/v2u1kyjy61ph0ihn/branch/master?svg=true)](https://ci.appveyor.com/project/hshindo/merlin-jl/branch/master)
-
-## Documentation
-[![](https://img.shields.io/badge/docs-latest-blue.svg)](http://hshindo.github.io/Merlin.jl/latest/)
 
 ## Requirements
 - Julia 0.4 or later
@@ -51,12 +48,11 @@ julia> Pkg.clone("https://github.com/hshindo/CUDNN.jl.git")
 
 ## Quick Start
 Basically,
-1. Wrap your data with variable type: `Var`.
-2. Apply functions to your `Var`.
 
-`Merlin` provides two ways for constructing neural networks: static network and dynamic network.
+1. Wrap your data with `Var`.
+2. Apply functions to the `Var`s.
 
-### Static Network
+### Declarative style
 Static network can be defined by `@graph` macro.
 For example, a three-layer network can be constructed as follows:
 ```julia
@@ -73,7 +69,7 @@ end
 x = Var(rand(Float32,10,5)) # input variable
 y = f(:x=>x)
 ```
-where `Var(:<name>)` is a place-holder of input variable with name: <name>.
+where `Var(:<name>)` is a place-holder of input variable with `<name>`.
 
 Similarly, GRU (gated recurrent unit) can be constructed as follows:
 ```julia
@@ -95,20 +91,23 @@ h = Var(ones(Float32,100,1))
 y = gru(:x=>x, :h=>h)
 ```
 
-### Dynamic Network
-Dynamic network is a imperative style of constructing computation graph.
+### Imperative style
+If the network structure is dependent on input data such as recurrent neural networks, imperative style is preferable.
 
-In dynamic network, computational graph is constructed incrementally.
-
-This style is very handy for description of recurrent neural network (RNN).
+In imperative mode, computational graph is constructed incrementally.
 ```julia
 using Merlin
 
 T = Float32
-x = Var(rand(T,10,5))
-x = Linear(T,10,7)(x)
-x = relu(x)
-x = Linear(T,7,3)(x)
+f_h = Graph(...) # function for hidden unit
+f_y = Graph(...) # function for output unit
+h = Var(rand(T,100))
+
+for i = 1:10
+ x = data[i]
+ h = concat(x,h) |> f_h
+ y[i] = f_out(h)
+end
 ```
 
 ### Training
