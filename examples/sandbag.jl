@@ -7,6 +7,18 @@ using JLD
 using Base.LinAlg.BLAS
 using Base.Test
 
+f = Window2D(2,2,1,1,0,0)
+x = Var(rand(Float32,3,3))
+f(x)
+
+x = Var(rand(Float32,10,5))
+f = Linear(Float32,10,7)
+y = f(x)
+
+f = Lookup(Float32,100,10) # 100-length vector, 10k vocabulary
+x = rand(1:10,3,2)
+y = f(x)
+
 gru = GRU(Float32,100)
 x = param(rand(Float32,100,1))
 h = param(rand(Float32,100,1))

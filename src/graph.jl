@@ -3,18 +3,15 @@ export Graph, @graph
 type Graph
   nodes::Vector{Var} # sorted in bottom-up order
   tailids::Vector{Vector{Int}}
-  #data_ids::Vector{Int}
   iddict::Dict{Symbol,Int}
 end
 
 function Graph(top::Var)
   nodes = topsort(top)
   iddict = Dict{Symbol,Int}()
-  #data_ids = Int[]
   for i in 1:length(nodes)
     v = nodes[i]
     typeof(v.value) == Symbol && (iddict[v.value] = i)
-    #isempty(v.args) && v.value == nothing && push!(data_ids, i)
   end
 
   dict = ObjectIdDict()
@@ -28,20 +25,6 @@ function Graph(top::Var)
     end
   end
   Graph(nodes, tailids, iddict)
-#=
-  dict = ObjectIdDict()
-  for i = 1:length(nodes)
-    dict[nodes[i]] = i
-  end
-
-  tail_ids = [Int[] for i=1:length(nodes)]
-  for i = 1:length(nodes)
-    for a in nodes[i].args
-      push!(tail_ids[i], dict[a])
-    end
-  end
-  Graph(nodes, tail_ids, data_ids)
-=#
 end
 
 Base.getindex(g::Graph, key) = g.nodes[key]
@@ -61,42 +44,10 @@ Base.getindex(g::Graph, key) = g.nodes[key]
     else
       xs = map(id -> nodes[id], tailids)
       nodes[i] = n.f(xs)
-    #elseif length(tailids) == 1
-    #  nodes[i] = forward(v.f, [nodes[tails[1]]])
-    #else
-    #  inputs = map(id -> nodes[id], tails)
-    #  nodes[i] = forward(v.f, inputs)
     end
   end
   nodes[end]
 end
-
-#=
-@compat function (g::Graph)(args::Vector{Var})
-  @assert length(g.data_ids) == length(args)
-
-  nodes = Array(Var, length(g.nodes))
-  for i in 1:length(args)
-    nodes[g.data_ids[i]] = args[i]
-  end
-
-  for i = 1:length(nodes)
-    isdefined(nodes, i) && continue
-    v = g[i]
-    tails = g.tail_ids[i]
-    if isempty(tails) # param
-      nodes[i] = v
-    elseif length(tails) == 1
-      nodes[i] = forward(v.f, [nodes[tails[1]]])
-    else
-      inputs = map(id -> nodes[id], tails)
-      nodes[i] = forward(v.f, inputs)
-    end
-  end
-  nodes[end]
-end
-@compat (g::Graph)(args::Var...) = g([args...])
-=#
 
 """
     Graph(top::Var)

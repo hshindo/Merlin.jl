@@ -12,6 +12,7 @@ Base.getindex(v::Var, key) = v.args[key]
 Base.setindex!(v::Var, value, key) = v.args[key] = value
 
 hasgrad(v::Var) = v.grad != nothing
+isparam(v::Var) = isempty(v.args) && v.grad != nothing
 
 function forward(f, args::Vector{Var})
   if any(a -> typeof(a.value) == Symbol, args)

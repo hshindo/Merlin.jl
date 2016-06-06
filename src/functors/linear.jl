@@ -5,6 +5,8 @@ type Linear
   b::Var
 end
 
+Linear() = Linear(Var(nothing), Var(nothing))
+
 function Linear{T}(::Type{T}, indim::Int, outdim::Int)
   x = sqrt(6 / (indim + outdim))
   r = rand(outdim, indim) * 2x - x
@@ -27,7 +29,7 @@ end
   end
   Var(y, df, [w,b,x])
 end
-@compat (f::Linear)(x::Var) = forward(f, [f.w,f.b,x])
+@compat (f::Linear)(x::Var) = forward(Linear(), [f.w,f.b,x])
 
 doc"""
     linear(w, x, b)
@@ -44,7 +46,7 @@ f = Linear(Float32,10,7)
 y = f(x)
 ```
 """
-linear(w::Var, x::Var, b::Var) = Linear(w,b)(x)
+linear(w::Var, x::Var, b::Var) = forward(Linear(), [w,b,x])
 
 mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
 isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
