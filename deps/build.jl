@@ -1,7 +1,8 @@
 sources = [
   "im2col.cpp",
   "maxpooling2d.cpp",
-  "window2d.cpp"]
+  "window2d.cpp",
+  "window.cpp"]
 
 compiler = "g++"
 

@@ -61,7 +61,7 @@ end
 include("util.jl")
 export argmax
 include("var.jl")
-export Var, param, forward, gradient!
+export Var, param, isparam, forward, gradient!
 include("gradient.jl")
 export approx_grad, checkgrad
 include("graph.jl")
@@ -78,6 +78,7 @@ for name in [
   "max",
   "reshape",
   "softmax",
+  "window2d"
   ]
   include("functors/$(name).jl")
 end

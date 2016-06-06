@@ -24,14 +24,14 @@ If you use CUDA GPU, the following is required.
 - [cuDNN](https://developer.nvidia.com/cudnn) v5
 
 ## Installation
-First, install Julia. Currently, version 0.4.x is recommended.
+First, install [Julia](http://julialang.org/). Currently, version 0.4.x is recommended.
 
 Then, clone the package from here:
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 ```
 
-For OSX and Linux,
+For OSX and Linux, build `Merlin` as follows:
 ```julia
 julia> Pkg.build("Merlin")
 ```
@@ -50,10 +50,12 @@ julia> Pkg.clone("https://github.com/hshindo/CUDNN.jl.git")
 Basically,
 
 1. Wrap your data with `Var`.
-2. Apply functions to the `Var`s.
+2. Apply functions to `Var`s. `Var` memorizes history of function application and use it for backpropagation.
 
-### Declarative style
-Static network can be defined by `@graph` macro.
+`Merlin` supports two ways of writing network structure: *declarative* style and *imperative* style.
+
+### Declarative Style
+Static network can be defined by using `@graph` macro.
 For example, a three-layer network can be constructed as follows:
 ```julia
 using Merlin
@@ -67,9 +69,9 @@ f = @graph begin
   x
 end
 x = Var(rand(Float32,10,5)) # input variable
-y = f(:x=>x)
+y = f(:x=>x) # output variable
 ```
-where `Var(:<name>)` is a place-holder of input variable with `<name>`.
+where `Var(:<name>)` is a place-holder of input variable.
 
 Similarly, GRU (gated recurrent unit) can be constructed as follows:
 ```julia
@@ -91,10 +93,8 @@ h = Var(ones(Float32,100,1))
 y = gru(:x=>x, :h=>h)
 ```
 
-### Imperative style
-If the network structure is dependent on input data such as recurrent neural networks, imperative style is preferable.
-
-In imperative mode, computational graph is constructed incrementally.
+### Imperative Style
+If the network structure is dependent on input data such as recurrent neural networks, imperative style is more intuitive.
 ```julia
 using Merlin
 
@@ -105,13 +105,13 @@ h = Var(rand(T,100))
 
 for i = 1:10
  x = data[i]
- h = concat(x,h) |> f_h
+ h = f_h(concat(x,h))
  y[i] = f_out(h)
 end
 ```
 
 ### Training
-`Merlin` provides a `fit` function for training your model.
+`Merlin` provides `fit` function to train your model.
 ```julia
 using Merlin
 

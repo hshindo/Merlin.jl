@@ -4,10 +4,10 @@ type Concat
   dim::Int
 end
 
-@compat function (f::Concat)(xs::Vector{Var})
-  y = concat(f.dim, map(x -> x.value, xs))
-  df(gy) = ∇concat!(f.dim, map(x -> x.grad, xs), gy)
-  Var(y, df, xs)
+@compat function (f::Concat)(args::Vector{Var})
+  y = concat(f.dim, map(a -> a.value, args))
+  df(gy) = ∇concat!(f.dim, map(a -> a.grad, args), gy)
+  Var(y, df, args)
 end
 
 """
