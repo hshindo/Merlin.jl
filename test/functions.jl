@@ -24,8 +24,8 @@ const T = Float64
   @test checkgrad(() -> f(x), x, f.w, f.b)
 
   x = rand(1:10,3,2)
-  f = Lookup(Float32, 10, 5)
-  args = f(x).args
+  #f = Lookup(Float32, 10, 5)
+  #args = f(x).args
   #@test checkgrad(() -> f(x), args...)
 
   x1 = Var(rand(T,10,5))
