@@ -10,14 +10,21 @@ end
 function Model(path)
   T = Float32
   word_f = Lookup(T, 500000, 100)
-  char_f = Sequence(Lookup(T,100,10),
-                    Window2D(10,5,1,1,0,2),
-                    Linear(T,50,50),
-                    Max(2))
-  sent_f = Sequence(Window2D(150,5,1,1,0,2),
-                    Linear(T,750,300),
-                    ReLU(),
-                    Linear(T,300,45))
+  char_f = @graph begin
+    x = Var(:x)
+    x = Lookup(T,100,10)(x)
+    Window2D(10,5,1,1,0,2)
+    x = Linear(T,50,50)(x)
+    x = max(x,2)
+    x
+  end
+  sent_f = @graph begin
+    Window2D(150,5,1,1,0,2)
+    Linear(T,750,300)
+    x = relu(x)
+    x = Linear(T,300,45)(x)
+    x
+  end
   Model(word_f, char_f, sent_f)
 end
 
