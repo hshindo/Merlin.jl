@@ -5,6 +5,7 @@ type Reshape
 end
 
 @compat function (f::Reshape)(args::Vector{Var})
+  @checkargs f args
   x = args[1]
   y = copy(reshape(x.value, f.dims))
   df(gy) = hasgrad(x) && ∇reshape!(x.grad, gy)

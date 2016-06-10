@@ -1,52 +1,51 @@
 export Graph, @graph
 
+type GraphNode
+  value
+  f
+  tails::Vector{Int}
+end
+
 type Graph
-  nodes::Vector{Var} # sorted in bottom-up order
-  tailids::Vector{Vector{Int}}
-  iddict::Dict{Symbol,Int}
+  nodes::Vector{GraphNode} # sorted in bottom-up order
+  symtoid::Dict{Symbol,Int}
 end
 
 function Graph(top::Var)
-  nodes = topsort(top)
-  iddict = Dict{Symbol,Int}()
-  for i in 1:length(nodes)
-    v = nodes[i]
-    typeof(v.value) == Symbol && (iddict[v.value] = i)
-  end
-
+  vars = topsort(top)
+  symtoid = Dict{Symbol,Int}()
+  nodes = Array(GraphNode, length(vars))
   dict = ObjectIdDict()
-  for i = 1:length(nodes)
-    dict[nodes[i]] = i
-  end
-  tailids = [Int[] for i=1:length(nodes)]
-  for i = 1:length(nodes)
-    for a in nodes[i].args
-      push!(tailids[i], dict[a])
+  for i in 1:length(vars)
+    v = vars[i]
+    nodes[i] = GraphNode(v.value, v.f, Int[])
+    typeof(v.value) == Symbol && (symtoid[v.value] = i)
+    dict[v] = i
+    for a in v.args
+      id = dict[a]
+      push!(nodes[i].tails, id)
     end
   end
-  Graph(nodes, tailids, iddict)
+  Graph(nodes, symtoid)
 end
 
-Base.getindex(g::Graph, key) = g.nodes[key]
-
 @compat function (g::Graph)(args::Pair{Symbol,Var}...)
-  nodes = Array(Var, length(g.nodes))
+  vars = Array(Var, length(g.nodes))
   for (k,v) in args
-    id = g.iddict[k]
-    nodes[id] = v
+    id = g.symtoid[k]
+    vars[id] = v
   end
   for i = 1:length(g.nodes)
     isdefined(nodes, i) && continue
-    n = g[i]
-    tailids = g.tailids[i]
-    if isempty(tailids) # param
-      nodes[i] = n
+    n = g.nodes[i]
+    if isempty(n.tails)
+      vars[i] = n
     else
-      xs = map(id -> nodes[id], tailids)
-      nodes[i] = n.f(xs)
+      args = map(id -> vars[id], n.tails)
+      vars[i] = n.f(args)
     end
   end
-  nodes[end]
+  vars[end]
 end
 
 """
@@ -54,22 +53,19 @@ end
 
 Construct a static network from `var`.
 
-`Var()` generates a place-holder of input.
-When a function is applied to `Var()`, the omputation is lazily evaluated.
-
-### 👉 Example
+## 👉 Example
 Here is an example of constructing a three-layer network.
 ```julia
 f = @graph begin
   T = Float32
-  x = Var()
+  x = Var(:x)
   x = Linear(T,10,7)(x)
   x = relu(x)
   x = Linear(7,3)(x)
   x
 end
 x = Var(rand(Float32,10,5))
-y = f(x)
+y = f(:x=>x)
 ```
 """
 macro graph(src)

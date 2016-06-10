@@ -49,6 +49,6 @@ const T = Float64
   @test checkgrad(() -> reshape(x, 2, 5, 5), x)
 
   x = Var(rand(T,10,5))
-  #@test checkgrad(() -> softmax(x), x)
-  #@test checkgrad(() -> logsoftmax(x), x)
+  @test checkgrad(() -> softmax(x), x)
+  @test checkgrad(() -> logsoftmax(x), x)
 end

@@ -5,10 +5,11 @@ type Max
 end
 
 @compat function (f::Max)(args::Vector{Var})
+  @checkargs f args
   x = args[1]
   y, idx = findmax(x.value, f.dim)
   df(gy) = hasgrad(x) && ∇max!(idx, x.grad, gy)
-  Var(y, df, [x])
+  Var(y, df, args)
 end
 
 """
@@ -16,7 +17,7 @@ end
 
 Compute the maximum value along the given dimensions.
 """
-max(x::Var, dim::Int) = forward(Max(dim), [x])
+max(x::Var, dim::Int) = Max(dim)([x])
 
 function ∇max!{T,N}(idx::Array{Int,N}, gx::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(idx)

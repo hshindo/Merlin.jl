@@ -7,18 +7,24 @@ type ElemMinus; end
 type Times; end
 type ElemTimes; end
 
-for op in [:+, :-, :*]
+for (f,op) in [(:Plus,:+), (:Minus,:-), (:Times,:*)]
   @eval begin
-    $op(x1::Number, x2::Var) = $op(Var(x1), x2)
-    $op(x1::Var, x2::Number) = $op(x1, Var(x2))
+    $op(x1::Number, x2::Var) = $f()([Var(x1),x2])
+    $op(x1::Var, x2::Number) = $f()([x1,Var(x2)])
   end
 end
 
-for (op,t) in [(:+,:Plus), (:.+,:ElemPlus)]
+for (f,op) in [(:Plus,:+), (:ElemPlus,:.+), (:Minus,:-), (:ElemMinus,:.-), (:Times,:*), (:ElemTimes,:.*)]
   @eval begin
-    $op(x1::Var, x2::Var) = forward($t(), [x1,x2])
+    $op(x1::Var, x2::Var) = $f()([x1,x2])
+  end
+end
+-(x::Var) = 0 - x
 
-    @compat function (f::$t)(args::Vector{Var})
+for (f,op) in [(:Plus,:+), (:ElemPlus,:.+)]
+  @eval begin
+    @compat function (f::$f)(args::Vector{Var})
+      @checkargs f args
       x1, x2 = args[1], args[2]
       y = $op(x1.value, x2.value)
       function df(gy)
@@ -36,10 +42,10 @@ function ∇plus!{T}(a::Float64, gx::Array{T}, gy::Array{T})
   end
 end
 
-for (op,t) in [(:-,:Minus), (:.-,:ElemMinus)]
+for (f,op) in [(:Minus,:-), (:ElemMinus,:.-)]
   @eval begin
-    $op(x1::Var, x2::Var) = forward($t(), [x1,x2])
-    @compat function (f::$t)(args::Vector{Var})
+    @compat function (f::$f)(args::Vector{Var})
+      @checkargs f args
       x1, x2 = args[1], args[2]
       y = $op(x1.value, x2.value)
       function df(gy)
@@ -52,6 +58,7 @@ for (op,t) in [(:-,:Minus), (:.-,:ElemMinus)]
 end
 
 @compat function (f::Times)(args::Vector{Var})
+  @checkargs f args
   x1, x2 = args[1], args[2]
   y = x1.value * x2.value
   function df(gy)
@@ -61,9 +68,9 @@ end
   end
   Var(y, df, [x1,x2])
 end
-*(x1::Var, x2::Var) = forward(Times(), [x1,x2])
 
 @compat function (f::ElemTimes)(args::Vector{Var})
+  @checkargs f args
   x1, x2 = args[1], args[2]
   y = x1.value .* x2.value
   function df(gy)
@@ -72,7 +79,6 @@ end
   end
   Var(y, df, [x1,x2])
 end
-.*(x1::Var, x2::Var) = forward(ElemTimes(), [x1,x2])
 
 function ∇elemtimes!{T,N}(x2::Array{T,N}, gx1::Array{T,N}, gy::Array{T,N})
   @inbounds @simd for i = 1:length(gx1)

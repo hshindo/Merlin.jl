@@ -2,27 +2,12 @@ export relu, sigmoid
 import Base.tanh
 
 type ReLU; end
-type Sigmoid; end
-type Tanh; end
 
 @compat function (f::ReLU)(args::Vector{Var})
+  @checkargs f args
   x = args[1]
   y = relu(x.value)
   df(gy) = hasgrad(x) && ∇relu!(x.value, x.grad, y, gy)
-  Var(y, df, args)
-end
-
-@compat function (f::Sigmoid)(args::Vector{Var})
-  x = args[1]
-  y = sigmoid(x.value)
-  df(gy) = hasgrad(x) && ∇sigmoid!(x.value, x.grad, y, gy)
-  Var(y, df, args)
-end
-
-@compat function (f::Tanh)(args::Vector{Var})
-  x = args[1]
-  y = tanh(x.value)
-  df(gy) = hasgrad(x) && ∇tanh!(x.value, x.grad, y, gy)
   Var(y, df, args)
 end
 
@@ -31,17 +16,37 @@ end
 
 Rectifier liner unit.
 """
-relu(x::Var) = forward(ReLU(), [x])
+relu(x::Var) = ReLU()([x])
+
+type Sigmoid; end
+
+@compat function (f::Sigmoid)(args::Vector{Var})
+  @checkargs f args
+  x = args[1]
+  y = sigmoid(x.value)
+  df(gy) = hasgrad(x) && ∇sigmoid!(x.value, x.grad, y, gy)
+  Var(y, df, args)
+end
 
 """
     sigmoid(x)
 """
-sigmoid(x::Var) = forward(Sigmoid(), [x])
+sigmoid(x::Var) = Sigmoid()([x])
+
+type Tanh; end
+
+@compat function (f::Tanh)(args::Vector{Var})
+  @checkargs f args
+  x = args[1]
+  y = tanh(x.value)
+  df(gy) = hasgrad(x) && ∇tanh!(x.value, x.grad, y, gy)
+  Var(y, df, args)
+end
 
 """
     tanh(x)
 """
-tanh(x::Var) = forward(Tanh(), [x])
+tanh(x::Var) = Tanh()([x])
 
 function relu{T}(x::Array{T})
   y = similar(x)

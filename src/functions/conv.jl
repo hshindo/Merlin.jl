@@ -1,4 +1,4 @@
-export Conv
+export ConvFun
 import Base.conv
 
 const WINDOW2D_FWD_F32 = Libdl.dlsym(library, :window2d_fwd_f32)
@@ -6,48 +6,47 @@ const WINDOW2D_BWD_F32 = Libdl.dlsym(library, :window2d_bwd_f32)
 const WINDOW2D_FWD_F64 = Libdl.dlsym(library, :window2d_fwd_f64)
 const WINDOW2D_BWD_F64 = Libdl.dlsym(library, :window2d_bwd_f64)
 
-type Conv{N}
-  w::Var
-  stride::NTuple{N,Int}
-  pad::NTuple{N,Int}
-end
-
-function Conv(w::Var; stride=(), pad=())
-  N = ndims(w.value) - 2
-  isempty(stride) && (stride = ntuple(_ -> 1, N))
-  isempty(pad) && (pad = ntuple(_ -> 0, N))
-  Conv(w, stride, pad)
-end
-
-@compat function (f::Conv{N}){N}(args::Vector{Var})
-  w, x = args[1], args[2]
-  y = conv(w.value, x.value, f.stride, f.pad)
-  df(y::Var) = throw("Not implemented yet.")
-  Var(y, df, [w,x])
-end
-@compat (f::Conv{N}){N}(x::Var) = forward(f, [f.w,x])
-
 """
-    conv(w, x; [stride, pad])
+    Conv(w, x; [stride, pad])
 
 N-dimensional convolution function.
 
 ## Arguments
 * w::Var: weight
 * x::Var: input
-* stride::NTuple{N,Int}: stride size. Default: 1
-* pad::NTuple{N,Int}: padding size. Default: 0
+* stride::NTuple{N,Int}: stride size. Default: (1,1,...)
+* pad::NTuple{N,Int}: padding size. Default: (0,0,...)
 
 ## 👉 Example
 ```julia
 x = Var(rand(Float32,5,4,3,2))
 w = Var(rand(Float32,2,2,3,4))
-y = conv(w, x, stride=(1,1), pad=(0,0))
+y = Conv(w, stride=(1,1), pad=(0,0))(x)
 ```
 """
-conv(w::Var, x::Var; stride=(), pad=()) = Conv(w,stride,pad)(x)
+type Conv{N}
+  w::Var
+  stride::NTuple{N,Int}
+  pad::NTuple{N,Int}
+end
 
-function conv{T}(w::Array{T,4}, x::Array{T,4}, stride, pad)
+"""
+    Conv()
+"""
+function Conv{N}(stride, pad)
+end
+
+@compat function (f::Conv{N}){N}(args::Vector{Var})
+  @checkargs f args
+  w, x = args[1], args[2]
+  y = conv(x.value, w.value, f.stride, f.pad)
+  df(y::Var) = throw("Not implemented yet.")
+  Var(y, df, [w,x])
+end
+
+@compat (f::Conv{N}){N}(x::Var) = f([f.w,x])
+
+function conv{T}(x::Array{T,4}, w::Array{T,4}, stride, pad)
   h = handle(Conv{2}, T)[1]
   xsize = Cint[size(x,1), size(x,2), size(x,3)*size(x,4)]
   params = Cint[size(w,1), size(w,2), stride..., pad...]

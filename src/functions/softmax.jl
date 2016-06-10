@@ -4,6 +4,7 @@ type Softmax; end
 type LogSoftmax; end
 
 @compat function (f::Softmax)(args::Vector{Var})
+  @checkargs f args
   x = args[1]
   y = softmax(x.value)
   df(gy) = hasgrad(x) && ∇softmax!(x.grad, y, gy)
@@ -11,6 +12,7 @@ type LogSoftmax; end
 end
 
 @compat function (f::LogSoftmax)(args::Vector{Var})
+  @checkargs f args
   x = args[1]
   y = logsoftmax(x.value)
   df(gy) = hasgrad(x) && ∇logsoftmax!(x.grad, y, gy)
@@ -25,7 +27,7 @@ Currently, 2-d is supported.
 
 $ p(x) = {\exp(f(x)) \over \sum_{x_2} \exp(f(x))} $
 """
-softmax(x::Var) = forward(Softmax(), [x])
+softmax(x::Var) = Softmax()([x])
 
 """
     logsoftmax(x)
@@ -33,7 +35,7 @@ softmax(x::Var) = forward(Softmax(), [x])
 Compute logarithm of softmax along the second axis.
 Currently, 2-d is supported.
 """
-logsoftmax(x::Var) = forward(LogSoftmax(), [x])
+logsoftmax(x::Var) = LogSoftmax()([x])
 
 function softmax{T}(x::Matrix{T})
   y = similar(x)
@@ -109,7 +111,7 @@ function ∇logsoftmax!{T}(x::Matrix{T}, gx::Matrix{T}, y::Matrix{T}, gy::Matrix
   end
 end
 
-# experimental
+# experimental JIT compile
 function softmax_native{T}(x::Matrix{T})
   CT = "float"
   size1, size2 = size(x)

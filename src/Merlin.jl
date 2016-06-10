@@ -80,7 +80,7 @@ for name in [
   "softmax",
   "window2d"
   ]
-  include("functors/$(name).jl")
+  include("functions/$(name).jl")
 end
 
 for name in [

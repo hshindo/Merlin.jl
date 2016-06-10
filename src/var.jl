@@ -1,7 +1,7 @@
 type Var
   value
   f
-  args::Vector{Var}
+  args::Vector
   grad
 end
 
@@ -14,10 +14,15 @@ Base.setindex!(v::Var, value, key) = v.args[key] = value
 hasgrad(v::Var) = v.grad != nothing
 isparam(v::Var) = isempty(v.args) && v.grad != nothing
 
-function forward(f, args::Vector{Var})
-  if any(a -> typeof(a.value) == Symbol, args)
-    Var(Symbol(), f, args)
-  else
-    f(args)
+"""
+    checkargs(expr)
+
+Check arguments and decide eager or lazy evaluation.
+"""
+macro checkargs(f, args)
+  quote
+    if any(a -> typeof(a.value) == Symbol, $args)
+      return Var(Symbol(), $f, $args)
+    end
   end
 end

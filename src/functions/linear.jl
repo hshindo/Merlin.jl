@@ -1,12 +1,31 @@
 export linear, Linear
 
+doc"""
+    Linear(w::Var, b::Var)
+
+Compute linear function (a.k.a. affine transformation or fully-connected layer).
+
+$ f(x) = w * x + b $
+
+## Arguments
+* `w::Var`: weight matrix
+* `b::Var`: bias vector
+
+## 👉 Example
+```julia
+x = Var(rand(Float32,10,5))
+f = Linear(Float32, 10, 7)
+y = f(x)
+```
+"""
 type Linear
   w::Var
   b::Var
 end
 
-Linear() = Linear(Var(nothing), Var(nothing))
-
+"""
+    Linear(::Type{T}, indim::Int, outdim::Int)
+"""
 function Linear{T}(::Type{T}, indim::Int, outdim::Int)
   x = sqrt(6 / (indim + outdim))
   r = rand(outdim, indim) * 2x - x
@@ -16,6 +35,7 @@ function Linear{T}(::Type{T}, indim::Int, outdim::Int)
 end
 
 @compat function (f::Linear)(args::Vector{Var})
+  @checkargs f args
   w, b, x = args[1], args[2], args[3]
   y = w.value * x.value
   broadcast!(.+, y, y, b.value)
@@ -27,26 +47,6 @@ end
       BLAS.axpy!(length(b.value), T(1), pointer(gy,offset), stride(gy,1), pointer(b.grad), stride(b.grad,1))
     end
   end
-  Var(y, df, [w,b,x])
+  Var(y, df, args)
 end
-@compat (f::Linear)(x::Var) = forward(Linear(), [f.w,f.b,x])
-
-doc"""
-    linear(w, x, b)
-
-Compute linear function (a.k.a. affine transformation).
-
-$ f(x) = w * x + b $
-where $w$, $x$, $b$ are matrices.
-
-### 👉 Example
-```julia
-x = Var(rand(Float32,10,5))
-f = Linear(Float32,10,7)
-y = f(x)
-```
-"""
-linear(w::Var, x::Var, b::Var) = forward(Linear(), [w,b,x])
-
-mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
-isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
+@compat (f::Linear)(x::Var) = f([f.w,f.b,x])

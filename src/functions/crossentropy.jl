@@ -3,11 +3,12 @@ export crossentropy
 type CrossEntropy; end
 
 @compat function (f::CrossEntropy)(args::Vector{Var})
+  @checkargs f args
   p, q = args[1], args[2]
   logq = logsoftmax(q.value)
   y = crossentropy(p.value, logq)
   df(gy) = hasgrad(q) && ∇crossentropy!(p.value, logq, q.grad, gy)
-  Var(y, df, [q])
+  Var(y, df, args)
 end
 
 doc"""
@@ -28,7 +29,7 @@ q = Var(rand(Float32,10,5))
 y = crossentropy(p, q)
 ```
 """
-crossentropy(p::Var, q::Var) = forward(CrossEntropy(), [p,q])
+crossentropy(p::Var, q::Var) = CrossEntropy()([p,q])
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
   y = Array(T, 1, size(p,2))
