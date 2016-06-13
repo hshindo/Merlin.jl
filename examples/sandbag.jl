@@ -8,6 +8,17 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+x = Var(rand(Float32,5,4,3,2))
+w = Var(rand(Float32,2,2,3,4))
+f = Conv(w, (1,1), (0,0))
+y = f(x)
+
+x = param(rand(Float32,10,5))
+y = sigmoid(x)
+gradient!(y)
+x.grad
+
+Merlin.empty(rand(10))
 h5write("C:/Users/shindo/Desktop/test.h5", "A", rand(Float32,10))
 
 type AW

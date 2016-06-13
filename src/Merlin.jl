@@ -3,6 +3,8 @@ module Merlin
 using Compat
 using Base.LinAlg.BLAS
 
+abstract Functor
+
 #include("caffe/Caffe.jl")
 
 @windows? begin
@@ -21,7 +23,7 @@ catch y
 end
 
 """
-JIT compiler.
+JIT C++ compiler.
 - `src`: source code
 - `sym`: function name
 """
@@ -78,9 +80,10 @@ for name in [
   "max",
   "reshape",
   "softmax",
+  "sum",
   "window2d"
   ]
-  include("functions/$(name).jl")
+  include("functors/$(name).jl")
 end
 
 for name in [

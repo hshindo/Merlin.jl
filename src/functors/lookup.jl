@@ -1,21 +1,15 @@
-export lookup, lookuptable
+export Lookup
 
-function lookuptable{T}(::Type{T}, insize::Int, outsize::Int)
-  [param(convert(Vector{T}, randn(outsize))) for i=1:insize]
-end
+"""
+Lookup function.
 
-function lookuptable{T}(path, ::Type{T})
-  lines = open(readlines, path)
-  ws = Array(Var, length(lines))
-  for i = 1:length(lines)
-    items = split(chomp(lines[i]), ' ')
-    w = map(x -> parse(T,x), items)
-    ws[i] = param(w)
-  end
-  ws
-end
-
-#=
+### 👉 Example
+```julia
+f = Lookup(Float32,10000,100) # 100-length vector, 10k vocabulary
+x = rand(1:1000,5,3)
+y = f(x)
+```
+"""
 type Lookup
   ws::Vector{Var}
 end
@@ -31,16 +25,10 @@ function Lookup{T}(path, ::Type{T})
   Lookup(ws)
 end
 
-"""
-Lookup function.
+function forward(f::Lookup, x::Array{Int})
+  
+end
 
-### 👉 Example
-```julia
-f = Lookup(Float32,10000,100) # 100-length vector, 10k vocabulary
-x = rand(1:1000,5,3)
-y = f(x)
-```
-"""
 @compat function (f::Lookup)(args::Vector{Var})
   x = args[1]
   ws = f.ws
@@ -83,4 +71,3 @@ function ∇lookup!{T}(w::Matrix{T}, gw::Matrix{T}, x::Array{Int}, gy::Matrix{T}
     BLAS.axpy!(T(1), gy, slice(w,:,i))
   end
 end
-=#

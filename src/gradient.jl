@@ -14,21 +14,6 @@ function topsort(var::Var)
   sorted
 end
 
-function gradient!(var::Var)
-  sorted = topsort(var)
-  hasgrad(var) || (var.grad = ones(var.value))
-  for i = 1:length(sorted)-1 # excludes top
-    v = sorted[i]
-    (hasgrad(v) || isempty(v.args)) && continue
-    v.grad = zeros(v.value)
-  end
-  for i = length(sorted):-1:1
-    v = sorted[i]
-    v.f == nothing || v.f(v.grad)
-  end
-  sorted
-end
-
 """
 Compute numerical gradient.
 """

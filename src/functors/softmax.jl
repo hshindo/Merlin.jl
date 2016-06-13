@@ -1,23 +1,7 @@
 export softmax, logsoftmax
 
-type Softmax; end
-type LogSoftmax; end
-
-@compat function (f::Softmax)(args::Vector{Var})
-  @checkargs f args
-  x = args[1]
-  y = softmax(x.value)
-  df(gy) = hasgrad(x) && ∇softmax!(x.grad, y, gy)
-  Var(y, df, [x])
-end
-
-@compat function (f::LogSoftmax)(args::Vector{Var})
-  @checkargs f args
-  x = args[1]
-  y = logsoftmax(x.value)
-  df(gy) = hasgrad(x) && ∇logsoftmax!(x.grad, y, gy)
-  Var(y, df, [x])
-end
+type Softmax <: Functor; end
+type LogSoftmax <: Functor; end
 
 doc"""
     softmax(x)
@@ -27,7 +11,7 @@ Currently, 2-d is supported.
 
 $ p(x) = {\exp(f(x)) \over \sum_{x_2} \exp(f(x))} $
 """
-softmax(x::Var) = Softmax()([x])
+softmax(x::Var) = forward(Softmax(), x)
 
 """
     logsoftmax(x)
@@ -35,7 +19,49 @@ softmax(x::Var) = Softmax()([x])
 Compute logarithm of softmax along the second axis.
 Currently, 2-d is supported.
 """
-logsoftmax(x::Var) = LogSoftmax()([x])
+logsoftmax(x::Var) = forward(LogSoftmax(), x)
+
+forward{T<:Number}(f::Softmax, x::Matrix{T}) = f, softmax(x)
+forward{T<:Number}(f::LogSoftmax, x::Matrix{T}) = f, logsoftmax(x)
+
+function forward(f::Softmax, x::CuArray)
+  CUDNN.softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x, similar(x))
+end
+function forward(f::LogSoftmax, x::CuArray)
+  CUDNN.softmax!(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, x, similar(x))
+end
+
+function backward!{T}(f::Softmax, x, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
+  isempty(gx) && return
+  # d yj / d xi = yj * (delta (i=j) - yi)
+  for d = 1:size(gx,2)
+    for i = 1:size(gx,1)
+      yi = y[i,d]
+      for j = 1:size(gx,1)
+        delta = i == j ? T(1) : T(0)
+        gx[i,d] += gy[j,d] * y[j,d] * (delta - yi)
+      end
+    end
+  end
+end
+
+function backward!(f::Softmax, x, gx, y, gy::CuArray)
+  isempty(gx) && return
+  CUDNN.∇softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
+end
+
+function backward!{T}(f::LogSoftmax, x, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
+  # d yj / d xi = delta(i=j) - exp(yi)
+  for d = 1:size(gx,2)
+    for i = 1:size(gx,1)
+      expy = exp(y[i,d])
+      for j = 1:size(gx,1)
+        delta = i == j ? T(1) : T(0)
+        gx[i,d] += gy[j,d] * (delta - expy)
+      end
+    end
+  end
+end
 
 function softmax{T}(x::Matrix{T})
   y = similar(x)
@@ -53,33 +79,12 @@ function softmax{T}(x::Matrix{T})
   y
 end
 
-function softmax(x::CuArray)
-  CUDNN.softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x, similar(x))
-end
-
 function ∇softmax2!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
   # d yi / d xj = yi * (delta (i=j) - yj)
   g = y .* gy
   sumdx = sum(g, 1)
   g -= y .* sumdx
   copy!(gx, g)
-end
-
-function ∇softmax!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
-  # d yj / d xi = yj * (delta (i=j) - yi)
-  for d = 1:size(gx,2)
-    for i = 1:size(gx,1)
-      yi = y[i,d]
-      for j = 1:size(gx,1)
-        delta = i == j ? T(1) : T(0)
-        gx[i,d] += gy[j,d] * y[j,d] * (delta - yi)
-      end
-    end
-  end
-end
-
-function ∇softmax!(gx::CuArray, y::CuArray, gy::CuArray)
-  CUDNN.∇softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
 end
 
 function logsoftmax{T}(x::Matrix{T})
@@ -96,19 +101,6 @@ function logsoftmax{T}(x::Matrix{T})
     end
   end
   y
-end
-
-function ∇logsoftmax!{T}(x::Matrix{T}, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
-  # d yj / d xi = delta(i=j) - exp(yi)
-  for d = 1:size(x,2)
-    for i = 1:size(x,1)
-      expy = exp(y[i, d])
-      for j = 1:size(x,1)
-        delta = i == j ? T(1) : T(0)
-        gx[i,d] += gy[j,d] * (delta - expy)
-      end
-    end
-  end
 end
 
 # experimental JIT compile
