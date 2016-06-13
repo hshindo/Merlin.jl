@@ -1,7 +1,7 @@
 type Var
   value
   f
-  args::Vector{Var}
+  args::Union{Vector{Var},Tuple{Vararg{Var}}}
   grad
 end
 
@@ -11,13 +11,12 @@ param(value) = Var(value, nothing, Var[], zeros(value))
 Base.getindex(v::Var, key) = v.args[key]
 Base.setindex!(v::Var, value, key) = v.args[key] = value
 
-#hasgrad(v::Var) = v.grad != nothing
 isparam(v::Var) = isempty(v.args) && v.grad != nothing
 
-function forward(f::Functor, arg::Var)
-  typeof(arg.value) == Symbol && return Var(Symbol(), f, [arg])
-  f, y = forward(f, arg.value)
-  Var(y, f, [arg])
+function forward(f::Functor, args::Var...)
+  any(a -> typeof(a.value) == Symbol, args) && return Var(Symbol(), f, args)
+  f, y = forward(f, map(a -> a.value, args)...)
+  Var(y, f, args)
 end
 
 function forward(f::Functor, args::Vector{Var})

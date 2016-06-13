@@ -8,9 +8,9 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
-x = Var(rand(Float32,5,4,3,2))
 w = Var(rand(Float32,2,2,3,4))
-f = Conv(w, (1,1), (0,0))
+x = Var(rand(Float32,5,4,3,2))
+y = conv(w, x, stride=(1,1), pad=(0,0))
 y = f(x)
 
 x = param(rand(Float32,10,5))
