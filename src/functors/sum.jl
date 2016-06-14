@@ -1,25 +1,27 @@
+import Base.sum
+
 type Sum
   dim::Int
 end
 
-"""
-Compute the sum along the given dimension.
-
-### 👉 Example
-```julia
-x = Var(rand(Float32,10,5))
-y = sum(x, 1)
-```
-"""
-Base.sum(dim::Int, x::Var) = forward(Sum(dim), [x])
-
-function forward!(f::Sum, y::Var)
-  y.value = sum(y[1].value, f.dim)
-  y.f = f
+@compat function (f::Sum)(args::Vector{Var})
+  x = args[1]
+  y = sum(x.value, f.dim)
+  df(gy) = hasgrad(x) && ∇sum!(x.grad, gy)
+  Var(y, df, [x])
 end
 
-backward!(f::Sum, y::Var) = hasgrad(y[1]) && ∇sum!(y[1].grad, y.grad)
+"""
+    sum(x::Var, dim::Int)
+
+Compute the sum along the given dimensions.
+"""
+sum(x::Var, dim::Int) = forward(Sum(dim), [x])
 
 function ∇sum!{T,N}(gx::Array{T,N}, gy::Array{T,N})
   broadcast!(+, gx, gx, gy)
+end
+
+function ∇sum!{T,N}(gx::CuArray{T,N}, gy::CuArray{T,N})
+  throw("Not implemented yet.")
 end

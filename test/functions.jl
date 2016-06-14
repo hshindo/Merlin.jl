@@ -39,10 +39,10 @@ const T = Float64
   @test checkgrad(() -> x1*x4, x1, x4)
   @test checkgrad(() -> x1.*x2, x1, x2)
 
-  x = Var(rand(T,10,5))
+  x = Var(rand(T, 10, 5, 1, 3))
   for dim = 1:ndims(x.value)
-    y = max(x, dim)
-    gradient!(y)
+    #@test checkgrad(() -> max(x, dim), x)
+    @test checkgrad(() -> sum(x, dim), x)
   end
 
   x = Var(rand(T,10,5))
