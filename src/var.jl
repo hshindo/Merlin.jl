@@ -64,7 +64,7 @@ end
 """
     checkargs(expr)
 
-Check arguments and decide eager or lazy evaluation.
+Check arguments and decide eager or lazy evaluation..
 """
 macro checkargs(f, args)
   quote
