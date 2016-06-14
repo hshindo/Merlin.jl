@@ -75,7 +75,12 @@ end
 .*(x1::Var, x2::Var) = forward(ElemTimes(), [x1,x2])
 
 function ∇elemtimes!{T,N}(x2::Array{T,N}, gx1::Array{T,N}, gy::Array{T,N})
-  @inbounds @simd for i = 1:length(gx1)
-    gx1[i] += gy[i] * x2[i]
+  g = x2 .* gy
+  dims = Int[]  # dimensions to take sum
+  for (i, n) in enumerate(size(gx1))
+    if n == 1
+      push!(dims, i)
+    end
   end
+  broadcast!(+, gx1, gx1, reshape(sum(g, dims), size(gx1)))   # TODO: using broadcast!, since Julia currently doesn't support in-place addition
 end
