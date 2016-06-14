@@ -1,5 +1,5 @@
 workspace()
-ENV["USE_CUDA"] = false
+ENV["USE_CUDA"] = true
 using Merlin
 using Merlin.Caffe
 using CUDA
@@ -8,10 +8,17 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
-x = Var(rand(Float32,5,4,3,2))
+x = zerograd(rand(Float32,10,5))
+y = relu(x)
+gradient!(y)
+
 w = Var(rand(Float32,2,2,3,4))
-f = Conv(w, (1,1), (0,0))
-y = f(x)
+x = Var(rand(Float32,5,4,3,2))
+y = conv(w, x, stride=(1,1), pad=(0,0))
+
+ww = Var(CuArray(w.value))
+xx = Var(CuArray(x.value))
+y = conv(w, x, stride=(1,1), pad=(0,0))
 
 x = param(rand(Float32,10,5))
 y = sigmoid(x)

@@ -1,3 +1,5 @@
+export checkgrad
+
 function topsort(var::Var)
   sorted = Var[]
   dict = ObjectIdDict()

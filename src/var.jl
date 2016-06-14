@@ -1,23 +1,29 @@
-type Var
-  value
+export Var, zerograd, forward, gradient!
+
+type Var{T}
+  value::T
   f
-  args::Vector{Var}
-  grad
+  args
+  grad::T
+
+  Var(value, f, args) = new(value, f, args)
 end
 
-Var(value, f=nothing, args=Var[], grad=nothing) = Var(value, f, args, grad)
-param(value) = Var(value, nothing, Var[], zeros(value))
+Var{T}(value::T, f=nothing, args=[]) = Var{T}(value, f, args)
+
+function zerograd{T}(value::T)
+  v = Var(value)
+  v.grad = zeros(value)
+  v
+end
 
 Base.getindex(v::Var, key) = v.args[key]
 Base.setindex!(v::Var, value, key) = v.args[key] = value
 
-#hasgrad(v::Var) = v.grad != nothing
-isparam(v::Var) = isempty(v.args) && v.grad != nothing
-
-function forward(f::Functor, arg::Var)
-  typeof(arg.value) == Symbol && return Var(Symbol(), f, [arg])
-  f, y = forward(f, arg.value)
-  Var(y, f, [arg])
+function init(f::Functor, args::Tuple)
+  any(a -> typeof(a.value) == Symbol, args) && return Var(Symbol(), f, args)
+  f, y = forward(f, args...)
+  Var(y, f, args)
 end
 
 function forward(f::Functor, args::Vector{Var})
@@ -27,33 +33,30 @@ function forward(f::Functor, args::Vector{Var})
 end
 
 function backward!(f::Functor, y::Var)
-  if length(y.args) == 1
-    x = y[1]
-    x.grad == nothing && return
-    backward!(f, x.value, x.grad, y.value, y.grad)
+  if typeof(y.args) <: Tuple
+    backward!(f, y.args..., y)
   else
-    xs = map(a -> a.value, y.args)
-    gxs = map(a -> a.grad, y.args)
-    backward!(f, xs, gxs, y.value, y.grad)
+    throw("error")
   end
 end
 
 function gradient!(top::Var)
   sorted = topsort(top)
-  top.grad == nothing && (top.grad = ones(top.value))
+  isdefined(top, :grad) || (top.grad = ones(top.value))
   for i = 1:length(sorted)-1 # excludes top
     v = sorted[i]
-    v.grad == nothing || continue
-    if isempty(v.args)
-      v.grad = empty(typeof(v.value))
-    else
-      v.grad = zeros(v.value)
-    end
+    isdefined(v, :grad) && continue
+    isempty(v.args) && continue
+    v.grad = zeros(v.value)
   end
   for i = length(sorted):-1:1
     v = sorted[i]
-    v.f == nothing && continue
-    backward!(v.f, v)
+    isempty(v.args) && continue
+    if typeof(v.args) <: Tuple
+      backward!(v.f, v.args..., v)
+    else
+      throw("error")
+    end
   end
   sorted
 end
