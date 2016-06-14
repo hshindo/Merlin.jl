@@ -61,7 +61,7 @@ end
 include("util.jl")
 export argmax
 include("var.jl")
-export Var, param, isparam, forward, gradient!
+export Var, param, hasgrad, isparam, forward, gradient!
 include("gradient.jl")
 export approx_grad, checkgrad
 include("graph.jl")

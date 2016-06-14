@@ -1,4 +1,4 @@
-export AdaGrad
+export AdaGrad, update!
 
 """
 AdaGrad implementation.
