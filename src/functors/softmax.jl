@@ -6,7 +6,7 @@ type LogSoftmax; end
 @compat function (f::Softmax)(args::Vector{Var})
   x = args[1]
   y = softmax(x.value)
-  df(gy) = hasgrad(x) && ∇softmax!(x.grad, y, gy)
+  df(gy) = hasgrad(x) && ∇softmax2!(x.grad, y, gy)
   Var(y, df, [x])
 end
 
@@ -60,7 +60,7 @@ function ∇softmax2!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
   g = y .* gy
   sumdx = sum(g, 1)
   g -= y .* sumdx
-  copy!(gx, g)
+  broadcast!(+, gx, gx, g)
 end
 
 function ∇softmax!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
