@@ -60,9 +60,7 @@ function ∇softmax2!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
   g = y .* gy
   sumdx = sum(g, 1)
   g -= y .* sumdx
-  for i in 1:length(gx)
-    gx[i] += g[i]
-  end
+  BLAS.axpy!(T(1), g, gx)
 end
 
 function ∇softmax!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
