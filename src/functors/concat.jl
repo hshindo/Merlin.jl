@@ -1,10 +1,19 @@
 export concat
 
-type Concat <: Functor
+"""
+    concat(dim::Int, xs::Var...)
+    concat(dim::Int, xs::Vector{Var})
+
+Concatenate arrays along the given dimension.
+"""
+concat{T<:Var}(dim::Int, args::Vector{T}) = forward(Concat(dim), args)
+concat(dim::Int, args::Var...) = concat(dim, [args...])
+
+type Concat
   dim::Int
 end
 
-function forward{T,N}(f::Concat, xs::Vector{Array{T,N}})
+@compat function (f::Concat){T,N}(xs::Vector{Array{T,N}})
   dim = f.dim
   sum = 0
   for x in xs
@@ -25,11 +34,11 @@ function forward{T,N}(f::Concat, xs::Vector{Array{T,N}})
   f, y
 end
 
-function forward{T<:CuArray}(f::Concat, xs::Vector{T})
+@compat function (f::Concat){T<:CuArray}(xs::Vector{T})
   throw("Not implemented yet.")
 end
 
-function backward!{T,N}(f::Concat, xs::Vector{Array{T,N}}, gxs::Vector{Array{T,N}}, y::Array{T}, gy::Array{T})
+function backward!{T,N}(f::Concat, xs, gxs::Vector{Array{T,N}}, y, gy::Array{T,N})
   dim = f.dim
   range = map(s -> 1:s, [size(gy)...])
   offset = 1
@@ -40,12 +49,3 @@ function backward!{T,N}(f::Concat, xs::Vector{Array{T,N}}, gxs::Vector{Array{T,N
     offset += s
   end
 end
-
-"""
-    concat(dim::Int, xs::Var...)
-    concat(dim::Int, xs::Vector{Var})
-
-Concatenate arrays along the given dimension.
-"""
-concat(dim::Int, args::Vector{Var}) = forward(Concat(dim), args)
-concat(dim::Int, args::Var...) = concat(dim, [args...])

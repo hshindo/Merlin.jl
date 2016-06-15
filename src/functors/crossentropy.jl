@@ -1,20 +1,5 @@
 export crossentropy
 
-type CrossEntropy <: Functor
-  p
-  logx
-end
-
-function forward{T<:Number}(f::CrossEntropy, x::Array{T})
-  logx = logsoftmax(x)
-  y = crossentropy(f.p, logx)
-  CrossEntropy(f.p,logx), y
-end
-
-function backward!(f::CrossEntropy, x, gx, y, gy::Array)
-  ∇crossentropy!(f.p, f.logx, gx, gy)
-end
-
 doc"""
     crossentropy(p, x::Var)
 
@@ -34,6 +19,21 @@ y = crossentropy(p, x)
 ```
 """
 crossentropy(p, x::Var) = forward(CrossEntropy(p,nothing), x)
+
+type CrossEntropy
+  p
+  logx
+end
+
+@compat function (f::CrossEntropy)(x)
+  logx = logsoftmax(x)
+  y = crossentropy(f.p, logx)
+  CrossEntropy(f.p,logx), y
+end
+
+function backward!(f::CrossEntropy, x, gx, y, gy::Array)
+  ∇crossentropy!(f.p, f.logx, gx, gy)
+end
 
 function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
   y = Array(T, 1, size(p,2))

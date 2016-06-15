@@ -49,7 +49,6 @@ for name in [
   "max",
   "reshape",
   "softmax",
-  "sum",
   "window2d"
   ]
   include("functors/$(name).jl")

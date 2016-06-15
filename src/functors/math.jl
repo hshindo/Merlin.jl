@@ -1,11 +1,16 @@
 import Base: +, .+, -, .-, *, .*
 
-type Plus <: Functor; end
-type ElemPlus <: Functor; end
-type Minus <: Functor; end
-type ElemMinus <: Functor; end
-type Times <: Functor; end
-type ElemTimes <: Functor; end
+type Plus
+  a
+end
+
+type ElemPlus; end
+type Minus; end
+type ElemMinus; end
+type Times
+  a
+end
+type ElemTimes; end
 
 for op in [:+, :-, :*]
   @eval begin

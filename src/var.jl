@@ -20,24 +20,28 @@ end
 Base.getindex(v::Var, key) = v.args[key]
 Base.setindex!(v::Var, value, key) = v.args[key] = value
 
-function init(f::Functor, args::Tuple)
+function forward(f, args::Var...)
   any(a -> typeof(a.value) == Symbol, args) && return Var(Symbol(), f, args)
-  f, y = forward(f, args...)
+  f, y = f(args...)
   Var(y, f, args)
 end
 
-function forward(f::Functor, args::Vector{Var})
+function forward{T<:Var}(f, args::Vector{T})
   any(a -> typeof(a.value) == Symbol, args) && return Var(Symbol(), f, args)
-  f, y = forward(f, map(a -> a.value, args))
+  f, y = f(map(a -> a.value, args))
   Var(y, f, args)
 end
 
-function backward!(f::Functor, y::Var)
-  if typeof(y.args) <: Tuple
-    backward!(f, y.args..., y)
-  else
-    throw("error")
-  end
+function backward!(y::Var, args::Tuple)
+  xs = map(a -> a.value, y.args)
+  gxs = map(a -> a.grad, y.args)
+  backward!(y.f, xs..., gxs..., y, y.grad)
+end
+
+function backward!(y::Var, args::Vector)
+  xs = map(a -> a.value, y.args)
+  gxs = map(a -> a.grad, y.args)
+  backward!(y.f, xs, gxs, y, y.grad)
 end
 
 function gradient!(top::Var)
