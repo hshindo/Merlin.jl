@@ -19,6 +19,7 @@ Compute the sum along the given dimensions.
 sum(x::Var, dim::Int) = forward(Sum(dim), [x])
 
 function ∇sum!{T,N}(gx::Array{T,N}, gy::Array{T,N})
+  # TODO: avoid memory allocation for (gx + gy)
   broadcast!(+, gx, gx, gy)
 end
 
