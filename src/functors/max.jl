@@ -1,11 +1,18 @@
 import Base.max
 
-type Max <: Functor
+"""
+    max(x::Var, dim::Int)
+
+Compute the maximum value along the given dimensions.
+"""
+max(x::Var, dim::Int) = forward(Max(dim,nothing), x)
+
+type Max
   dim::Int
   idx
 end
 
-function forward{T<:Number}(f::Max, x::Array{T})
+@compat function (f::Max){T}(x::Array{T})
   y, idx = findmax(x, f.dim)
   Max(f.dim,idx), y
 end
@@ -19,13 +26,5 @@ function backward!{T}(f::Max, x, gx::Array{T}, y, gy::Array{T})
 end
 
 function backward!(f::Max, x, gx::CuArray, y, gy::CuArray)
-  isempty(gx) && return
   throw("Not implemented yet.")
 end
-
-"""
-    max(x::Var, dim::Int)
-
-Compute the maximum value along the given dimensions.
-"""
-max(x::Var, dim::Int) = forward(Max(dim,nothing), x)

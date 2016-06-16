@@ -53,20 +53,24 @@ julia> Pkg.clone("https://github.com/hshindo/CUDNN.jl.git")
 Basically,
 
 1. Wrap your data with `Var`.
-2. Apply functions to `Var`s. `Var` memorizes a history of functional applications for backpropagation.
+2. Apply functions to `Var`s. `Var` memorizes a history of functional applications for auto-differentiation.
 
-This is an example:
+Here is a quick example of three-layer network:
 ```julia
 using Merlin
 
-x = Var(rand(Float32,10,5))
-f = Linear(Float32,10,7)
-y = f(x)
+x1 = Var(rand(Float32,10,5))
+f1 = LinearFun(Float32,10,7)
+f2 = LinearFun(Float32,7,3)
+y = x |> f1 |> relu |> f2 # or y = f2(relu(f1(x)))
+
+y.grad = rand(Float32,size(y))
+diff!(y)
 ```
 
 ### Example: Feed-Forward Neural Network
-Static network is recommended to be constructed by `@graph` macro.
-For example, a three-layer network (Linear -> relu -> linear) can be constructed as follows:
+Static network should be constructed by `@graph` macro.
+For example, a three-layer network can be constructed as follows:
 ```julia
 f = @graph begin
   T = Float32
@@ -76,10 +80,10 @@ f = @graph begin
   x = Linear(T,7,3)(x)
   x
 end
-x = Var(rand(Float32,10,5)) # input variable
-y = f(:x=>x) # output variable
+x = Var(rand(Float32,10,5))
+y = f(:x=>x)
 ```
-where `Var(:<name>)` is a place-holder of input variable.
+where `Var(:<name>)` is a place-holder of input var.
 
 ### Example: Convolutional Neural Network
 ```julia

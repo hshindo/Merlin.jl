@@ -1,13 +1,13 @@
 export softmax, logsoftmax
 
-type Softmax <: Functor; end
-type LogSoftmax <: Functor; end
+type Softmax; end
+type LogSoftmax; end
 
 doc"""
     softmax(x)
 
 Compute softmax along the second axis.
-Currently, 2-d is supported.
+Currently, only 2-d is supported.
 
 $ p(x) = {\exp(f(x)) \over \sum_{x_2} \exp(f(x))} $
 """
@@ -17,17 +17,18 @@ softmax(x::Var) = forward(Softmax(), x)
     logsoftmax(x)
 
 Compute logarithm of softmax along the second axis.
-Currently, 2-d is supported.
+Currently, only 2-d is supported.
 """
 logsoftmax(x::Var) = forward(LogSoftmax(), x)
 
-forward{T<:Number}(f::Softmax, x::Matrix{T}) = f, softmax(x)
-forward{T<:Number}(f::LogSoftmax, x::Matrix{T}) = f, logsoftmax(x)
+@compat (f::Softmax){T}(x::Matrix{T}) = f, softmax(x)
 
-function forward(f::Softmax, x::CuArray)
+@compat (f::LogSoftmax){T}(x::Matrix{T}) = f, logsoftmax(x)
+
+@compat function (f::Softmax)(x::CuArray)
   CUDNN.softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x, similar(x))
 end
-function forward(f::LogSoftmax, x::CuArray)
+@compat function (f::LogSoftmax)(x::CuArray)
   CUDNN.softmax!(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, x, similar(x))
 end
 
@@ -45,7 +46,7 @@ function backward!{T}(f::Softmax, x, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
   end
 end
 
-function backward!(f::Softmax, x, gx, y, gy::CuArray)
+function backward!(f::Softmax, x, gx::CuArray, y, gy)
   isempty(gx) && return
   CUDNN.∇softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
 end
@@ -63,44 +64,12 @@ function backward!{T}(f::LogSoftmax, x, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{
   end
 end
 
-function softmax{T}(x::Matrix{T})
-  y = similar(x)
-  max = maximum(x, 1)
-  for j = 1:size(x,2)
-    z = T(0)
-    @inbounds @simd for i = 1:size(x,1)
-      z += exp(x[i,j] - max[j])
-    end
-    z == T(0) && error("z == 0")
-    @inbounds @simd for i = 1:size(x,1)
-      y[i,j] = exp(x[i,j] - max[j]) / z
-    end
-  end
-  y
-end
-
 function ∇softmax2!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
   # d yi / d xj = yi * (delta (i=j) - yj)
   g = y .* gy
   sumdx = sum(g, 1)
   g -= y .* sumdx
   copy!(gx, g)
-end
-
-function logsoftmax{T}(x::Matrix{T})
-  y = similar(x)
-  max = maximum(x, 1)
-  for j = 1:size(x,2)
-    sum = T(0)
-    @inbounds @simd for i = 1:size(x,1)
-      sum += exp(x[i,j] - max[j])
-    end
-    logz = log(sum)
-    @inbounds @simd for i = 1:size(x,1)
-      y[i,j] = x[i,j] - max[j] - logz
-    end
-  end
-  y
 end
 
 # experimental JIT compile

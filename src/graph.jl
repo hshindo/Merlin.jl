@@ -54,7 +54,7 @@ end
 Construct a static network from `var`.
 
 ## 👉 Example
-Here is an example of constructing a three-layer network.
+Here is an example of three-layer network.
 ```julia
 f = @graph begin
   T = Float32

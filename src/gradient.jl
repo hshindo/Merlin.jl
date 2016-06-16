@@ -1,4 +1,4 @@
-export checkgrad
+export checkgrad, @checkgrad
 
 function topsort(var::Var)
   sorted = Var[]

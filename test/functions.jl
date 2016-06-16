@@ -7,8 +7,6 @@ const T = Float64
     @test checkgrad(() -> f(x), x)
   end
 
-  #cux = Var(CuArray(x.value))
-
   x1 = Var(rand(T,10,5,2))
   x2 = Var(rand(T,10,5,2))
   x3 = Var(rand(T,10,5,2))
@@ -19,7 +17,7 @@ const T = Float64
   p = [1:5;]
   x = Var(rand(Float32,10,5))
   @test checkgrad(() -> crossentropy(p,x), x)
-
+#=
   x = Var(rand(T,10,5))
   f = Linear(T, 10, 7)
   f.b = param(rand(T, size(f.b.value)))
@@ -57,4 +55,5 @@ const T = Float64
   #x = Var(rand(T,10,5))
   #@test checkgrad(() -> sum(x,1), x)
   #@test checkgrad(() -> sum(x,2), x)
+  =#
 end

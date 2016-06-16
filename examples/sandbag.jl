@@ -8,7 +8,45 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
-x = zerograd(rand(Float32,10,5))
+function plus{T,N}(xs::Vector{Array{T,N}})
+  length(xs) == 1 && return f, (f.a[1] .* xs[1])
+  maxi, maxlen = 1, length(xs[1])
+  for i = 2:length(xs)
+    length(xs[i]) <= maxlen && continue
+    maxi = i
+    maxlen = length(xs[i])
+  end
+
+  y = zeros(xs[maxi])
+  for i = 1:length(xs)
+    x = xs[i]
+    n = length(x)
+    for k = 1:n:length(y)
+      BLAS.axpy!(n, T(1), pointer(x,k), stride(x,1), pointer(y), stride(y,1))
+    end
+  end
+  y
+end
+
+function bench()
+  x1 = Var(rand(Float32,20,10))
+  x2 = Var(rand(Float32,10,10))
+  x3 = Var(rand(Float32,5,10))
+  for i = 1:10000
+    #x1 * x2
+    x1.value * x2.value
+    #x1 + x2 + x3
+    #forward(Merlin.Plus([1,1,1]), [x1,x2,x3])
+  end
+end
+@time bench()
+
+x = Var(rand(Float32,3))
+macroexpand(:(@checkgrad relu x)) |> println
+@checkgrad relu x x
+
+macroexpand(@checkgrad relu x)
+
 y = relu(x)
 gradient!(y)
 
@@ -71,28 +109,6 @@ f = Linear(Float32,10,7)
 f(x)
 
 x = [param(rand(Float32,100,100)) for i=1:10]
-
-function a1(args::Int...)
-  x = rand(Int,100)
-  a = 0
-  for aa in args
-    a += aa
-  end
-  for xx in x
-    a += xx
-  end
-end
-
-function a2(args::Vector{Int})
-  x = rand(Int,100)
-  a = 0
-  for aa in args
-    a += aa
-  end
-  for xx in x
-    a += xx
-  end
-end
 
 function bench()
   r1 = [1,2,3,4]

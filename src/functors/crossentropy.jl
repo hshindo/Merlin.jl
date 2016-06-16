@@ -35,6 +35,10 @@ function backward!(f::CrossEntropy, x, gx, y, gy::Array)
   ∇crossentropy!(f.p, f.logx, gx, gy)
 end
 
+function backward!(f::CrossEntropy, x, gx, y, gy::CuArray)
+  throw("Not implemented yet.")
+end
+
 function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
   y = Array(T, 1, size(p,2))
   for j = 1:size(p,2)

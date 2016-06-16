@@ -6,9 +6,6 @@ const WINDOW2D_BWD_F32 = Libdl.dlsym(library, :window2d_bwd_f32)
 const WINDOW2D_FWD_F64 = Libdl.dlsym(library, :window2d_fwd_f64)
 const WINDOW2D_BWD_F64 = Libdl.dlsym(library, :window2d_bwd_f64)
 
-handle(::Conv{2}, ::Type{Float32}) = WINDOW2D_FWD_F32, WINDOW2D_BWD_F32
-handle(::Conv{2}, ::Type{Float64}) = WINDOW2D_FWD_F64, WINDOW2D_BWD_F64
-
 """
     ConvFun(w, x; [stride, pad])
     ConvFun(channel, filter, [stride, pad])
@@ -24,22 +21,21 @@ N-dimensional convolution function.
 ## 👉 Example
 ```julia
 x = Var(rand(Float32,5,4,3,2))
-w = Var(rand(Float32,2,2,3,4))
-y = conv(w, x, stride=(1,1), pad=(0,0))
+f = ConvFun(rand(Float32,2,2,3,4), stride=(1,1), pad=(0,0))
+y = f(x)
 ```
 """
 type ConvFun
-  w
+  w::Var
   stride
   pad
 end
 
-function ConvFun{T}(::Type{T}, channel::Tuple{Int,Int}, filter, stride=(), pad=())
-  w = Array(T, filter..., channel...)
+function ConvFun(w::Array, stride=(), pad=())
   N = ndims(w) - 2
   length(stride) == 0 && (stride = ntuple(_->1, N))
   length(pad) == 0 && (pad = ntuple(_->0, N))
-  ConvFun(w, stride, pad)
+  ConvFun(Var(w), stride, pad)
 end
 
 @compat (f::ConvFun)(x::Var) = forward(Conv(f.stride,f.pad), f.w, f.x)
@@ -50,12 +46,16 @@ type Conv{N}
   pad::NTuple{N,Int}
 end
 
+handle(::Conv{2}, ::Type{Float32}) = WINDOW2D_FWD_F32, WINDOW2D_BWD_F32
+handle(::Conv{2}, ::Type{Float64}) = WINDOW2D_FWD_F64, WINDOW2D_BWD_F64
+
 @compat function (f::Conv{N}){T,N}(w::Array{T}, x::Array{T})
+  @assert ndims(w) == ndims(x) == N+2
   outdims = outsize(f, w, x)
   work = im2col(f, w, x, outdims)
   w = reshape(w, size(work,2), size(w,N+2))
   y = similar(x, size(work,1), size(w,2), size(work,3))
-  for i = 1:size(x,4)
+  for i = 1:size(x,N+2)
     BLAS.gemm!('N', 'N', T(1), slice(work,:,:,i), w, T(0), slice(y,:,:,i))
   end
   y = reshape(y, outdims..., size(y,2), size(y,3))
@@ -64,7 +64,23 @@ end
 
 @compat function (f::Conv){T}(w::CuArray{T}, x::CuArray{T})
   desc = ConvolutionDesc(T, f.pad, f.stride)
-  convolution(x, w, desc)
+  f, convolution(x, w, desc)
+end
+
+function backward!{T,N}(f::Conv{N}, w::Array{T}, x::Array{T},
+  gw::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
+
+  work, gwork = f.work, zeros(f.work)
+  for i = 1:size(x,N+2)
+    ∇times!(slice(work), w, slice(gwork), gw, slice(y), slice(gy))
+  end
+  col2im!(f, gx, gwork)
+end
+
+function backward!{T}(f::Conv, x, gx, y, gy::CuArray{T})
+  convdesc = ConvolutionDesc(T, f.pad, f.stride)
+  isempty(gw) || ∇convolution_filter!(x, gy, convdesc, gw)
+  isempty(gx) || ∇convolution_data!(w, gy, convdesc, gx)
 end
 
 function outsize{N}(f::Conv{N}, w::Array, x::Array)
@@ -86,39 +102,12 @@ function im2col{T,N}(f::Conv{N}, w::Array{T}, x::Array{T}, outdims::Vector{Int})
   y
 end
 
-function ∇im2col!{T}(gx::Matrix{T}, gy::Matrix{T})
-  filter = [size(w,i) for i=1:N]
-  h = handle(Conv{N},T)[2]
+function col2im!{T,N}(f::Conv{N}, gx::Array{T}, gy::Array{T})
+  window = [size(w,i) for i=1:N]
+  h = handle(f,T)[2]
   xsize = Cint[size(x,i) for i=1:N+1]
   xsize[N+1] *= size(x, N+2)
-  params = Cint[filter..., stride..., pad...]
+  params = Cint[window..., stride..., pad...]
   ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Ptr{Cint}), gx, gy, xsize, params)
   gx
-end
-
-@compat function (f::Conv){T}(w::CuArray{T}, x::CuArray{T})
-  desc = ConvolutionDesc(T, f.pad, f.stride)
-  convolution(x, w, desc)
-end
-
-function backward!{T}(f::Conv, w::Array{T}, x::Array{T}, y, gy)
-
-end
-
-function backward!{T}(f::Conv, y, gy::Array{T}, x, gx::Array{T})
-  gwork = similar()
-  for i = 1:size(x,4)
-    gy = slice(gy,:,:,i)
-    BLAS.gemm!('N', 'T', T(1), gy, slice(x,:,:,i), T(1), gw)
-    BLAS.gemm!('T', 'N', T(1), slice(w), gy, T(1), gwork)
-    #isempty(gw) || BLAS.gemm!('N', 'T', T(1), gy, x, T(1), gw)
-    #isempty(gx) || BLAS.gemm!('T', 'N', T(1), w, gy, T(1), gx)
-  end
-  ∇window!(gx, gwork)
-end
-
-function backward!{T}(f::Conv, x, gx, y, gy::CuArray{T})
-  convdesc = ConvolutionDesc(T, f.pad, f.stride)
-  isempty(gw) || ∇convolution_filter!(x, gy, convdesc, gw)
-  isempty(gx) || ∇convolution_data!(w, gy, convdesc, gx)
 end

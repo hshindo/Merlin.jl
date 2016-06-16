@@ -6,7 +6,7 @@ export concat
 
 Concatenate arrays along the given dimension.
 """
-concat{T<:Var}(dim::Int, args::Vector{T}) = forward(Concat(dim), args)
+concat(dim::Int, args::Vector{Var}) = forward(Concat(dim), args)
 concat(dim::Int, args::Var...) = concat(dim, [args...])
 
 type Concat

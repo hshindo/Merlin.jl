@@ -36,8 +36,6 @@ end
 
 type Linear; end
 
-@compat(f::Linear)(w::Var, b::Var, x::Var) = forward(f, (w,b,x))
-
 @compat function (f::Linear){T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})
   y = w * x
   broadcast!(.+, y, y, b)
@@ -48,14 +46,10 @@ end
   throw("Not implemented yet.")
 end
 
-function backward!{T}(f::Linear, vw::Var{Matrix{T}}, vb::Var{Vector{T}}, vx::Var{Matrix{T}})
-  y, gy = data(vy)
-  b, gb = data(vb)
-  x, gx = data(vx)
-  if isdefined(vw, :grad)
-    w, gw = data(vw)
-    BLAS.gemm!('N', 'T', T(1), gy, x, T(1), gw)
-  end
+function backward!{T}(f::Linear, w::Matrix{T}, b::Vector{T}, x::Matrix{T},
+  gw::Matrix{T}, gb::Vector{T}, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
+
+  isempty(gw) || BLAS.gemm!('N', 'T', T(1), gy, x, T(1), gw)
   isempty(gx) || BLAS.gemm!('T', 'N', T(1), w, gy, T(1), gx)
   for offset = 1:length(b):length(gy)
     BLAS.axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
