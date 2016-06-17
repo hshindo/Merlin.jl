@@ -1,79 +1,66 @@
 export crossentropy
 
 doc"""
-    crossentropy(p, x::Var)
+    crossentropy(p::Var, x::Var)
 
 Compute cross-entropy between two distributions $p$ and $x$.
 
 $ f(p,x)=-∑_{i} p_{i} \log x_{i} $
 
 ## Arguments
-* p: `Vector{Int}` or `Matrix{Float}`. p must be normalized.
+* p: var of `Vector{Int}` or `Matrix{Float}`. p must be normalized.
 * x: var of `Matrix{Float}`.
 
 ### 👉 Example
 ```julia
-p = [1:5;]
+p = Var([1:5;])
 q = Var(rand(Float32,10,5))
-y = crossentropy(p, x)
+y = crossentropy(p, q)
 ```
 """
-crossentropy(p, x::Var) = forward(CrossEntropy(p,nothing), x)
-
-type CrossEntropy
-  p
-  logx
+function crossentropy(p::Var, q::Var)
+  @checkargs crossentropy (p,q)
+  logq = logsoftmax(q.value)
+  y = crossentropy(p.value, logq)
+  df(gy) = hasgrad(q) && ∇crossentropy!(p.value, logq, q.grad, gy)
+  Var(y, df, [q])
 end
 
-@compat function (f::CrossEntropy)(x)
-  logx = logsoftmax(x)
-  y = crossentropy(f.p, logx)
-  CrossEntropy(f.p,logx), y
-end
-
-function backward!(f::CrossEntropy, x, gx, y, gy::Array)
-  ∇crossentropy!(f.p, f.logx, gx, gy)
-end
-
-function backward!(f::CrossEntropy, x, gx, y, gy::CuArray)
-  throw("Not implemented yet.")
-end
-
-function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
+function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
   y = Array(T, 1, size(p,2))
   for j = 1:size(p,2)
     s = T(0)
     @inbounds @simd for i = 1:size(p,1)
-      s += -p[i,j] * logx[i,j]
+      s += -p[i,j] * logq[i,j]
     end
     y[j] = s
   end
   y
 end
 
-function crossentropy{T}(p::Vector{Int}, logx::Matrix{T})
+function crossentropy{T}(p::Vector{Int}, logq::Matrix{T})
   y = Array(T, 1, length(p))
   @inbounds @simd for j = 1:length(p)
-    y[j] = -logx[p[j],j]
+    y[j] = -logq[p[j],j]
   end
   y
 end
 
-function ∇crossentropy!{T}(p::Matrix{T}, logx::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
+function ∇crossentropy!{T}(p::Matrix{T}, logq::Matrix{T}, gq::Matrix{T}, gy::Matrix{T})
   for j = 1:size(p,2)
     g = gy[j]
     @inbounds @simd for i = 1:size(p,1)
-      gx[i,j] += g * (exp(logx[i,j]) - p[i,j])
+      gq[i,j] += g * (exp(logq[i,j]) - p[i,j])
     end
   end
 end
 
-function ∇crossentropy!{T}(p::Vector{Int}, logx::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
+function ∇crossentropy!{T}(p::Vector{Int}, logq::Matrix{T}, gq::Matrix{T}, gy::Matrix{T})
   for j = 1:length(p)
     g = gy[j]
-    @inbounds @simd for i = 1:size(logx,1)
+    @inbounds @simd for i = 1:size(logq,1)
       delta = ifelse(i == p[j], T(1), T(0))
-      gx[i,j] += g * (exp(logx[i,j]) - delta)
+      gq[i,j] += g * (exp(logq[i,j]) - delta)
     end
   end
 end

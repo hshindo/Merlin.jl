@@ -1,4 +1,4 @@
-export argmax
+export argmax, @fastmap
 
 function argmax(x, dim::Int)
   _, index = findmax(x, dim)
@@ -20,34 +20,25 @@ empty{T}(::Type{Array{T,4}}) = Array(T, 0, 0, 0, 0)
 empty{T}(::Type{Array{T,5}}) = Array(T, 0, 0, 0, 0, 0)
 empty{T}(::Type{Array{T,6}}) = Array(T, 0, 0, 0, 0, 0, 0)
 
-function softmax{T}(x::Matrix{T})
-  y = similar(x)
-  max = maximum(x, 1)
-  for j = 1:size(x,2)
-    z = T(0)
-    @inbounds @simd for i = 1:size(x,1)
-      z += exp(x[i,j] - max[j])
-    end
-    z == T(0) && error("z == 0")
-    @inbounds @simd for i = 1:size(x,1)
-      y[i,j] = exp(x[i,j] - max[j]) / z
-    end
-  end
-  y
+export fastexp!, normalexp!
+const FASTEXP_F32 = Libdl.dlsym(library, :fastexp)
+const NORMALEXP_F32 = Libdl.dlsym(library, :normalexp)
+function fastexp!{T}(x::Vector{T}, y::Vector{T})
+  ccall(FASTEXP_F32, Void, (Ptr{T}, Ptr{T}, Cint), x, y, length(x))
+end
+function normalexp!{T}(x::Vector{T}, y::Vector{T})
+  ccall(NORMALEXP_F32, Void, (Ptr{T}, Ptr{T}, Cint), x, y, length(x))
 end
 
-function logsoftmax{T}(x::Matrix{T})
-  y = similar(x)
-  max = maximum(x, 1)
-  for j = 1:size(x,2)
-    sum = T(0)
-    @inbounds @simd for i = 1:size(x,1)
-      sum += exp(x[i,j] - max[j])
+macro fastmap(f, T, src)
+  quote
+    local src = $(esc(src))
+    local f = $(esc(f))
+    local T = $(esc(T))
+    dest = Array(T, length(src))
+    for i = 1:length(src)
+      dest[i] = f(src[i])
     end
-    logz = log(sum)
-    @inbounds @simd for i = 1:size(x,1)
-      y[i,j] = x[i,j] - max[j] - logz
-    end
+    dest
   end
-  y
 end

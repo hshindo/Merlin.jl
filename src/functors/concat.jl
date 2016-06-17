@@ -6,15 +6,21 @@ export concat
 
 Concatenate arrays along the given dimension.
 """
-concat(dim::Int, args::Vector{Var}) = forward(Concat(dim), args)
+concat(dim::Int, args::Vector{Var}) = Concat(dim)(args)
 concat(dim::Int, args::Var...) = concat(dim, [args...])
 
 type Concat
   dim::Int
 end
 
-@compat function (f::Concat){T,N}(xs::Vector{Array{T,N}})
-  dim = f.dim
+@compat function (f::Concat)(xs::Vector{Var})
+  @checkargs f xs
+  y = concat(f.dim, map(x -> x.value, xs))
+  df(gy) = ∇concat!(f.dim, map(x -> x.grad, xs), gy)
+  Var(y, df, xs)
+end
+
+function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
   sum = 0
   for x in xs
     sum += size(x, dim)
@@ -31,15 +37,14 @@ end
     y[range...] = x
     offset += s
   end
-  f, y
+  y
 end
 
-@compat function (f::Concat){T<:CuArray}(xs::Vector{T})
+function concat{T<:CuArray}(dim::Int, xs::Vector{T})
   throw("Not implemented yet.")
 end
 
-function backward!{T,N}(f::Concat, xs, gxs::Vector{Array{T,N}}, y, gy::Array{T,N})
-  dim = f.dim
+function ∇concat!{T,N}(dim::Int, gxs::Vector{Array{T,N}}, gy::Array{T,N})
   range = map(s -> 1:s, [size(gy)...])
   offset = 1
   for gx in gxs

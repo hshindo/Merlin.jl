@@ -1,8 +1,5 @@
 export softmax, logsoftmax
 
-type Softmax; end
-type LogSoftmax; end
-
 doc"""
     softmax(x)
 
@@ -11,29 +8,35 @@ Currently, only 2-d is supported.
 
 $ p(x) = {\exp(f(x)) \over \sum_{x_2} \exp(f(x))} $
 """
-softmax(x::Var) = forward(Softmax(), x)
-
-"""
-    logsoftmax(x)
-
-Compute logarithm of softmax along the second axis.
-Currently, only 2-d is supported.
-"""
-logsoftmax(x::Var) = forward(LogSoftmax(), x)
-
-@compat (f::Softmax){T}(x::Matrix{T}) = f, softmax(x)
-
-@compat (f::LogSoftmax){T}(x::Matrix{T}) = f, logsoftmax(x)
-
-@compat function (f::Softmax)(x::CuArray)
-  CUDNN.softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x, similar(x))
-end
-@compat function (f::LogSoftmax)(x::CuArray)
-  CUDNN.softmax!(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, x, similar(x))
+function softmax(x::Var)
+  @checkargs softmax (x,)
+  y = softmax(x.value)
+  df(gy) = hasgrad(x) && ∇softmax!(x.grad, y, gy)
+  Var(y, df, [x])
 end
 
-function backward!{T}(f::Softmax, x, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
-  isempty(gx) && return
+function softmax{T}(x::Matrix{T})
+  y = similar(x)
+  max = maximum(x, 1)
+  for j = 1:size(x,2)
+    z = T(0)
+    @inbounds @simd for i = 1:size(x,1)
+      z += exp(x[i,j] - max[j])
+    end
+    z == T(0) && error("z == 0")
+    invz = 1 / z
+    @inbounds @simd for i = 1:size(x,1)
+      y[i,j] = exp(x[i,j] - max[j]) * invz
+    end
+  end
+  y
+end
+
+function softmax(x::CuArray)
+  softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x, similar(x))
+end
+
+function ∇softmax!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
   # d yj / d xi = yj * (delta (i=j) - yi)
   for d = 1:size(gx,2)
     for i = 1:size(gx,1)
@@ -46,12 +49,52 @@ function backward!{T}(f::Softmax, x, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
   end
 end
 
-function backward!(f::Softmax, x, gx::CuArray, y, gy)
-  isempty(gx) && return
-  CUDNN.∇softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
+function ∇softmax2!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
+  # d yi / d xj = yi * (delta (i=j) - yj)
+  g = y .* gy
+  sumdx = sum(g, 1)
+  g -= y .* sumdx
+  broadcast!(+, gx, gx, g)
 end
 
-function backward!{T}(f::LogSoftmax, x, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
+function ∇softmax!(gx::CuArray, y::CuArray, gy::CuArray)
+  ∇softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
+end
+
+"""
+    logsoftmax(x)
+
+Compute logarithm of softmax along the second axis.
+Currently, only 2-d is supported.
+"""
+function logsoftmax(x::Var)
+  @checkargs logsoftmax (x,)
+  y = logsoftmax(x.value)
+  df(gy) = hasgrad(x) && ∇logsoftmax!(x.grad, y, gy)
+  Var(y, df, [x])
+end
+
+function logsoftmax{T}(x::Matrix{T})
+  y = similar(x)
+  max = maximum(x, 1)
+  for j = 1:size(x,2)
+    sum = T(0)
+    @inbounds @simd for i = 1:size(x,1)
+      sum += exp(x[i,j] - max[j])
+    end
+    logz = log(sum)
+    @inbounds @simd for i = 1:size(x,1)
+      y[i,j] = x[i,j] - max[j] - logz
+    end
+  end
+  y
+end
+
+function logsoftmax(x::CuArray)
+  softmax!(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, x, similar(x))
+end
+
+function ∇logsoftmax!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
   # d yj / d xi = delta(i=j) - exp(yi)
   for d = 1:size(gx,2)
     for i = 1:size(gx,1)
@@ -62,14 +105,6 @@ function backward!{T}(f::LogSoftmax, x, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{
       end
     end
   end
-end
-
-function ∇softmax2!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
-  # d yi / d xj = yi * (delta (i=j) - yj)
-  g = y .* gy
-  sumdx = sum(g, 1)
-  g -= y .* sumdx
-  copy!(gx, g)
 end
 
 # experimental JIT compile

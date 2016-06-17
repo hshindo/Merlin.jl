@@ -8,36 +8,61 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
-function plus{T,N}(xs::Vector{Array{T,N}})
-  length(xs) == 1 && return f, (f.a[1] .* xs[1])
-  maxi, maxlen = 1, length(xs[1])
-  for i = 2:length(xs)
-    length(xs[i]) <= maxlen && continue
-    maxi = i
-    maxlen = length(xs[i])
-  end
+T = Float32
+x1 = Var(rand(T,10,5))
+x3 = Var(rand(T,10,1))
+x1 + x3
 
-  y = zeros(xs[maxi])
-  for i = 1:length(xs)
-    x = xs[i]
-    n = length(x)
-    for k = 1:n:length(y)
-      BLAS.axpy!(n, T(1), pointer(x,k), stride(x,1), pointer(y), stride(y,1))
-    end
+v = Var(rand(10))
+relu(v)
+v = Var(:x)
+relu(v)
+
+function bench()
+  x = rand(Float32,10000)
+  y = similar(x)
+  for i = 1:1000
+    normalexp!(x, y)
+    #fastexp!(x, y)
   end
-  y
+end
+
+@time bench()
+
+function times{T}(xs::Vector{Matrix{T}})
+  Var(xs[1] * xs[2]), nothing
+end
+function times{T}(x1::Matrix{T}, x2::Matrix{T})
+  Var(x1 * x2), nothing
 end
 
 function bench()
-  x1 = Var(rand(Float32,20,10))
-  x2 = Var(rand(Float32,10,10))
-  x3 = Var(rand(Float32,5,10))
-  for i = 1:10000
-    #x1 * x2
-    x1.value * x2.value
+  vars = [Merlin.Var2(rand(Float32,5,5)) for i=1:100]
+  for i = 1:100000
+    xs = @fastmap (v -> v.value) Array{Float32,2} vars
+    #xs = Array(Array{Float32,2}, length(vars))
+    #for j = 1:length(vars)
+    #  xs[j] = vars[j].value
+    #end
+    #xs = map(v -> v.value, vars)
+  end
+  #x1 = Var(rand(Float32,20,10))
+  #x2 = Var(rand(Float32,10,10))
+  #x3 = Var(rand(Float32,5,10))
+  #=
+  for i = 1:100000
+    args = [x1,x2]
+    any(v -> typeof(v.value) <: Symbol, args) && continue
+    a = []
+    for i = 1:2
+      push!(a, args[i].value)
+    end
+    times(a...)
+    #Var(x1.value * x2.value)
     #x1 + x2 + x3
     #forward(Merlin.Plus([1,1,1]), [x1,x2,x3])
   end
+  =#
 end
 @time bench()
 

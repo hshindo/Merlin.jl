@@ -1,4 +1,4 @@
-export checkgrad, @checkgrad
+export checkgrad, @checkgrad, checkdiff
 
 function topsort(var::Var)
   sorted = Var[]
@@ -14,6 +14,10 @@ function topsort(var::Var)
   end
   visit(var)
   sorted
+end
+
+function checkdiff(x1, x2)
+  all(d -> abs(d) < 1e-3, x1-x2)
 end
 
 """

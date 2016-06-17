@@ -1,4 +1,4 @@
-export Linear
+export LinearFun, linear
 
 doc"""
     LinearFun(w::Var, b::Var)
@@ -14,7 +14,7 @@ $ f(x) = w * x + b $
 ## 👉 Example
 ```julia
 x = Var(rand(Float32,10,5))
-f = Linear(Float32, 10, 7)
+f = LinearFun(Float32, 10, 7)
 y = f(x)
 ```
 """
@@ -28,30 +28,31 @@ function LinearFun{T}(::Type{T}, indim::Int, outdim::Int)
   r = rand(outdim, indim) * 2x - x
   w = convert(Matrix{T}, r)
   b = fill(T(0), outdim, 1)
-  LinearFun(zerograd(w), zerograd(b))
+  LinearFun(param(w), param(b))
 end
 
-@compat (f::LinearFun)(x::Var) = Linear()(f.w, f.b, x)
+@compat (f::LinearFun)(x::Var) = linear(f.w, x, f.b)
 
+function linear(w::Var, x::Var, b::Var)
+  @checkargs linear (w,x,b)
+  y = linear(w.value, x.value, b.value)
+  df(gy) = begin
+    T = eltype(gy)
+    hasgrad(w) && BLAS.gemm!('N', 'T', T(1), gy, x.value, T(1), w.grad)
+    hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w.value, gy, T(1), x.grad)
+    #for offset = 1:length(b):length(gy)
+    #  BLAS.axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
+    #end
+  end
+  Var(y, df, [w,x,b])
+end
 
-type Linear; end
-
-@compat function (f::Linear){T}(w::Matrix{T}, b::Vector{T}, x::Matrix{T})
+function linear{T}(w::Matrix{T}, x::Matrix{T}, b::Matrix{T})
   y = w * x
   broadcast!(.+, y, y, b)
-  f, y
+  y
 end
 
-@compat function (f::Linear){T}(w::CuMatrix{T}, b::CuVector{T}, x::CuMatrix{T})
+function linear{T}(w::CuMatrix{T}, x::CuMatrix{T}, b::CuMatrix{T})
   throw("Not implemented yet.")
-end
-
-function backward!{T}(f::Linear, w::Matrix{T}, b::Vector{T}, x::Matrix{T},
-  gw::Matrix{T}, gb::Vector{T}, gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
-
-  isempty(gw) || BLAS.gemm!('N', 'T', T(1), gy, x, T(1), gw)
-  isempty(gx) || BLAS.gemm!('T', 'N', T(1), w, gy, T(1), gx)
-  for offset = 1:length(b):length(gy)
-    BLAS.axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
-  end
 end

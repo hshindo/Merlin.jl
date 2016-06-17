@@ -5,26 +5,21 @@ import Base.max
 
 Compute the maximum value along the given dimensions.
 """
-max(x::Var, dim::Int) = forward(Max(dim,nothing), x)
+max(x::Var, dim::Int) = Max(dim)(x)
 
 type Max
   dim::Int
-  idx
 end
 
-@compat function (f::Max){T}(x::Array{T})
-  y, idx = findmax(x, f.dim)
-  Max(f.dim,idx), y
+@compat function (f::Max)(x::Var)
+  @checkargs f (x,)
+  y, idx = findmax(x.value, f.dim)
+  df(gy) = hasgrad(x) && ∇max!(idx, x.grad, gy)
+  Var(y, df, [x])
 end
 
-function backward!{T}(f::Max, x, gx::Array{T}, y, gy::Array{T})
-  isempty(gx) && return
-  idx = f.idx::Vector{Int}
+function ∇max!{T}(idx::Vector{Int}, gx::Array{T}, gy::Array{T})
   @inbounds @simd for i = 1:length(idx)
     gx[idx[i]] += gy[i]
   end
-end
-
-function backward!(f::Max, x, gx::CuArray, y, gy::CuArray)
-  throw("Not implemented yet.")
 end
