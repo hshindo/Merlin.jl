@@ -20,6 +20,7 @@ empty{T}(::Type{Array{T,4}}) = Array(T, 0, 0, 0, 0)
 empty{T}(::Type{Array{T,5}}) = Array(T, 0, 0, 0, 0, 0)
 empty{T}(::Type{Array{T,6}}) = Array(T, 0, 0, 0, 0, 0, 0)
 
+#=
 export fastexp!, normalexp!
 const FASTEXP_F32 = Libdl.dlsym(library, :fastexp)
 const NORMALEXP_F32 = Libdl.dlsym(library, :normalexp)
@@ -42,3 +43,4 @@ macro fastmap(f, T, src)
     dest
   end
 end
+=#
