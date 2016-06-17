@@ -191,8 +191,16 @@ function backward!(f::ElemTimes, xs, gxs, y, gy::Array)
 end
 
 function ∇elemtimes!{T,N}(x2::Array{T,N}, gx1::Array{T,N}, gy::Array{T,N})
-  @inbounds @simd for i = 1:length(gx1)
-    gx1[i] += gy[i] * x2[i]
+  one_dims = Int[]
+  for (i, n) in enumerate(size(gx1))
+    if n == 1
+      push!(one_dims, i)
+    end
   end
+
+  # TODO: is it possible to avoid memory allocations?
+  g = x2 .* gy  # TODO: this line is slow
+  s = sum(g, one_dims)
+  BLAS.axpy!(T(1), s, gx1)
 end
 =#

@@ -47,6 +47,7 @@ for name in [
   "lookup",
   "math",
   "max",
+  "sum",
   "reshape",
   "softmax",
   "window2d"

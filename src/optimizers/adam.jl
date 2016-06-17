@@ -1,4 +1,4 @@
-export Adam
+export Adam, update!
 
 """
 ## Adam

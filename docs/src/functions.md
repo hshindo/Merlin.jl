@@ -4,5 +4,9 @@
 relu(x)
 sigmoid(x)
 tanh(x)
-crossentropy(p, x::Var)
+concat(dim::Int, xs::Vector{Var})
+crossentropy(p::Var, q::Var)
+reshape(x)
+softmax(x)
+logsoftmax(x)
 ```

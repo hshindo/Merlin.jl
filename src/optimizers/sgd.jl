@@ -1,4 +1,4 @@
-export SGD
+export SGD, update!
 
 """
 Stochastic Gradient Descent.
