@@ -1,10 +1,10 @@
 const T = Float64
 
-@testset "functors" for i = 1:5
+@testset "functions" for i = 1:5
 
   x = Var(rand(T, 10, 5, 1, 3, 4))
   y = Var(rand(T, 1, 5, 1, 1, 4))
-  for f in [.+, .-, .*]
+  for f in [+, -, .*]
     @test checkgrad(() -> f(x, y), x, y)
   end
 
