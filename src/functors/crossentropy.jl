@@ -1,25 +1,15 @@
 export crossentropy
 
-type CrossEntropy; end
-
-@compat function (f::CrossEntropy)(args::Vector{Var})
-  p, q = args[1], args[2]
-  logq = logsoftmax(q.value)
-  y = crossentropy(p.value, logq)
-  df(gy) = hasgrad(q) && ∇crossentropy!(p.value, logq, q.grad, gy)
-  Var(y, df, [q])
-end
-
 doc"""
-    crossentropy(p, q)
+    crossentropy(p::Var, x::Var)
 
-Compute cross-entropy between two distributions $p$ and $q$.
+Compute cross-entropy between two distributions $p$ and $x$.
 
-$ f(p,q)=-∑_{x} p_{x} \log q_{x} $
+$ f(p,x)=-∑_{i} p_{i} \log x_{i} $
 
 ## Arguments
 * p: var of `Vector{Int}` or `Matrix{Float}`. p must be normalized.
-* q: var of `Matrix{Float}`.
+* x: var of `Matrix{Float}`.
 
 ### 👉 Example
 ```julia
@@ -28,7 +18,13 @@ q = Var(rand(Float32,10,5))
 y = crossentropy(p, q)
 ```
 """
-crossentropy(p::Var, q::Var) = forward(CrossEntropy(), [p,q])
+function crossentropy(p::Var, q::Var)
+  @checkargs crossentropy (p,q)
+  logq = logsoftmax(q.value)
+  y = crossentropy(p.value, logq)
+  df(gy) = hasgrad(q) && ∇crossentropy!(p.value, logq, q.grad, gy)
+  Var(y, df, [q])
+end
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
   y = Array(T, 1, size(p,2))

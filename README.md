@@ -16,6 +16,9 @@ Our primary goal is to develop a natural language processing toolkit based on `M
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/v2u1kyjy61ph0ihn/branch/master?svg=true)](https://ci.appveyor.com/project/hshindo/merlin-jl/branch/master)
 
+## Documentation
+[![](https://img.shields.io/badge/docs-latest-blue.svg)](http://hshindo.github.io/Merlin.jl/latest/)
+
 ## Requirements
 - Julia 0.4 or later
 - g++ (for OSX or Linux)
@@ -26,7 +29,7 @@ If you use CUDA GPU, the following is required.
 ## Installation
 First, install [Julia](http://julialang.org/). Currently, version 0.4.x is recommended.
 
-Then, clone the package from here:
+Then, clone the package.
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 ```
@@ -50,16 +53,25 @@ julia> Pkg.clone("https://github.com/hshindo/CUDNN.jl.git")
 Basically,
 
 1. Wrap your data with `Var`.
-2. Apply functions to `Var`s. `Var` memorizes history of function application and use it for backpropagation.
+2. Apply functions to `Var`s. `Var` memorizes a history of functional applications for auto-differentiation.
 
-`Merlin` supports two ways of writing network structure: *declarative* style and *imperative* style.
-
-### Declarative Style
-Static network can be defined by using `@graph` macro.
-For example, a three-layer network can be constructed as follows:
+Here is a quick example of three-layer network:
 ```julia
 using Merlin
 
+x1 = Var(rand(Float32,10,5))
+f1 = LinearFun(Float32,10,7)
+f2 = LinearFun(Float32,7,3)
+y = x |> f1 |> relu |> f2 # or y = f2(relu(f1(x)))
+
+y.grad = rand(Float32,size(y))
+diff!(y)
+```
+
+### Example: Feed-Forward Neural Network
+Static network should be constructed by `@graph` macro.
+For example, a three-layer network can be constructed as follows:
+```julia
 f = @graph begin
   T = Float32
   x = Var(:x)
@@ -68,44 +80,29 @@ f = @graph begin
   x = Linear(T,7,3)(x)
   x
 end
-x = Var(rand(Float32,10,5)) # input variable
-y = f(:x=>x) # output variable
+x = Var(rand(Float32,10,5))
+y = f(:x=>x)
 ```
-where `Var(:<name>)` is a place-holder of input variable.
+where `Var(:<name>)` is a place-holder of input var.
 
-Similarly, GRU (gated recurrent unit) can be constructed as follows:
+### Example: Convolutional Neural Network
 ```julia
-gru = @graph begin
-  T = Float32
-  xsize = 100
-  ws = [param(rand(T,xsize,xsize)) for i=1:3]
-  us = [param(rand(T,xsize,xsize)) for i=1:3]
-  x = Var(:x)
-  h = Var(:h)
-  r = sigmoid(ws[1]*x + us[1]*h)
-  z = sigmoid(ws[2]*x + us[2]*h)
-  h_ = tanh(ws[3]*x + us[3]*(r.*h))
-  h_next = (1 - z) .* h + z .* h_
-  h_next
-end
-x = Var(rand(Float32,100,1))
-h = Var(ones(Float32,100,1))
-y = gru(:x=>x, :h=>h)
 ```
 
-### Imperative Style
-If the network structure is dependent on input data such as recurrent neural networks, imperative style is more intuitive.
-```julia
-using Merlin
+### Example: Recurrent Neural Network
+If the structure or size of neural network is dependent on input data such as recurrent neural networks,
+it is hard to define the whole network structure beforehand.
+In such cases, the standard julia syntax such as `for` and `if` can be used.
 
+```julia
 T = Float32
-f_h = Graph(...) # function for hidden unit
-f_y = Graph(...) # function for output unit
-h = Var(rand(T,100))
-
+f_h = @graph ... # function for hidden unit
+f_y = @graph ... # function for output unit
+h = Var(rand(T,100)) # hidden vector
 for i = 1:10
- x = data[i]
- h = f_h(concat(x,h))
+ x = data[i] # input data
+ c = concat(x, h)
+ h = f_h(c)
  y[i] = f_out(h)
 end
 ```

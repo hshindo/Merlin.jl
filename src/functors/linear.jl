@@ -1,52 +1,58 @@
-export linear, Linear
+export LinearFun, linear
 
-type Linear
+doc"""
+    LinearFun(w::Var, b::Var)
+
+Linear function (a.k.a. affine transformation).
+
+$ f(x) = w * x + b $
+
+## Arguments
+* `w::Var`: weight matrix
+* `b::Var`: bias vector
+
+## 👉 Example
+```julia
+x = Var(rand(Float32,10,5))
+f = LinearFun(Float32, 10, 7)
+y = f(x)
+```
+"""
+type LinearFun
   w::Var
   b::Var
 end
 
-Linear() = Linear(Var(nothing), Var(nothing))
-
-function Linear{T}(::Type{T}, indim::Int, outdim::Int)
+function LinearFun{T}(::Type{T}, indim::Int, outdim::Int)
   x = sqrt(6 / (indim + outdim))
   r = rand(outdim, indim) * 2x - x
   w = convert(Matrix{T}, r)
   b = fill(T(0), outdim, 1)
-  Linear(param(w), param(b))
+  LinearFun(param(w), param(b))
 end
 
-@compat function (f::Linear)(args::Vector{Var})
-  w, b, x = args[1], args[2], args[3]
-  y = w.value * x.value
-  broadcast!(.+, y, y, b.value)
-  function df(gy)
+@compat (f::LinearFun)(x::Var) = linear(f.w, x, f.b)
+
+function linear(w::Var, x::Var, b::Var)
+  @checkargs linear (w,x,b)
+  y = linear(w.value, x.value, b.value)
+  df(gy) = begin
     T = eltype(gy)
     hasgrad(w) && BLAS.gemm!('N', 'T', T(1), gy, x.value, T(1), w.grad)
     hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w.value, gy, T(1), x.grad)
-    for offset = 1:length(b.value):length(gy)
-      BLAS.axpy!(length(b.value), T(1), pointer(gy,offset), stride(gy,1), pointer(b.grad), stride(b.grad,1))
-    end
+    #for offset = 1:length(b):length(gy)
+    #  BLAS.axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
+    #end
   end
-  Var(y, df, [w,b,x])
+  Var(y, df, [w,x,b])
 end
-@compat (f::Linear)(x::Var) = forward(Linear(), [f.w,f.b,x])
 
-doc"""
-    linear(w, x, b)
+function linear{T}(w::Matrix{T}, x::Matrix{T}, b::Matrix{T})
+  y = w * x
+  broadcast!(.+, y, y, b)
+  y
+end
 
-Compute linear function (a.k.a. affine transformation).
-
-$ f(x) = w * x + b $
-where $w$, $x$, $b$ are matrices.
-
-### 👉 Example
-```julia
-x = Var(rand(Float32,10,5))
-f = Linear(Float32,10,7)
-y = f(x)
-```
-"""
-linear(w::Var, x::Var, b::Var) = forward(Linear(), [w,b,x])
-
-mat(a::Array) = reshape(a, size(a, 1), length(a)÷size(a,1))
-isvec(a::Array) = ndims(a) == 2 && size(a, 2) == 1
+function linear{T}(w::CuMatrix{T}, x::CuMatrix{T}, b::CuMatrix{T})
+  throw("Not implemented yet.")
+end

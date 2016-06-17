@@ -1,11 +1,113 @@
 workspace()
-ENV["USE_CUDA"] = false
+ENV["USE_CUDA"] = true
 using Merlin
 using Merlin.Caffe
 using CUDA
 using JLD
 using Base.LinAlg.BLAS
 using Base.Test
+using HDF5
+
+T = Float32
+x1 = Var(rand(T,10,5))
+x3 = Var(rand(T,10,1))
+x1 + x3
+
+v = Var(rand(10))
+relu(v)
+v = Var(:x)
+relu(v)
+
+function bench()
+  x = rand(Float32,10000)
+  y = similar(x)
+  for i = 1:1000
+    normalexp!(x, y)
+    #fastexp!(x, y)
+  end
+end
+
+@time bench()
+
+function times{T}(xs::Vector{Matrix{T}})
+  Var(xs[1] * xs[2]), nothing
+end
+function times{T}(x1::Matrix{T}, x2::Matrix{T})
+  Var(x1 * x2), nothing
+end
+
+function bench()
+  vars = [Merlin.Var2(rand(Float32,5,5)) for i=1:100]
+  for i = 1:100000
+    xs = @fastmap (v -> v.value) Array{Float32,2} vars
+    #xs = Array(Array{Float32,2}, length(vars))
+    #for j = 1:length(vars)
+    #  xs[j] = vars[j].value
+    #end
+    #xs = map(v -> v.value, vars)
+  end
+  #x1 = Var(rand(Float32,20,10))
+  #x2 = Var(rand(Float32,10,10))
+  #x3 = Var(rand(Float32,5,10))
+  #=
+  for i = 1:100000
+    args = [x1,x2]
+    any(v -> typeof(v.value) <: Symbol, args) && continue
+    a = []
+    for i = 1:2
+      push!(a, args[i].value)
+    end
+    times(a...)
+    #Var(x1.value * x2.value)
+    #x1 + x2 + x3
+    #forward(Merlin.Plus([1,1,1]), [x1,x2,x3])
+  end
+  =#
+end
+@time bench()
+
+x = Var(rand(Float32,3))
+macroexpand(:(@checkgrad relu x)) |> println
+@checkgrad relu x x
+
+macroexpand(@checkgrad relu x)
+
+y = relu(x)
+gradient!(y)
+
+w = Var(rand(Float32,2,2,3,4))
+x = Var(rand(Float32,5,4,3,2))
+y = conv(w, x, stride=(1,1), pad=(0,0))
+
+ww = Var(CuArray(w.value))
+xx = Var(CuArray(x.value))
+y = conv(w, x, stride=(1,1), pad=(0,0))
+
+x = param(rand(Float32,10,5))
+y = sigmoid(x)
+gradient!(y)
+x.grad
+
+Merlin.empty(rand(10))
+h5write("C:/Users/shindo/Desktop/test.h5", "A", rand(Float32,10))
+
+type AW
+  dim::Int
+  data::Vector{Int}
+end
+
+a = AW(1, [2,3,4])
+JLD.save("C:/Users/shindo/Desktop/test2.jld", "x", a)
+
+d = Dict("a"=>[1,2,3,4], "b"=>2)
+h5writeattr("C:/Users/shindo/Desktop/test.h5", "nn", d)
+x = h5readattr("C:/Users/shindo/Desktop/test.h5", "nn")
+
+x = Var(rand(10,5))
+y = relu(x)
+x = Var(:x)
+y = relu(x)
+checkgrad(()->relu(x), x)
 
 f = Window2D(2,2,1,1,0,0)
 x = Var(rand(Float32,3,3))
@@ -27,59 +129,19 @@ y = gru(:x=>x, :h=>h)
 y = gru(:x => , :h => Var(rand(Float32,100)))
 y.value
 
-f = @graph begin
-  T = Float32
-  x = Var(:x)
-  x = Linear(T, 10, 5)(x)
-  x = relu(x)
-  x = Linear(T, 5, 3)(x)
-  x
-end
-
-y = f(:x => Var(rand(Float32,10,5)))
-
-y = f((:x,Var(rand(Float32,10,5))))
-
-[1,2,3]
-w = Var(rand(Float32,10,100))
-x = Var([[1 3 5]])
-y = lookup(w, x)
-
 x = Var(rand(Float32,10,5))
 f = Linear(Float32,10,7)
 f(x)
 
 x = [param(rand(Float32,100,100)) for i=1:10]
 
-function a1(arg1::Int, arg2::Int, arg3::Int, arg4::Int)
-  x = rand(Int,100)
-  a = 0
-  for aa in args
-    a += aa
-  end
-  for xx in x
-    a += xx
-  end
-end
-
-function a2(args::Vector{Int})
-  x = rand(Int,100)
-  a = 0
-  for aa in args
-    a += aa
-  end
-  for xx in x
-    a += xx
-  end
-end
-
 function bench()
-  r1 = [1,2,3]
+  r1 = [1,2,3,4]
   #r1 = rand(100,100)
   #r2 = rand(100,100)
   for i = 1:10000
-    #a1(r1...)
-    a2(r1)
+    a1(r1...)
+    #a2(r1)
   end
 end
 

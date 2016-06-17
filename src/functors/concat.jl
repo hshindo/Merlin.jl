@@ -1,23 +1,24 @@
 export concat
 
-type Concat
-  dim::Int
-end
-
-@compat function (f::Concat)(args::Vector{Var})
-  y = concat(f.dim, map(a -> a.value, args))
-  df(gy) = ∇concat!(f.dim, map(a -> a.grad, args), gy)
-  Var(y, df, args)
-end
-
 """
     concat(dim::Int, xs::Var...)
     concat(dim::Int, xs::Vector{Var})
 
 Concatenate arrays along the given dimension.
 """
-concat(dim::Int, xs::Var...) = concat(dim, [xs...])
-concat(dim::Int, xs::Vector{Var}) = forward(Concat(dim), xs)
+concat(dim::Int, args::Vector{Var}) = Concat(dim)(args)
+concat(dim::Int, args::Var...) = concat(dim, [args...])
+
+type Concat
+  dim::Int
+end
+
+@compat function (f::Concat)(xs::Vector{Var})
+  @checkargs f xs
+  y = concat(f.dim, map(x -> x.value, xs))
+  df(gy) = ∇concat!(f.dim, map(x -> x.grad, xs), gy)
+  Var(y, df, xs)
+end
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
   sum = 0
@@ -37,6 +38,10 @@ function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
     offset += s
   end
   y
+end
+
+function concat{T<:CuArray}(dim::Int, xs::Vector{T})
+  throw("Not implemented yet.")
 end
 
 function ∇concat!{T,N}(dim::Int, gxs::Vector{Array{T,N}}, gy::Array{T,N})

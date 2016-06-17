@@ -1,3 +1,5 @@
+export checkgrad, @checkgrad, checkdiff
+
 function topsort(var::Var)
   sorted = Var[]
   dict = ObjectIdDict()
@@ -14,19 +16,8 @@ function topsort(var::Var)
   sorted
 end
 
-function gradient!(var::Var)
-  sorted = topsort(var)
-  hasgrad(var) || (var.grad = ones(var.value))
-  for i = 1:length(sorted)-1 # excludes top
-    v = sorted[i]
-    (hasgrad(v) || isempty(v.args)) && continue
-    v.grad = zeros(v.value)
-  end
-  for i = length(sorted):-1:1
-    v = sorted[i]
-    v.f == nothing || v.f(v.grad)
-  end
-  sorted
+function checkdiff(x1, x2)
+  all(d -> abs(d) < 1e-3, x1-x2)
 end
 
 """

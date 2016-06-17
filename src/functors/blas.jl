@@ -1,9 +1,19 @@
+type SumProduct
+  coeffs::Vector{Float64}
+  ops::Vector{Function}
+end
+
+@compat function (f::SumProduct)(xs::Vector{Var})
+  for i = 1:2:length(xs)
+    xs[i]
+  end
+end
+
 """
 BLAS gemm function:
-```math
-C = \alpha A B + \beta C
-```
-where A, B amd C are matricies
+
+$ C = \alpha A B + \beta C $
+where A, B amd C are matricies.
 """
 type GEMM!
   alpha::Float64
@@ -43,9 +53,7 @@ end
 
 """
 BLAS axpy function:
-```math
-y = \alpha x + y
-```
+$ y = \alpha x + y $
 """
 type AXPY!
   alpha::Float64

@@ -1,25 +1,5 @@
-export Native
-module Native
-
-@windows? begin
-  const libname = "libmerlin.dll"
-end : begin
-  const libname = "libmerlin.so"
-end
-
-const libpath = abspath(joinpath(dirname(@__FILE__), "..", "deps", libname))
-
-try
-  const global library = Libdl.dlopen(libpath)
-catch y
-  println("ERROR: Could not load native extension at $libpath. Try `Pkg.build("Merlin.jl")` to compile native codes.")
-  throw(y)
-end
-
-end
-
 """
-JIT compiler.
+JIT C++ compiler.
 - `src`: source code
 - `sym`: function name
 """

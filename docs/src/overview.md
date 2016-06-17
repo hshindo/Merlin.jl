@@ -16,6 +16,7 @@ x = param(rand(Float32,10,5))
 f = Linear(Float32,10,7)
 y = f(x)
 gradient!(y)
+x.grad
 ```
 
 ## Training
