@@ -22,5 +22,5 @@ script:
   - julia -e 'Pkg.clone(pwd()); Pkg.build("Merlin"); Pkg.test("Merlin"; coverage=true)'
 
 after_success:
-  - julia -e 'Pkg.clone("https://github.com/MichaelHatherly/Documenter.jl")'
+  - julia -e 'Pkg.add("Documenter")'
   - julia -e 'cd(Pkg.dir("Merlin")); include(joinpath("docs", "make.jl"))'
