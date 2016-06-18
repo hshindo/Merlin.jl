@@ -5,7 +5,7 @@ import Base.sum
 
 Compute the sum along the given dimensions.
 """
-sum(x::Var, dim::Int) = forward(Sum(dim), [x])
+sum(x::Var, dim::Int) = Sum(dim)(x)
 
 type Sum
   dim::Int
