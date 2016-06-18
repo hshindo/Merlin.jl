@@ -52,9 +52,9 @@ const T = Float64
   x = Var(rand(T,10,5))
   @test checkgrad(() -> softmax(x), x)
   @test checkgrad(() -> logsoftmax(x), x)
-#=
-  #x = Var(rand(T,10,5))
-  #@test checkgrad(() -> sum(x,1), x)
-  #@test checkgrad(() -> sum(x,2), x)
-  =#
+
+  x = Var(rand(T,10,5))
+  for dim = 1:ndims(x.value)
+    @test checkgrad(() -> sum(x,dim), x)
+  end
 end
