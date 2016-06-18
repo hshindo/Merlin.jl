@@ -1,6 +1,7 @@
 sources = [
   "im2col.cpp",
   "maxpooling2d.cpp",
+  "softmax.cpp",
   "window2d.cpp",
   "window.cpp"]
 

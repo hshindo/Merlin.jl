@@ -1,20 +1,21 @@
 import Base: +, -, .*, *
 
 type Plus
-  as::Vector
+  as::Vector{Float64}
 end
+
 type Times; end
 
-+(x1::Var, x2::Var) = Plus([1,1])([x1,x2])
-+(a::Number, x::Var) = Var([a]) + x
-+(x::Var, a::Number) = x + Var([a])
++(x1::Var, x2::Var) = Plus([1.,1.])([x1,x2])
++(a::Number, x::Var) = Var(Float64[a]) + x
++(x::Var, a::Number) = x + Var(Float64[a])
 
--(x1::Var, x2::Var) = Plus([1,-1])([x1,x2])
--(a::Number, x::Var) = Var([a]) - x
--(x::Var, a::Number) = x - Var([a])
--(x::Var) = Plus([-1])([x])
+-(x1::Var, x2::Var) = Plus([1.,-1.])([x1,x2])
+-(a::Number, x::Var) = Var(Float64[a]) - x
+-(x::Var, a::Number) = x - Var(Float64[a])
+-(x::Var) = Plus([-1.])([x])
 
-*(a::Number, x::Var) = Plus([a])([x])
+*(a::Number, x::Var) = Plus(Float64[a])([x])
 *(x::Var, a::Number) = a * x
 
 @compat function (f::Plus)(xs::Vector{Var})
@@ -24,8 +25,8 @@ type Times; end
   Var(y, df, xs)
 end
 
-function plus{T,N}(as::Vector, xs::Vector{Array{T,N}})
-  length(xs) == 1 && return (as[1] .* xs[1])
+function plus{T,N}(as::Vector{Float64}, xs::Vector{Array{T,N}})
+  length(xs) == 1 && return (T(as[1]) .* xs[1])
   maxi, maxlen = 1, length(xs[1])
   for i = 2:length(xs)
     length(xs[i]) <= maxlen && continue

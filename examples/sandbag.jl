@@ -8,6 +8,20 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+function bench()
+  x = rand(Float32,100,100)
+  for i = 1:1000
+    #Merlin.softmax(x)
+    Merlin.softmax_native(x)
+  end
+end
+@time bench()
+
+gru = GRU(Float32,100)
+x = Var(rand(Float32,100,1))
+h = Var(rand(Float32,100,1))
+gru(:x=>x, :h=>h)
+
 T = Float32
 x1 = Var(rand(T,10,5))
 x3 = Var(rand(T,10,1))

@@ -1,3 +1,6 @@
+const SOFTMAX_FW_F32 = Libdl.dlsym(library, :softmax_fw_f32)
+const SOFTMAX_FW_F64 = Libdl.dlsym(library, :softmax_fw_f64)
+
 """
 JIT C++ compiler.
 - `src`: source code

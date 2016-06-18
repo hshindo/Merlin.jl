@@ -37,6 +37,7 @@ include("var.jl")
 include("gradient.jl")
 include("graph.jl")
 include("training.jl")
+include("native.jl")
 
 for name in [
   "activation",

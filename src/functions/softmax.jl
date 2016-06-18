@@ -15,18 +15,26 @@ function softmax(x::Var)
   Var(y, df, [x])
 end
 
+function softmax_native{T}(x::Matrix{T})
+  @assert T == Float32
+  y = similar(x)
+  ccall(SOFTMAX_FW_F32, Void, (Ptr{T},Cint,Cint,Ptr{T}), x, size(x,1), size(x,2), y)
+  y
+end
+
 function softmax{T}(x::Matrix{T})
   y = similar(x)
   max = maximum(x, 1)
   for j = 1:size(x,2)
     z = T(0)
     @inbounds @simd for i = 1:size(x,1)
-      z += exp(x[i,j] - max[j])
+      y[i,j] = exp(x[i,j] - max[j])
+      z += y[i,j]
     end
     z == T(0) && error("z == 0")
     invz = 1 / z
     @inbounds @simd for i = 1:size(x,1)
-      y[i,j] = exp(x[i,j] - max[j]) * invz
+      y[i,j] *= invz
     end
   end
   y
@@ -108,7 +116,7 @@ function ∇logsoftmax!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
 end
 
 # experimental JIT compile
-function softmax_native{T}(x::Matrix{T})
+function softmax_native_jit{T}(x::Matrix{T})
   CT = "float"
   size1, size2 = size(x)
   sym = Symbol(join(["softmax",CT,size1,size2], "_"))
