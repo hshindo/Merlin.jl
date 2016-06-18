@@ -13,12 +13,30 @@ end
 
 Base.randn{T}(::Type{T}, dims...) = convert(Array{T}, randn(dims))
 
-empty{T}(::Type{Array{T,1}}) = Array(T, 0)
-empty{T}(::Type{Array{T,2}}) = Array(T, 0, 0)
-empty{T}(::Type{Array{T,3}}) = Array(T, 0, 0, 0)
-empty{T}(::Type{Array{T,4}}) = Array(T, 0, 0, 0, 0)
-empty{T}(::Type{Array{T,5}}) = Array(T, 0, 0, 0, 0, 0)
-empty{T}(::Type{Array{T,6}}) = Array(T, 0, 0, 0, 0, 0, 0)
+1.3671023382430374383648148f-2
+
+# Workaround a lack of optimization in gcc
+const exp_cst1 = 2139095040.f0
+const exp_cst2 = 0.f0
+
+""" Relative error bounded by 1e-5 for normalized outputs
+   Returns invalid outputs for nan inputs
+   Continuous error """
+@inline function exp_approx(val::Float32)
+  val2 = 12102203.1615614f0 * val + 1065353216.f0
+  val3 = val2 < exp_cst1 ? val2 : exp_cst1
+  val4 = val3 > exp_cst2 ? val3 : exp_cst2
+  val4i = floor(Int32, val4)
+  xu = val4i & 0x7F800000
+  xu2 = (val4i & 0x7FFFFF) | 0x3F800000
+  b = reinterpret(Float32, Int32(xu2))
+  xuf = reinterpret(Float32, Int32(xu))
+  xuf * (0.510397365625862338668154f0 + b *
+          (0.310670891004095530771135f0 + b *
+           (0.168143436463395944830000f0 + b *
+            (-2.88093587581985443087955f-3 + b *
+              1.3671023382430374383648148f-2))))
+end
 
 #=
 export fastexp!, normalexp!

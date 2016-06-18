@@ -8,11 +8,18 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+Merlin.test_exp(-3.4f0)
+Merlin.expapprox(-3.4f0)
+x = rand(Float32,100,100)
+Merlin.softmax_approx(x)
+softmax(x)
+
 function bench()
   x = rand(Float32,100,100)
   for i = 1:1000
     #Merlin.softmax(x)
-    Merlin.softmax_native(x)
+    #Merlin.softmax_native(x)
+    Merlin.softmax_approx(x)
   end
 end
 @time bench()

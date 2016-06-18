@@ -15,6 +15,24 @@ function softmax(x::Var)
   Var(y, df, [x])
 end
 
+function softmax_approx{T}(x::Matrix{T})
+  y = similar(x)
+  max = maximum(x, 1)
+  for j = 1:size(x,2)
+    z = T(0)
+    @inbounds @simd for i = 1:size(x,1)
+      y[i,j] = exp_approx(x[i,j] - max[j])
+      z += y[i,j]
+    end
+    z == T(0) && error("z == 0")
+    invz = 1 / z
+    @inbounds @simd for i = 1:size(x,1)
+      y[i,j] *= invz
+    end
+  end
+  y
+end
+
 function softmax_native{T}(x::Matrix{T})
   @assert T == Float32
   y = similar(x)

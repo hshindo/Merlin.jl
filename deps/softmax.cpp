@@ -1,9 +1,30 @@
 #include <algorithm>
 #include <math.h>
+#include <stdio.h>
 
 /* Workaround a lack of optimization in gcc */
 float exp_cst1 = 2139095040.f;
 float exp_cst2 = 0.f;
+
+extern "C" {
+void test_expapprox(float val) {
+  union { int i; float f; } xu, xu2;
+  float val2, val3, val4, b;
+  int val4i;
+  val2 = 12102203.1615614f*val + 1065353216.f;
+  val3 = val2 < exp_cst1 ? val2 : exp_cst1;
+  val4 = val3 > exp_cst2 ? val3 : exp_cst2;
+  val4i = (int) val4;
+  printf("%d\n", val4i);
+
+  xu.i = val4i & 0x7F800000;
+  printf("%d\n", xu.i);
+  xu2.i = (val4i & 0x7FFFFF) | 0x3F800000;
+  printf("%d\n", xu2.i);
+  b = xu2.f;
+  printf("%f\n", b);
+}
+}
 
 /* Relative error bounded by 1e-5 for normalized outputs
    Returns invalid outputs for nan inputs
