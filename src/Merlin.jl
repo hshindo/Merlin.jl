@@ -52,7 +52,7 @@ for name in [
   "sum",
   "window2d"
   ]
-  include("functors/$(name).jl")
+  include("functions/$(name).jl")
 end
 
 for name in [
