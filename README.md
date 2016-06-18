@@ -65,53 +65,57 @@ f2 = LinearFun(Float32,7,3)
 y = x |> f1 |> relu |> f2 # or y = f2(relu(f1(x)))
 
 y.grad = rand(Float32,size(y))
-diff!(y)
+gradient!(y)
 ```
 
-### Example: Feed-Forward Neural Network
-Static network should be constructed by `@graph` macro.
-For example, a three-layer network can be constructed as follows:
+### Example1: Feed-Forward Neural Network
+Static network can be constructed by `@graph` macro.
+Here is an example of three-layer network:
 ```julia
 f = @graph begin
   T = Float32
   x = Var(:x)
-  x = Linear(T,10,7)(x)
+  x = LinearFun(T,10,7)(x)
   x = relu(x)
-  x = Linear(T,7,3)(x)
+  x = LinearFun(T,7,3)(x)
   x
 end
 x = Var(rand(Float32,10,5))
-y = f(:x=>x)
+y = f(:x => x)
 ```
-where `Var(:<name>)` is a place-holder of input var.
+where `Var(:<name>)` is a place-holder of input variable.
 
-### Example: Convolutional Neural Network
-```julia
-```
-
-### Example: Recurrent Neural Network
-If the structure or size of neural network is dependent on input data such as recurrent neural networks,
-it is hard to define the whole network structure beforehand.
+### Example2: Recurrent Neural Network
+If network structure or size is dependent on input data such as recurrent neural networks, it is hard to define the whole network structure beforehand.
 In such cases, the standard julia syntax such as `for` and `if` can be used.
 
 ```julia
 T = Float32
-f_h = @graph ... # function for hidden unit
-f_y = @graph ... # function for output unit
-h = Var(rand(T,100)) # hidden vector
+# function for hidden unit
+f_h = @graph begin
+  x = Var(:x)
+  LinearFun(T,50,50)(x)
+end
+# function for output unit
+f_y = @graph begin
+  x = Var(:x)
+  LinearFun(T,50,50)(x)
+end
+
+h = Var(rand(T,50)) # initial hidden vector
+input = ... # input vars
+output = Array(Var, length(input)) # output vars
 for i = 1:10
- x = data[i] # input data
- c = concat(x, h)
- h = f_h(c)
- y[i] = f_out(h)
+ x = input[i]
+ c = concat(1, x, h)
+ h = f_h(:x => c)
+ output[i] = f_out(:x => h)
 end
 ```
 
 ### Training
 `Merlin` provides `fit` function to train your model.
 ```julia
-using Merlin
-
 data_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
 data_y = [Var([1,2,3]) for i=1:100] # correct labels
 

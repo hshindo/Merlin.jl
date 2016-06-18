@@ -2,11 +2,8 @@
 
 ```@docs
 relu(x::Var)
-
 sigmoid(x::Var)
-
 tanh(x::Var)
-
 concat(dim::Int, xs::Vector{Var})
 crossentropy(p::Var, q::Var)
 max(x::Var, dim::Int)
