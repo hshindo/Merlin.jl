@@ -1,4 +1,4 @@
-export Graph, @graph
+export @graph
 
 type GraphNode
   value
