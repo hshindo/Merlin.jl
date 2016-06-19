@@ -1,5 +1,19 @@
 export softmax, logsoftmax
 
+const SOFTMAX_FW_F32 = Libdl.dlsym(library, :softmax_fw_f32)
+const SOFTMAX_FW_F64 = Libdl.dlsym(library, :softmax_fw_f64)
+const SOFTMAX_BW_F32 = Libdl.dlsym(library, :softmax_bw_f32)
+const SOFTMAX_BW_F64 = Libdl.dlsym(library, :softmax_bw_f64)
+const LOGSOFTMAX_FW_F32 = Libdl.dlsym(library, :logsoftmax_fw_f32)
+const LOGSOFTMAX_FW_F64 = Libdl.dlsym(library, :logsoftmax_fw_f64)
+const LOGSOFTMAX_BW_F32 = Libdl.dlsym(library, :logsoftmax_bw_f32)
+const LOGSOFTMAX_BW_F64 = Libdl.dlsym(library, :logsoftmax_bw_f64)
+
+softmax_handle(::Type{Float32}) = SOFTMAX_FW_F32, SOFTMAX_BW_F32
+softmax_handle(::Type{Float64}) = SOFTMAX_FW_F64, SOFTMAX_BW_F64
+logsoftmax_handle(::Type{Float32}) = LOGSOFTMAX_FW_F32, LOGSOFTMAX_BW_F32
+logsoftmax_handle(::Type{Float64}) = LOGSOFTMAX_FW_F64, LOGSOFTMAX_BW_F64
+
 doc"""
     softmax(x)
 
@@ -16,17 +30,30 @@ function softmax(x::Var)
 end
 
 function softmax{T}(x::Matrix{T})
+  h = softmax_handle(T)[1]
   y = similar(x)
-  max = maximum(x, 1)
+  ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint), x, y, size(x,1), size(x,2))
+  y
+end
+
+function softmax2{T}(x::Matrix{T})
+  y = similar(x)
+  #max = maximum(x, 1)
   for j = 1:size(x,2)
+    maxv = x[1,j]
+    @inbounds @simd for i = 1:size(x,1)
+      x[i,j] > maxv && (maxv = x[i,j])
+    end
+
     z = T(0)
     @inbounds @simd for i = 1:size(x,1)
-      z += exp(x[i,j] - max[j])
+      y[i,j] = exp_approx(x[i,j] - maxv)
+      z += y[i,j]
     end
     z == T(0) && error("z == 0")
     invz = 1 / z
     @inbounds @simd for i = 1:size(x,1)
-      y[i,j] = exp(x[i,j] - max[j]) * invz
+      y[i,j] *= invz
     end
   end
   y
@@ -37,6 +64,12 @@ function softmax(x::CuArray)
 end
 
 function ∇softmax!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
+  h = softmax_handle(T)[2]
+  ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint), gx, y, gy, size(gx,1), size(gx,2))
+  y
+end
+
+function ∇softmax2!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
   # d yj / d xi = yj * (delta (i=j) - yi)
   for d = 1:size(gx,2)
     for i = 1:size(gx,1)
@@ -61,6 +94,7 @@ function ∇softmax!(gx::CuArray, y::CuArray, gy::CuArray)
   ∇softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
 end
 
+
 """
     logsoftmax(x)
 
@@ -75,6 +109,13 @@ function logsoftmax(x::Var)
 end
 
 function logsoftmax{T}(x::Matrix{T})
+  h = logsoftmax_handle(T)[1]
+  y = similar(x)
+  ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint), x, y, size(x,1), size(x,2))
+  y
+end
+
+function logsoftmax2{T}(x::Matrix{T})
   y = similar(x)
   max = maximum(x, 1)
   for j = 1:size(x,2)
@@ -95,6 +136,12 @@ function logsoftmax(x::CuArray)
 end
 
 function ∇logsoftmax!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
+  h = logsoftmax_handle(T)[2]
+  ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint), gx, y, gy, size(gx,1), size(gx,2))
+  y
+end
+
+function ∇logsoftmax2!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
   # d yj / d xi = delta(i=j) - exp(yi)
   for d = 1:size(gx,2)
     for i = 1:size(gx,1)
@@ -108,7 +155,7 @@ function ∇logsoftmax!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
 end
 
 # experimental JIT compile
-function softmax_native{T}(x::Matrix{T})
+function softmax_native_jit{T}(x::Matrix{T})
   CT = "float"
   size1, size2 = size(x)
   sym = Symbol(join(["softmax",CT,size1,size2], "_"))

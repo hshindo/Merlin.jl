@@ -1,17 +1,18 @@
 import Base: +, -, .*, *
 
 type Plus
-  as::Vector
+  as::Vector{Number}
 end
+
 type Times; end
 
 +(x1::Var, x2::Var) = Plus([1,1])([x1,x2])
-+(a::Number, x::Var) = Var([a]) + x
-+(x::Var, a::Number) = x + Var([a])
++(a::Number, x::Var) = Var(a) + x
++(x::Var, a::Number) = x + Var(a)
 
 -(x1::Var, x2::Var) = Plus([1,-1])([x1,x2])
--(a::Number, x::Var) = Var([a]) - x
--(x::Var, a::Number) = x - Var([a])
+-(a::Number, x::Var) = Var(a) - x
+-(x::Var, a::Number) = x - Var(a)
 -(x::Var) = Plus([-1])([x])
 
 *(a::Number, x::Var) = Plus([a])([x])
@@ -19,19 +20,46 @@ type Times; end
 
 @compat function (f::Plus)(xs::Vector{Var})
   @checkargs f xs
-  y = plus(f.as, map(x -> x.value,xs))
-  df(gy) = ∇plus!(f.as, map(x -> x.grad,xs), gy)
+
+  maxi, maxlen = 1, length(xs[1].value)
+  for i = 2:length(xs)
+    n = length(xs[i].value)
+    n <= maxlen && continue
+    maxi = i
+    maxlen = n
+  end
+  y = zeros(xs[maxi].value)
+  for i = 1:length(xs)
+    add!(f.as[i], xs[i].value, y)
+  end
+
+  df(gy) = begin
+    for i = 1:length(xs)
+      hasgrad(xs[i]) || continue
+      ∇add!(f.as[i], xs[i].grad, gy)
+    end
+  end
   Var(y, df, xs)
 end
 
-function plus{T,N}(as::Vector, xs::Vector{Array{T,N}})
-  length(xs) == 1 && return (as[1] .* xs[1])
-  maxi, maxlen = 1, length(xs[1])
-  for i = 2:length(xs)
-    length(xs[i]) <= maxlen && continue
-    maxi = i
-    maxlen = length(xs[i])
+function add!{T}(a::Number, x::Array{T}, y::Array{T})
+  n = length(x)
+  for k = 1:n:length(y)
+    BLAS.axpy!(n, T(a), pointer(x), stride(x,1), pointer(y,k), stride(y,1))
   end
+end
+
+add!{T}(a::Number, x::Number, y::Array{T}) = broadcast!(+, y, y, x)
+
+function ∇add!{T}(a::Number, gx::Array{T}, gy::Array{T})
+  n = length(gx)
+  for k = 1:n:length(gy)
+    BLAS.axpy!(n, T(a), pointer(gy,k), stride(gy,1), pointer(gx), stride(gx,1))
+  end
+end
+
+#=
+function plus{T,N}(as::Vector{Float64}, xs::Vector{Array{T,N}})
   y = zeros(xs[maxi])
   for i = 1:length(xs)
     a, x = as[i], xs[i]
@@ -42,16 +70,7 @@ function plus{T,N}(as::Vector, xs::Vector{Array{T,N}})
   end
   y
 end
-
-function ∇plus!{T,N}(as::Vector, gxs::Vector{Array{T,N}}, gy::Array{T,N})
-  for i = 1:length(gxs)
-    a, gx = as[i], gxs[i]
-    n = length(gx)
-    for k = 1:n:length(gy)
-      BLAS.axpy!(n, T(a), pointer(gy,k), stride(gy,1), pointer(gx), stride(gx,1))
-    end
-  end
-end
+=#
 
 function .*(x1::Var, x2::Var)
   @checkargs .* (x1,x2)

@@ -1,72 +1,48 @@
 export @graph
 
-type GraphNode
-  value
-  f
-  tails::Vector{Int}
-end
-
 type Graph
-  nodes::Vector{GraphNode} # sorted in bottom-up order
-  symtoid::Dict{Symbol,Int}
+  nodes::Vector{Var} # sorted in bottom-up order
+  sym2id::Dict{Symbol,Int}
 end
 
 function Graph(top::Var)
   vars = topsort(top)
-  symtoid = Dict{Symbol,Int}()
-  nodes = Array(GraphNode, length(vars))
+  sym2id = Dict{Symbol,Int}()
+  nodes = Array(Var, length(vars))
   dict = ObjectIdDict()
   for i in 1:length(vars)
     v = vars[i]
-    nodes[i] = GraphNode(v.value, v.f, Int[])
-    typeof(v.value) == Symbol && (symtoid[v.value] = i)
+    ids = map(a -> dict[a], v.args)
+    nodes[i] = Var(v.value, v.f, ids, v.grad)
+    typeof(v.value) == Symbol && (sym2id[v.value] = i)
     dict[v] = i
-    for a in v.args
-      id = dict[a]
-      push!(nodes[i].tails, id)
-    end
   end
-  Graph(nodes, symtoid)
+  Graph(nodes, sym2id)
 end
 
 @compat function (g::Graph)(args::Pair{Symbol,Var}...)
   vars = Array(Var, length(g.nodes))
   for (k,v) in args
-    id = g.symtoid[k]
+    id = g.sym2id[k]
     vars[id] = v
   end
   for i = 1:length(g.nodes)
-    isdefined(nodes, i) && continue
+    isdefined(vars, i) && continue
     n = g.nodes[i]
-    if isempty(n.tails)
+    if isempty(n.args)
       vars[i] = n
     else
-      args = map(id -> vars[id], n.tails)
-      vars[i] = n.f(args)
+      args = map(id -> vars[id], n.args)
+      vars[i] = typeof(args) <: Tuple ? n.f(args...) : n.f(args)
     end
   end
   vars[end]
 end
 
 """
-    Graph(top::Var)
+    @graph(top::Var)
 
 Construct a static network from `var`.
-
-## 👉 Example
-Here is an example of three-layer network.
-```julia
-f = @graph begin
-  T = Float32
-  x = Var(:x)
-  x = Linear(T,10,7)(x)
-  x = relu(x)
-  x = Linear(7,3)(x)
-  x
-end
-x = Var(rand(Float32,10,5))
-y = f(:x=>x)
-```
 """
 macro graph(src)
   quote

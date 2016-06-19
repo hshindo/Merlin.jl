@@ -1,4 +1,4 @@
-export gru
+export GRU
 
 """
     GRU(::Type, xsize::Int)
@@ -8,8 +8,16 @@ Ref: Chung et al. "Empirical Evaluation of Gated Recurrent Neural Networks on Se
 
 ## Arguments
 * xsize: size of input vector (= size of hidden vector)
+
+## Usage
+```julia
+gru = GRU(Float32,100)
+x = Var(rand(Float32,100))
+h = Var(rand(Float32,100))
+gru(:x=>x, :h=>h)
+```
 """
-function gru{T}(::Type{T}, xsize::Int)
+function GRU{T}(::Type{T}, xsize::Int)
   @graph begin
     Ws = [param(rand(T,xsize,xsize)) for i=1:3]
     Us = [param(rand(T,xsize,xsize)) for i=1:3]
