@@ -25,4 +25,20 @@
     </url>
     
 
+    
+    <url>
+     <loc>None/graph/</loc>
+     <lastmod>2016-06-19</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>None/optimizers/</loc>
+     <lastmod>2016-06-19</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
 </urlset>

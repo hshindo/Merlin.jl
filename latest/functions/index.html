@@ -196,6 +196,24 @@
   </li>
 
           
+            
+  <li>
+    <a class="" title="Graph" href="../graph/">
+      Graph
+    </a>
+    
+  </li>
+
+          
+            
+  <li>
+    <a class="" title="Optimizers" href="../optimizers/">
+      Optimizers
+    </a>
+    
+  </li>
+
+          
         </ul>
         
       </div>
@@ -255,6 +273,26 @@ concat(dim::Int, xs::Vector{Var})
 </pre></div>
 
 
+<p><a id='Merlin.LinearFun-Tuple{Any,Any}' href='#Merlin.LinearFun-Tuple{Any,Any}'>#</a>
+<strong><code>Merlin.LinearFun</code></strong> &mdash; <em>Method</em>.</p>
+<div class="codehilite"><pre><span></span>LinearFun(w::Var, b::Var)
+</pre></div>
+
+
+<p>Linear function (a.k.a. affine transformation).</p>
+<p>$ f(x) = w * x + b $</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><code>w::Var</code>: weight matrix</li>
+<li><code>b::Var</code>: bias vector</li>
+</ul>
+<p><strong>👉 Example</strong></p>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">LinearFun</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
 <p><a id='Base.max-Tuple{Merlin.Var,Int64}' href='#Base.max-Tuple{Merlin.Var,Int64}'>#</a>
 <strong><code>Base.max</code></strong> &mdash; <em>Method</em>.</p>
 <div class="codehilite"><pre><span></span>max(x::Var, dim::Int)
@@ -284,13 +322,6 @@ reshape(x::Var, dims::Tuple)
 
 <p>Compute softmax along the second axis. Currently, only 2-d is supported.</p>
 <p>$ p(x) = {\exp(f(x)) \over \sum_{x_2} \exp(f(x))} $</p>
-<p><a id='Base.sum-Tuple{Merlin.Var,Int64}' href='#Base.sum-Tuple{Merlin.Var,Int64}'>#</a>
-<strong><code>Base.sum</code></strong> &mdash; <em>Method</em>.</p>
-<div class="codehilite"><pre><span></span>sum(x::Var, dim::Int)
-</pre></div>
-
-
-<p>Compute the sum along the given dimensions.</p>
 <p><a id='Merlin.logsoftmax-Tuple{Merlin.Var}' href='#Merlin.logsoftmax-Tuple{Merlin.Var}'>#</a>
 <strong><code>Merlin.logsoftmax</code></strong> &mdash; <em>Method</em>.</p>
 <div class="codehilite"><pre><span></span>logsoftmax(x)
@@ -298,6 +329,13 @@ reshape(x::Var, dims::Tuple)
 
 
 <p>Compute logarithm of softmax along the second axis. Currently, only 2-d is supported.</p>
+<p><a id='Base.sum-Tuple{Merlin.Var,Int64}' href='#Base.sum-Tuple{Merlin.Var,Int64}'>#</a>
+<strong><code>Base.sum</code></strong> &mdash; <em>Method</em>.</p>
+<div class="codehilite"><pre><span></span>sum(x::Var, dim::Int)
+</pre></div>
+
+
+<p>Compute the sum along the given dimensions.</p>
           <aside class="copyright" role="note">
             
             Documentation built with
@@ -332,6 +370,22 @@ reshape(x::Var, dims::Tuple)
       
     </div>
     <div class="next">
+      
+        <a href="../graph/" title="Graph">
+          <span class="direction">
+            Next
+          </span>
+          <div class="page">
+            <div class="stretch">
+              <div class="title">
+                Graph
+              </div>
+            </div>
+            <div class="button button-next" role="button" aria-label="Next">
+              <i class="icon icon-forward"></i>
+            </div>
+          </div>
+        </a>
       
     </div>
   </nav>
