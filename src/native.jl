@@ -1,10 +1,7 @@
-const SOFTMAX_FW_F32 = Libdl.dlsym(library, :softmax_fw_f32)
-const SOFTMAX_FW_F64 = Libdl.dlsym(library, :softmax_fw_f64)
-
-const TEST_EXP = Libdl.dlsym(library, :test_expapprox)
-function test_exp(val::Float32)
-  ccall(TEST_EXP, Void, (Cfloat,), val)
-end
+#const TEST_EXP = Libdl.dlsym(library, :test_expapprox)
+#function test_exp(val::Float32)
+#  ccall(TEST_EXP, Void, (Cfloat,), val)
+#end
 
 """
 JIT C++ compiler.

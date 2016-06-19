@@ -19,9 +19,6 @@ Base.randn{T}(::Type{T}, dims...) = convert(Array{T}, randn(dims))
 const exp_cst1 = 2139095040.f0
 const exp_cst2 = 0.f0
 
-""" Relative error bounded by 1e-5 for normalized outputs
-   Returns invalid outputs for nan inputs
-   Continuous error """
 @inline function exp_approx(val::Float32)
   val2 = 12102203.1615614f0 * val + 1065353216.f0
   val3 = val2 < exp_cst1 ? val2 : exp_cst1
@@ -48,7 +45,8 @@ end
 function normalexp!{T}(x::Vector{T}, y::Vector{T})
   ccall(NORMALEXP_F32, Void, (Ptr{T}, Ptr{T}, Cint), x, y, length(x))
 end
-
+=#
+#=
 macro fastmap(f, T, src)
   quote
     local src = $(esc(src))

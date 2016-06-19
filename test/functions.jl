@@ -1,5 +1,9 @@
 const T = Float64
 
+function aaa()
+  CuArray()
+end
+
 @testset "functions" for i = 1:5
 
   x = Var(rand(T,10,5))
