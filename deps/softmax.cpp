@@ -4,6 +4,7 @@
 
 template<typename T>
 void softmax_fw(T *x, T *y, int size1, int size2) {
+  #pragma omp parallel for
   for (int m2 = 0; m2 < size2; m2++) {
     T x_max = x[m2*size1];
     for (int m1 = 1; m1 < size1; m1++) x_max = std::max(x_max, x[m1 + m2*size1]);
@@ -38,6 +39,7 @@ void logsoftmax_fw(T *x, T *y, int size1, int size2) {
 
 template<typename T>
 void softmax_bw(T *gx, T *y, T *gy, int size1, int size2) {
+  #pragma omp parallel for
   for (int m2 = 0; m2 < size2; m2++) {
     T sum = static_cast<T>(0);
     for (int m1 = 0; m1 < size1; m1++) {

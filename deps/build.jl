@@ -8,13 +8,13 @@ sources = [
 compiler = "g++"
 
 @windows? begin
-  flags    = ["-Wall", "-O3", "-shared", "-march=native"]
+  flags    = ["-fopenmp", "-Wall", "-O3", "-shared", "-march=native"]
   libname = "libmerlin.dll"
   cmd = `$compiler $flags -o $libname $sources`
   println("Running $cmd")
   run(cmd)
 end : begin
-  flags    = ["-fPIC", "-Wall", "-O3", "-shared", "-march=native"]
+  flags    = ["-fopenmp", "-fPIC", "-Wall", "-O3", "-shared", "-march=native"]
   libname = "libmerlin.so"
   cmd = `$compiler $flags -o $libname $sources`
   println("Running $cmd")
