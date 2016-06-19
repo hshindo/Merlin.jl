@@ -16,10 +16,6 @@ function topsort(var::Var)
   sorted
 end
 
-function checkdiff(x1, x2)
-  all(d -> abs(d) < 1e-3, x1-x2)
-end
-
 """
 Compute numerical gradient.
 """
@@ -44,7 +40,7 @@ end
 Check gradient.
 """
 function checkgrad(f, args::Vector{Var})
-  const eps = 1e-3
+  const eps = 3e-3
   for x in args
     x.grad = zeros(x.value)
   end
