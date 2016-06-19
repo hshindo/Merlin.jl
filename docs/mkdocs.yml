@@ -30,8 +30,8 @@ pages:
   - Home: index.md
   - Overview: overview.md
   - Functions: functions.md
-#  - Graph: graph.md
-#  - Optimizers: optimizers.md
+  - Graph: graph.md
+  - Optimizers: optimizers.md
 #  - GPU: gpu.md
 #  - Interop with other libraries:
 #    - Caffe: caffe.md
