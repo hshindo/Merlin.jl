@@ -25,10 +25,6 @@ function Lookup{T}(path, ::Type{T})
   Lookup(ws)
 end
 
-function forward(f::Lookup, x::Array{Int})
-  
-end
-
 @compat function (f::Lookup)(args::Vector{Var})
   x = args[1]
   ws = f.ws
