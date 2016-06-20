@@ -1,3 +1,5 @@
+using Compat
+
 sources = [
   "im2col.cpp",
   "maxpooling2d.cpp",
