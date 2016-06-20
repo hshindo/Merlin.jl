@@ -27,16 +27,12 @@ function save_hdf5(dict::Dict, path)
 end
 
 function hdf5dict(v::Var)
-  value = v.value
-  typeof(value) == Symbol && (value = string(value))
-  f = string(v.f)
-  argtype = string(typeof(v.args))
-  args = Int[v.args...]
-  Dict(
-    "value" => value,
-    "f" => f,
-    "args" => args,
-    "argtype" => argtype)
+  d = Dict()
+  d["value"] = typeof(v.value) == Symbol ? string(value) : v.value
+  d["f"] = string(v.f)
+  d["argtype"] = string(typeof(v.args))
+  d["args"] = Int[v.args...]
+  d
 end
 
 function hdf5dict(g::Graph)
@@ -50,6 +46,11 @@ function hdf5dict(g::Graph)
     d_sym2id[string(k)] = v
   end
   Dict("nodes" => d_nodes, "sym2id" => d_sym2id)
+end
+
+function load(path)
+  dict = h5read(path, "Merlin")
+  
 end
 
 function load(::Type{Graph}, path)
