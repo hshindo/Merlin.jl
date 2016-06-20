@@ -7,8 +7,8 @@ const WINDOW2D_FWD_F64 = Libdl.dlsym(library, :window2d_fwd_f64)
 const WINDOW2D_BWD_F64 = Libdl.dlsym(library, :window2d_bwd_f64)
 
 """
-    ConvFun(w, x; [stride, pad])
-    ConvFun(channel, filter, [stride, pad])
+    Conv(w, x; [stride, pad])
+    Conv(channel, filter, [stride, pad])
 
 N-dimensional convolution function.
 
@@ -21,35 +21,35 @@ N-dimensional convolution function.
 ## 👉 Example
 ```julia
 x = Var(rand(Float32,5,4,3,2))
-f = ConvFun(rand(Float32,2,2,3,4), stride=(1,1), pad=(0,0))
+f = Conv(rand(Float32,2,2,3,4), stride=(1,1), pad=(0,0))
 y = f(x)
 ```
 """
-type ConvFun
+type Conv
   w::Var
   stride
   pad
 end
 
-function ConvFun(w::Array, stride=(), pad=())
+function Conv(w::Array, stride=(), pad=())
   N = ndims(w) - 2
   length(stride) == 0 && (stride = ntuple(_->1, N))
   length(pad) == 0 && (pad = ntuple(_->0, N))
-  ConvFun(Var(w), stride, pad)
+  Conv(Var(w), stride, pad)
 end
 
-@compat (f::ConvFun)(x::Var) = forward(Conv(f.stride,f.pad), f.w, f.x)
+@compat (f::Conv)(x::Var) = forward(Conv(f.stride,f.pad), f.w, f.x)
 
 
-type Conv{N}
+type ConvFun{N}
   stride::NTuple{N,Int}
   pad::NTuple{N,Int}
 end
 
-handle(::Conv{2}, ::Type{Float32}) = WINDOW2D_FWD_F32, WINDOW2D_BWD_F32
-handle(::Conv{2}, ::Type{Float64}) = WINDOW2D_FWD_F64, WINDOW2D_BWD_F64
+handle(::ConvFun{2}, ::Type{Float32}) = WINDOW2D_FWD_F32, WINDOW2D_BWD_F32
+handle(::ConvFun{2}, ::Type{Float64}) = WINDOW2D_FWD_F64, WINDOW2D_BWD_F64
 
-@compat function (f::Conv{N}){T,N}(w::Array{T}, x::Array{T})
+@compat function (f::ConvFun{N}){T,N}(w::Array{T}, x::Array{T})
   @assert ndims(w) == ndims(x) == N+2
   outdims = outsize(f, w, x)
   work = im2col(f, w, x, outdims)
@@ -62,12 +62,12 @@ handle(::Conv{2}, ::Type{Float64}) = WINDOW2D_FWD_F64, WINDOW2D_BWD_F64
   f, y
 end
 
-@compat function (f::Conv){T}(w::CuArray{T}, x::CuArray{T})
+@compat function (f::ConvFun){T}(w::CuArray{T}, x::CuArray{T})
   desc = ConvolutionDesc(T, f.pad, f.stride)
   f, convolution(x, w, desc)
 end
 
-function backward!{T,N}(f::Conv{N}, w::Array{T}, x::Array{T},
+function backward!{T,N}(f::ConvFun{N}, w::Array{T}, x::Array{T},
   gw::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
 
   work, gwork = f.work, zeros(f.work)
@@ -77,13 +77,13 @@ function backward!{T,N}(f::Conv{N}, w::Array{T}, x::Array{T},
   col2im!(f, gx, gwork)
 end
 
-function backward!{T}(f::Conv, x, gx, y, gy::CuArray{T})
+function backward!{T}(f::ConvFun, x, gx, y, gy::CuArray{T})
   convdesc = ConvolutionDesc(T, f.pad, f.stride)
   isempty(gw) || ∇convolution_filter!(x, gy, convdesc, gw)
   isempty(gx) || ∇convolution_data!(w, gy, convdesc, gx)
 end
 
-function outsize{N}(f::Conv{N}, w::Array, x::Array)
+function outsize{N}(f::ConvFun{N}, w::Array, x::Array)
   dims = Array(Int, N)
   for i = 1:N
     dims[i] = (size(x,i) + 2*f.pad[i] - size(w,i)) ÷ f.stride[i] + 1
@@ -91,7 +91,7 @@ function outsize{N}(f::Conv{N}, w::Array, x::Array)
   dims
 end
 
-function im2col{T,N}(f::Conv{N}, w::Array{T}, x::Array{T}, outdims::Vector{Int})
+function im2col{T,N}(f::ConvFun{N}, w::Array{T}, x::Array{T}, outdims::Vector{Int})
   window = [size(w,i) for i=1:N]
   h = handle(f,T)[1]
   y = similar(x, prod(outdims), prod(window)*size(w,N+1), size(x,N+2))
@@ -102,7 +102,7 @@ function im2col{T,N}(f::Conv{N}, w::Array{T}, x::Array{T}, outdims::Vector{Int})
   y
 end
 
-function col2im!{T,N}(f::Conv{N}, gx::Array{T}, gy::Array{T})
+function col2im!{T,N}(f::ConvFun{N}, gx::Array{T}, gy::Array{T})
   window = [size(w,i) for i=1:N]
   h = handle(f,T)[2]
   xsize = Cint[size(x,i) for i=1:N+1]

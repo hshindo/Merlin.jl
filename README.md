@@ -60,8 +60,8 @@ Here is a quick example of three-layer network:
 using Merlin
 
 x1 = Var(rand(Float32,10,5))
-f1 = LinearFun(Float32,10,7)
-f2 = LinearFun(Float32,7,3)
+f1 = Linear(Float32,10,7)
+f2 = Linear(Float32,7,3)
 y = x |> f1 |> relu |> f2 # or y = f2(relu(f1(x)))
 
 y.grad = rand(Float32,size(y))
@@ -75,9 +75,9 @@ Here is an example of three-layer network:
 f = @graph begin
   T = Float32
   x = Var(:x)
-  x = LinearFun(T,10,7)(x)
+  x = Linear(T,10,7)(x)
   x = relu(x)
-  x = LinearFun(T,7,3)(x)
+  x = Linear(T,7,3)(x)
   x
 end
 x = Var(rand(Float32,10,5))
@@ -94,12 +94,12 @@ T = Float32
 # function for hidden unit
 f_h = @graph begin
   x = Var(:x)
-  LinearFun(T,50,50)(x)
+  Linear(T,50,50)(x)
 end
 # function for output unit
 f_y = @graph begin
   x = Var(:x)
-  LinearFun(T,50,50)(x)
+  Linear(T,50,50)(x)
 end
 
 h = Var(rand(T,50)) # initial hidden vector

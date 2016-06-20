@@ -1,7 +1,7 @@
-export LinearFun, linear
+export Linear, linear
 
 doc"""
-    LinearFun(w::Var, b::Var)
+    Linear(w::Var, b::Var)
 
 Linear function (a.k.a. affine transformation).
 
@@ -14,24 +14,24 @@ $ f(x) = w * x + b $
 ## 👉 Example
 ```julia
 x = Var(rand(Float32,10,5))
-f = LinearFun(Float32, 10, 7)
+f = Linear(Float32, 10, 7)
 y = f(x)
 ```
 """
-type LinearFun
+type Linear
   w::Var
   b::Var
 end
 
-function LinearFun{T}(::Type{T}, indim::Int, outdim::Int)
+function Linear{T}(::Type{T}, indim::Int, outdim::Int)
   x = sqrt(6 / (indim + outdim))
   r = rand(outdim, indim) * 2x - x
   w = convert(Matrix{T}, r)
   b = fill(T(0), outdim, 1)
-  LinearFun(param(w), param(b))
+  Linear(param(w), param(b))
 end
 
-@compat (f::LinearFun)(x::Var) = linear(f.w, x, f.b)
+@compat (f::Linear)(x::Var) = linear(f.w, x, f.b)
 
 function linear(w::Var, x::Var, b::Var)
   @checkargs linear (w,x,b)
