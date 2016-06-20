@@ -273,9 +273,9 @@ concat(dim::Int, xs::Vector{Var})
 </pre></div>
 
 
-<p><a id='Merlin.LinearFun-Tuple{Any,Any}' href='#Merlin.LinearFun-Tuple{Any,Any}'>#</a>
-<strong><code>Merlin.LinearFun</code></strong> &mdash; <em>Method</em>.</p>
-<div class="codehilite"><pre><span></span>LinearFun(w::Var, b::Var)
+<p><a id='Merlin.Linear-Tuple{Any,Any}' href='#Merlin.Linear-Tuple{Any,Any}'>#</a>
+<strong><code>Merlin.Linear</code></strong> &mdash; <em>Method</em>.</p>
+<div class="codehilite"><pre><span></span>Linear(w::Var, b::Var)
 </pre></div>
 
 
@@ -288,7 +288,7 @@ concat(dim::Int, xs::Vector{Var})
 </ul>
 <p><strong>👉 Example</strong></p>
 <div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
-<span class="n">f</span> <span class="o">=</span> <span class="n">LinearFun</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </pre></div>
 
