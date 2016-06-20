@@ -4,8 +4,6 @@ type Plus
   as::Vector{Number}
 end
 
-type Times; end
-
 +(x1::Var, x2::Var) = Plus([1,1])([x1,x2])
 +(a::Number, x::Var) = Var(a) + x
 +(x::Var, a::Number) = x + Var(a)
