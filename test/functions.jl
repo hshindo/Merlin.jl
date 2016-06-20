@@ -30,7 +30,7 @@ end
   @test checkgrad(() -> crossentropy(p,q), q)
 
   x = Var(rand(T,10,5))
-  f = LinearFun(T, 10, 7)
+  f = Linear(T, 10, 7)
   #f.b = param(rand(T, size(f.b.value)))
   @test checkgrad(() -> f(x), f.w, x)
 
