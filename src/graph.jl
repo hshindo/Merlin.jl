@@ -14,10 +14,22 @@ function Graph(top::Var)
     v = vars[i]
     ids = map(a -> dict[a], v.args)
     nodes[i] = Var(v.value, v.f, ids, v.grad)
-    typeof(v.value) == Symbol && (sym2id[v.value] = i)
+    typeof(v.value) == Symbol && v.value != Symbol() && (sym2id[v.value] = i)
     dict[v] = i
   end
   Graph(nodes, sym2id)
+end
+
+function Graph(path::AbstractString)
+  nodes = Var[]
+  dict = h5read(path, "graph")
+  for (k,v) in dict["nodes"]
+    id = parse(Int, k)
+    while id > length(nodes)
+      push!(nodes, Var(nothing))
+    end
+    nodes[id] = v
+  end
 end
 
 @compat function (g::Graph)(args::Pair{Symbol,Var}...)

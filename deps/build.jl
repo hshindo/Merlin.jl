@@ -7,13 +7,19 @@ sources = [
 
 compiler = "g++"
 
-@windows? begin
+@compat if is_windows()
   flags    = ["-fopenmp", "-Wall", "-O3", "-shared", "-march=native"]
   libname = "libmerlin.dll"
   cmd = `$compiler $flags -o $libname $sources`
   println("Running $cmd")
   run(cmd)
-end : begin
+elseif is_apple()
+  flags    = ["-fPIC", "-Wall", "-O3", "-shared", "-march=native"]
+  libname = "libmerlin.so"
+  cmd = `$compiler $flags -o $libname $sources`
+  println("Running $cmd")
+  run(cmd)
+else
   flags    = ["-fopenmp", "-fPIC", "-Wall", "-O3", "-shared", "-march=native"]
   libname = "libmerlin.so"
   cmd = `$compiler $flags -o $libname $sources`
