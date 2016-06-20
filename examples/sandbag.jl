@@ -8,6 +8,30 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+h5open(path, "w") do f
+  g = g_create(f, "a")
+  g["1"] = [1,2,3]
+end
+
+data = h5read(path, "a")
+
+h5open(path, "w") do h
+  g = g_create(h, "root")
+  gg = g_create(g, "c")
+  gg["v"] = [1,2,3]
+end
+
+data = h5read(path, "root")
+
+g = @graph begin
+  x = Var(:x)
+  relu(x)
+end
+path = "C:/Users/hshindo/Desktop/test.h5"
+save_hdf5(g, path)
+data = load_hdf5(path)
+
+
 function bench()
   x = rand(Float32,10000,100)
   y = similar(x)
