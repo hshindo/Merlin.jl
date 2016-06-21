@@ -77,7 +77,7 @@ y = f(:x => x)
 where `Var(:<name>)` is a place-holder of input variable.
 
 ### Example2: Recurrent Neural Network
-<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="250"></p>
+<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="270"></p>
 
 ```julia
 T = Float32
