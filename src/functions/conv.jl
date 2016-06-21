@@ -38,7 +38,7 @@ function Conv(w::Array, stride=(), pad=())
   Conv(Var(w), stride, pad)
 end
 
-@compat (f::Conv)(x::Var) = forward(Conv(f.stride,f.pad), f.w, f.x)
+@compat (f::Conv)(x::Var) = ConvFun(f.stride,f.pad)(f.w, f.x)
 
 
 type ConvFun{N}
@@ -49,7 +49,11 @@ end
 handle(::ConvFun{2}, ::Type{Float32}) = WINDOW2D_FWD_F32, WINDOW2D_BWD_F32
 handle(::ConvFun{2}, ::Type{Float64}) = WINDOW2D_FWD_F64, WINDOW2D_BWD_F64
 
-@compat function (f::ConvFun{N}){T,N}(w::Array{T}, x::Array{T})
+@compat function (f::ConvFun{N}){N}(w::Var, x::Var)
+  conv(w.value, f.stride, f.pad, x.value)
+end
+
+function conv{T}(w::Array{T}, pad, stride, x::Array{T})
   @assert ndims(w) == ndims(x) == N+2
   outdims = outsize(f, w, x)
   work = im2col(f, w, x, outdims)
@@ -62,7 +66,7 @@ handle(::ConvFun{2}, ::Type{Float64}) = WINDOW2D_FWD_F64, WINDOW2D_BWD_F64
   f, y
 end
 
-@compat function (f::ConvFun){T}(w::CuArray{T}, x::CuArray{T})
+function conv{T}(f::ConvFun, w::CuArray{T}, x::CuArray{T})
   desc = ConvolutionDesc(T, f.pad, f.stride)
   f, convolution(x, w, desc)
 end
