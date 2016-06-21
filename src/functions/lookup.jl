@@ -11,7 +11,10 @@ y = f(x)
 ```
 """
 type Lookup
-  ws::Vector{Var}
+  w::Var
+end
+
+function Lookup()
 end
 
 function Lookup{T}(path, ::Type{T})
