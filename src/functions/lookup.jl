@@ -1,12 +1,3 @@
-
-function lookup(w::Var, x::Var)
-  @checkargs (w,x)
-  
-end
-
-function lookup()
-end
-
 export Lookup
 
 """
