@@ -57,6 +57,7 @@ Basically,
 
 ### Example1: Feed-Forward Neural Network
 Static network can be constructed by `@graph` macro.
+
 Here is an example of three-layer network:
 
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/feedforward.png" width="120"></p>
