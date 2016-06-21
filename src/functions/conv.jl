@@ -50,7 +50,9 @@ handle(::ConvFun{2}, ::Type{Float32}) = WINDOW2D_FWD_F32, WINDOW2D_BWD_F32
 handle(::ConvFun{2}, ::Type{Float64}) = WINDOW2D_FWD_F64, WINDOW2D_BWD_F64
 
 @compat function (f::ConvFun{N}){N}(w::Var, x::Var)
-  conv(w.value, f.stride, f.pad, x.value)
+  @checkargs f (w,x)
+  throw("Not implemented yet.")
+  #conv(w.value, f.stride, f.pad, x.value)
 end
 
 function conv{T}(w::Array{T}, pad, stride, x::Array{T})

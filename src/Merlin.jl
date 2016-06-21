@@ -48,6 +48,7 @@ for name in [
   "lookup",
   "math",
   "max",
+  "pooling",
   "reshape",
   "softmax",
   "sum",
