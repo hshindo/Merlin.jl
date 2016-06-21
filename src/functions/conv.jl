@@ -38,7 +38,7 @@ function Conv(w::Array, stride=(), pad=())
   Conv(Var(w), stride, pad)
 end
 
-@compat (f::Conv)(x::Var) = forward(Conv(f.stride,f.pad), f.w, f.x)
+@compat (f::Conv)(x::Var) = ConvFun(f.stride,f.pad)(f.w, f.x)
 
 
 type ConvFun{N}

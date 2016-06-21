@@ -26,6 +26,14 @@ function crossentropy(p::Var, q::Var)
   Var(y, df, [q])
 end
 
+type CrossEntropy
+  isnormalized::Bool
+end
+
+@compat function (f::CrossEntropy)(p::Var, q::Var)
+  
+end
+
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
   y = Array(T, 1, size(p,2))
   for j = 1:size(p,2)
