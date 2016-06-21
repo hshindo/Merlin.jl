@@ -9,3 +9,8 @@ type Pooling{N}
   stride::NTuple{N,Int}
   pad::NTuple{N,Int}
 end
+
+@compat function (f::Pooling)(x::Var)
+  @checkargs f (x,)
+  throw("Not implemented yet.")
+end
