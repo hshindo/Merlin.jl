@@ -32,7 +32,7 @@ type Conv
 end
 
 function Conv(w::Var, b::Var, stride=(), pad=())
-  N = ndims(w) - 2
+  N = ndims(w.value) - 2
   length(stride) == 0 && (stride = ntuple(_->1, N))
   length(pad) == 0 && (pad = ntuple(_->0, N))
   Conv(w, b, stride, pad)
