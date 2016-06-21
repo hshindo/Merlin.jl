@@ -1,7 +1,7 @@
-export maxpooling, avepooling
+export Pooling
 
-const MAXPOOLING2D_FWD_F32 = Libdl.dlsym(Native.library, :maxpooling2d_fwd_f32)
-const MAXPOOLING2D_BWD_F32 = Libdl.dlsym(Native.library, :maxpooling2d_bwd_f32)
+#const MAXPOOLING2D_FWD_F32 = Libdl.dlsym(Native.library, :maxpooling2d_fwd_f32)
+#const MAXPOOLING2D_BWD_F32 = Libdl.dlsym(Native.library, :maxpooling2d_bwd_f32)
 
 type Pooling{N}
   mode # max or average
