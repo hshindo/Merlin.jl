@@ -2,7 +2,6 @@ module Merlin
 
 using Compat
 using Base.LinAlg.BLAS
-using HDF5
 
 #include("caffe/Caffe.jl")
 
