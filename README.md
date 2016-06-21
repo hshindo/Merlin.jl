@@ -57,7 +57,11 @@ Basically,
 
 ### Example1: Feed-Forward Neural Network
 Static network can be constructed by `@graph` macro.
+
 Here is an example of three-layer network:
+
+<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/feedforward.png" width="120"></p>
+
 ```julia
 f = @graph begin
   T = Float32
@@ -73,16 +77,18 @@ y = f(:x => x)
 where `Var(:<name>)` is a place-holder of input variable.
 
 ### Example2: Recurrent Neural Network
-<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="150"></p>
+<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="250"></p>
 
 ```julia
 T = Float32
 f_h = @graph ...
 f_y = @graph ...
+
 h = Var(rand(T,50,1)) # initial hidden vector
-xs = ... # input vars
-ys = Array(Var, length(input)) # output vars
-for i = 1:10
+xs = [Var(rand(T,50,1)) for i=1:10] # input vars
+ys = Array(Var, length(xs)) # output vars
+
+for i = 1:length(xs)
  x = xs[i]
  c = concat(1, x, h) # concatanate x and h along the first dimension.
  h = f_h(:x => c)

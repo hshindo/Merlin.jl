@@ -7,14 +7,13 @@ const WINDOW2D_FWD_F64 = Libdl.dlsym(library, :window2d_fwd_f64)
 const WINDOW2D_BWD_F64 = Libdl.dlsym(library, :window2d_bwd_f64)
 
 """
-    Conv(w, x; [stride, pad])
-    Conv(channel, filter, [stride, pad])
+    Conv(w, b; [stride, pad])
 
 N-dimensional convolution function.
 
 ## Arguments
-* w::Var: weight variable
-* x::Var: input variable
+* w::Var: weight
+* b::Var: bias
 * stride::NTuple{N,Int}: stride size. Default: (1,1,...)
 * pad::NTuple{N,Int}: padding size. Default: (0,0,...)
 
@@ -27,18 +26,19 @@ y = f(x)
 """
 type Conv
   w::Var
+  b::Var
   stride
   pad
 end
 
-function Conv(w::Array, stride=(), pad=())
+function Conv(w::Var, b::Var, stride=(), pad=())
   N = ndims(w) - 2
   length(stride) == 0 && (stride = ntuple(_->1, N))
   length(pad) == 0 && (pad = ntuple(_->0, N))
-  Conv(Var(w), stride, pad)
+  Conv(w, b, stride, pad)
 end
 
-@compat (f::Conv)(x::Var) = ConvFun(f.stride,f.pad)(f.w, f.x)
+@compat (f::Conv)(x::Var) = ConvFun(f.stride,f.pad)(f.w, f.x, f.b)
 
 
 type ConvFun{N}
@@ -49,8 +49,8 @@ end
 handle(::ConvFun{2}, ::Type{Float32}) = WINDOW2D_FWD_F32, WINDOW2D_BWD_F32
 handle(::ConvFun{2}, ::Type{Float64}) = WINDOW2D_FWD_F64, WINDOW2D_BWD_F64
 
-@compat function (f::ConvFun{N}){N}(w::Var, x::Var)
-  @checkargs f (w,x)
+@compat function (f::ConvFun{N}){N}(w::Var, x::Var, b::Var)
+  @checkargs f (w,x,b)
   throw("Not implemented yet.")
   #conv(w.value, f.stride, f.pad, x.value)
 end
