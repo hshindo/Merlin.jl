@@ -1,17 +1,11 @@
-export save_hdf5
+using HDF5
 
-function save_hdf5(dict::Dict, path)
-  function write_hdf5(g, key, val)
-    if applicable(hdf5dict, val)
-      d = hdf5dict(val)::Dict
-      g = g_create(g, string(key))
-      for (k,v) in d
-        write_hdf5(g, k, v)
-      end
-    elseif typeof(val) <: Dict
+function save(dict::Dict, path)
+  function write(g, key, val)
+    if typeof(val) <: Dict
       g = g_create(g, string(key))
       for (k,v) in val
-        write_hdf5(g, k, v)
+        write(g, k, v)
       end
     else
       g[string(key)] = val
@@ -21,7 +15,7 @@ function save_hdf5(dict::Dict, path)
   h5open(path, "w") do h
     g = g_create(h, "Merlin")
     for (k,v) in dict
-      write_hdf5(g, k, v)
+      write(g, k, v)
     end
   end
 end
@@ -32,25 +26,28 @@ function hdf5dict(v::Var)
   d["f"] = string(v.f)
   d["argtype"] = string(typeof(v.args))
   d["args"] = Int[v.args...]
-  d
+  Dict("Var" => d)
+end
+
+function load(dict)
+
 end
 
 function hdf5dict(g::Graph)
   d_nodes = Dict()
   for i = 1:length(g.nodes)
-    n = g.nodes[i]
-    d_nodes[string(i)] = n
+    d_nodes[string(i)] = hdf5dict(g.nodes[i])
   end
   d_sym2id = Dict()
   for (k,v) in g.sym2id
     d_sym2id[string(k)] = v
   end
-  Dict("nodes" => d_nodes, "sym2id" => d_sym2id)
+  "Graph" => Dict("nodes" => d_nodes, "sym2id" => d_sym2id)
 end
 
 function load(path)
   dict = h5read(path, "Merlin")
-  
+
 end
 
 function load(::Type{Graph}, path)

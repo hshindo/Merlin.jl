@@ -31,10 +31,8 @@ type Conv
   pad
 end
 
-function Conv(w::Var, b::Var, stride=(), pad=())
-  N = ndims(w.value) - 2
-  length(stride) == 0 && (stride = ntuple(_->1, N))
-  length(pad) == 0 && (pad = ntuple(_->0, N))
+function Conv{N}(w::Var, b::Var, stride)
+  pad = ntuple(_->0, length(N))
   Conv(w, b, stride, pad)
 end
 
