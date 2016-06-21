@@ -81,8 +81,8 @@ f_h = @graph ...
 f_y = @graph ...
 
 h = Var(rand(T,50,1)) # initial hidden vector
-xs = ... # input vars
-ys = Array(Var, length(input)) # output vars
+xs = [Var(rand(T,50,1)) for i=1:10] # input vars
+ys = Array(Var, length(xs)) # output vars
 
 for i = 1:length(xs)
  x = xs[i]
