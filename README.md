@@ -55,20 +55,6 @@ Basically,
 1. Wrap your data with `Var`.
 2. Apply functions to `Var`s. `Var` memorizes a history of functional applications for auto-differentiation.
 
-Here is a quick example of three-layer network:
-```julia
-using Merlin
-
-x = Var(rand(Float32,10,5))
-f1 = Linear(Float32,10,7)
-f2 = Linear(Float32,7,3)
-y = x |> f1 |> relu |> f2 # or y = f2(relu(f1(x)))
-
-y.grad = rand(Float32,size(y.value))
-gradient!(y) # auto-differentiation
-
-```
-
 ### Example1: Feed-Forward Neural Network
 Static network can be constructed by `@graph` macro.
 Here is an example of three-layer network:
@@ -87,30 +73,20 @@ y = f(:x => x)
 where `Var(:<name>)` is a place-holder of input variable.
 
 ### Example2: Recurrent Neural Network
-If network structure or size is dependent on input data such as recurrent neural networks, it is hard to define the whole network structure beforehand.
-In such cases, the standard julia syntax such as `for` and `if` can be used.
+<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="150"></p>
 
 ```julia
 T = Float32
-# function for hidden unit
-f_h = @graph begin
-  x = Var(:x)
-  Linear(T,50,50)(x)
-end
-# function for output unit
-f_y = @graph begin
-  x = Var(:x)
-  Linear(T,50,50)(x)
-end
-
-h = Var(rand(T,50)) # initial hidden vector
-input = ... # input vars
-output = Array(Var, length(input)) # output vars
+f_h = @graph ...
+f_y = @graph ...
+h = Var(rand(T,50,1)) # initial hidden vector
+xs = ... # input vars
+ys = Array(Var, length(input)) # output vars
 for i = 1:10
- x = input[i]
- c = concat(1, x, h)
+ x = xs[i]
+ c = concat(1, x, h) # concatanate x and h along the first dimension.
  h = f_h(:x => c)
- output[i] = f_out(:x => h)
+ ys[i] = f_y(:x => h)
 end
 ```
 
