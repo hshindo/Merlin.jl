@@ -59,13 +59,14 @@ Here is a quick example of three-layer network:
 ```julia
 using Merlin
 
-x1 = Var(rand(Float32,10,5))
+x = Var(rand(Float32,10,5))
 f1 = Linear(Float32,10,7)
 f2 = Linear(Float32,7,3)
 y = x |> f1 |> relu |> f2 # or y = f2(relu(f1(x)))
 
-y.grad = rand(Float32,size(y))
-gradient!(y)
+y.grad = rand(Float32,size(y.value))
+gradient!(y) # auto-differentiation
+
 ```
 
 ### Example1: Feed-Forward Neural Network
