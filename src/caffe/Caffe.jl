@@ -6,17 +6,26 @@ using ..Merlin: Var
 
 include("proto/caffe_pb.jl")
 
-function gksp(p)
-  ksize = p.kernel_h > 0 ? (p.kernel_h, p.kernel_w) : (p.kernel_size[1], p.kernel_size[1])
-  stride = p.stride_h > 0 ? (p.stride_h, p.stride_w) : (p.stride[1], p.stride[1])
-  if p.pad_h > 0
-    pad = p.pad_h, p.pad_w
-  elseif length(p.pad) > 0
-    pad = p.pad[1], p.pad[1]
-  else
-    pad = 0, 0
-  end
-  map(Int,ksize), map(Int,stride), map(Int,pad)
+function kernel_size(param)
+  param.kernel_h > 0 && return Int(p.kernel_h), Int(p.kernel_w)
+  s = Int(p.kernel_size[1])
+  s, s
+end
+
+function stride_size(param)
+  p.stride_h > 0 && return Int(p.stride_h), Int(p.stride_w)
+  length(p.stride) == 0 && return 1, 1
+  @assert length(p.stride) == 2
+  s = Int(p.stride[1])
+  s, s
+end
+
+function pad_size(param)
+  p.pad_h > 0 && return Int(p.pad_h), Int(p.pad_w)
+  length(p.pad) == 0 && return 0, 0
+  @assert length(p.pad) == 2
+  s = Int(p.pad[1])
+  s, s
 end
 
 function conv(layer)
@@ -25,25 +34,56 @@ function conv(layer)
   b = length(blobs) > 1 ? blobs[2].data : nothing
   num = blobs[1].num > 0 ? Int(blobs[1].num) : Int(blobs[1].shape.dim[1])
   channels = blobs[1].channels > 0 ? Int(blobs[1].channels) : Int(blobs[1].shape.dim[2])
-  param = layer.convolution_param
-  ksize, stride, pad = gksp(param)
-
-  param.group == 1 && (w = reshape(w, (ksize[1],ksize[2],channels,num)))
+  p = layer.convolution_param
+  kernel, stride, pad = kernel_size(p), stride_size(p), pad_size(p)
+  p.group == 1 && (w = reshape(w, ksize[1], ksize[2], channels, num))
   Merlin.Conv(Var(w), Var(b), stride, pad)
 end
 
-function pooling(layer)
-  param = layer.pooling_param
-  ksize, stride, pad = gksp(param)
-
-  if param.pool == PoolingParameter_PoolMethod.MAX
-    mode = "max"
-  elseif param.pool == PoolingParameter_PoolMethod.AVE
-    mode = "average"
+function inner_product(layer)
+  w = layer.blobs[1].data
+  b = layer.blobs[2].data
+  blob = layer.blobs[1]
+  if blob.height > 0
+    height = blob.height
+    width = blob.width
+  elseif length(blob.shape.dim) == 2
+    height = blob.shape.dim[1]
+    width = blob.shape.dim[2]
+  elseif length(blob.shape.dim) == 4
+    height = blob.shape.dim[3]
+    width = blob.shape.dim[4]
   else
-    throw("Unknwon pooling mode.")
+    height = nothing
+    width = nothing
   end
-  Merlin.Pooling(mode, ksize, stride, pad)
+
+  w = reshape(w, height, width)
+  f = Linear(Var(w), Var(b))
+
+  axis = layer.inner_product_param.axis
+  _inner_product(
+    w,
+    b,
+    height,
+    width,
+    axis
+  )
+end
+
+function pooling(layer)
+  p = layer.pooling_param
+  kernel, stride, pad = kernel_size(p), stride_size(p), pad_size(p)
+  types = PoolingParameter_PoolMethod
+  if p.pool == types.MAX
+    mode = :max
+  elseif p.pool == types.AVE
+    mode = :ave
+  else
+    warn("Unsupported pooling mode: $(mode). Set the mode :max")
+    mode = :max
+  end
+  Merlin.Pooling(mode, kernel, stride, pad)
 end
 
 function forward(l::LayerParameter, x::Var)
