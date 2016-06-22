@@ -1,14 +1,16 @@
 module Caffe
 
 using ProtoBuf
-import ..Merlin, ..Merlin.Var
+import ..Merlin
+using ..Merlin: Var
 
 include("proto/caffe_pb.jl")
 
 function gksp(p)
-  ksize = p.kernel_h > 0 ? (p.kernel_h, p.kernel_w) : (p.kernel_size, p.kernel_size)
-  stride = p.stride_h > 0 ? (p.stride_h, p.stride_w) : (p.stride, p.stride)
-  pad = p.pad_h > 0 ? (p.pad_h, p.pad_w) : (p.pad, p.pad)
+  ksize = p.kernel_h > 0 ? (p.kernel_h, p.kernel_w) : (p.kernel_size[1], p.kernel_size[1])
+  stride = p.stride_h > 0 ? (p.stride_h, p.stride_w) : (p.stride[1], p.stride[1])
+  #pad = p.pad_h > 0 ? (p.pad_h, p.pad_w) : (p.pad[1], p.pad[1])
+  pad = (0,0)
   map(Int,ksize), map(Int,stride), map(Int,pad)
 end
 
@@ -21,10 +23,22 @@ function conv(layer)
   param = layer.convolution_param
   ksize, stride, pad = gksp(param)
 
-  if param.group == 1
-    w = reshape(w, (ksize[1],ksize[2],Int(channels),Int(num)))
-  end
+  param.group == 1 && (w = reshape(w, (ksize[1],ksize[2],Int(channels),Int(num))))
   Merlin.Conv(Var(w), Var(b), stride, pad)
+end
+
+function pooling(layer)
+  param = layer.pooling_param
+  ksize, stride, pad = gksp(param)
+
+  if param.pool == __enum_PoolingParameter_PoolMethod().MAX
+    mode = "max"
+  elseif param.pool == __enum_PoolingParameter_PoolMethod().AVE
+    mode = "average"
+  else
+    mode = nothing
+  end
+  Merlin.Pooling(mode, ksize, stride, pad)
 end
 
 """
@@ -34,41 +48,33 @@ function load(path)
   np = open(path) do io
     readproto(io, NetParameter())
   end
-  dict = Dict()
-  for l in np.layers
-    dict[l.name] = l
-  end
-  dict
-end
 
-function load(path)
-  np = open(path) do io
-    readproto(io, NetParameter())
-  end
   ltype = __enum_V1LayerParameter_LayerType()
-  x = Merlin.Var(:x)
+  x = Var(:x)
   d = []
   for l in (length(np.layer) > 0 ? np.layer : np.layers)
     if l._type == ltype.CONVOLUTION || l._type == "Convolution"
       f = conv(l)
-      #x = f(x)
+      x = f(x)
     elseif l._type == ltype.POOLING || l._type == "Pooling"
       f = pooling(l)
       x = f(x)
     elseif l._type == ltype.RELU || l._type == "ReLU"
       x = Merlin.relu(x)
     elseif l._type == ltype.DATA || l._type == "Data"
-      f = data(l)
+      #f = data(l)
       #x = f(x)
+      x = x
     elseif l._type == ltype.SOFTMAX_LOSS || l._type == "SoftmaxWithLoss"
-      f = softmax_loss(l)
+      #f = softmax_loss(l)
       #x = f(x)
+      x = x
     else
       f = nothing
+      x = x
     end
-    push!(d, (l.name,typeof(f),l._type))
   end
-  x,d
+  Merlin.@graph x
 end
 
 end

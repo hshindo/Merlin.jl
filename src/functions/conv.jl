@@ -33,7 +33,7 @@ end
 
 Conv(w::Var, b::Var, stride) = Conv(w, b, stride, map(_ -> 0, stride))
 
-@compat (f::Conv)(x::Var) = ConvFun(f.stride,f.pad)(f.w, f.x, f.b)
+@compat (f::Conv)(x::Var) = ConvFun(f.stride,f.pad)(f.w, x, f.b)
 
 
 type ConvFun{N}

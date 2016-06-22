@@ -3,8 +3,6 @@ module Merlin
 using Compat
 using Base.LinAlg.BLAS
 
-include("caffe/caffe_goto.jl")
-
 @windows? begin
   const libname = "libmerlin.dll"
 end : begin
@@ -67,5 +65,8 @@ for name in [
     "sgd"]
   include("optimizers/$(name).jl")
 end
+
+# Interop
+include("caffe/Caffe.jl")
 
 end
