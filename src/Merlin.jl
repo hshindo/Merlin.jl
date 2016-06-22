@@ -41,6 +41,7 @@ for name in [
   "concat",
   "conv",
   "crossentropy",
+  "dropout",
   "linear",
   "lookup",
   "math",

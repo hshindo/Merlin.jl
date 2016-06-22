@@ -71,13 +71,12 @@ function load(path)
   np = open(path) do io
     readproto(io, NetParameter())
   end
-
   x = Var(:x)
   layers = length(np.layer) > 0 ? np.layer : np.layers
   for l in layers
     x = forward(l, x)
   end
-
+  
   Merlin.@graph x
 end
 
