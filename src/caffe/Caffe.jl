@@ -9,8 +9,13 @@ include("proto/caffe_pb.jl")
 function gksp(p)
   ksize = p.kernel_h > 0 ? (p.kernel_h, p.kernel_w) : (p.kernel_size[1], p.kernel_size[1])
   stride = p.stride_h > 0 ? (p.stride_h, p.stride_w) : (p.stride[1], p.stride[1])
-  #pad = p.pad_h > 0 ? (p.pad_h, p.pad_w) : (p.pad[1], p.pad[1])
-  pad = (0,0)
+  if p.pad_h > 0
+    pad = p.pad_h, p.pad_w
+  elseif length(p.pad > 0)
+    pad = p.pad[1], p.pad[1]
+  else
+    pad = 0, 0
+  end
   map(Int,ksize), map(Int,stride), map(Int,pad)
 end
 
