@@ -46,6 +46,24 @@ function pooling(layer)
   Merlin.Pooling(mode, ksize, stride, pad)
 end
 
+function forward(l::LayerParameter, x::Var)
+  t = l._type
+  t == "Convolution" && return conv(l)(x)
+  t == "Pooling" && return pooling(l)(x)
+  t == "ReLU" && return Merlin.relu(x)
+  #t == types.SOFTMAX_LOSS && return
+  x
+end
+
+function forward(l::V1LayerParameter, x::Var)
+  t = l._type
+  types = V1LayerParameter_LayerType
+  t == types.CONVOLUTION && return conv(l)(x)
+  t == types.POOLING && return pooling(l)(x)
+  t == types.RELU && return Merlin.relu(x)
+  x
+end
+
 """
 Load Caffe model.
 """
@@ -54,31 +72,12 @@ function load(path)
     readproto(io, NetParameter())
   end
 
-  ltype = V1LayerParameter_LayerType
   x = Var(:x)
-  d = []
-  for l in (length(np.layer) > 0 ? np.layer : np.layers)
-    if l._type == ltype.CONVOLUTION || l._type == "Convolution"
-      f = conv(l)
-      x = f(x)
-    elseif l._type == ltype.POOLING || l._type == "Pooling"
-      f = pooling(l)
-      x = f(x)
-    elseif l._type == ltype.RELU || l._type == "ReLU"
-      x = Merlin.relu(x)
-    elseif l._type == ltype.DATA || l._type == "Data"
-      #f = data(l)
-      #x = f(x)
-      x = x
-    elseif l._type == ltype.SOFTMAX_LOSS || l._type == "SoftmaxWithLoss"
-      #f = softmax_loss(l)
-      #x = f(x)
-      x = x
-    else
-      f = nothing
-      x = x
-    end
+  layers = length(np.layer) > 0 ? np.layer : np.layers
+  for l in layers
+    x = forward(l, x)
   end
+
   Merlin.@graph x
 end
 
