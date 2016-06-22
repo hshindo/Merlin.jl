@@ -11,7 +11,7 @@ function gksp(p)
   stride = p.stride_h > 0 ? (p.stride_h, p.stride_w) : (p.stride[1], p.stride[1])
   if p.pad_h > 0
     pad = p.pad_h, p.pad_w
-  elseif length(p.pad > 0)
+  elseif length(p.pad) > 0
     pad = p.pad[1], p.pad[1]
   else
     pad = 0, 0
@@ -23,12 +23,12 @@ function conv(layer)
   blobs = layer.blobs
   w = blobs[1].data
   b = length(blobs) > 1 ? blobs[2].data : nothing
-  num = blobs[1].num > 0 ? blobs[1].num : blobs[1].shape.dim[1]
-  channels = blobs[1].channels > 0 ? blobs[1].channels : blobs[1].shape.dim[2]
+  num = blobs[1].num > 0 ? Int(blobs[1].num) : Int(blobs[1].shape.dim[1])
+  channels = blobs[1].channels > 0 ? Int(blobs[1].channels) : Int(blobs[1].shape.dim[2])
   param = layer.convolution_param
   ksize, stride, pad = gksp(param)
 
-  param.group == 1 && (w = reshape(w, (ksize[1],ksize[2],Int(channels),Int(num))))
+  param.group == 1 && (w = reshape(w, (ksize[1],ksize[2],channels,num)))
   Merlin.Conv(Var(w), Var(b), stride, pad)
 end
 
@@ -36,12 +36,12 @@ function pooling(layer)
   param = layer.pooling_param
   ksize, stride, pad = gksp(param)
 
-  if param.pool == __enum_PoolingParameter_PoolMethod().MAX
+  if param.pool == PoolingParameter_PoolMethod.MAX
     mode = "max"
-  elseif param.pool == __enum_PoolingParameter_PoolMethod().AVE
+  elseif param.pool == PoolingParameter_PoolMethod.AVE
     mode = "average"
   else
-    mode = nothing
+    throw("Unknwon pooling mode.")
   end
   Merlin.Pooling(mode, ksize, stride, pad)
 end
@@ -54,7 +54,7 @@ function load(path)
     readproto(io, NetParameter())
   end
 
-  ltype = __enum_V1LayerParameter_LayerType()
+  ltype = V1LayerParameter_LayerType
   x = Var(:x)
   d = []
   for l in (length(np.layer) > 0 ? np.layer : np.layers)
