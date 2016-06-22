@@ -41,7 +41,11 @@ julia> Pkg.build("Merlin")
 which generates `libmerlin.so` on `deps/`.
 
 For Windows, `libmerlin.dll` is provided on `deps/`, however,
-if you have installed `g++` with mingw-x64, you can build `Merlin.jl` on Windows.
+if you have installed `g++` with mingw-x64, you can build `Merlin` as follows:
+```julia
+julia> ENV["MERLIN_BUILD_WINDOWS"] = ""
+julia> Pkg.build("Merlin.jl")
+```
 
 To use CUDA GPU, install the following packages:
 ```julia
