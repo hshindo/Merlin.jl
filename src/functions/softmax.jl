@@ -29,6 +29,10 @@ function softmax(x::Var)
   Var(y, df, [x])
 end
 
+type Softmax
+  dim::Int
+end
+
 function softmax{T}(x::Matrix{T})
   h = softmax_handle(T)[1]
   y = similar(x)

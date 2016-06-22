@@ -3,7 +3,7 @@ module Merlin
 using Compat
 using Base.LinAlg.BLAS
 
-#include("caffe/Caffe.jl")
+include("caffe/caffe_goto.jl")
 
 @windows? begin
   const libname = "libmerlin.dll"

@@ -1,7 +1,8 @@
 module Caffe
 
 using ProtoBuf
-import ..Merlin, ..Merlin.Var
+import ..Merlin
+import ..Merlin.Var
 
 include("proto/caffe_pb.jl")
 
@@ -22,10 +23,64 @@ function conv(layer)
   ksize, stride, pad = gksp(param)
 
   if param.group == 1
-    w = reshape(w, (ksize[1],ksize[2],Int(channels),Int(num)))
+    w = reshape(w, (ksize[1],ksize[2],Int64(channels),Int64(num)))
   end
-  Merlin.Conv(Var(w), Var(b), stride, pad)
+  Merlin.Conv(Merlin.Var(w), Merlin.Var(b), stride, pad)
 end
+
+function pooling(layer)
+  param = layer.pooling_param
+  ksize,stride,pad = gksp(param)
+
+  if param.pool == __enum_PoolingParameter_PoolMethod().MAX
+    mode = "max"
+  elseif param.pool == __enum_PoolingParameter_PoolMethod().AVE
+    mode = "average"
+  else
+    mode = nothing
+  end
+  Merlin.Pooling{length(pad)}(mode,ksize,stride,pad)
+end
+
+type _data
+  backend
+  batch_size
+  crop_size
+  force_encoded_color
+  mean_file
+  mirror
+  scale
+  source
+end
+
+function data(layer)
+  param = layer.data_param
+  _data(
+    param.backend,
+    param.batch_size,
+    param.crop_size,
+    param.force_encoded_color,
+    param.mean_file,
+    param.mirror,
+    param.scale,
+    param.source
+  )
+end
+
+type _softmax_loss
+  axis
+end
+
+function softmax_loss(layer)
+  if isdefined(layer,:softmax_param)
+    axis = layer.softmax_param.axis
+  else
+    axis= __val_SoftmaxParameter[:axis]
+  end
+  _softmax_loss(axis)
+end
+
+type _relu end
 
 """
 Load Caffe model.
@@ -34,21 +89,11 @@ function load(path)
   np = open(path) do io
     readproto(io, NetParameter())
   end
-  dict = Dict()
-  for l in np.layers
-    dict[l.name] = l
-  end
-  dict
-end
-
-function load(path)
-  np = open(path) do io
-    readproto(io, NetParameter())
-  end
   ltype = __enum_V1LayerParameter_LayerType()
   x = Merlin.Var(:x)
-  d = []
+  d=Any[]
   for l in (length(np.layer) > 0 ? np.layer : np.layers)
+    f = nothing
     if l._type == ltype.CONVOLUTION || l._type == "Convolution"
       f = conv(l)
       #x = f(x)
@@ -56,6 +101,7 @@ function load(path)
       f = pooling(l)
       x = f(x)
     elseif l._type == ltype.RELU || l._type == "ReLU"
+      f = _relu()
       x = Merlin.relu(x)
     elseif l._type == ltype.DATA || l._type == "Data"
       f = data(l)
@@ -63,10 +109,8 @@ function load(path)
     elseif l._type == ltype.SOFTMAX_LOSS || l._type == "SoftmaxWithLoss"
       f = softmax_loss(l)
       #x = f(x)
-    else
-      f = nothing
     end
-    push!(d, (l.name,typeof(f),l._type))
+    push!(d,(l.name,typeof(f),l._type))
   end
   x,d
 end
