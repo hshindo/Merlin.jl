@@ -1,3 +1,10 @@
+export dropout
+
+"""
+    dropout(x, ratio)
+
+Dropout function.
+"""
 dropout(x::Var, ratio::Float64) = Dropout(ratio)(x)
 
 type Dropout

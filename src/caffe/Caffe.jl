@@ -51,7 +51,7 @@ function forward(l::LayerParameter, x::Var)
   t == "Convolution" && return conv(l)(x)
   t == "Pooling" && return pooling(l)(x)
   t == "ReLU" && return Merlin.relu(x)
-  #t == types.SOFTMAX_LOSS && return
+  t == "Softmax" && return Merlin.softmax(x)
   x
 end
 
@@ -59,8 +59,13 @@ function forward(l::V1LayerParameter, x::Var)
   t = l._type
   types = V1LayerParameter_LayerType
   t == types.CONVOLUTION && return conv(l)(x)
+  if t == types.DROPOUT
+    ratio = Float64(layer.dropout_param.dropout_ratio)
+    return Merlin.dropout(x, ratio)
+  end
   t == types.POOLING && return pooling(l)(x)
   t == types.RELU && return Merlin.relu(x)
+  t == types.SOFTMAX && return Merlin.softmax(x)
   x
 end
 
@@ -76,7 +81,7 @@ function load(path)
   for l in layers
     x = forward(l, x)
   end
-  
+
   Merlin.@graph x
 end
 
