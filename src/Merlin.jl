@@ -67,6 +67,6 @@ for name in [
 end
 
 # Interop
-include("caffe/caffe_.jl")
+include("caffe/Caffe.jl")
 
 end
