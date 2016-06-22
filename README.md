@@ -63,6 +63,8 @@ Here is an example of three-layer network:
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/feedforward.png" width="120"></p>
 
 ```julia
+using Merlin
+
 f = @graph begin
   T = Float32
   x = Var(:x)
@@ -80,6 +82,8 @@ where `Var(:<name>)` is a place-holder of input variable.
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="270"></p>
 
 ```julia
+using Merlin
+
 T = Float32
 f_h = @graph ...
 f_y = @graph ...
