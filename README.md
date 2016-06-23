@@ -82,15 +82,15 @@ y = f(:x => x)
 ```
 where `Var(:<name>)` is a place-holder of input variable.
 
-### Example2: Recurrent Neural Network
+### Example2: Recurrent Neural Network (RNN)
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="270"></p>
 
 ```julia
 using Merlin
 
 T = Float32
-f_h = @graph ...
-f_y = @graph ...
+f_h = @graph ... # function for hidden unit
+f_y = @graph ... # function for output unit
 
 h = Var(rand(T,50,1)) # initial hidden vector
 xs = [Var(rand(T,50,1)) for i=1:10] # input vars
