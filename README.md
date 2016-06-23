@@ -11,7 +11,7 @@ This is alpha version.
 It aims to provide a fast, flexible and compact deep learning library for machine learning.
 Our primary goal is to develop a natural language processing toolkit based on `Merlin`.
 
-`Merlin` is tested against Julia `0.4` and `nightly` on Linux, OS X, and Windows.
+`Merlin` is tested against Julia `0.4` and `nightly` on Linux, OS X, and Windows (x64).
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/v2u1kyjy61ph0ihn/branch/master?svg=true)](https://ci.appveyor.com/project/hshindo/merlin-jl/branch/master)
