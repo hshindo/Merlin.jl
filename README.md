@@ -47,7 +47,7 @@ julia> ENV["MERLIN_BUILD_WINDOWS"] = ""
 julia> Pkg.build("Merlin.jl")
 ```
 
-To use CUDA GPU, install the following packages:
+(Experimental) To use CUDA GPU, install the following packages:
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/CUDA.jl.git")
 julia> Pkg.clone("https://github.com/hshindo/CUDNN.jl.git")
