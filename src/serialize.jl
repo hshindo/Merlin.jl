@@ -1,5 +1,11 @@
 using HDF5
 
+"""
+    save(dict, path)
+
+Save Merlin objects as a HDF5 format.
+Supported objects are `Graph` and `Var`.
+"""
 function save(dict::Dict, path)
   function write(g, key, val)
     if typeof(val) <: Dict
@@ -20,6 +26,15 @@ function save(dict::Dict, path)
   end
 end
 
+function load(path)
+  dict = h5read(path, "Merlin")
+  for (k,v) in dict
+    if typeof(v) <: Dict
+      load(eval(parse(k)), v)
+    end
+  end
+end
+
 function hdf5dict(v::Var)
   d = Dict()
   d["value"] = typeof(v.value) == Symbol ? string(value) : v.value
@@ -27,10 +42,6 @@ function hdf5dict(v::Var)
   d["argtype"] = string(typeof(v.args))
   d["args"] = Int[v.args...]
   Dict("Var" => d)
-end
-
-function load(dict)
-
 end
 
 function hdf5dict(g::Graph)
@@ -45,12 +56,7 @@ function hdf5dict(g::Graph)
   "Graph" => Dict("nodes" => d_nodes, "sym2id" => d_sym2id)
 end
 
-function load(path)
-  dict = h5read(path, "Merlin")
-
-end
-
-function load(::Type{Graph}, path)
+function load(::Type{Graph}, dict)
   nodes = Var[]
   dict = h5read(path, "graph")
   for (k,v) in dict["nodes"]
@@ -60,6 +66,10 @@ function load(::Type{Graph}, path)
     end
     nodes[id] = v
   end
+end
+
+function load(::Type{Var}, dict)
+
 end
 
 #=

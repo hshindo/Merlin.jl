@@ -20,23 +20,20 @@ N-dimensional convolution function.
 ## 👉 Example
 ```julia
 x = Var(rand(Float32,5,4,3,2))
-f = Conv(rand(Float32,2,2,3,4), stride=(1,1), pad=(0,0))
+f = Conv(rand(Float32,2,2,3,4), (1,1), (0,0))
 y = f(x)
 ```
 """
-type Conv
+type Conv{N}
   w::Var
   b::Var
-  stride
-  pad
+  stride::NTuple{N,Int}
+  pad::NTuple{N,Int}
 end
 
-function Conv{N}(w::Var, b::Var, stride)
-  pad = ntuple(_->0, length(N))
-  Conv(w, b, stride, pad)
-end
+Conv(w::Var, b::Var, stride) = Conv(w, b, stride, map(_ -> 0, stride))
 
-@compat (f::Conv)(x::Var) = ConvFun(f.stride,f.pad)(f.w, f.x, f.b)
+@compat (f::Conv)(x::Var) = ConvFun(f.stride,f.pad)(f.w, x, f.b)
 
 
 type ConvFun{N}

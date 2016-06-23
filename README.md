@@ -11,7 +11,7 @@ This is alpha version.
 It aims to provide a fast, flexible and compact deep learning library for machine learning.
 Our primary goal is to develop a natural language processing toolkit based on `Merlin`.
 
-`Merlin` is tested against Julia `0.4` and `nightly` on Linux, OS X, and Windows.
+`Merlin` is tested against Julia `0.4` and `nightly` on Linux, OS X, and Windows (x64).
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/v2u1kyjy61ph0ihn/branch/master?svg=true)](https://ci.appveyor.com/project/hshindo/merlin-jl/branch/master)
@@ -41,7 +41,11 @@ julia> Pkg.build("Merlin")
 which generates `libmerlin.so` on `deps/`.
 
 For Windows, `libmerlin.dll` is provided on `deps/`, however,
-if you have installed `g++` with mingw-x64, you can build `Merlin.jl` on Windows.
+if you have installed `g++` with mingw-x64, you can build `Merlin` as follows:
+```julia
+julia> ENV["MERLIN_BUILD_WINDOWS"] = ""
+julia> Pkg.build("Merlin.jl")
+```
 
 To use CUDA GPU, install the following packages:
 ```julia
@@ -63,6 +67,8 @@ Here is an example of three-layer network:
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/feedforward.png" width="120"></p>
 
 ```julia
+using Merlin
+
 f = @graph begin
   T = Float32
   x = Var(:x)
@@ -80,6 +86,8 @@ where `Var(:<name>)` is a place-holder of input variable.
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="270"></p>
 
 ```julia
+using Merlin
+
 T = Float32
 f_h = @graph ...
 f_y = @graph ...

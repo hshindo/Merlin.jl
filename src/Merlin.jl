@@ -3,8 +3,6 @@ module Merlin
 using Compat
 using Base.LinAlg.BLAS
 
-#include("caffe/Caffe.jl")
-
 @windows? begin
   const libname = "libmerlin.dll"
 end : begin
@@ -42,7 +40,7 @@ for name in [
   "activation",
   "concat",
   "conv",
-  "crossentropy",
+  "dropout",
   "linear",
   "lookup",
   "math",
@@ -50,6 +48,7 @@ for name in [
   "pooling",
   "reshape",
   "softmax",
+  "softmax_crossentropy",
   "sum",
   "window2d"
   ]
@@ -67,5 +66,7 @@ for name in [
     "sgd"]
   include("optimizers/$(name).jl")
 end
+
+include("caffe/Caffe.jl")
 
 end

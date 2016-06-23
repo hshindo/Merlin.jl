@@ -14,9 +14,16 @@ type Lookup
   w::Var
 end
 
-function Lookup()
+function Lookup{T}(::Type{T}, indim::Int, outdim::Int)
+  w = convert(Matrix{T}, randn(outdim,indim))
+  Lookup(w)
 end
 
+function lookup(w::Var, x::Var)
+
+end
+
+#=
 function Lookup{T}(path, ::Type{T})
   lines = open(readlines, path)
   ws = Array(Var, length(lines))
@@ -70,3 +77,4 @@ function ∇lookup!{T}(w::Matrix{T}, gw::Matrix{T}, x::Array{Int}, gy::Matrix{T}
     BLAS.axpy!(T(1), gy, slice(w,:,i))
   end
 end
+=#

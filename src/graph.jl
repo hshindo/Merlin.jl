@@ -58,6 +58,6 @@ Construct a static network from `var`.
 """
 macro graph(src)
   quote
-    Graph(eval($src))
+    Graph(eval($(esc(src))))
   end
 end

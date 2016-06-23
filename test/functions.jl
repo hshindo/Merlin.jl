@@ -25,10 +25,6 @@ end
     @test checkgrad(() -> concat(dim,x1,x2,x3), x1, x2, x3)
   end
 
-  p = Var([1:5;])
-  q = Var(rand(Float32,10,5))
-  @test checkgrad(() -> crossentropy(p,q), q)
-
   x = Var(rand(T,10,5))
   f = Linear(T, 10, 7)
   #f.b = param(rand(T, size(f.b.value)))
@@ -54,8 +50,12 @@ end
   @test checkgrad(() -> reshape(x,2,5,5), x)
 
   x = Var(rand(T,10,5))
-  @test checkgrad(() -> softmax(x), x)
-  @test checkgrad(() -> logsoftmax(x), x)
+  @test checkgrad(() -> softmax(x,2), x)
+  @test checkgrad(() -> logsoftmax(x,2), x)
+
+  p = Var([1:5;])
+  x = Var(rand(Float32,10,5))
+  @test checkgrad(() -> softmax_crossentropy(p,x,2), x)
 
   x = Var(rand(T,10,5))
   for dim = 1:ndims(x.value)
