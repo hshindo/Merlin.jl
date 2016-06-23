@@ -26,6 +26,7 @@ end
 
 @compat function (f::SoftmaxCrossEntropy)(p::Var, x::Var)
   @checkargs f (p,x)
+  @assert f.dim == 2
   logx = logsoftmax(x.value)
   y = softmax_crossentropy(p.value, logx)
   df(gy) = hasgrad(x) && ∇softmax_crossentropy!(p.value, logx, x.grad, gy)

@@ -27,7 +27,7 @@ function Linear{T}(::Type{T}, indim::Int, outdim::Int)
   x = sqrt(6 / (indim + outdim))
   r = rand(outdim, indim) * 2x - x
   w = convert(Matrix{T}, r)
-  b = fill(T(0), outdim)
+  b = fill(T(0), outdim, 1)
   Linear(param(w), param(b))
 end
 

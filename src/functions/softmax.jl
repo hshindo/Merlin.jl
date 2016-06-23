@@ -30,6 +30,7 @@ end
 
 @compat function (f::Softmax)(x::Var)
   @checkargs f (x,)
+  @assert f.dim == 2
   y = softmax(x.value)
   df(gy) = hasgrad(x) && ∇softmax!(x.grad, y, gy)
   Var(y, df, [x])
@@ -102,13 +103,20 @@ end
 
 
 """
-    logsoftmax(x)
+    logsoftmax(x::Var, dim::Int)
 
 Compute logarithm of softmax along the second axis.
 Currently, only 2-d is supported.
 """
-function logsoftmax(x::Var)
-  @checkargs logsoftmax (x,)
+logsoftmax(x::Var, dim::Int) = LogSoftmax(dim)(x)
+
+type LogSoftmax
+  dim::Int
+end
+
+@compat function (f::LogSoftmax)(x::Var)
+  @checkargs f (x,)
+  @assert f.dim == 2
   y = logsoftmax(x.value)
   df(gy) = hasgrad(x) && ∇logsoftmax!(x.grad, y, gy)
   Var(y, df, [x])
