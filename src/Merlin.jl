@@ -40,7 +40,6 @@ for name in [
   "activation",
   "concat",
   "conv",
-  "crossentropy",
   "dropout",
   "linear",
   "lookup",
@@ -49,6 +48,7 @@ for name in [
   "pooling",
   "reshape",
   "softmax",
+  "softmax_crossentropy",
   "sum",
   "window2d"
   ]
@@ -67,7 +67,6 @@ for name in [
   include("optimizers/$(name).jl")
 end
 
-# Interop
 include("caffe/Caffe.jl")
 
 end

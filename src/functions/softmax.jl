@@ -15,22 +15,24 @@ logsoftmax_handle(::Type{Float32}) = LOGSOFTMAX_FW_F32, LOGSOFTMAX_BW_F32
 logsoftmax_handle(::Type{Float64}) = LOGSOFTMAX_FW_F64, LOGSOFTMAX_BW_F64
 
 doc"""
-    softmax(x)
+    softmax(x::Var, dim::Int)
 
 Compute softmax along the second axis.
 Currently, only 2-d is supported.
 
 $ p(x) = {\exp(f(x)) \over \sum_{x_2} \exp(f(x))} $
 """
-function softmax(x::Var)
-  @checkargs softmax (x,)
-  y = softmax(x.value)
-  df(gy) = hasgrad(x) && ∇softmax!(x.grad, y, gy)
-  Var(y, df, [x])
-end
+softmax(x::Var, dim::Int) = Softmax(dim)(x)
 
 type Softmax
   dim::Int
+end
+
+@compat function (f::Softmax)(x::Var)
+  @checkargs f (x,)
+  y = softmax(x.value)
+  df(gy) = hasgrad(x) && ∇softmax!(x.grad, y, gy)
+  Var(y, df, [x])
 end
 
 function softmax{T}(x::Matrix{T})
