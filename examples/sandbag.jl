@@ -7,6 +7,7 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+nprocs()
 path = "C:/Users/hshindo/Desktop/nin_imagenet.caffemodel"
 g = Caffe.load(path)
 g.nodes
