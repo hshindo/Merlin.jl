@@ -1,15 +1,28 @@
-export Linear, linear
+export Linear
 
 doc"""
     Linear(w::Var, b::Var)
 
-Linear function (a.k.a. affine transformation).
+Create an object of linear function (a.k.a. affine transformation).
 
 $ f(x) = w * x + b $
 
 ## Arguments
 * `w::Var`: weight matrix
 * `b::Var`: bias vector
+"""
+type Linear
+  w::Var
+  b::Var
+end
+
+"""
+    Linear(::Type{T}, indim::Int, outdim::Int)
+
+## Arguments
+* `T`: element type
+* `indim`: input dimension
+* `outdim`: output dimension
 
 ## 👉 Example
 ```julia
@@ -18,11 +31,6 @@ f = Linear(Float32, 10, 7)
 y = f(x)
 ```
 """
-type Linear
-  w::Var
-  b::Var
-end
-
 function Linear{T}(::Type{T}, indim::Int, outdim::Int)
   x = sqrt(6 / (indim + outdim))
   r = rand(outdim, indim) * 2x - x

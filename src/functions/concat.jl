@@ -7,7 +7,7 @@ export concat
 Concatenate arrays along the given dimension.
 """
 concat(dim::Int, args::Vector{Var}) = Concat(dim)(args)
-concat(dim::Int, args::Var...) = concat(dim, [args...])
+concat(dim::Int, args::Var...) = concat(dim, Var[args...])
 
 type Concat
   dim::Int
@@ -40,10 +40,6 @@ function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
   y
 end
 
-function concat{T<:CuArray}(dim::Int, xs::Vector{T})
-  throw("Not implemented yet.")
-end
-
 function ∇concat!{T,N}(dim::Int, gxs::Vector{Array{T,N}}, gy::Array{T,N})
   range = map(s -> 1:s, [size(gy)...])
   offset = 1
@@ -53,4 +49,8 @@ function ∇concat!{T,N}(dim::Int, gxs::Vector{Array{T,N}}, gy::Array{T,N})
     BLAS.axpy!(T(1), gy[range...], gx)
     offset += s
   end
+end
+
+function ∇concat!{T,N}(dim::Int, gxs::Vector{CuArray{T,N}}, gy::CuArray{T,N})
+
 end

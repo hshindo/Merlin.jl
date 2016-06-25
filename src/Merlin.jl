@@ -34,13 +34,12 @@ include("gradient.jl")
 include("graph.jl")
 include("training.jl")
 include("native.jl")
-include("serialize.jl")
+#include("serialize.jl")
 
 for name in [
   "activation",
   "concat",
   "conv",
-  "dropout",
   "linear",
   "lookup",
   "math",
@@ -67,6 +66,6 @@ for name in [
   include("optimizers/$(name).jl")
 end
 
-include("caffe/Caffe.jl")
+#include("caffe/Caffe.jl")
 
 end
