@@ -1,10 +1,9 @@
-#using HDF5
+using HDF5
 
 """
     save(dict, path)
 
 Save Merlin objects as a HDF5 format.
-Supported objects are `Graph` and `Var`.
 """
 function save(dict::Dict, path)
   function write(g, key, val)

@@ -8,8 +8,12 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
-x = Var(rand(Float32,10,5))
+x = Var(CuArray(rand(Float32,10,5)))
 f = Linear(Float32,10,3)
+y = f(x)
+
+Array(y.value)
+
 ff = Merlin.@gradcheck f(x) (x,)
 
 a = Merlin.@testest () (x,x)

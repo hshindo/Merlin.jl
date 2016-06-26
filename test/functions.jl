@@ -2,9 +2,10 @@ const T = Float32
 
 macro cuda_test(f, args)
   quote
+    haskey(ENV, "USE_CUDA") || return true
+
     local f() = $(esc(f))
     local args = $(esc(args))
-    haskey(ENV, "USE_CUDA") || return true
     eps = 1e-3
     y1 = f().value
     for v in args
@@ -22,20 +23,11 @@ end
 
 @testset "functions" for i = 1:5
 
-  x = Var(rand(T,5,4,3,2))
+  x = Var(rand(T,5,4))
   for f in [sigmoid, tanh]
     @test @gradcheck f(x) (x,)
     @test @cuda_test f(x) (x,)
-    #@test @cuda_test f(x) (x,)
   end
-
-  #@cudatest
-  #cux = Var(CuArray(x.value))
-  #for f in [sigmoid, tanh]
-  #  y = f(x)
-  #  cuy = f(cux)
-  #  @test testdiff(y, cuy)
-  #end
 
   x1 = Var(rand(T,10,5,2))
   x2 = Var(rand(T,10,5,2))

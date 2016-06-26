@@ -1,4 +1,4 @@
-export @graph
+export Graph, @graph
 
 type Graph
   nodes::Vector{Var} # sorted in bottom-up order
@@ -18,18 +18,6 @@ function Graph(top::Var)
     dict[v] = i
   end
   Graph(nodes, sym2id)
-end
-
-function Graph(path::AbstractString)
-  nodes = Var[]
-  dict = h5read(path, "graph")
-  for (k,v) in dict["nodes"]
-    id = parse(Int, k)
-    while id > length(nodes)
-      push!(nodes, Var(nothing))
-    end
-    nodes[id] = v
-  end
 end
 
 @compat function (g::Graph)(args::Pair{Symbol,Var}...)
@@ -59,5 +47,20 @@ Construct a static network from `var`.
 macro graph(src)
   quote
     Graph(eval($(esc(src))))
+  end
+end
+
+function save_hdf5()
+end
+
+function load_hdf5(::Type{Graph}, path::AbstractString)
+  nodes = Var[]
+  dict = h5read(path, "graph")
+  for (k,v) in dict["nodes"]
+    id = parse(Int, k)
+    while id > length(nodes)
+      push!(nodes, Var(nothing))
+    end
+    nodes[id] = v
   end
 end

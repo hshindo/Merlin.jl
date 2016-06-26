@@ -56,3 +56,15 @@ macro checkargs(f, args)
     end
   end
 end
+
+function aaaa(vars)
+  count = 0
+  for v in vars
+    typeof(v.value) <: CuArray && (count += 1)
+  end
+  count == 0 && return
+  count == length(vars) && return
+  for v in vars
+    typeof(v.value) <: Array && (v.value = CuArray(v.value))
+  end
+end

@@ -1,10 +1,20 @@
-export argmax, @fastmap
+export argmax, splitdims
 
 function argmax(x, dim::Int)
   _, index = findmax(x, dim)
   ind2sub(size(x), vec(index))[dim]
 end
 
+# Split the dimension of a nd-array into 3 parts:
+function splitdims{T}(x::T, dim::Int)
+  dims = size(x)
+  dim1 = dim > 1 ? prod(dims[1:dim-1]) : 1
+  dim2 = dims[dim]
+  dim3 = dim < ndims(x) ? prod(dims[dim+1:end]) : 1
+  dim1, dim2, dim3
+end
+
+#=
 function Base.rand{T,N}(::Type{T}, low::Float64, high::Float64, dims::NTuple{N,Int})
   # sqrt(6 / (dims[1]+dims[2]))
   a = rand(T, dims) * (high-low) + low
@@ -12,13 +22,13 @@ function Base.rand{T,N}(::Type{T}, low::Float64, high::Float64, dims::NTuple{N,I
 end
 
 Base.randn{T}(::Type{T}, dims...) = convert(Array{T}, randn(dims))
-
-1.3671023382430374383648148f-2
+=#
 
 # Workaround a lack of optimization in gcc
-const exp_cst1 = 2139095040.f0
-const exp_cst2 = 0.f0
+#const exp_cst1 = 2139095040.f0
+#const exp_cst2 = 0.f0
 
+#=
 @inline function exp_approx(val::Float32)
   val2 = 12102203.1615614f0 * val + 1065353216.f0
   val3 = val2 < exp_cst1 ? val2 : exp_cst1
@@ -34,6 +44,7 @@ const exp_cst2 = 0.f0
             (-2.88093587581985443087955f-3 + b *
               1.3671023382430374383648148f-2))))
 end
+=#
 
 #=
 export fastexp!, normalexp!

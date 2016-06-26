@@ -39,7 +39,6 @@ include("native.jl")
 for name in [
   "activation",
   "concat",
-  "conv",
   "linear",
   "lookup",
   "math",
