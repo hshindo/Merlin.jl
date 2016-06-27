@@ -5,7 +5,7 @@ type Graph
   sym2id::Dict{Symbol,Int}
 end
 
-function Graph(top::Var)
+function Graph(top::Var, name=:g)
   vars = topsort(top)
   sym2id = Dict{Symbol,Int}()
   nodes = Array(Var, length(vars))
@@ -21,6 +21,8 @@ function Graph(top::Var)
 end
 
 @compat function (g::Graph)(args::Pair{Symbol,Var}...)
+  #settype!(typeof(args[1][2]), g.nodes)
+
   vars = Array(Var, length(g.nodes))
   for (k,v) in args
     id = g.sym2id[k]

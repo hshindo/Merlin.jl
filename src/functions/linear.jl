@@ -43,21 +43,17 @@ end
 
 function linear(w::Var, x::Var, b::Var)
   @checkargs linear (w,x,b)
-  if backend(x) == :CUDA
-    w.value = CuArray(w.value)
-    b.value = CuArray(b.value)
-  end
   y = linear(w.value, x.value, b.value)
   df(gy) = begin
-    hasgrad(w) && ∇linear!()
-    hasgrad(b) && ∇linear!()
+    hasgrad(w) && BLAS.gemm!('N', 'T', T(1), gy, x, T(1), gw)
+    hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w, gy, T(1), gx)
   end
   Var(y, df, [w,x,b])
 end
 
 function linear{T}(w::Matrix{T}, x::Matrix{T}, b::Matrix{T})
   y = w * x
-  broadcast!(.+, y, y, b)
+  #broadcast!(.+, y, y, b)
   y
 end
 

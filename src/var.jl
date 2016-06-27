@@ -1,10 +1,14 @@
-export Var, param, forward, gradient!
+export Var, param, gradient!
 
 type Var
   value
   f
   args
   grad
+end
+
+function Base.show(io::IO, v::Var)
+  print(io, "Merlin.Var($(typeof(v.value)),$(v.f),$(v.args),$(typeof(v.grad)))")
 end
 
 Var(value, f=nothing, args=[]) = Var(value, f, args, nothing)
@@ -15,23 +19,10 @@ Base.setindex!(v::Var, value, key) = v.args[key] = value
 
 hasgrad(v::Var) = v.grad != nothing
 
-function consistent()
-  for v in vs
-    
-  end
-end
-
-function device(v::Var)
-  typeof(v.value) <: CuArray && return :CUDA
-  typeof(v.value) <: Array && return :CPU
-  :CONST
-end
-
-function setdevice(v::Var, dev::Symbol)
-  device(v) == dev && return
-  if dev == :CPU
-    vdev = device(v)
-    v.value = CuArray(v.value)
+function settype!{T}(::Type{T}, vars::Vector{Var})
+  for v in vars
+    typeof(v.value) <: T && continue
+    v.value = T(v.value)
   end
 end
 
@@ -50,11 +41,6 @@ function gradient!(top::Var)
   sorted
 end
 
-"""
-    flatten(pred, top::Var)
-
-Flatten var graph
-"""
 function flatten(pred::Function, top::Var)
   args = Var[]
   for v in top.args
@@ -74,17 +60,5 @@ macro checkargs(f, args)
     if any(a -> typeof(a.value) == Symbol, $args)
       return Var(Symbol(), $f, $args)
     end
-  end
-end
-
-function aaaa(vars)
-  count = 0
-  for v in vars
-    typeof(v.value) <: CuArray && (count += 1)
-  end
-  count == 0 && return
-  count == length(vars) && return
-  for v in vars
-    typeof(v.value) <: Array && (v.value = CuArray(v.value))
   end
 end
