@@ -22,6 +22,7 @@ void softmax_fw(T *x, T *y, int size1, int size2) {
 
 template<typename T>
 void logsoftmax_fw(T *x, T *y, int size1, int size2) {
+  #pragma omp parallel for
   for (int m2 = 0; m2 < size2; m2++) {
     T x_max = x[m2*size1];
     for (int m1 = 1; m1 < size1; m1++) x_max = std::max(x_max, x[m1 + m2*size1]);
@@ -29,7 +30,7 @@ void logsoftmax_fw(T *x, T *y, int size1, int size2) {
     T z = static_cast<T>(0);
     for (int m1 = 0; m1 < size1; m1++) z += exp_approx(x[m1 + m2*size1] - x_max);
 
-    T logz = log(z);
+    T logz = log_approx(z);
     for (int m1 = 0; m1 < size1; m1++) {
       int i = m1 + m2 * size1;
       y[i] = x[i] - x_max - logz;
@@ -56,13 +57,14 @@ void softmax_bw(T *gx, T *y, T *gy, int size1, int size2) {
 
 template<typename T>
 void logsoftmax_bw(T *gx, T *y, T *gy, int size1, int size2) {
+  #pragma omp parallel for
   for (int m2 = 0; m2 < size2; m2++) {
     T sum = static_cast<T>(0);
     for (int m1 = 0; m1 < size1; m1++) sum += gy[m1 + m2*size1];
 
     for (int m1 = 0; m1 < size1; m1++) {
       int i = m1 + m2 * size1;
-      gx[i] += gy[i] - exp(y[i]) * sum;
+      gx[i] += gy[i] - exp_approx(y[i]) * sum;
     }
   }
 }

@@ -26,7 +26,7 @@ end
   x = Var(rand(T,5,4))
   for f in [sigmoid, tanh]
     @test @gradcheck f(x) (x,)
-    @test @cuda_test f(x) (x,)
+    #@test @cuda_test f(x) (x,)
   end
 
   x1 = Var(rand(T,10,5,2))
@@ -40,6 +40,9 @@ end
   f = Linear(T, 10, 7)
   #f.b = param(rand(T, size(f.b.value)))
   #@test checkgrad(() -> f(x), f.w, x)
+
+  x = Var(rand(T,10,5))
+  #@test @gradcheck logsoftmax(x,2) (x,)
 
   x = Var(rand(1:10,3,2))
   f = Lookup(Vector{Float32}, 10, 5)
@@ -62,7 +65,6 @@ end
 
   x = Var(rand(T,10,5))
   #@test checkgrad(() -> softmax(x,2), x)
-  #@test checkgrad(() -> logsoftmax(x,2), x)
 
   p = Var([1:5;])
   x = Var(rand(Float32,10,5))

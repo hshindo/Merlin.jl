@@ -32,7 +32,7 @@ function approx_grad(f, args::Tuple)
       x[k] = xk - gradeps
       y2 = f().value
       x[k] = xk
-      gx[k] = sum(y1 - y2) / 2gradeps
+      gx[k] = sum(y1 - y2) * (1/2gradeps)
     end
     gx
   end
@@ -51,7 +51,7 @@ macro gradcheck(f, args)
     for i = 1:length(args)
       gx1 = args[i].grad
       gx2 = approx_gxs[i]
-      all(d -> abs(d) < 2gradeps, gx1 - gx2) && continue
+      all(d -> abs(d) < 1e-3, gx1 - gx2) && continue
       println(gx1 - gx2)
       return false
     end

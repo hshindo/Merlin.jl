@@ -8,6 +8,17 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+x = rand(Float32,10,5)
+y1 = logsoftmax(x)
+y2 = Merlin.logsoftmax_jl(x)
+y1 - y2
+gx1 = zeros(x)
+gx2 = zeros(x)
+gy1 = Merlin.∇logsoftmax!(gx1, y1, ones(y1))
+gy2 = Merlin.∇logsoftmax_jl!(gx2, y1, ones(y1))
+
+gx1 - gx2
+
 path = "C:/Users/hshindo/Desktop/aa.h5"
 gru = GRU(Float32, 10)
 Merlin.save(Dict("1"=>gru), path)
