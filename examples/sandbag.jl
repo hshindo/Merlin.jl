@@ -8,6 +8,10 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+path = "C:/Users/hshindo/Desktop/aa.h5"
+gru = GRU(Float32, 10)
+Merlin.save(Dict("1"=>gru), path)
+
 x = Var(CuArray(rand(Float32,10,5)))
 f = Linear(Float32,10,3)
 y = f(x)

@@ -1,6 +1,8 @@
 export Lookup
 
 """
+    Lookup(w)
+
 Lookup function.
 
 ### 👉 Example

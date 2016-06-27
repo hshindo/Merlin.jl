@@ -3,29 +3,34 @@ using HDF5
 """
     save(dict, path)
 
-Save Merlin objects as a HDF5 format.
+Save graph objects as a HDF5 format.
+
+## 👉 Example
+```julia
+g1 = @graph ...
+g2 = @graph ...
+save("/home/xxx/cnn.h5", ("g1",g1), ("g2",g2))
+```
 """
-function save(dict::Dict, path)
-  function write(g, key, val)
-    if typeof(val) <: Dict
-      g = g_create(g, string(key))
-      for (k,v) in val
-        write(g, k, v)
+function save(path::AbstractString)
+  function write(g, d::Dict)
+    for (k,v) in d
+      if typeof(v) <: Dict
+        write(g_create(g, string(k)), v)
+      elseif applicable(to_hdf5, v)
+        write(g, to_hdf5(v))
+      else
+        g[string(k)] = v
       end
-    else
-      g[string(key)] = val
     end
   end
-
   h5open(path, "w") do h
     g = g_create(h, "Merlin")
-    for (k,v) in dict
-      write(g, k, v)
-    end
+    write(g, dict)
   end
 end
 
-function load(path)
+function load(path::AbstractString)
   dict = h5read(path, "Merlin")
   for (k,v) in dict
     if typeof(v) <: Dict
@@ -34,25 +39,25 @@ function load(path)
   end
 end
 
-function hdf5dict(v::Var)
+function to_hdf5(v::Var)
   d = Dict()
-  d["value"] = typeof(v.value) == Symbol ? string(value) : v.value
+  d["value"] = typeof(v.value) == Symbol ? string(v.value) : v.value
   d["f"] = string(v.f)
   d["argtype"] = string(typeof(v.args))
   d["args"] = Int[v.args...]
   Dict("Var" => d)
 end
 
-function hdf5dict(g::Graph)
+function to_hdf5(g::Graph)
   d_nodes = Dict()
   for i = 1:length(g.nodes)
-    d_nodes[string(i)] = hdf5dict(g.nodes[i])
+    d_nodes[string(i)] = to_hdf5(g.nodes[i])
   end
   d_sym2id = Dict()
   for (k,v) in g.sym2id
     d_sym2id[string(k)] = v
   end
-  "Graph" => Dict("nodes" => d_nodes, "sym2id" => d_sym2id)
+  Dict("Graph" => Dict("nodes" => d_nodes, "sym2id" => d_sym2id))
 end
 
 function load(::Type{Graph}, dict)
@@ -69,6 +74,18 @@ end
 
 function load(::Type{Var}, dict)
 
+end
+
+function load_hdf5(::Type{Graph}, path::AbstractString)
+  nodes = Var[]
+  dict = h5read(path, "graph")
+  for (k,v) in dict["nodes"]
+    id = parse(Int, k)
+    while id > length(nodes)
+      push!(nodes, Var(nothing))
+    end
+    nodes[id] = v
+  end
 end
 
 #=
