@@ -19,13 +19,6 @@ Base.setindex!(v::Var, value, key) = v.args[key] = value
 
 hasgrad(v::Var) = v.grad != nothing
 
-function settype!{T}(::Type{T}, vars::Vector{Var})
-  for v in vars
-    typeof(v.value) <: T && continue
-    v.value = T(v.value)
-  end
-end
-
 function gradient!(top::Var)
   sorted = topsort(top)
   hasgrad(top) || (top.grad = ones(top.value))

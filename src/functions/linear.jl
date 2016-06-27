@@ -45,8 +45,8 @@ function linear(w::Var, x::Var, b::Var)
   @checkargs linear (w,x,b)
   y = linear(w.value, x.value, b.value)
   df(gy) = begin
-    hasgrad(w) && BLAS.gemm!('N', 'T', T(1), gy, x, T(1), gw)
-    hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w, gy, T(1), gx)
+    hasgrad(w) && BLAS.gemm!('N', 'T', T(1), y.grad, x.value, T(1), w.grad)
+    hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w.value, y.grad, T(1), x.grad)
   end
   Var(y, df, [w,x,b])
 end

@@ -7,8 +7,8 @@ Lookup function.
 
 ### 👉 Example
 ```julia
-f = Lookup(Vector{Float32},10000,100) # 100-length vector, 10k vocabulary
-# f = Lookup(CuVector{Float32},10000,100)
+f = Lookup(Float32,10000,100) # 100-length vector, 10k vocabulary
+# f = Lookup(CuArray{Float32},10000,100)
 x = Var(rand(1:1000,5,3))
 y = f(x)
 ```
@@ -18,7 +18,7 @@ type Lookup
 end
 
 function Lookup{T}(::Type{T}, indim::Int, outdim::Int, device=:CPU)
-  ws = Var[param(T(randn(outdim))) for i=1:indim]
+  ws = Var[param(Vector{T}(randn(outdim))) for i=1:indim]
   Lookup(ws)
 end
 

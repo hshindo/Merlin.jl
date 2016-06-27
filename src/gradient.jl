@@ -4,13 +4,18 @@ function topsort(var::Var)
   sorted = Var[]
   dict = ObjectIdDict()
   function visit(v::Var)
-    if !haskey(dict, v)
-      dict[v] = v
-      for a in v.args
+    haskey(dict, v) && return
+    dict[v] = v
+    for a in v.args
+      if typeof(a) <: Vector
+        for vv in a
+          visit(vv)
+        end
+      else
         visit(a)
       end
-      push!(sorted, v)
     end
+    push!(sorted, v)
   end
   visit(var)
   sorted

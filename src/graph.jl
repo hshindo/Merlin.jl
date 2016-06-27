@@ -21,6 +21,9 @@ function Graph(top::Var)
 end
 
 @compat function (g::Graph)(args::Pair{Symbol,Var}...)
+  for v in args
+    typeof(v.value) <: CuArray
+  end
   #settype!(typeof(args[1][2]), g.nodes)
 
   vars = Array(Var, length(g.nodes))
@@ -35,7 +38,8 @@ end
       vars[i] = n
     else
       args = map(id -> vars[id], n.args)
-      vars[i] = typeof(args) <: Tuple ? n.f(args...) : n.f(args)
+      #vars[i] = 
+      #vars[i] = typeof(args) <: Tuple ? n.f(args...) : n.f(args)
     end
   end
   vars[end]
