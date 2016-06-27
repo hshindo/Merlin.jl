@@ -43,7 +43,7 @@ end
 
 function linear(w::Var, x::Var, b::Var)
   @checkargs linear (w,x,b)
-  if typeof(x.value) <: CuArray
+  if backend(x) == :CUDA
     w.value = CuArray(w.value)
     b.value = CuArray(b.value)
   end

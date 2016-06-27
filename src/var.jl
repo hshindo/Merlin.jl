@@ -15,6 +15,26 @@ Base.setindex!(v::Var, value, key) = v.args[key] = value
 
 hasgrad(v::Var) = v.grad != nothing
 
+function consistent()
+  for v in vs
+    
+  end
+end
+
+function device(v::Var)
+  typeof(v.value) <: CuArray && return :CUDA
+  typeof(v.value) <: Array && return :CPU
+  :CONST
+end
+
+function setdevice(v::Var, dev::Symbol)
+  device(v) == dev && return
+  if dev == :CPU
+    vdev = device(v)
+    v.value = CuArray(v.value)
+  end
+end
+
 function gradient!(top::Var)
   sorted = topsort(top)
   hasgrad(top) || (top.grad = ones(top.value))
