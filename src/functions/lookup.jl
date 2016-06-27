@@ -7,8 +7,9 @@ Lookup function.
 
 ### 👉 Example
 ```julia
-f = Lookup(Float32,10000,100) # 100-length vector, 10k vocabulary
-x = rand(1:1000,5,3)
+f = Lookup(Vector{Float32},10000,100) # 100-length vector, 10k vocabulary
+# f = Lookup(CuVector{Float32},10000,100)
+x = Var(rand(1:1000,5,3))
 y = f(x)
 ```
 """
@@ -17,12 +18,7 @@ type Lookup
 end
 
 function Lookup{T}(::Type{T}, indim::Int, outdim::Int, device=:CPU)
-  ws = Var[param(Vector{T}(randn(outdim))) for i=1:indim]
-  if device == :CUDA
-    for w in ws
-      w.value = CuArray(w.value)
-    end
-  end
+  ws = Var[param(T(randn(outdim))) for i=1:indim]
   Lookup(ws)
 end
 
@@ -40,15 +36,16 @@ function Lookup{T}(path, ::Type{T})
   Lookup(ws)
 end
 
-@compat function (f::Lookup)(x::Array{Int})
+@compat function (f::Lookup)(x::Var)
   ws = f.ws
+  ids = x.value
   args = Var[]
-  vars = map(id -> ws[id], x)
-  for id in IntSet(x)
+  vars = map(id -> ws[id], ids)
+  for id in IntSet(ids)
     push!(args, ws[id])
   end
-  y = lookup(ws, x)
-  df(gy) = ∇lookup!(ws, x, gy)
+  y = lookup(ws, ids)
+  df(gy) = ∇lookup!(ws, ids, gy)
   Var(y, df, args)
 end
 
@@ -69,12 +66,5 @@ function ∇lookup!{T}(ws::Vector{Var}, x::Array{Int}, gy::Array{T})
     gw = ws[x[i]].grad
     BLAS.axpy!(n, T(1), pointer(gy,offset), stride(gy,1), pointer(gw), stride(gw,1))
     offset += n
-  end
-end
-
-function ∇lookup!{T}(w::Matrix{T}, gw::Matrix{T}, x::Array{Int}, gy::Matrix{T})
-  n = size(w, 1)
-  for i = 1:length(x)
-    BLAS.axpy!(T(1), gy, slice(w,:,i))
   end
 end

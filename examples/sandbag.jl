@@ -12,9 +12,11 @@ path = "C:/Users/hshindo/Desktop/aa.h5"
 gru = GRU(Float32, 10)
 Merlin.save(Dict("1"=>gru), path)
 
-x = Var(CuArray(rand(Float32,10,5)))
-f = Linear(Float32,10,3)
+f = Lookup(Vector{Float32},10000,100)
+# f = Lookup(CuVector{Float32},10000,100)
+x = Var(rand(1:1000,5,3))
 y = f(x)
+y.value
 
 f.w
 

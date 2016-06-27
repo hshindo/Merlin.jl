@@ -5,7 +5,7 @@ type Graph
   sym2id::Dict{Symbol,Int}
 end
 
-function Graph(top::Var, name=:g)
+function Graph(top::Var)
   vars = topsort(top)
   sym2id = Dict{Symbol,Int}()
   nodes = Array(Var, length(vars))

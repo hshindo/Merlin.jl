@@ -31,8 +31,8 @@ function gradient!(top::Var)
   hasgrad(top) || (top.grad = ones(top.value))
   for i = 1:length(sorted)-1 # excludes top
     v = sorted[i]
-    hasgrad(v) && continue
-    isempty(v.args) || (v.grad = zeros(v.value))
+    (hasgrad(v) || isempty(v.args)) && continue
+    v.grad = zeros(v.value)
   end
   for i = length(sorted):-1:1
     v = sorted[i]

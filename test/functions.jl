@@ -41,10 +41,10 @@ end
   #f.b = param(rand(T, size(f.b.value)))
   #@test checkgrad(() -> f(x), f.w, x)
 
-  #x = rand(1:10,3,2)
-  #f = Lookup(Float32, 10, 5)
+  x = Var(rand(1:10,3,2))
+  f = Lookup(Vector{Float32}, 10, 5)
   #args = f(x).args
-  #@test checkgrad(() -> f(x), args...)
+  #@test @gradcheck f(x) (x,)
 
   x1 = Var(rand(T,10,5))
   x2 = Var(rand(T,10,5))

@@ -18,7 +18,7 @@ catch y
   throw(y)
 end
 
-if haskey(ENV, "USE_CUDA")
+if haskey(ENV, "USE_CUDA") && ENV["USE_CUDA"]
   using CUDA
   using CUDNN
 else
