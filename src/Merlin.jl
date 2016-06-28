@@ -47,8 +47,7 @@ for name in [
   "reshape",
   "softmax",
   "softmax_crossentropy",
-  "sum",
-  "window2d"
+  "sum"
   ]
   include("functions/$(name).jl")
 end

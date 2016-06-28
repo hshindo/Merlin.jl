@@ -7,33 +7,36 @@ const WINDOW2D_FWD_F64 = Libdl.dlsym(library, :window2d_fwd_f64)
 const WINDOW2D_BWD_F64 = Libdl.dlsym(library, :window2d_bwd_f64)
 
 """
-    Conv(w, b; [stride, pad])
+    Conv(w, [stride, pad])
 
 N-dimensional convolution function.
 
 ## Arguments
 * w::Var: weight
-* b::Var: bias
 * stride::NTuple{N,Int}: stride size. Default: (1,1,...)
 * pad::NTuple{N,Int}: padding size. Default: (0,0,...)
 
 ## 👉 Example
 ```julia
 x = Var(rand(Float32,5,4,3,2))
-f = Conv(rand(Float32,2,2,3,4), (1,1), (0,0))
+f = Conv(rand(Float32,2,2,3,4), stride=(1,1), pad=(0,0))
 y = f(x)
 ```
 """
 type Conv{N}
   w::Var
-  b::Var
   stride::NTuple{N,Int}
   pad::NTuple{N,Int}
 end
 
-Conv(w::Var, b::Var, stride) = Conv(w, b, stride, map(_ -> 0, stride))
+function Conv(w::Var; stride=(), pad=())
+  N = ndims(w.value) - 2
+  length(stride) == 0 && (stride = ntuple(_->1, N))
+  length(pad) == 0 && (pad = ntuple(_->0, N))
+  Conv(w, stride, pad)
+end
 
-@compat (f::Conv)(x::Var) = ConvFun(f.stride,f.pad)(f.w, x, f.b)
+@compat (f::Conv)(x::Var) = ConvFun(f.stride,f.pad)(f.w, x)
 
 
 type ConvFun{N}
@@ -44,28 +47,46 @@ end
 handle(::ConvFun{2}, ::Type{Float32}) = WINDOW2D_FWD_F32, WINDOW2D_BWD_F32
 handle(::ConvFun{2}, ::Type{Float64}) = WINDOW2D_FWD_F64, WINDOW2D_BWD_F64
 
-@compat function (f::ConvFun{N}){N}(w::Var, x::Var, b::Var)
-  @checkargs f (w,x,b)
-  throw("Not implemented yet.")
-  #conv(w.value, f.stride, f.pad, x.value)
+@compat function (f::ConvFun{N}){N}(w::Var, x::Var)
+  @checkargs f (w,x)
+  y = conv(f, w.value, x.value)
+  df(gy) = begin
+    gwork = zeros(work)
+    ∇window!(f, gy)
+  end
+  Var(y, df, [w,x])
 end
 
-function conv{T}(w::Array{T}, pad, stride, x::Array{T})
+# GEMM-based convolution
+function conv{T,N}(f::ConvFun{N}, w::Array{T}, x::Array{T})
   @assert ndims(w) == ndims(x) == N+2
+  # x -> work
   outdims = outsize(f, w, x)
-  work = im2col(f, w, x, outdims)
+  work = window(f, w, x, outdims)
+
+  # work -> y
   w = reshape(w, size(work,2), size(w,N+2))
   y = similar(x, size(work,1), size(w,2), size(work,3))
   for i = 1:size(x,N+2)
     BLAS.gemm!('N', 'N', T(1), slice(work,:,:,i), w, T(0), slice(y,:,:,i))
   end
   y = reshape(y, outdims..., size(y,2), size(y,3))
-  f, y
+  y
 end
 
 function conv{T}(f::ConvFun, w::CuArray{T}, x::CuArray{T})
   desc = ConvolutionDesc(T, f.pad, f.stride)
-  f, convolution(x, w, desc)
+  convolution(x, w, desc)
+end
+
+function ∇conv!{N}(f::ConvFun{N}, gx::Array{T}, gy::Array{T})
+  for i = 1:size(x,N+2)
+    BLAS.gemm!('N', 'T', T(1), gy, x2.value, T(1), x1.grad)
+    BLAS.gemm!('T', 'N', T(1), x1.value, gy, T(1), x2.grad)
+  end
+
+  outdims = outsize(f, gw, gx)
+  ∇window!(f, w, gx, gy, outdims)
 end
 
 function backward!{T,N}(f::ConvFun{N}, w::Array{T}, x::Array{T},
@@ -92,23 +113,24 @@ function outsize{N}(f::ConvFun{N}, w::Array, x::Array)
   dims
 end
 
-function im2col{T,N}(f::ConvFun{N}, w::Array{T}, x::Array{T}, outdims::Vector{Int})
-  window = [size(w,i) for i=1:N]
+function window{T,N}(f::ConvFun{N}, w::Array{T}, x::Array{T}, outdims::Vector{Int})
+  winsize = [size(w,i) for i=1:N]
   h = handle(f,T)[1]
-  y = similar(x, prod(outdims), prod(window)*size(w,N+1), size(x,N+2))
+  y = similar(x, prod(outdims), prod(winsize)*size(w,N+1), size(x,N+2))
   xsize = Cint[size(x,i) for i=1:N+1]
   xsize[N+1] *= size(x, N+2)
-  params = Cint[window..., f.stride..., f.pad...]
+  params = Cint[winsize..., f.stride..., f.pad...]
   ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Ptr{Cint}), x, y, xsize, params)
   y
 end
 
-function col2im!{T,N}(f::ConvFun{N}, gx::Array{T}, gy::Array{T})
-  window = [size(w,i) for i=1:N]
+function ∇window!{T,N}(f::ConvFun{N}, w::Array{T}, x::Array{T}, gy::Array{T}, outdims::Vector{Int})
+  gx = zeros(x)
+  winsize = [size(w,i) for i=1:N]
   h = handle(f,T)[2]
   xsize = Cint[size(x,i) for i=1:N+1]
   xsize[N+1] *= size(x, N+2)
-  params = Cint[window..., stride..., pad...]
+  params = Cint[winsize..., f.stride..., f.pad...]
   ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Ptr{Cint}), gx, gy, xsize, params)
   gx
 end

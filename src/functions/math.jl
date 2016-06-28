@@ -95,12 +95,14 @@ end
 function *(x1::Var, x2::Var)
   @checkargs * (x1,x2)
   y = x1.value * x2.value
-  df(gy) = begin
-    T = eltype(gy)
-    hasgrad(x1) && BLAS.gemm!('N', 'T', T(1), gy, x2.value, T(1), x1.grad)
-    hasgrad(x2) && BLAS.gemm!('T', 'N', T(1), x1.value, gy, T(1), x2.grad)
-  end
+  df(gy) = ∇times!(x1, x2, gy)
   Var(y, df, [x1,x2])
+end
+
+function ∇times!(x1::Var, x2::Var, gy)
+  T = eltype(gy)
+  hasgrad(x1) && BLAS.gemm!('N', 'T', T(1), gy, x2.value, T(1), x1.grad)
+  hasgrad(x2) && BLAS.gemm!('T', 'N', T(1), x1.value, gy, T(1), x2.grad)
 end
 
 #=

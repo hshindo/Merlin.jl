@@ -45,30 +45,25 @@ function linear(w::Var, x::Var, b::Var)
   @checkargs linear (w,x,b)
   y = linear(w.value, x.value, b.value)
   df(gy) = begin
-    hasgrad(w) && BLAS.gemm!('N', 'T', T(1), y.grad, x.value, T(1), w.grad)
-    hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w.value, y.grad, T(1), x.grad)
+    T = eltype(gy)
+    hasgrad(w) && BLAS.gemm!('N', 'T', T(1), gy, x.value, T(1), w.grad)
+    hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w.value, gy, T(1), x.grad)
+    for offset = 1:length(b.value):length(gy)
+      BLAS.axpy!(length(b.value), T(1), pointer(gy,offset), stride(gy,1),
+        pointer(b.grad), stride(b.grad,1))
+    end
   end
   Var(y, df, [w,x,b])
 end
 
 function linear{T}(w::Matrix{T}, x::Matrix{T}, b::Matrix{T})
   y = w * x
-  #broadcast!(.+, y, y, b)
+  broadcast!(.+, y, y, b)
   y
 end
 
 function linear{T}(w::CuMatrix{T}, x::CuMatrix{T}, b::CuMatrix{T})
   y = w * x
-  #CUDNN.add!(b, y)
+  CUDNN.add!(b, y)
   y
-end
-
-function ∇linear!{T}(w::Matrix{T}, gw::Matrix{T}, b, gb,
-  x::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
-
-  hasgrad(w) && BLAS.gemm!('N', 'T', T(1), gy, x, T(1), gw)
-  hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w, gy, T(1), gx)
-  for offset = 1:length(b):length(gy)
-    BLAS.axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
-  end
 end

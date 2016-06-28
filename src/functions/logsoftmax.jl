@@ -22,7 +22,7 @@ end
 
 @compat function (f::LogSoftmax)(x::Var)
   @checkargs f (x,)
-  @assert f.dim == 2
+  @assert f.dim == 1
   y = logsoftmax(x.value)
   df(gy) = hasgrad(x) && ∇logsoftmax!(x.grad, y, gy)
   Var(y, df, [x])

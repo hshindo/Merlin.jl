@@ -12,6 +12,10 @@ path = "C:/Users/hshindo/Desktop/aa.h5"
 gru = GRU(Float32, 10)
 Merlin.save(Dict("1"=>gru), path)
 
+x = Var(rand(Float32,5,4,3,2))
+f = Conv(Var(rand(Float32,2,2,3,4)), stride=(1,1), pad=(0,0))
+y = f(x)
+
 embeds = param(rand(Float32, 5, 10))
 embeds.value
 x = Var(rand(1:10,2,1))

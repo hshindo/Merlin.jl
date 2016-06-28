@@ -1,56 +1,74 @@
 #include <algorithm>
+#include <stdio.h>
 
 template <typename T>
-void window_fwd(const T *x, const int *params, T *y, int size_x1, int size_x2) {
+void window2d_fwd(T *x, T *y, int *size_x, int *params) {
+  int x1 = size_x[0], x2 = size_x[1], x3 = size_x[2];
   int w1 = params[0], w2 = params[1];
   int s1 = params[2], s2 = params[3];
   int p1 = params[4], p2 = params[5];
+  int n1 = (x1 + 2 * p1 - w1) / s1 + 1;
+  int n2 = (x2 + 2 * p2 - w2) / s2 + 1;
   int o = 0;
-  for (int m2 = -p2; m2 <= size_x2 + p2 - w2; m2 += s2) {
-    for (int m1 = -p1; m1 <= size_x1 + p1 - w1; m1 += s1) {
-      for (int n2 = m2; n2 < m2 + w2; n2++) {
-        for (int n1 = m1; n1 < m1 + w1; n1++) {
-          int i = n1 + n2 * size_x1;
-          if (n1 >= 0 && n1 < size_x1 && n2 >= 0 && n2 < size_x2) y[o] = x[i];
-          else y[o] = 0.0;
-          o++;
+
+  for (int i = 0; i < w1 * w2 * x3; i++) {
+    int d1 = i % w1;
+    int d2 = (i / w1) % w2;
+    int d3 = i / (w1 * w2);
+
+    for (int k2 = 0; k2 < n2; k2++) {
+      for (int k1 = 0; k1 < n1; k1++) {
+        int i1 = k1*s1 - p1 + d1;
+        int i2 = k2*s2 - p2 + d2;
+        if (i1 >= 0 && i1 < x1 && i2 >= 0 && i2 < x2) {
+          y[o] = x[i1 + x1*i2 + x1*x2*d3];
         }
+        else y[o] = 0;
+        o++;
       }
     }
   }
 }
 
 template <typename T>
-void window_bwd(const int *params, const T *gy, T *gx, int size_x1, int size_x2) {
-
+void window2d_bwd(T *gx, T *gy, int *size_x, int *params) {
+  int x1 = size_x[0], x2 = size_x[1], x3 = size_x[2];
   int w1 = params[0], w2 = params[1];
   int s1 = params[2], s2 = params[3];
   int p1 = params[4], p2 = params[5];
+  int n1 = (x1 + 2 * p1 - w1) / s1 + 1;
+  int n2 = (x2 + 2 * p2 - w2) / s2 + 1;
   int o = 0;
-  for (int m2 = -p2; m2 <= size_x2 + p2 - w2; m2 += s2) {
-    for (int m1 = -p1; m1 <= size_x1 + p1 - w1; m1 += s1) {
-      for (int n2 = m2; n2 < m2 + w2; n2++) {
-        for (int n1 = m1; n1 < m1 + w1; n1++) {
-          int i = n1 + n2 * size_x1;
-          if (n1 >= 0 && n1 < size_x1 && n2 >= 0 && n2 < size_x2) gx[i] += gy[o];
-          o++;
+
+  for (int i = 0; i < w1 * w2 * x3; i++) {
+    int d1 = i % w1;
+    int d2 = (i / w1) % w2;
+    int d3 = i / (w1 * w2);
+
+    for (int k2 = 0; k2 < n2; k2++) {
+      for (int k1 = 0; k1 < n1; k1++) {
+        int i1 = k1*s1 - p1 + d1;
+        int i2 = k2*s2 - p2 + d2;
+        if (i1 >= 0 && i1 < x1 && i2 >= 0 && i2 < x2) {
+          gx[i1 + x1*i2 + x1*x2*d3] += gy[o];
         }
+        o++;
       }
     }
   }
 }
 
 extern "C" {
-  void window_fwd_f32(const float *x, const int *params, float *y, int size_x1, int size_x2) {
-    window_fwd(x, params, y, size_x1, size_x2);
+  void window2d_fwd_f32(float *x, float *y, int *size_x, int *params) {
+    window2d_fwd(x, y, size_x, params);
   }
-  void window_bwd_f32(const int *params, const float *gy, float *gx, int size_x1, int size_x2) {
-    window_bwd(params, gy, gx, size_x1, size_x2);
+  void window2d_fwd_f64(double *x, double *y, int *size_x, int *params) {
+    window2d_fwd(x, y, size_x, params);
   }
-  void window_fwd_f64(const double *x, const int *params, double *y, int size_x1, int size_x2) {
-    window_fwd(x, params, y, size_x1, size_x2);
+  void window2d_bwd_f32(float *gx, float *gy, int *size_x, int *params) {
+    window2d_bwd(gx, gy, size_x, params);
   }
-  void window_bwd_f64(const int *params, const double *gy, double *gx, int size_x1, int size_x2) {
-    window_bwd(params, gy, gx, size_x1, size_x2);
+  void window2d_bwd_f64(double *gx, double *gy, int *size_x, int *params) {
+    window2d_bwd(gx, gy, size_x, params);
   }
 }

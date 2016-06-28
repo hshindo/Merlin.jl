@@ -1,5 +1,34 @@
 export Window
 
+"""
+    window(x, dims, [stride], [pad])
+
+Extract elements from n-d array along the sliding window.
+
+## Arguments
+* `x::Var`: input var
+* `dims::NTuple{N,Int}`: window size
+* `stride::NTuple{N,Int}`: stride size. Default: 1,1,...
+* `pad::NTuple{N,Int}`: padding size. Default: 0,0,...
+
+## 👉 Example
+```julia
+x = Var(rand(Float32,10,10))
+y = window(x)
+```
+"""
+function window{N}(x::Var, dims::NTuple{N,Int}; stride=(), pad=())
+  N = ndims(w.value) - 2
+  length(stride) == 0 && (stride = ntuple(_->1, N))
+  length(pad) == 0 && (pad = ntuple(_->0, N))
+  Window(dims, stride, pad)(x)
+end
+
+const WINDOW2D_FWD_F32 = Libdl.dlsym(library, :window_fwd_f32)
+const WINDOW2D_BWD_F32 = Libdl.dlsym(library, :window_bwd_f32)
+const WINDOW2D_FWD_F64 = Libdl.dlsym(library, :window_fwd_f64)
+const WINDOW2D_BWD_F64 = Libdl.dlsym(library, :window_bwd_f64)
+
 type Window{N}
   dims::NTuple{N,Int}
   stride::NTuple{N,Int}
@@ -8,21 +37,32 @@ end
 
 @compat function (f::Window)(x::Var)
   @checkargs (x,)
-
+  y = window(f, x.value, f.dims, f.stride, f.pad)
+  df(gy) = hasgrad(x) && ∇window!()
+  Var(y, df, [x])
 end
 
-const WINDOW2D_FWD_F32 = Libdl.dlsym(library, :window_fwd_f32)
-const WINDOW2D_BWD_F32 = Libdl.dlsym(library, :window_bwd_f32)
-const WINDOW2D_FWD_F64 = Libdl.dlsym(library, :window_fwd_f64)
-const WINDOW2D_BWD_F64 = Libdl.dlsym(library, :window_bwd_f64)
-
-handle(f::Window2D, ::Type{Float32}) = WINDOW2D_FWD_F32, WINDOW2D_BWD_F32
-handle(f::Window2D, ::Type{Float64}) = WINDOW2D_FWD_F64, WINDOW2D_BWD_F64
+handle(f::Window{2}, ::Type{Float32}) = WINDOW2D_FWD_F32, WINDOW2D_BWD_F32
+handle(f::Window{2}, ::Type{Float64}) = WINDOW2D_FWD_F64, WINDOW2D_BWD_F64
 
 function window{T,N}(f::Window{N}, x::Array{T})
-  h = handle(f, T)[1]
-  y = similar(x)
-  ccall(h, Void, (Ptr{T},), x, y)
+  outdims = outsize(f, w, x)
+  winsize = [size(w,i) for i=1:N]
+  h = handle(f,T)[1]
+  y = similar(x, prod(outdims), prod(winsize)*size(w,N+1), size(x,N+2))
+  xsize = Cint[size(x,i) for i=1:N+1]
+  xsize[N+1] *= size(x, N+2)
+  params = Cint[winsize..., f.stride..., f.pad...]
+  ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Ptr{Cint}), x, y, xsize, params)
+  y
+end
+
+function outsize{N}(f::Window{N}, w::Array, x::Array)
+  dims = Array(Int, N)
+  for i = 1:N
+    dims[i] = (size(x,i) + 2*f.pad[i] - size(w,i)) ÷ f.stride[i] + 1
+  end
+  dims
 end
 
 function ∇window!()

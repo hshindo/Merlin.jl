@@ -7,13 +7,7 @@ function topsort(var::Var)
     haskey(dict, v) && return
     dict[v] = v
     for a in v.args
-      if typeof(a) <: Vector
-        for vv in a
-          visit(vv)
-        end
-      else
-        visit(a)
-      end
+      visit(a)
     end
     push!(sorted, v)
   end
@@ -26,7 +20,7 @@ const gradeps = 1e-3
 """
 Compute numerical gradient.
 """
-function approx_grad(f, args::Tuple)
+function approx_grad(f, args::Vector{Var})
   map(args) do v
     x = v.value
     gx = similar(x)
@@ -63,26 +57,3 @@ macro gradcheck(f, args)
     true
   end
 end
-
-"""
-Check gradient.
-"""
-function checkgrad(f, args::Vector{Var})
-  const eps = 1e-3
-  for x in args
-    x.grad = zeros(x.value)
-  end
-  y = f()
-  gradient!(y)
-  approx_gxs = approx_grad(f, args)
-  for i = 1:length(args)
-    gx1 = args[i].grad
-    gx2 = approx_gxs[i]
-    if any(d -> abs(d) >= 2eps, gx1 - gx2)
-      println(gx1 - gx2)
-      throw("Checkgrad error.")
-    end
-  end
-  nothing
-end
-checkgrad(f, args::Var...) = checkgrad(f, Var[args...])

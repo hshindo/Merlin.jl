@@ -1,9 +1,16 @@
-export lookup
+export Lookup
 
 """
     Lookup(ws::Vector{Var})
 
 Lookup function.
+"""
+type Lookup
+  ws::Vector{Var}
+end
+
+"""
+    Lookup{T}(::Type{T}, indim, outdim, [device])
 
 ### 👉 Example
 ```julia
@@ -12,13 +19,6 @@ f = Lookup(Float32,10000,100) # 100-length vector, 10k vocabulary
 x = Var(rand(1:1000,5,3))
 y = f(x)
 ```
-"""
-type Lookup
-  ws::Vector{Var}
-end
-
-"""
-    Lookup{T}(::Type{T}, indim, outdim, [device])
 """
 function Lookup{T}(::Type{T}, indim::Int, outdim::Int, device=:CPU)
   ws = Var[param(Vector{T}(randn(outdim))) for i=1:indim]
