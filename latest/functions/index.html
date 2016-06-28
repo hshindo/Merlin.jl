@@ -25,8 +25,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     
-    <link rel="shortcut icon" type="image/x-icon" href="../None">
-    <link rel="icon" type="image/x-icon" href="../None">
+    <link rel="shortcut icon" type="image/x-icon" href="../assets/images/favicon-e565ddfa3b.ico">
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon-e565ddfa3b.ico">
     <style>
       @font-face {
       	font-family: 'Icon';
@@ -43,7 +43,7 @@
       	font-style: normal;
       }
     </style>
-    <link rel="stylesheet" href="../assets/stylesheets/application-0dac3e5884.css">
+    <link rel="stylesheet" href="../assets/stylesheets/application-a422ff04cc.css">
     
       <link rel="stylesheet" href="../assets/stylesheets/palettes-05ab2406df.css">
     
@@ -51,7 +51,7 @@
       
       
       
-      <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ubuntu:400,700|Ubuntu+Mono">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,700|Ubuntu+Mono">
       <style>
         body, input {
           font-family: 'Ubuntu', Helvetica, Arial, sans-serif;
@@ -259,20 +259,13 @@ concat(dim::Int, xs::Vector{Var})
 </pre></div>
 
 
-<p>Linear function (a.k.a. affine transformation).</p>
+<p>Create an object of linear function (a.k.a. affine transformation).</p>
 <p>$ f(x) = w * x + b $</p>
 <p><strong>Arguments</strong></p>
 <ul>
 <li><code>w::Var</code>: weight matrix</li>
 <li><code>b::Var</code>: bias vector</li>
 </ul>
-<p><strong>👉 Example</strong></p>
-<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
-<span class="n">f</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</pre></div>
-
-
 <p><a id='Base.max-Tuple{Merlin.Var,Int64}' href='#Base.max-Tuple{Merlin.Var,Int64}'>#</a>
 <strong><code>Base.max</code></strong> &mdash; <em>Method</em>.</p>
 <div class="codehilite"><pre><span></span>max(x::Var, dim::Int)
