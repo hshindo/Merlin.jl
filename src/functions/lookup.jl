@@ -1,48 +1,6 @@
 export lookup
 
 """
-    lookup(w::Var, x::Var)
-
-Lookup function.
-
-### 👉 Example
-```julia
-w = Lookup(Float32,10000,100) # 100-length vector, 10k vocabulary
-x = Var(rand(1:1000,5,3))
-y = f(x)
-```
-"""
-function lookup(w::Var, x::Var)
-  y = lookup(w.value, x.value)
-  df(gy) = ∇lookup!(w.value, w.grad, x.value, gy)
-
-  args = Var[]
-  for id in IntSet(x.value)
-    push!(args, slice(w, :, id))
-  end
-  Var(y, df, [])
-end
-
-function lookup(w, x::Array{Int})
-  n = size(w, 1)
-  y = similar(w, size(x,1)*n, size(x)[2:end]...)
-  for i = 1:length(x)
-    copy!(y, (i-1)*n+1, w, (x[i]-1)*n+1, n)
-  end
-  y
-end
-
-function ∇lookup!{T}(w, gw, x::Array{Int}, gy::Array{T})
-  n = size(w, 1)
-  for i = 1:length(x)
-    soffs = (i - 1) * n + 1
-    doffs = (x[i] - 1) * n + 1
-    BLAS.axpy!(n, T(1), pointer(gy,soffs), stride(gy,1), pointer(gw,doffs), stride(gw,1))
-  end
-end
-
-#=
-"""
     Lookup(ws::Vector{Var})
 
 Lookup function.
@@ -50,7 +8,7 @@ Lookup function.
 ### 👉 Example
 ```julia
 f = Lookup(Float32,10000,100) # 100-length vector, 10k vocabulary
-# f = Lookup(CuArray{Float32},10000,100)
+# f = Lookup(Float32,10000,100, device=:CUDA)
 x = Var(rand(1:1000,5,3))
 y = f(x)
 ```
@@ -59,8 +17,16 @@ type Lookup
   ws::Vector{Var}
 end
 
+"""
+    Lookup{T}(::Type{T}, indim, outdim, [device])
+"""
 function Lookup{T}(::Type{T}, indim::Int, outdim::Int, device=:CPU)
   ws = Var[param(Vector{T}(randn(outdim))) for i=1:indim]
+  if device == :CUDA
+    for w in ws
+      w.value = CuArray(w.value)
+    end
+  end
   Lookup(ws)
 end
 
@@ -79,6 +45,7 @@ function Lookup{T}(path, ::Type{T})
 end
 
 @compat function (f::Lookup)(x::Var)
+  @checkargs f (x,)
   ws = f.ws
   ids = x.value
   args = Var[]
@@ -108,6 +75,36 @@ function ∇lookup!{T}(ws::Vector{Var}, x::Array{Int}, gy::Array{T})
     gw = ws[x[i]].grad
     BLAS.axpy!(n, T(1), pointer(gy,offset), stride(gy,1), pointer(gw), stride(gw,1))
     offset += n
+  end
+end
+
+#=
+function lookup2(w::Var, x::Var)
+  y = lookup(w.value, x.value)
+  df(gy) = ∇lookup!(w.value, w.grad, x.value, gy)
+
+  args = Var[]
+  for id in IntSet(x.value)
+    push!(args, slice(w, :, id))
+  end
+  Var(y, df, [])
+end
+
+function lookup2(w, x::Array{Int})
+  n = size(w, 1)
+  y = similar(w, size(x,1)*n, size(x)[2:end]...)
+  for i = 1:length(x)
+    copy!(y, (i-1)*n+1, w, (x[i]-1)*n+1, n)
+  end
+  y
+end
+
+function ∇lookup2!{T}(w, gw, x::Array{Int}, gy::Array{T})
+  n = size(w, 1)
+  for i = 1:length(x)
+    soffs = (i - 1) * n + 1
+    doffs = (x[i] - 1) * n + 1
+    BLAS.axpy!(n, T(1), pointer(gy,soffs), stride(gy,1), pointer(gw,doffs), stride(gw,1))
   end
 end
 =#
