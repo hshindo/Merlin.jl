@@ -32,6 +32,7 @@ First, install [Julia](http://julialang.org/). Currently, version 0.4.x is recom
 Then, clone the package.
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
+julia> `Pkg.update()`
 ```
 
 For OSX and Linux, build `Merlin` as follows:
@@ -43,7 +44,7 @@ which generates `libmerlin.so` on `deps/`.
 For Windows, `libmerlin.dll` is provided on `deps/`, however,
 if you have installed `g++` with mingw-x64, you can build `Merlin` as follows:
 ```julia
-julia> ENV["MERLIN_BUILD_WINDOWS"] = ""
+julia> ENV["MERLIN_BUILD_WINDOWS"] = true
 julia> Pkg.build("Merlin.jl")
 ```
 
@@ -109,6 +110,7 @@ end
 ```julia
 data_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
 data_y = [Var([1,2,3]) for i=1:100] # correct labels
+f = ...
 
 opt = SGD(0.0001)
 for epoch = 1:10
