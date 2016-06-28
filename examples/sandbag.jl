@@ -12,6 +12,20 @@ path = "C:/Users/hshindo/Desktop/aa.h5"
 gru = GRU(Float32, 10)
 Merlin.save(Dict("1"=>gru), path)
 
+embeds = param(rand(Float32, 5, 10))
+embeds.value
+x = Var(rand(1:10,2,1))
+x.value
+y = lookup(embeds,x)
+
+y.value
+
+gradient!(y)
+embeds.grad
+
+
+embeds.value
+
 v = Vector{Float32}(randn(10))
 a = CuArray(v)
 

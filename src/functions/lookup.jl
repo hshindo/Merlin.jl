@@ -1,5 +1,47 @@
-export Lookup
+export lookup
 
+"""
+    lookup(w::Var, x::Var)
+
+Lookup function.
+
+### 👉 Example
+```julia
+w = Lookup(Float32,10000,100) # 100-length vector, 10k vocabulary
+x = Var(rand(1:1000,5,3))
+y = f(x)
+```
+"""
+function lookup(w::Var, x::Var)
+  y = lookup(w.value, x.value)
+  df(gy) = ∇lookup!(w.value, w.grad, x.value, gy)
+
+  args = Var[]
+  for id in IntSet(x.value)
+    push!(args, slice(w, :, id))
+  end
+  Var(y, df, [])
+end
+
+function lookup(w, x::Array{Int})
+  n = size(w, 1)
+  y = similar(w, size(x,1)*n, size(x)[2:end]...)
+  for i = 1:length(x)
+    copy!(y, (i-1)*n+1, w, (x[i]-1)*n+1, n)
+  end
+  y
+end
+
+function ∇lookup!{T}(w, gw, x::Array{Int}, gy::Array{T})
+  n = size(w, 1)
+  for i = 1:length(x)
+    soffs = (i - 1) * n + 1
+    doffs = (x[i] - 1) * n + 1
+    BLAS.axpy!(n, T(1), pointer(gy,soffs), stride(gy,1), pointer(gw,doffs), stride(gw,1))
+  end
+end
+
+#=
 """
     Lookup(ws::Vector{Var})
 
@@ -68,3 +110,4 @@ function ∇lookup!{T}(ws::Vector{Var}, x::Array{Int}, gy::Array{T})
     offset += n
   end
 end
+=#
