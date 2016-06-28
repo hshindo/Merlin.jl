@@ -21,18 +21,16 @@ function relu{T}(x::Array{T})
   y
 end
 
-function relu(x::CuArray)
-  activation!(CUDNN_ACTIVATION_RELU, x, similar(x))
-end
+relu(x::CuArray) = activation!(CUDNN_ACTIVATION_RELU, x, similar(x))
 
 function ∇relu!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
   @inbounds @simd for i = 1:length(x)
-    gx[i] += ifelse(x[i]>T(0), gy[i], T(0))
+    gx[i] += ifelse(x[i] > T(0), gy[i], T(0))
   end
 end
 
 function ∇relu!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-  CUDNN.∇activation!(CUDNN_ACTIVATION_RELU, y, gy, x, gx, beta=1.0)
+  ∇activation!(CUDNN_ACTIVATION_RELU, y, gy, x, gx, beta=1.0)
 end
 
 """
@@ -53,9 +51,7 @@ function sigmoid{T}(x::Array{T})
   y
 end
 
-function sigmoid(x::CuArray)
-  activation!(CUDNN_ACTIVATION_SIGMOID, x, similar(x))
-end
+sigmoid(x::CuArray) = activation!(CUDNN_ACTIVATION_SIGMOID, x, similar(x))
 
 function ∇sigmoid!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
   @inbounds @simd for i = 1:length(gx)
@@ -78,9 +74,7 @@ function tanh(x::Var)
   Var(y, df, [x])
 end
 
-function tanh(x::CuArray)
-  activation!(CUDNN_ACTIVATION_TANH, x, similar(x))
-end
+tanh(x::CuArray) = activation!(CUDNN_ACTIVATION_TANH, x, similar(x))
 
 function ∇tanh!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
   @inbounds @simd for i = 1:length(gx)

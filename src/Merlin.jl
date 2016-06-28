@@ -18,7 +18,7 @@ catch y
   throw(y)
 end
 
-if haskey(ENV, "USE_CUDA")
+if haskey(ENV, "USE_CUDA") && ENV["USE_CUDA"] == true
   using CUDA
   using CUDNN
 else
@@ -39,18 +39,15 @@ include("serialize.jl")
 for name in [
   "activation",
   "concat",
-  "conv",
-  "dropout",
   "linear",
+  "logsoftmax",
   "lookup",
   "math",
   "max",
-  "pooling",
   "reshape",
   "softmax",
   "softmax_crossentropy",
-  "sum",
-  "window2d"
+  "sum"
   ]
   include("functions/$(name).jl")
 end
@@ -67,6 +64,6 @@ for name in [
   include("optimizers/$(name).jl")
 end
 
-include("caffe/Caffe.jl")
+#include("caffe/Caffe.jl")
 
 end

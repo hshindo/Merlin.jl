@@ -1,10 +1,14 @@
-export Var, param, forward, gradient!
+export Var, param, gradient!
 
 type Var
   value
   f
   args
   grad
+end
+
+function Base.show(io::IO, v::Var)
+  print(io, "Merlin.Var($(typeof(v.value)),$(v.f),$(v.args),$(typeof(v.grad)))")
 end
 
 Var(value, f=nothing, args=[]) = Var(value, f, args, nothing)
@@ -20,8 +24,8 @@ function gradient!(top::Var)
   hasgrad(top) || (top.grad = ones(top.value))
   for i = 1:length(sorted)-1 # excludes top
     v = sorted[i]
-    hasgrad(v) && continue
-    isempty(v.args) || (v.grad = zeros(v.value))
+    (hasgrad(v) || isempty(v.args)) && continue
+    v.grad = zeros(v.value)
   end
   for i = length(sorted):-1:1
     v = sorted[i]
@@ -30,11 +34,6 @@ function gradient!(top::Var)
   sorted
 end
 
-"""
-    flatten(pred, top::Var)
-
-Flatten var graph
-"""
 function flatten(pred::Function, top::Var)
   args = Var[]
   for v in top.args

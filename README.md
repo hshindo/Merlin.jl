@@ -113,7 +113,7 @@ data_y = [Var([1,2,3]) for i=1:100] # correct labels
 opt = SGD(0.0001)
 for epoch = 1:10
   println("epoch: $(epoch)")
-  loss = fit(f, crossentropy, opt, data_x, data_y)
+  loss = fit(f, softmax_crossentropy, opt, data_x, data_y)
   println("loss: $(loss)")
 end
 ```

@@ -1,15 +1,28 @@
-export Linear, linear
+export Linear
 
 doc"""
     Linear(w::Var, b::Var)
 
-Linear function (a.k.a. affine transformation).
+Create an object of linear function (a.k.a. affine transformation).
 
 $ f(x) = w * x + b $
 
 ## Arguments
 * `w::Var`: weight matrix
 * `b::Var`: bias vector
+"""
+type Linear
+  w::Var
+  b::Var
+end
+
+"""
+    Linear(::Type{T}, indim::Int, outdim::Int)
+
+## Arguments
+* `T`: element type
+* `indim`: input dimension
+* `outdim`: output dimension
 
 ## 👉 Example
 ```julia
@@ -18,11 +31,6 @@ f = Linear(Float32, 10, 7)
 y = f(x)
 ```
 """
-type Linear
-  w::Var
-  b::Var
-end
-
 function Linear{T}(::Type{T}, indim::Int, outdim::Int)
   x = sqrt(6 / (indim + outdim))
   r = rand(outdim, indim) * 2x - x
@@ -40,9 +48,10 @@ function linear(w::Var, x::Var, b::Var)
     T = eltype(gy)
     hasgrad(w) && BLAS.gemm!('N', 'T', T(1), gy, x.value, T(1), w.grad)
     hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w.value, gy, T(1), x.grad)
-    #for offset = 1:length(b):length(gy)
-    #  BLAS.axpy!(length(b), T(1), pointer(gy,offset), stride(gy,1), pointer(gb), stride(gb,1))
-    #end
+    for offset = 1:length(b.value):length(gy)
+      BLAS.axpy!(length(b.value), T(1), pointer(gy,offset), stride(gy,1),
+        pointer(b.grad), stride(b.grad,1))
+    end
   end
   Var(y, df, [w,x,b])
 end
@@ -54,5 +63,7 @@ function linear{T}(w::Matrix{T}, x::Matrix{T}, b::Matrix{T})
 end
 
 function linear{T}(w::CuMatrix{T}, x::CuMatrix{T}, b::CuMatrix{T})
-  throw("Not implemented yet.")
+  y = w * x
+  CUDNN.add!(b, y)
+  y
 end

@@ -1,4 +1,10 @@
 using Merlin
+
+if haskey(ENV, "USE_CUDA")
+  using CUDA
+  using CUDNN
+end
+
 if VERSION >= v"0.5-"
     using Base.Test
 else
