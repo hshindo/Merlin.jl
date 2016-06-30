@@ -12,7 +12,6 @@ doc"""
     softmax(x::Var, dim::Int)
 
 Compute softmax along the second axis.
-Currently, only 2-d is supported.
 
 $ p(x) = {\exp(f(x)) \over \sum_{x_2} \exp(f(x))} $
 """
@@ -43,12 +42,12 @@ function softmax_jl{T}(x::Matrix{T})
   for j = 1:size(x,2)
     maxv = x[1,j]
     @inbounds @simd for i = 1:size(x,1)
-      x[i,j] > maxv && (maxv = x[i,j])
+      maxv = max(maxv, x[i,j])
     end
 
     z = T(0)
     @inbounds @simd for i = 1:size(x,1)
-      y[i,j] = exp_approx(x[i,j] - maxv)
+      y[i,j] = exp(x[i,j] - maxv)
       z += y[i,j]
     end
     z == T(0) && error("z == 0")
@@ -60,28 +59,35 @@ function softmax_jl{T}(x::Matrix{T})
   y
 end
 
-# https://github.com/pluskid/Mocha.jl/blob/be17557e2db3a81d2ca517d0dc4a0488b4935285/src/layers/softmax.jl
-function softmax_mocha{T}(input::Array{T}, dim::Int, output::Array{T})
-  dim_pre, dim_prob, dim_post = splitdims(input, dim)
-  for i = 0:dim_pre-1
-    for j = 0:dim_post-1
-      idx = Int[i + dim_pre*(k + dim_prob*j) for k=0:dim_prob-1] + 1
-
-      maxval = -Inf
-      for k in idx
-        @inbounds maxval = max(maxval, input[k])
+function softmax_mocha{T}(x::Array{T}, dim::Int)
+  y = similar(x)
+  dim_pre, dim_prob, dim_post = splitdims(x, dim)
+  idxs = Array(Int, dim_prob)
+  for i = 1:dim_pre
+    for j = 1:dim_post
+      for k = 1:dim_prob
+        idxs[k] = i + dim_pre * (k - 1 + dim_prob*(j-1))
       end
-      for k in idx
-        @inbounds output[k] = exp(input[k]-maxval)
-      end
-      the_sum = 0.0
-      for k in idx
-        @inbounds the_sum += output[k]
-      end
-      for k in idx
-        @inbounds output[k] /= the_sum
-      end
+      softmax_mocha!(x, y, idxs)
     end
+  end
+  y
+end
+
+function softmax_mocha!{T}(x::Array{T}, y::Array{T}, idxs::Vector{Int})
+  maxval = x[idxs[1]]
+  for k in idxs
+    @inbounds maxval = max(maxval, x[k])
+  end
+
+  z = T(0)
+  for k in idxs
+    @inbounds y[k] = exp(x[k] - maxval)
+    @inbounds z += y[k]
+  end
+  invz = T(1) / z
+  for k in idxs
+    @inbounds y[k] *= invz
   end
 end
 

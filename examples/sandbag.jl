@@ -8,9 +8,17 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
-x = rand(Float32,10,5)
-y = similar(x)
-Merlin.softmax_mocha(x,1,y)
+function bench()
+  x = rand(Float32,100,100)
+  for i = 1:1000
+    Merlin.softmax_mocha(x,1)
+    #Merlin.softmax_jl(x)
+  end
+end
+@time bench()
+
+y = zeros(x)
+Merlin.softmax_mocha(x,1)
 y
 
 y2 = similar(x)
