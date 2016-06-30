@@ -1,3 +1,6 @@
+// Assumed IEEE754.
+// (x/log2 + 127) * 2^32
+// 127 is an offset of exponent.
 inline float exp_approx(float val) {
   float exp_cst1 = 2139095040.f;
   float exp_cst2 = 0.f;

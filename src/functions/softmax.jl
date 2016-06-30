@@ -60,6 +60,31 @@ function softmax_jl{T}(x::Matrix{T})
   y
 end
 
+# https://github.com/pluskid/Mocha.jl/blob/be17557e2db3a81d2ca517d0dc4a0488b4935285/src/layers/softmax.jl
+function softmax_mocha{T}(input::Array{T}, dim::Int, output::Array{T})
+  dim_pre, dim_prob, dim_post = splitdims(input, dim)
+  for i = 0:dim_pre-1
+    for j = 0:dim_post-1
+      idx = Int[i + dim_pre*(k + dim_prob*j) for k=0:dim_prob-1] + 1
+
+      maxval = -Inf
+      for k in idx
+        @inbounds maxval = max(maxval, input[k])
+      end
+      for k in idx
+        @inbounds output[k] = exp(input[k]-maxval)
+      end
+      the_sum = 0.0
+      for k in idx
+        @inbounds the_sum += output[k]
+      end
+      for k in idx
+        @inbounds output[k] /= the_sum
+      end
+    end
+  end
+end
+
 function softmax(x::CuArray)
   softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x, similar(x))
 end

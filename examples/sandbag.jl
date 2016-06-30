@@ -8,6 +8,14 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+x = rand(Float32,10,5)
+y = similar(x)
+Merlin.softmax_mocha(x,1,y)
+y
+
+y2 = similar(x)
+softmax(x) - y
+
 data_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
 data_y = [Var([1,2,3]) for i=1:100] # correct labels
 
