@@ -59,7 +59,7 @@ function softmax_jl{T}(x::Matrix{T})
   y
 end
 
-function softmax_mocha{T}(x::Array{T}, dim::Int)
+function softmax_mocha{T,N}(x::Array{T,N}, dim::Int)
   y = similar(x)
   dim_pre, dim_prob, dim_post = splitdims(x, dim)
   idxs = Array(Int, dim_prob)
@@ -74,7 +74,7 @@ function softmax_mocha{T}(x::Array{T}, dim::Int)
   y
 end
 
-function softmax_mocha!{T}(x::Array{T}, y::Array{T}, idxs::Vector{Int})
+function softmax_mocha!{T,N}(x::Array{T,N}, y::Array{T,N}, idxs::Vector{Int})
   maxval = x[idxs[1]]
   for k in idxs
     @inbounds maxval = max(maxval, x[k])
