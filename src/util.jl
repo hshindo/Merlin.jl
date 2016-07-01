@@ -8,7 +8,7 @@ end
 # Split the dimension of a nd-array into 3 parts.
 function splitdims{T}(x::T, dim::Int)
   dims = size(x)
-  dim1 = dim2 = dim3 = 1
+  dim1, dim2, dim3 = 1, 1, 1
   for i = 1:length(dims)
     if i < dim
       dim1 *= dims[i]
