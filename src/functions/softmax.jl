@@ -1,16 +1,12 @@
 export softmax
 
-#const SOFTMAX_FW_F32 = Libdl.dlsym(library, :softmax_fw_f32)
-#const SOFTMAX_FW_F64 = Libdl.dlsym(library, :softmax_fw_f64)
-#const SOFTMAX_BW_F32 = Libdl.dlsym(library, :softmax_bw_f32)
-#const SOFTMAX_BW_F64 = Libdl.dlsym(library, :softmax_bw_f64)
-const SOFTMAX_FW_F32 = Libdl.dlsym(libmerlin, :softmax_float)
-const SOFTMAX_FW_F64 = Libdl.dlsym(libmerlin, :softmax_double)
+const SOFTMAX_F32 = Libdl.dlsym(libmerlin, :softmax_float)
+const SOFTMAX_F64 = Libdl.dlsym(libmerlin, :softmax_double)
+const ∇SOFTMAX_F32 = Libdl.dlsym(libmerlin, :softmax_grad_float)
+const ∇SOFTMAX_F64 = Libdl.dlsym(libmerlin, :softmax_grad_double)
 
-#softmax_handle(::Type{Float32}) = SOFTMAX_FW_F32, SOFTMAX_BW_F32
-#softmax_handle(::Type{Float64}) = SOFTMAX_FW_F64, SOFTMAX_BW_F64
-softmax_handle(::Type{Float32}) = SOFTMAX_FW_F32, SOFTMAX_FW_F32
-softmax_handle(::Type{Float64}) = SOFTMAX_FW_F64, SOFTMAX_FW_F64
+softmax_handle(::Type{Float32}) = SOFTMAX_F32, ∇SOFTMAX_F32
+softmax_handle(::Type{Float64}) = SOFTMAX_F64, ∇SOFTMAX_F64
 
 doc"""
     softmax(x::Var, dim::Int)
@@ -27,8 +23,8 @@ end
 
 @compat function (f::Softmax)(x::Var)
   @checkargs f (x,)
-  y = softmax(x.value)
-  df(gy) = hasgrad(x) && ∇softmax!(x.grad, y, gy)
+  y = softmax(x.value, f.dim)
+  df(gy) = hasgrad(x) && ∇softmax!(x.grad, y, gy, f.dim)
   Var(y, df, [x])
 end
 
@@ -67,9 +63,9 @@ function softmax(x::CuArray)
   softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x, similar(x))
 end
 
-function ∇softmax!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
+function ∇softmax!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T}, dim::Int)
   h = softmax_handle(T)[2]
-  ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint), gx, y, gy, size(gx,1), size(gx,2))
+  ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Ptr{Cint}), gx, y, gy, splitdims(gx,dim))
   y
 end
 

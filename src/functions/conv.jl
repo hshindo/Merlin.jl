@@ -1,8 +1,8 @@
 export Conv
 import Base.conv
 
-const WINDOW2D_FWD_F32 = Libdl.dlsym(libmerlin, :window2d_fwd_f32)
-const WINDOW2D_F32 = Libdl.dlsym(libmerlin, :window2d_f32)
+#const WINDOW2D_FWD_F32 = Libdl.dlsym(libmerlin, :window2d_fwd_f32)
+#const WINDOW2D_F32 = Libdl.dlsym(libmerlin, :window2d_f32)
 #const WINDOW2D_BWD_F32 = Libdl.dlsym(library, :window2d_bwd_f32)
 #const WINDOW2D_FWD_F64 = Libdl.dlsym(library, :window2d_fwd_f64)
 #const WINDOW2D_BWD_F64 = Libdl.dlsym(library, :window2d_bwd_f64)

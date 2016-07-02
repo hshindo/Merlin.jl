@@ -33,6 +33,26 @@ void softmax(T *x, T *y, const int *dims) {
 }
 
 template<typename T>
+void softmax_grad(T *gx, T *y, T *gy, const int *dims) {
+  #pragma omp parallel for
+  for (int i = 0; i < dims[0]; i++) {
+    for (int j = 0; j < dims[2]; j++) {
+
+      T sum = static_cast<T>(0);
+      for (int k = 0; k < dims[1]; k++) {
+        int idx = getindex(i, j, k, dims);
+        sum += gy[idx] * y[idx];
+      }
+
+      for (int k = 0; k < dims[1]; k++) {
+        int idx = getindex(i, j, k, dims);
+        gx[idx] += y[idx] * (gy[idx] - sum);
+      }
+    }
+  }
+}
+
+template<typename T>
 void logsoftmax(T *x, T *y, const int *dims) {
   #pragma omp parallel for
   for (int i = 0; i < dims[0]; i++) {
@@ -47,7 +67,7 @@ void logsoftmax(T *x, T *y, const int *dims) {
       T z = static_cast<T>(0);
       for (int k = 0; k < dims[1]; k++) {
         int idx = getindex(i, j, k, dims);
-        z = exp_approx(x[idx] - maxv);
+        z += exp_approx(x[idx] - maxv);
       }
 
       T logz = log_approx(z);
@@ -59,8 +79,31 @@ void logsoftmax(T *x, T *y, const int *dims) {
   }
 }
 
+template<typename T>
+void logsoftmax_grad(T *gx, T *y, T *gy, const int *dims) {
+  #pragma omp parallel for
+  for (int i = 0; i < dims[0]; i++) {
+    for (int j = 0; j < dims[2]; j++) {
+
+      T sum = static_cast<T>(0);
+      for (int k = 0; k < dims[1]; k++) {
+        int idx = getindex(i, j, k, dims);
+        sum += gy[idx];
+      }
+
+      for (int k = 0; k < dims[1]; k++) {
+        int idx = getindex(i, j, k, dims);
+        gx[idx] += gy[idx] - exp_approx(y[idx]) * sum;
+      }
+    }
+  }
+}
+
 #define SOFTMAX_CAPI(NAME, T) \
-void NAME ## _ ## T(T *x, T *y, const int *dims) { NAME(x, y, dims); }
+void NAME ## _ ## T(T *x, T *y, const int *dims) { NAME(x, y, dims); } \
+void NAME ## _ ## grad ## _ ## T(T *gx, T *y, T *gy, const int *dims) { \
+  NAME ## _ ## grad(gx, y, gy, dims); \
+}
 
 extern "C" {
   SOFTMAX_CAPI(softmax, float)

@@ -21,20 +21,21 @@ end
 
 @compat function (f::LogSoftmax)(x::Var)
   @checkargs f (x,)
-  @assert 0 < dim <= ndims(x)
   y = logsoftmax(x.value, f.dim)
-  df(gy) = hasgrad(x) && ∇logsoftmax!(x.grad, y, gy)
+  df(gy) = hasgrad(x) && ∇logsoftmax!(x.grad, y, gy, f.dim)
   Var(y, df, [x])
 end
 
 function logsoftmax{T}(x::Array{T}, dim::Int)
+  @assert 0 < dim <= ndims(x)
   h = logsoftmax_handle(T)[1]
   y = similar(x)
   ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint}), x, y, splitdims(x,dim))
   y
 end
 
-function logsoftmax_jl{T}(x::Matrix{T})
+function logsoftmax_jl{T}(x::Matrix{T}, dim::Int)
+  @assert dim == 1
   y = similar(x)
   max = maximum(x, 1)
   for j = 1:size(x,2)
