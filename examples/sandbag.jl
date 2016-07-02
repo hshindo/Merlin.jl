@@ -1,6 +1,4 @@
 workspace()
-ENV["USE_CUDA"] = true
-delete!(ENV, "USE_CUDA")
 using Merlin
 using Merlin.Caffe
 using CUDA
@@ -9,7 +7,7 @@ using Base.Test
 using HDF5
 
 function bench()
-  x = rand(Float32,100,10000,10)
+  x = rand(Float32,100,100,100)
   for i = 1:10
     #Merlin.softmax_mocha(x,2)
     logsoftmax(x,2)

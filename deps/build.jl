@@ -2,7 +2,6 @@ using Compat
 
 const sources = [
   "im2col.cpp",
-  "maxpooling2d.cpp",
   "softmax.cpp",
   "window.cpp"]
 

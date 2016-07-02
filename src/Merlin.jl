@@ -3,22 +3,15 @@ module Merlin
 using Compat
 using Base.LinAlg.BLAS
 
-@windows? begin
-  const libname = "libmerlin.dll"
-end : begin
-  const libname = "libmerlin.so"
+@compat if is_windows()
+  const libname = joinpath(dirname(@__FILE__), "../deps/libmerlin.dll")
+else
+  const libname = joinpath(dirname(@__FILE__), "../deps/libmerlin.so")
 end
+const libmerlin = Libdl.dlopen(libname)
 
-const libpath = abspath(joinpath(dirname(@__FILE__), "..", "deps", libname))
-
-try
-  const global library = Libdl.dlopen(libpath)
-catch y
-  println("ERROR: Could not load native extension at $libpath. Try `Pkg.build("Merlin.jl")` to compile native codes.")
-  throw(y)
-end
-
-if haskey(ENV, "USE_CUDA") && ENV["USE_CUDA"] == true
+USE_CUDA = false
+if USE_CUDA
   using CUDA
   using CUDNN
 else

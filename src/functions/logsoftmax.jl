@@ -1,6 +1,6 @@
 export logsoftmax
 
-const LOGSOFTMAX_F32 = Libdl.dlsym(library, :logsoftmax_float)
+const LOGSOFTMAX_F32 = Libdl.dlsym(libmerlin, :logsoftmax_float)
 #const LOGSOFTMAX_FW_F64 = Libdl.dlsym(library, :logsoftmax_fw_f64)
 #const LOGSOFTMAX_BW_F32 = Libdl.dlsym(library, :logsoftmax_bw_f32)
 #const LOGSOFTMAX_BW_F64 = Libdl.dlsym(library, :logsoftmax_bw_f64)
