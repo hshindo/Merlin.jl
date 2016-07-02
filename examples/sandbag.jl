@@ -9,10 +9,10 @@ using Base.Test
 using HDF5
 
 function bench()
-  x = rand(Float32,100,100)
-  for i = 1:1000
-    Merlin.softmax_mocha(x,1)
-    #Merlin.softmax_jl(x)
+  x = rand(Float32,100,10000,10)
+  for i = 1:10
+    #Merlin.softmax_mocha(x,2)
+    logsoftmax(x,2)
   end
 end
 @time bench()

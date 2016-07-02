@@ -1,3 +1,5 @@
+#include <math.h>
+
 // Assumed IEEE754.
 // (x/log2 + 127) * 2^32
 // 127 is an offset of exponent.

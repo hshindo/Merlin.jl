@@ -5,20 +5,16 @@ function argmax(x, dim::Int)
   ind2sub(size(x), vec(index))[dim]
 end
 
-# Split the dimension of a nd-array into 3 parts.
-function splitdims{T}(x::T, dim::Int)
-  dims = size(x)
-  dim1, dim2, dim3 = 1, 1, 1
-  for i = 1:length(dims)
-    if i < dim
-      dim1 *= dims[i]
-    elseif i == dim
-      dim2 = dims[i]
-    else
-      dim3 *= dims[i]
-    end
+# Split the dimension of a ndarray into 3 parts.
+function splitdims(x::Array, dim::Int)
+  dims = Cint[1, size(x,dim), 1]
+  for i = 1:dim-1
+    dims[1] *= size(x, i)
   end
-  dim1, dim2, dim3
+  for i = dim+1:ndims(x)
+    dims[3] *= size(x, i)
+  end
+  dims
 end
 
 #=

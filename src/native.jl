@@ -3,6 +3,12 @@
 #  ccall(TEST_EXP, Void, (Cfloat,), val)
 #end
 
+immutable NDArray{T}
+  ptr::Ptr{T}
+  dims::Ptr{Cint}
+  strides::Ptr{Cint}
+end
+
 """
 JIT C++ compiler.
 - `src`: source code

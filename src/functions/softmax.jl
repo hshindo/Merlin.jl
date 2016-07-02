@@ -1,17 +1,19 @@
 export softmax
 
-const SOFTMAX_FW_F32 = Libdl.dlsym(library, :softmax_fw_f32)
-const SOFTMAX_FW_F64 = Libdl.dlsym(library, :softmax_fw_f64)
-const SOFTMAX_BW_F32 = Libdl.dlsym(library, :softmax_bw_f32)
-const SOFTMAX_BW_F64 = Libdl.dlsym(library, :softmax_bw_f64)
+#const SOFTMAX_FW_F32 = Libdl.dlsym(library, :softmax_fw_f32)
+#const SOFTMAX_FW_F64 = Libdl.dlsym(library, :softmax_fw_f64)
+#const SOFTMAX_BW_F32 = Libdl.dlsym(library, :softmax_bw_f32)
+#const SOFTMAX_BW_F64 = Libdl.dlsym(library, :softmax_bw_f64)
+const SOFTMAX_FW_F32 = Libdl.dlsym(library, :softmax_float)
 
-softmax_handle(::Type{Float32}) = SOFTMAX_FW_F32, SOFTMAX_BW_F32
-softmax_handle(::Type{Float64}) = SOFTMAX_FW_F64, SOFTMAX_BW_F64
+#softmax_handle(::Type{Float32}) = SOFTMAX_FW_F32, SOFTMAX_BW_F32
+#softmax_handle(::Type{Float64}) = SOFTMAX_FW_F64, SOFTMAX_BW_F64
+softmax_handle(::Type{Float32}) = SOFTMAX_FW_F32, SOFTMAX_FW_F32
 
 doc"""
     softmax(x::Var, dim::Int)
 
-Compute softmax along the second axis.
+Compute softmax along the given axis.
 
 $ p(x) = {\exp(f(x)) \over \sum_{x_2} \exp(f(x))} $
 """
@@ -23,16 +25,16 @@ end
 
 @compat function (f::Softmax)(x::Var)
   @checkargs f (x,)
-  @assert f.dim == 1
   y = softmax(x.value)
   df(gy) = hasgrad(x) && ∇softmax!(x.grad, y, gy)
   Var(y, df, [x])
 end
 
-function softmax{T}(x::Matrix{T})
+function softmax{T}(x::Array{T}, dim::Int)
+  @assert 0 < dim <= ndims(x)
   h = softmax_handle(T)[1]
   y = similar(x)
-  ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint), x, y, size(x,1), size(x,2))
+  ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint}), x, y, splitdims(x,dim))
   y
 end
 
@@ -57,38 +59,6 @@ function softmax_jl{T}(x::Matrix{T})
     end
   end
   y
-end
-
-function softmax_mocha{T,N}(x::Array{T,N}, dim::Int)
-  y = similar(x)
-  dim_pre, dim_prob, dim_post = splitdims(x, dim)
-  idxs = Array(Int, dim_prob)
-  for i = 1:dim_pre
-    for j = 1:dim_post
-      for k = 1:dim_prob
-        idxs[k] = i + dim_pre * (k - 1 + dim_prob*(j-1))
-      end
-      softmax_mocha!(x, y, idxs)
-    end
-  end
-  y
-end
-
-function softmax_mocha!{T,N}(x::Array{T,N}, y::Array{T,N}, idxs::Vector{Int})
-  maxval = x[idxs[1]]
-  for k in idxs
-    @inbounds maxval = max(maxval, x[k])
-  end
-
-  z = T(0)
-  for k in idxs
-    @inbounds y[k] = exp(x[k] - maxval)
-    @inbounds z += y[k]
-  end
-  invz = T(1) / z
-  for k in idxs
-    @inbounds y[k] *= invz
-  end
 end
 
 function softmax(x::CuArray)
