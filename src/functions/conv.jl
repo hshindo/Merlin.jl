@@ -1,10 +1,41 @@
 export Conv
 import Base.conv
 
-const WINDOW2D_FWD_F32 = Libdl.dlsym(library, :window2d_fwd_f32)
-const WINDOW2D_BWD_F32 = Libdl.dlsym(library, :window2d_bwd_f32)
-const WINDOW2D_FWD_F64 = Libdl.dlsym(library, :window2d_fwd_f64)
-const WINDOW2D_BWD_F64 = Libdl.dlsym(library, :window2d_bwd_f64)
+const WINDOW2D_FWD_F32 = Libdl.dlsym(libmerlin, :window2d_fwd_f32)
+const WINDOW2D_F32 = Libdl.dlsym(libmerlin, :window2d_f32)
+#const WINDOW2D_BWD_F32 = Libdl.dlsym(library, :window2d_bwd_f32)
+#const WINDOW2D_FWD_F64 = Libdl.dlsym(library, :window2d_fwd_f64)
+#const WINDOW2D_BWD_F64 = Libdl.dlsym(library, :window2d_bwd_f64)
+
+function window2{T,N}(stride::NTuple{N,Int}, w::Array{T}, x::Array{T})
+  outdims = Array(Int, N)
+  for i = 1:N
+    outdims[i] = (size(x,i) - size(w,i)) ÷ stride[i] + 1
+  end
+  winsize = [size(w,i) for i=1:N]
+  h = WINDOW2D_FWD_F32
+  y = similar(x, prod(outdims), prod(winsize)*size(w,N+1), size(x,N+2))
+  xsize = Cint[size(x,i) for i=1:N+1]
+  xsize[N+1] *= size(x, N+2)
+  params = Cint[winsize..., stride..., 0, 0]
+  ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Ptr{Cint}), x, y, xsize, params)
+  y
+end
+
+function window3{T,N}(stride::NTuple{N,Int}, w::Array{T}, x::Array{T})
+  outdims = Array(Int, N)
+  for i = 1:N
+    outdims[i] = (size(x,i) - size(w,i)) ÷ stride[i] + 1
+  end
+  winsize = [size(w,i) for i=1:N]
+  h = WINDOW2D_F32
+  y = similar(x, prod(outdims), prod(winsize)*size(w,N+1), size(x,N+2))
+  xsize = Cint[size(x,i) for i=1:N+1]
+  xsize[N+1] *= size(x, N+2)
+  params = Cint[winsize..., stride..., 0, 0]
+  ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Ptr{Cint}), x, y, xsize, params)
+  y
+end
 
 """
     Conv(w, [stride, pad])
@@ -79,7 +110,7 @@ function conv{T}(f::ConvFun, w::CuArray{T}, x::CuArray{T})
   convolution(x, w, desc)
 end
 
-function ∇conv!{N}(f::ConvFun{N}, gx::Array{T}, gy::Array{T})
+function ∇conv!{T,N}(f::ConvFun{N}, gx::Array{T}, gy::Array{T})
   for i = 1:size(x,N+2)
     BLAS.gemm!('N', 'T', T(1), gy, x2.value, T(1), x1.grad)
     BLAS.gemm!('T', 'N', T(1), x1.value, gy, T(1), x2.grad)

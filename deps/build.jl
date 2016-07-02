@@ -1,7 +1,6 @@
 using Compat
 
 const sources = [
-  "im2col.cpp",
   "softmax.cpp",
   "window.cpp"]
 

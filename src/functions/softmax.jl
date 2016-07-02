@@ -5,10 +5,12 @@ export softmax
 #const SOFTMAX_BW_F32 = Libdl.dlsym(library, :softmax_bw_f32)
 #const SOFTMAX_BW_F64 = Libdl.dlsym(library, :softmax_bw_f64)
 const SOFTMAX_FW_F32 = Libdl.dlsym(libmerlin, :softmax_float)
+const SOFTMAX_FW_F64 = Libdl.dlsym(libmerlin, :softmax_double)
 
 #softmax_handle(::Type{Float32}) = SOFTMAX_FW_F32, SOFTMAX_BW_F32
 #softmax_handle(::Type{Float64}) = SOFTMAX_FW_F64, SOFTMAX_BW_F64
 softmax_handle(::Type{Float32}) = SOFTMAX_FW_F32, SOFTMAX_FW_F32
+softmax_handle(::Type{Float64}) = SOFTMAX_FW_F64, SOFTMAX_FW_F64
 
 doc"""
     softmax(x::Var, dim::Int)

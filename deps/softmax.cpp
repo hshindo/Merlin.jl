@@ -1,4 +1,4 @@
-#include "math.cpp"
+#include "math.h"
 
 inline int getindex(int i, int j, int k, const int *dims) {
   return i + dims[0] * (k + dims[1]*j);
@@ -64,5 +64,6 @@ void NAME ## _ ## T(T *x, T *y, const int *dims) { NAME(x, y, dims); }
 
 extern "C" {
   SOFTMAX_CAPI(softmax, float)
+  SOFTMAX_CAPI(softmax, double)
   SOFTMAX_CAPI(logsoftmax, float)
 }

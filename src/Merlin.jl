@@ -32,6 +32,7 @@ include("serialize.jl")
 for name in [
   "activation",
   "concat",
+  "conv",
   "linear",
   "logsoftmax",
   "lookup",
