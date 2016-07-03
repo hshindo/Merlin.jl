@@ -1,4 +1,7 @@
-export Window
+export window
+
+const WINDOW2D_F32 = Libdl.dlsym(libmerlin, :window2d_float)
+const WINDOW2D_F64 = Libdl.dlsym(libmerlin, :window2d_double)
 
 """
     window(x, dims, [stride], [pad])
@@ -23,11 +26,6 @@ function window{N}(x::Var, dims::NTuple{N,Int}; stride=(), pad=())
   length(pad) == 0 && (pad = ntuple(_->0, N))
   Window(dims, stride, pad)(x)
 end
-
-const WINDOW2D_FWD_F32 = Libdl.dlsym(library, :window_fwd_f32)
-const WINDOW2D_BWD_F32 = Libdl.dlsym(library, :window_bwd_f32)
-const WINDOW2D_FWD_F64 = Libdl.dlsym(library, :window_fwd_f64)
-const WINDOW2D_BWD_F64 = Libdl.dlsym(library, :window_bwd_f64)
 
 type Window{N}
   dims::NTuple{N,Int}

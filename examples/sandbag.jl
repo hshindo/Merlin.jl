@@ -6,7 +6,13 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
-w = rand(Float32,2,2,3,4)
+x = Var(rand(Float32,5,4,3,2))
+f = Conv(param(rand(Float32,2,2,3,4)), stride=(1,1), padsize=(0,0))
+y = f(x)
+x.grad = zeros(x.value)
+a = gradient!(y)
+
+
 x = rand(Float32,5,4,3,2)
 y = Merlin.window2((1,1), w,x)
 yy = Merlin.window3((1,1), w,x)

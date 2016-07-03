@@ -1,10 +1,13 @@
 type SharedEmbeds
-  w::Vector{Float32}
-  iddict::Matrix{Int}
+  w::Matrix{Float32}
+  iddict::Vector{Vector{Int}}
+
 end
 
-function lookup(w::SharedEmbed, x::Array{Int})
-  for id in x
-    w.iddict[id]
-  end
+function lookup(w::SharedEmbeds, x::Array{Int})
+
+end
+
+function update!(f::SharedEmbeds)
+  
 end

@@ -1,3 +1,4 @@
+#include <limits>
 #include "math.h"
 
 inline int getindex(int i, int j, int k, const int *dims) {
@@ -10,7 +11,7 @@ void softmax(T *x, T *y, const int *dims) {
   for (int i = 0; i < dims[0]; i++) {
     for (int j = 0; j < dims[2]; j++) {
 
-      T maxv = x[getindex(i,j,0,dims)];
+      T maxv = std::numeric_limits<T>::min();
       for (int k = 0; k < dims[1]; k++) {
         int idx = getindex(i, j, k, dims);
         if (x[idx] > maxv) maxv = x[idx];
