@@ -21,14 +21,25 @@ else
   typealias CuMatrix{T} CuArray{T,2}
 end
 
-include("util.jl")
-include("var.jl")
-include("gradient.jl")
-include("graph.jl")
-include("training.jl")
-include("native.jl")
-include("serialize.jl")
+abstract Layer
+export Data
 
+include("util.jl")
+include("layers/gradient.jl")
+include("layers/graph.jl")
+#include("var.jl")
+#include("gradient.jl")
+#include("graph.jl")
+#include("training.jl")
+include("native.jl")
+#include("serialize.jl")
+
+include("layers/activation.jl")
+include("layers/concat.jl")
+include("layers/data.jl")
+include("layers/linear.jl")
+
+#=
 for name in [
   "activation",
   "concat",
@@ -57,6 +68,7 @@ for name in [
     "sgd"]
   include("optimizers/$(name).jl")
 end
+=#
 
 #include("caffe/Caffe.jl")
 
