@@ -16,6 +16,7 @@ function topsort(top)
 end
 
 hasgrad(l::Layer) = l.gy != nothing
+
 isleaf(l::Layer) = isempty(tails(l))
 
 function gradient!(top::Layer)

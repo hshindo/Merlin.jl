@@ -17,15 +17,17 @@ function splitdims(x::Array, dim::Int)
   dims
 end
 
-#=
-function Base.rand{T,N}(::Type{T}, low::Float64, high::Float64, dims::NTuple{N,Int})
-  # sqrt(6 / (dims[1]+dims[2]))
-  a = rand(T, dims) * (high-low) + low
-  convert(Array{T,N}, a)
+function Base.rand{T<:AbstractFloat,N}(low::T, high::T, dims::NTuple{N,Int})
+  Array{T,N}(rand(T,dims) * (high-low) + low)
 end
+Base.rand{T<:AbstractFloat}(low::T, high::T, dims::Int...) = rand(low, high, dims)
 
-Base.randn{T}(::Type{T}, dims...) = convert(Array{T}, randn(dims))
-=#
+Base.randn{T<:AbstractFloat,N}(::Type{T}, dims::NTuple{N,Int}) = Array{T,N}(randn(dims))
+Base.randn{T<:AbstractFloat}(::Type{T}, dims::Int...) = randn(T, dims)
+function Base.randn{T<:AbstractFloat,N}(low::T, high::T, dims::NTuple{N,Int})
+  Array{T,N}(randn(T,dims) * (high-low) + low)
+end
+Base.randn{T<:AbstractFloat}(low::T, high::T, dims::Int...) = randn(low, high, dims)
 
 # Workaround a lack of optimization in gcc
 #const exp_cst1 = 2139095040.f0

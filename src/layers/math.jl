@@ -1,12 +1,12 @@
 import Base: +, -, .*, *
 
-type Plus <: Layer
+type Plus
   as::Vector{Number}
 end
 
-+(x1::Layer, x2::Layer) = Plus([1,1])([x1,x2])
-+(a::Number, x::Layer) = Data(a) + x
-+(x::Layer, a::Number) = x + Data(a)
++(x1::Var, x2::Var) = Plus([1,1])([x1,x2])
++(a::Number, x::Var) = Var(a) + x
++(x::Var, a::Number) = x + Var(a)
 
 -(x1::Var, x2::Var) = Plus([1,-1])([x1,x2])
 -(a::Number, x::Var) = Var(a) - x

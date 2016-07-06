@@ -9,28 +9,27 @@ type Linear <: Layer
 end
 
 function Linear(T::Type, indim::Int, outdim::Int)
-  x = sqrt(6 / (indim + outdim))
-  r = rand(outdim, indim) * 2x - x
-  w = Matrix{T}(r)
+  r = T(sqrt(6 / (indim+outdim)))
+  w = rand(-r, r, outdim, indim)
   b = fill(T(0), outdim, 1)
   Linear(Data(w,zeros(w)), Data(b,zeros(b)), nothing, nothing, nothing)
 end
 
 @compat (l::Linear)(x::Layer) = Linear(l.w, l.b, x)
-@compat (l::Linear)(x::GraphNode) = GraphNode(l, x)
+@compat (l::Linear)(x::GraphNode) = GraphNode(l, l.w, l.b, l.x)
 
 function Linear(w, b, x)
   y = linear(w.y, b.y, x.y)
   Linear(w, b, x, y, nothing)
 end
 
+tails(l::Linear) = [l.w, l.b, l.x]
+
 function linear{T}(w::Matrix{T}, b::Matrix{T}, x::Matrix{T})
   y = w * x
   broadcast!(.+, y, y, b)
   y
 end
-
-tails(l::Linear) = [l.w, l.b, l.x]
 
 function backward!(l::Linear)
   T = eltype(l.y)

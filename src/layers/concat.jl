@@ -1,18 +1,27 @@
 export concat
 
+"""
+    concat(dim::Int, xs::Layer...)
+    concat{T<:Layer}(dim::Int, xs::Vector{T})
+
+Concatenate arrays along the given dimension.
+"""
+function concat{T<:Layer}(dim::Int, xs::Vector{T})
+  Concat(dim, xs, concat(dim, map(x -> x.y, xs)), nothing)
+end
+concat(dim::Int, xs::Layer...) = concat(dim, [xs...])
+concat{T<:GraphNode}(dim::Int, xs::Vector{T}) = throw("Variable-length input is unsupported.")
+concat(dim::Int, xs::GraphNode...) = GraphNode(concat, dim, xs...)
+
 type Concat <: Layer
   dim::Int
-  xs::Vector{Layer}
+  xs::Vector
   y
   gy
 end
 
-function concat(dim::Int, xs::Vector)
-  y = any(x -> typeof(x.y) <: Symbol) ? Symbol() : concat(dim, map(x -> x.y, xs))
-  Concat(dim, xs, y, nothing)
-end
-
 tails(l::Concat) = l.xs
+
 backward!(l::Concat) = ∇concat!(l.dim, map(x -> x.grad, l.xs), l.gy)
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
@@ -41,7 +50,7 @@ function ∇concat!{T,N}(dim::Int, gxs::Vector{Array{T,N}}, gy::Array{T,N})
   for gx in gxs
     s = size(gx, dim)
     range[dim] = offset:(offset+s-1)
-    BLAS.axpy!(T(1), gy[range...], gx)
+    BLAS.axpy!(T(1), sub(gy,range...), gx)
     offset += s
   end
 end

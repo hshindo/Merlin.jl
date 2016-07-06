@@ -33,29 +33,16 @@ include("layers/graph.jl")
 include("native.jl")
 #include("serialize.jl")
 
-include("layers/activation.jl")
-include("layers/concat.jl")
-include("layers/data.jl")
-include("layers/linear.jl")
-
-#=
 for name in [
   "activation",
   "concat",
-  "conv",
+  "data",
   "linear",
-  "logsoftmax",
-  "lookup",
-  "math",
-  "max",
-  "reshape",
-  "softmax",
-  "softmax_crossentropy",
-  "sum"
   ]
-  include("functions/$(name).jl")
+  include("layers/$(name).jl")
 end
 
+#=
 for name in [
     "gru"]
   include("graphs/$(name).jl")

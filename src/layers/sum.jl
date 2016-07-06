@@ -5,20 +5,19 @@ import Base.sum
 
 Compute the sum along the given dimensions.
 """
-sum(x::Var, dim::Int) = Sum(dim)(x)
+sum(x::Layer, dim::Int) = Sum(dim, x, sum(x.y,dim), nothing)
+sum(x::GraphNode, dim::Int) = GraphNode(sum, x, dim)
 
 type Sum <: Layer
   dim::Int
-  x::Layer
+  x
   y
   gy
 end
 
-sum(x::Layer, dim::Int) = Sum(dim, x, sum(x.y,dim), nothing)
-sum(x::GraphNode, dim::Int) = GraphNode(sum, x, dim)
+tails(l::Sum) = [l.x]
 
 backward!(l::Sum) = hasgrad(l.x) && ∇sum!(l.x.gy, l.y.gy)
-tails(l::Sum) = [l.x]
 
 ∇sum!(gx::Array, gy::Array) = broadcast!(.+, gx, gx, gy)
 
