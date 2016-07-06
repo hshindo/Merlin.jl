@@ -6,7 +6,27 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+g = @graph begin
+  x = GraphNode(:x)
+  x = Linear(Float32,10,4)(x)
+  x = relu(x)
+  x = Linear(Float32,4,3)(x)
+end
 
+x = Data(rand(Float32,10,5))
+@checkgrad g(:x=>x) [x]
+y = g(:x => rand(Float32,10,5))
+
+Merlin.gradient!(y)
+
+x = Data(rand(Float32,10,5))
+l = Linear(Float32,10,4)
+y = l(x)
+relu(y)
+
+Merlin.gradient!(y)
+
+@checkgrad l(x) [x]
 
 x = rand(Float32,5,4,3,2)
 y = Merlin.window2((1,1), w,x)

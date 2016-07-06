@@ -22,7 +22,6 @@ else
 end
 
 abstract Layer
-export Data
 
 include("util.jl")
 include("layers/gradient.jl")

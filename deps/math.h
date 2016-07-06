@@ -43,13 +43,13 @@ inline double exp_approx(double x) {
 }
 
 inline float log_approx(float x) {
-  if (x <= 0.f) return -(float)INFINITY;
+  if (x <= 0.0f) return -(float)INFINITY;
   union { float f; int i; } valu;
   valu.f = x;
   float e = valu.i >> 23;
-  // 89.970756366f = 127 * log(2) - constant term of polynomial
   valu.i = (valu.i & 0x7FFFFF) | 0x3F800000;
   float f = valu.f;
+  // 89.970756366f = 127 * log(2) - constant term of polynomial (-1.94106443489)
   return
     f * (3.529304993f + f * (-2.461222105f +
       f * (1.130626167f + f * (-0.288739945f +
@@ -58,5 +58,16 @@ inline float log_approx(float x) {
 }
 
 inline double log_approx(double x) {
-  if (x <= 0.) return -(double)INFINITY;
+  if (x <= 0.0) return -(double)INFINITY;
+  union { double f; long long i; } valu;
+  valu.f = x;
+  double e = valu.i >> 52;
+  valu.i = (valu.i & 0xFFFFFFFFFFFFF) | 0x3FF0000000000000;
+  double f = valu.f;
+  // 707.148501278 = 1023 * log(2) - constant term of polynomial
+  return
+    f * (3.529304993 + f * (-2.461222105 +
+      f * (1.130626167 + f * (-0.288739945 +
+        f * 3.110401639e-2))))
+    + (-707.148501278 + 0.69314718055995*e);
 }

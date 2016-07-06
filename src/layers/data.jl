@@ -5,9 +5,9 @@ type Data <: Layer
   gy
 end
 
-backward!(l::Data) = ()
-tails(l::Data) = []
+Data(y) = Data(y, nothing)
 
-param(y) = Data(y, zeros(y))
+backward!(l::Data) = nothing
+tails(l::Data) = []
 
 update!(l::Data, opt) = update!(opt, l.y, l.gy)

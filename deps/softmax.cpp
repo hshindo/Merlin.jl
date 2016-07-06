@@ -110,4 +110,5 @@ extern "C" {
   SOFTMAX_CAPI(softmax, float)
   SOFTMAX_CAPI(softmax, double)
   SOFTMAX_CAPI(logsoftmax, float)
+  SOFTMAX_CAPI(logsoftmax, double)
 }

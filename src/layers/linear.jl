@@ -13,13 +13,14 @@ function Linear(T::Type, indim::Int, outdim::Int)
   r = rand(outdim, indim) * 2x - x
   w = Matrix{T}(r)
   b = fill(T(0), outdim, 1)
-  Linear(param(w), param(b), nothing, nothing, nothing)
+  Linear(Data(w,zeros(w)), Data(b,zeros(b)), nothing, nothing, nothing)
 end
 
 @compat (l::Linear)(x::Layer) = Linear(l.w, l.b, x)
+@compat (l::Linear)(x::GraphNode) = GraphNode(l, x)
 
 function Linear(w, b, x)
-  y = any(l -> typeof(l.y) <: Symbol, [w,b,x]) ? Symbol() : linear(w.y, b.y, x.y)
+  y = linear(w.y, b.y, x.y)
   Linear(w, b, x, y, nothing)
 end
 
