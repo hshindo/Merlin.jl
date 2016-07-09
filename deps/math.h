@@ -64,10 +64,10 @@ inline double log_approx(double x) {
   double e = valu.i >> 52;
   valu.i = (valu.i & 0xFFFFFFFFFFFFF) | 0x3FF0000000000000;
   double f = valu.f;
-  // 707.148501278 = 1023 * log(2) - constant term of polynomial
+  // 711.030630148 = 1023 * log(2) - constant term of polynomial
   return
     f * (3.529304993 + f * (-2.461222105 +
       f * (1.130626167 + f * (-0.288739945 +
         f * 3.110401639e-2))))
-    + (-707.148501278 + 0.69314718055995*e);
+    + (-711.030630148 + 0.69314718055995*e);
 }

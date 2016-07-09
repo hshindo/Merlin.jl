@@ -1,38 +1,35 @@
 export Linear
 
 type Linear <: Layer
+  data
+  grad
   w
   b
   x
-  y
-  gy
 end
 
 function Linear(T::Type, indim::Int, outdim::Int)
   r = T(sqrt(6 / (indim+outdim)))
   w = rand(-r, r, outdim, indim)
   b = fill(T(0), outdim, 1)
-  Linear(Data(w,zeros(w)), Data(b,zeros(b)), nothing, nothing, nothing)
+  Linear(nothing, nothing, Data(w,zeros(w)), Data(b,zeros(b)), nothing)
 end
 
-@compat (l::Linear)(x::Layer) = Linear(l.w, l.b, x)
-@compat (l::Linear)(x::GraphNode) = GraphNode(l, l.w, l.b, l.x)
+@compat function (l::Linear)(x::Layer)
+  l.x = x
+  x.data == nothing || forward!(l)
+  l
+end
 
-function Linear(w, b, x)
-  y = linear(w.y, b.y, x.y)
-  Linear(w, b, x, y, nothing)
+function forward!(l::Linear)
+  l.data = l.w.data * l.x.data
+  broadcast!(.+, l.data, l.data, l.b.data)
 end
 
 tails(l::Linear) = [l.w, l.b, l.x]
 
-function linear{T}(w::Matrix{T}, b::Matrix{T}, x::Matrix{T})
-  y = w * x
-  broadcast!(.+, y, y, b)
-  y
-end
-
 function backward!(l::Linear)
-  T = eltype(l.y)
-  hasgrad(l.w) && BLAS.gemm!('N', 'T', T(1), l.gy, l.x.y, T(1), l.w.gy)
-  hasgrad(l.x) && BLAS.gemm!('T', 'N', T(1), l.w.y, l.gy, T(1), l.x.gy)
+  T = eltype(l.data)
+  hasgrad(l.w) && BLAS.gemm!('N', 'T', T(1), l.grad, l.x.data, T(1), l.w.grad)
+  hasgrad(l.x) && BLAS.gemm!('T', 'N', T(1), l.w.data, l.grad, T(1), l.x.grad)
 end

@@ -1,56 +1,75 @@
-export checkgrad, @checkgrad, @gradcheck
+export topsort, gradient!, approx_grad, @checkgrad
 
-function topsort(var::Var)
-  sorted = Var[]
+function topsort(top::Layer)
+  sorted = Layer[]
   dict = ObjectIdDict()
-  function visit(v::Var)
-    haskey(dict, v) && return
-    dict[v] = v
-    for a in v.args
-      visit(a)
+  function visit(node::Layer)
+    haskey(dict, node) && return
+    dict[node] = node
+    for t in tails(node)
+      visit(t)
     end
-    push!(sorted, v)
+    push!(sorted, node)
   end
-  visit(var)
+  visit(top)
   sorted
 end
 
-const gradeps = 1e-3
+hasgrad(l::Layer) = l.grad != nothing
+
+isleaf(l::Layer) = isempty(tails(l))
+
+function gradient!(top::Layer)
+  sorted = topsort(top)
+  hasgrad(top) || (top.grad = ones(top.data))
+  for i = 1:length(sorted)-1 # excludes top
+    l = sorted[i]
+    isleaf(l) && continue
+    l.grad = zeros(l.data)
+  end
+  for i = length(sorted):-1:1
+    l = sorted[i]
+    backward!(l)
+  end
+  sorted
+end
+
+const gradeps = 1e-2
 
 """
 Compute numerical gradient.
 """
-function approx_grad(f, args::Vector{Var})
+function approx_grad{T<:Layer}(f, args::Vector{T})
   map(args) do v
-    x = v.value
+    x = v.y
     gx = similar(x)
     for k = 1:length(x)
       xk = x[k]
       x[k] = xk + gradeps
-      y1 = f().value
+      y1 = f().y
       x[k] = xk - gradeps
-      y2 = f().value
+      y2 = f().y
       x[k] = xk
-      gx[k] = sum(y1 - y2) * (1/2gradeps)
+      gx[k] = sum(y1 - y2) / (2gradeps)
     end
     gx
   end
 end
 
-macro gradcheck(f, args)
+macro checkgrad(f, args)
   quote
     local f() = $(esc(f))
     local args = $(esc(args))
     for x in args
-      x.grad = zeros(x.value)
+      x.gy = zeros(x.y)
     end
     y = f()
     gradient!(y)
     approx_gxs = approx_grad(f, args)
     for i = 1:length(args)
-      gx1 = args[i].grad
+      gx1 = args[i].gy
       gx2 = approx_gxs[i]
-      all(d -> abs(d) < 1e-3, gx1 - gx2) && continue
+      all(d -> abs(d) < gradeps, gx1 - gx2) && continue
       println(gx1 - gx2)
       return false
     end

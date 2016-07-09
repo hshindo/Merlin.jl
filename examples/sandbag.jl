@@ -6,12 +6,18 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+x = Data(rand(Float32,10,5))
+l = Linear(Float32,10,3)
+y = l(x)
+
 g = @graph begin
-  x = GraphNode(:x)
+  x = Data(name=:x)
   x = Linear(Float32,10,4)(x)
   x = relu(x)
   x = Linear(Float32,4,3)(x)
 end
+y = g(:x=>rand(Float32,10,5))
+gradient!(y)
 
 x = Data(rand(Float32,10,5))
 @checkgrad g(:x=>x) [x]

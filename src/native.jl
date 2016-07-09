@@ -3,7 +3,7 @@
 #  ccall(TEST_EXP, Void, (Cfloat,), val)
 #end
 
-immutable NDArray{T}
+immutable CArray{T}
   ptr::Ptr{T}
   dims::Ptr{Cint}
   strides::Ptr{Cint}

@@ -24,20 +24,23 @@ end
 abstract Layer
 
 include("util.jl")
-include("layers/gradient.jl")
-include("layers/graph.jl")
-#include("var.jl")
-#include("gradient.jl")
-#include("graph.jl")
+include("gradient.jl")
+include("graph.jl")
 #include("training.jl")
 include("native.jl")
 #include("serialize.jl")
 
 for name in [
-  "activation",
+  "math/plus",
+  "math/times",
+  "activation/relu",
+  "activation/sigmoid",
+  "activation/tanh",
   "concat",
   "data",
   "linear",
+  "softmax",
+  #"sum"
   ]
   include("layers/$(name).jl")
 end

@@ -7,22 +7,21 @@ export concat
 Concatenate arrays along the given dimension.
 """
 function concat{T<:Layer}(dim::Int, xs::Vector{T})
+  datas = map(x -> x.data, xs)
   Concat(dim, xs, concat(dim, map(x -> x.y, xs)), nothing)
 end
 concat(dim::Int, xs::Layer...) = concat(dim, [xs...])
-concat{T<:GraphNode}(dim::Int, xs::Vector{T}) = throw("Variable-length input is unsupported.")
-concat(dim::Int, xs::GraphNode...) = GraphNode(concat, dim, xs...)
 
 type Concat <: Layer
+  data
+  grad
   dim::Int
   xs::Vector
-  y
-  gy
 end
 
 tails(l::Concat) = l.xs
 
-backward!(l::Concat) = ∇concat!(l.dim, map(x -> x.grad, l.xs), l.gy)
+backward!(l::Concat) = ∇concat!(l.dim, map(x -> x.gy, l.xs), l.gy)
 
 function concat{T,N}(dim::Int, xs::Vector{Array{T,N}})
   sum = 0

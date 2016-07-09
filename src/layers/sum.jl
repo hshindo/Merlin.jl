@@ -17,7 +17,7 @@ end
 
 tails(l::Sum) = [l.x]
 
-backward!(l::Sum) = hasgrad(l.x) && ∇sum!(l.x.gy, l.y.gy)
+backward!(l::Sum) = hasgrad(l.x) && ∇sum!(l.x.gy, l.gy)
 
 ∇sum!(gx::Array, gy::Array) = broadcast!(.+, gx, gx, gy)
 
