@@ -1,8 +1,3 @@
-#const TEST_EXP = Libdl.dlsym(library, :test_expapprox)
-#function test_exp(val::Float32)
-#  ccall(TEST_EXP, Void, (Cfloat,), val)
-#end
-
 immutable CArray{T}
   ptr::Ptr{T}
   dims::Ptr{Cint}
