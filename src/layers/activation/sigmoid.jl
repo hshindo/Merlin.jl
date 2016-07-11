@@ -1,23 +1,17 @@
 export sigmoid
 
+Var(:Sigmoid)
+
 """
     sigmoid(x)
 """
-function sigmoid(x::Layer)
-  l = Sigmoid(nothing, nothing, x)
-  x.data == nothing || forward!(l)
-  l
-end
+sigmoid(x::Var) = Sigmoid(sigmoid(x.data), nothing, x)
+sigmoid(x::ExprNode) = ExprNode(sigmoid, x)
 
-type Sigmoid <: Layer
-  data
-  grad
-  x
+function backward!(v::Sigmoid)
+  hasgrad(v.x) || return
+  ∇sigmoid!(v[1].data, v[1].grad, v.data, v.grad)
 end
-
-tails(l::Sigmoid) = [l.x]
-forward!(l::Sigmoid) = l.data = sigmoid(l.x.data)
-backward!(l::Sigmoid) = hasgrad(l.x) && ∇sigmoid!(l.x.y, l.x.gy, l.y, l.gy)
 
 function sigmoid{T}(x::Array{T})
   y = similar(x)

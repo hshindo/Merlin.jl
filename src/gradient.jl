@@ -1,25 +1,6 @@
 export topsort, gradient!, approx_grad, @checkgrad
 
-function topsort(top::Layer)
-  sorted = Layer[]
-  dict = ObjectIdDict()
-  function visit(node::Layer)
-    haskey(dict, node) && return
-    dict[node] = node
-    for t in tails(node)
-      visit(t)
-    end
-    push!(sorted, node)
-  end
-  visit(top)
-  sorted
-end
-
-hasgrad(l::Layer) = l.grad != nothing
-
-isleaf(l::Layer) = isempty(tails(l))
-
-function gradient!(top::Layer)
+function gradient!(top)
   sorted = topsort(top)
   hasgrad(top) || (top.grad = ones(top.data))
   for i = 1:length(sorted)-1 # excludes top
@@ -39,7 +20,7 @@ const gradeps = 1e-2
 """
 Compute numerical gradient.
 """
-function approx_grad{T<:Layer}(f, args::Vector{T})
+function approx_grad{T}(f, args::Vector{T})
   map(args) do v
     x = v.y
     gx = similar(x)

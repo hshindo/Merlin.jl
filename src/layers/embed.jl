@@ -1,28 +1,26 @@
-type Embed <: Layer
-  w
-  x
-  y
-  gy
+export Embed
+
+type Embed <: Var
+  data
+  grad
+  tails::Vector{Var}
   idset::IntSet
 end
 
+function Embed(w::Var, x::Var)
+  data = lookup(w.data, x.data)
+  Embed(data, nothing, [w,x], IntSet())
+end
+
 function Embed{T}(::Type{T}, indim::Int, outdim::Int)
-  w = randn(T, outdim, indim)
-  Embed(w, nothing, nothing, nothing, IntSet())
+  Embed(randn(T,outdim,indim), Data())
 end
 
-tails(l::Embed) = []
+@compat (l::Embed)(x::Var) = Embed(l.w, x)
 
-@compat function (l::Embed)(x::Layer)
-  y = lookup(l, x.y)
-  Embed(l.w, x.y, y, nothing, IntSet())
-end
-@compat (l::Embed)(x::GraphNode) = GraphNode(l, l.w, x)
-
-function lookup(l::Embed, x::Array{Int})
-  w = l.w.y
+function lookup{T}(w, x::Array{Int})
   n = size(w, 1)
-  s = Int[size(x)...]
+  s = Int[size(x,i) for i=1:ndims(x)]
   s[1] *= n
   y = similar(w, s...)
   for i = 1:length(x)
@@ -31,9 +29,9 @@ function lookup(l::Embed, x::Array{Int})
   y
 end
 
-function update!(l::Embed, opt)
-  for id in l.idset
+function update!(v::Embed, opt)
+  for id in v.idset
     update!(opt)
   end
-  empty!(l.idset)
+  empty!(v.idset)
 end

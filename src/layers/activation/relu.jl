@@ -1,25 +1,17 @@
 export relu
 
+Var(:ReLU)
+
 """
     relu(x)
-
-Rectifier liner unit.
 """
-function relu(x::Layer)
-  l = ReLU(nothing, nothing, x)
-  x.data == nothing || forward!(l)
-  l
-end
+relu(x::Var) = ReLU(relu(x.data), nothing, [x])
+relu(x::ExprNode) = ExprNode(relu, x)
 
-type ReLU <: Layer
-  data
-  grad
-  x
+function backward!(v::ReLU)
+  hasgrad(v[1]) || return
+  ∇relu!(v[1].data, v[1].grad, v.data, v.grad)
 end
-
-tails(l::ReLU) = [l.x]
-forward!(l::ReLU) = l.data = relu(l.x.data)
-backward!(l::ReLU) = hasgrad(l.x) && ∇relu!(l.x.data, l.x.grad, l.data, l.grad)
 
 function relu{T}(x::Array{T})
   y = similar(x)

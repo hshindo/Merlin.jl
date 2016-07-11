@@ -21,7 +21,21 @@ else
   typealias CuMatrix{T} CuArray{T,2}
 end
 
-abstract Layer
+abstract Var
+
+function Var(name::Symbol)
+  @eval begin
+    type $name <: Var
+      data
+      grad
+      tails::Vector{Var}
+    end
+  end
+end
+
+getindex(v::Var, key::Int) = v.tails[key]
+hasgrad(v::Var) = v.grad != nothing
+isleaf(v::Var) = isempty(v.tails)
 
 include("util.jl")
 include("gradient.jl")
@@ -31,15 +45,16 @@ include("native.jl")
 #include("serialize.jl")
 
 for name in [
-  "math/plus",
-  "math/times",
+  #"math/plus",
+  #"math/times",
   "activation/relu",
-  "activation/sigmoid",
-  "activation/tanh",
-  "concat",
+  #"activation/sigmoid",
+  #"activation/tanh",
+  #"concat",
   "data",
+  "embed",
   "linear",
-  "softmax",
+  #"softmax",
   #"sum"
   ]
   include("layers/$(name).jl")

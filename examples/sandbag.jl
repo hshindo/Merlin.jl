@@ -6,6 +6,19 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+function bench()
+  a = rand(Float32,100)
+  b = rand(Float32,100)
+  for i = 1:100000
+    s = Array(Float32,3)
+    for k = 1:3
+      s[k] = a[k]
+    end
+  end
+end
+@time bench()
+
+Data(name=:a)
 x = Data(rand(Float32,10,5))
 l = Linear(Float32,10,3)
 y = l(x)

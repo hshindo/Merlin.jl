@@ -1,21 +1,15 @@
+Var(:Tanh)
+
 """
     tanh(x)
 """
-function tanh(x::Layer)
-  l = Tanh(nothing, nothing, x)
-  x.data == nothing || forward!(l)
-  l
-end
+tanh(x::Var) = Tanh(tanh(x.data), nothing, x)
+tanh(x::ExprNode) = ExprNode(tanh, x)
 
-type Tanh <: Layer
-  data
-  grad
-  x
+function backward!(v::Tanh)
+  hasgrad(v.x) || continue
+  ∇tanh!(v[1].data, v[1].grad, v.data, v.grad)
 end
-
-tails(l::Tanh) = [l.x]
-forward!(l::Tanh) = l.data = tanh(l.x.data)
-backward!(l::Tanh) = hasgrad(l.x) && ∇tanh!(l.x.y, l.x.gy, l.y, l.gy)
 
 tanh(x::CuArray) = activation!(CUDNN_ACTIVATION_TANH, x, similar(x))
 

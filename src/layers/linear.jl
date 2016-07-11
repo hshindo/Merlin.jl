@@ -1,32 +1,22 @@
 export Linear
 
-type Linear <: Layer
-  data
-  grad
-  w
-  b
-  x
-end
+Var(:Linear)
 
 function Linear(T::Type, indim::Int, outdim::Int)
   r = T(sqrt(6 / (indim+outdim)))
   w = rand(-r, r, outdim, indim)
   b = fill(T(0), outdim, 1)
-  Linear(nothing, nothing, Data(w,zeros(w)), Data(b,zeros(b)), nothing)
+  Linear(nothing, nothing, [Param(w),Param(b),Data()])
 end
 
-@compat function (l::Linear)(x::Layer)
-  l.x = x
-  x.data == nothing || forward!(l)
-  l
-end
+@compat (l::Linear)(x::Var) = linear(l.w, l.b, x)
+@compat (l::Linear)(x::ExprVar) = ExprVar(linear, l.w, l.b, x)
 
-function forward!(l::Linear)
-  l.data = l.w.data * l.x.data
-  broadcast!(.+, l.data, l.data, l.b.data)
+function linear(w::Var, b::Var, x::Var)
+  y = w.data * x.data
+  broadcast!(.+, y, y, b.data)
+  Linear(y, nothing, [w,b,x])
 end
-
-tails(l::Linear) = [l.w, l.b, l.x]
 
 function backward!(l::Linear)
   T = eltype(l.data)

@@ -9,10 +9,10 @@ sum(x::Layer, dim::Int) = Sum(dim, x, sum(x.y,dim), nothing)
 sum(x::GraphNode, dim::Int) = GraphNode(sum, x, dim)
 
 type Sum <: Layer
+  data
+  grad
   dim::Int
   x
-  y
-  gy
 end
 
 tails(l::Sum) = [l.x]
