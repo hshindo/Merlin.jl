@@ -1,23 +1,24 @@
 import Base.sum
 
+type Sum <: Var
+  data
+  grad
+  tails::Vector{Var}
+  dim::Int
+end
+
 """
     sum(x, dim::Int)
 
 Compute the sum along the given dimensions.
 """
-sum(x::Layer, dim::Int) = Sum(dim, x, sum(x.y,dim), nothing)
-sum(x::GraphNode, dim::Int) = GraphNode(sum, x, dim)
-
-type Sum <: Layer
-  data
-  grad
-  dim::Int
-  x
+function sum(x::Var, dim::Int)
+  y = hasdata(x) ? sum(x.data,dim) : nothing
+  Sum(y, nothing, [x], dim)
 end
+@compat (v::Sum)(x::Var) = sum(x, v.dim)
 
-tails(l::Sum) = [l.x]
-
-backward!(l::Sum) = hasgrad(l.x) && ∇sum!(l.x.gy, l.gy)
+backward!(v::Sum) = hasgrad(v[1]) && ∇sum!(v[1].grad, v.grad)
 
 ∇sum!(gx::Array, gy::Array) = broadcast!(.+, gx, gx, gy)
 

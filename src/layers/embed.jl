@@ -16,9 +16,10 @@ function Embed{T}(::Type{T}, indim::Int, outdim::Int)
   Embed(randn(T,outdim,indim), Data())
 end
 
-@compat (l::Embed)(x::Var) = Embed(l.w, x)
+@compat (v::Embed)(x::Var) = Embed(v[1], x)
+@compat (v::Embed)(w::Var, x::Var) = Embed(w, x)
 
-function lookup{T}(w, x::Array{Int})
+function lookup(w, x::Array{Int})
   n = size(w, 1)
   s = Int[size(x,i) for i=1:ndims(x)]
   s[1] *= n
@@ -29,9 +30,29 @@ function lookup{T}(w, x::Array{Int})
   y
 end
 
-function update!(v::Embed, opt)
+backward!(v::Embed) = ∇lookup!()
+
+function ∇lookup!(w, x::Array{Int}, gy)
+  T = eltype(gy)
+  n = size(w, 1)
+  for i = 1:length(x)
+    BLAS.axpy!(n, T(1), pointer(gy,(i-1)*n+1), 1, pointer(gx,(x[1]-1)*n+1), 1)
+  end
+
+  #=
+  n = length(ws[1].value)
+  offset = 1
+  for i = 1:length(x)
+    gw = ws[x[i]].grad
+    BLAS.axpy!(n, T(1), pointer(gy,offset), stride(gy,1), pointer(gw), stride(gw,1))
+    offset += n
+  end
+  =#
+end
+
+function update!(opt, v::Embed)
   for id in v.idset
-    update!(opt)
+    #update!(opt, v.data, v.grad)
   end
   empty!(v.idset)
 end

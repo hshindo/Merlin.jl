@@ -1,12 +1,21 @@
 export relu
 
-Var(:ReLU)
+type ReLU <: Var
+  data
+  grad
+  tails::Vector
+end
 
 """
     relu(x)
 """
-relu(x::Var) = ReLU(relu(x.data), nothing, [x])
-relu(x::ExprNode) = ExprNode(relu, x)
+function relu(x::Var)
+  y = hasdata(x) ? relu(x.data) : nothing
+  ReLU(y, nothing, [x])
+end
+
+forward(v::ReLU, x::Var) = relu(x)
+forward(v::ReLU, xs::Vector) = relu(xs[1])
 
 function backward!(v::ReLU)
   hasgrad(v[1]) || return

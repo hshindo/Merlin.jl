@@ -1,12 +1,19 @@
 export sigmoid
 
-Var(:Sigmoid)
+type Sigmoid <: Var
+  data
+  grad
+  tails::Vector{Var}
+end
 
 """
     sigmoid(x)
 """
-sigmoid(x::Var) = Sigmoid(sigmoid(x.data), nothing, x)
-sigmoid(x::ExprNode) = ExprNode(sigmoid, x)
+function sigmoid(x::Var)
+  y = hasdata(x) ? sigmoid(x.data) : nothing
+  Sigmoid(y, nothing, [x])
+end
+@compat (v::Sigmoid)(x::Var) = sigmoid(x)
 
 function backward!(v::Sigmoid)
   hasgrad(v.x) || return

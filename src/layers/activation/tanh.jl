@@ -1,13 +1,20 @@
-Var(:Tanh)
+type Tanh <: Var
+  data
+  grad
+  tails::Vector{Var}
+end
 
 """
     tanh(x)
 """
-tanh(x::Var) = Tanh(tanh(x.data), nothing, x)
-tanh(x::ExprNode) = ExprNode(tanh, x)
+function tanh(x::Var)
+  y = hasdata(x) ? tanh(x.data) : nothing
+  Tanh(y, nothing, [x])
+end
+@compat (v::Tanh)(x::Var) = tanh(x)
 
 function backward!(v::Tanh)
-  hasgrad(v.x) || continue
+  hasgrad(v.x) || return
   ∇tanh!(v[1].data, v[1].grad, v.data, v.grad)
 end
 

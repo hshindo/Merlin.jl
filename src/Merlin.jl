@@ -21,23 +21,8 @@ else
   typealias CuMatrix{T} CuArray{T,2}
 end
 
-abstract Var
-
-function Var(name::Symbol)
-  @eval begin
-    type $name <: Var
-      data
-      grad
-      tails::Vector{Var}
-    end
-  end
-end
-
-getindex(v::Var, key::Int) = v.tails[key]
-hasgrad(v::Var) = v.grad != nothing
-isleaf(v::Var) = isempty(v.tails)
-
 include("util.jl")
+include("var.jl")
 include("gradient.jl")
 include("graph.jl")
 #include("training.jl")

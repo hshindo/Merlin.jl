@@ -1,60 +1,69 @@
 import Base: +, -, *
 
-type Plus <: Layer
+type Plus <: Var
+  data
+  grad
+  tails::Vector
   as::Vector
-  xs::Vector
-  y
-  gy
 end
 
-function Plus{T<:Layer}(as::Vector, xs::Vector{T})
-  maxi, maxlen = 1, length(xs[1].y)
-  for i = 2:length(xs)
-    n = length(xs[i].y)
+function +(x1::Var, x2::Var)
+  plus([x1,x2], [1,1])
+end
+
++(a::Number, x::Var) = Data(a) + x
++(x::Var, a::Number) = x + Data(a)
++(x1::GraphNode, x2::Var) = GraphNode(+, x1, x2)
++(x1::Var, x2::GraphNode) = GraphNode(+, x1, x2)
++(x1::GraphNode, x2::GraphNode) = GraphNode(+, x1, x2)
+
+-(x1::Var, x2::Var) = plus([x1,x2], [1,-1])
+-(a::Number, x::Var) = Data(a) - x
+-(x::Var, a::Number) = x - Data(a)
+-(x::Var) = Plus([x], [-1])
+-(x1::Var, x2::GraphNode) = GraphNode(-, x1, x2)
+-(x1::GraphNode, x2::Var) = GraphNode(-, x1, x2)
+-(x1::GraphNode, x2::GraphNode) = GraphNode(-, x1, x2)
+
+*(a::Number, x::Var) = plus([x], [a])
+*(x::Var, a::Number) = a * x
+*(a::Number, x::GraphNode) = GraphNode(*, a, x)
+*(x::GraphNode, a::Number) = GraphNode(*, x, a)
+
+function plus(xs::Vector, as::Vector)
+  maxi, maxlen = 0, 0
+  for i = 1:length(xs)
+    n = length(xs[i].data)
     n <= maxlen && continue
     maxi = i
     maxlen = n
   end
-  y = zeros(xs[maxi].y)
+  y = zeros(xs[maxi].data)
+  T = eltype(y)
   for i = 1:length(xs)
-    add!(as[i], xs[i].y, y)
+    add!(as[i], xs[i].data, y)
   end
-  Plus(as, xs, y, nothing)
+  Plus(y, nothing, xs, as)
 end
 
-tails(l::Plus) = l.xs
-
-+(x1::Layer, x2::Layer) = Plus([1,1], [x1,x2])
-+(a::Number, x::Layer) = Data(a) + x
-+(x::Layer, a::Number) = x + Data(a)
-
--(x1::Layer, x2::Layer) = Plus([1,-1], [x1,x2])
--(a::Number, x::Layer) = Data(a) - x
--(x::Layer, a::Number) = x - Data(a)
--(x::Layer) = Plus([-1], [x])
-
-*(a::Number, x::Layer) = Plus([a], [x])
-*(x::Layer, a::Number) = a * x
-
-function backward!(l::Plus)
-  xs = l.xs
+function backward!(v::Plus)
+  xs = v.xs
   for i = 1:length(xs)
-    hasgrad(xs[i]) && ∇add!(l.as[i], xs[i].gy, l.gy)
+    hasgrad(xs[i]) && ∇add!(v.as[i], xs[i].grad, v.grad)
   end
 end
 
 function add!{T}(a::Number, x::Array{T}, y::Array{T})
   n = length(x)
   for k = 1:n:length(y)
-    BLAS.axpy!(n, T(a), pointer(x), stride(x,1), pointer(y,k), stride(y,1))
+    BLAS.axpy!(n, T(a), pointer(x), 1, pointer(y,k), 1)
   end
 end
-
 add!{T}(a::Number, x::Number, y::Array{T}) = broadcast!(+, y, y, x)
 
 function ∇add!{T}(a::Number, gx::Array{T}, gy::Array{T})
   n = length(gx)
   for k = 1:n:length(gy)
-    BLAS.axpy!(n, T(a), pointer(gy,k), stride(gy,1), pointer(gx), stride(gx,1))
+    BLAS.axpy!(n, T(a), pointer(gy,k), 1, pointer(gx), 1)
   end
 end

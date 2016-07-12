@@ -1,19 +1,30 @@
 import Base: .*, *
 
-.*(x1::Layer, x2::Layer) = ElemTimes(x1, x2, x1.y .* x2.y, nothing)
-
-type ElemTimes <: Layer
-  x1
-  x2
-  y
-  gy
+type ElemTimes <: Var
+  data
+  grad
+  tails::Vector{Var}
 end
 
-tails(l::ElemTimes) = [l.x1, l.x2]
+type Times <: Var
+  data
+  grad
+  tails::Vector{Var}
+end
 
-function backward!(l::ElemTimes)
-  hasgrad(l.x1) && ∇elemtimes!(l.x2.y, l.x1.gy, l.gy)
-  hasgrad(l.x2) && ∇elemtimes!(l.x1.y, l.x2.gy, l.gy)
+.*(x1::Var, x2::Var) = ElemTimes(x1.data .* x2.data, nothing, [x1,x2])
+.*(x1::GraphNode, x2::Var) = GraphNode(.*, x1, x2)
+.*(x1::Var, x2::GraphNode) = GraphNode(.*, x1, x2)
+.*(x1::GraphNode, x2::GraphNode) = GraphNode(.*, x1, x2)
+
+*(x1::Var, x2::Var) = Times(x1.y * x2.y, nothing, [x1,x2])
+*(x1::GraphNode, x2::Var) = GraphNode(*, x1, x2)
+*(x1::Var, x2::GraphNode) = GraphNode(*, x1, x2)
+*(x1::GraphNode, x2::GraphNode) = GraphNode(*, x1, x2)
+
+function backward!(v::ElemTimes)
+  hasgrad(v[1]) && ∇elemtimes!(v[2].data, v[1].grad, v.grad)
+  hasgrad(v[2]) && ∇elemtimes!(v[1].data, v[2].grad, v.grad)
 end
 
 function ∇elemtimes!{T,N}(x2::Array{T,N}, gx1::Array{T,N}, gy::Array{T,N})
@@ -28,20 +39,8 @@ function ∇elemtimes!{T,N}(x2::Array{T,N}, gx1::Array{T,N}, gy::Array{T,N})
   end
 end
 
-*(x1::Layer, x2::Layer) = Times(x1, x2, x1.y * x2.y, nothing)
-
-type Times <: Layer
-  x1
-  x2
-  y
-  gy
-end
-
-tails(l::Times) = [l.x1, l.x2]
-
-function backward!(l::Times)
-  x1, x2, gy = l.x1, l.x2, l.gy
+function backward!(v::Times)
   T = eltype(gy)
-  hasgrad(x1) && BLAS.gemm!('N', 'T', T(1), gy, x2.y, T(1), x1.gy)
-  hasgrad(x2) && BLAS.gemm!('T', 'N', T(1), x1.y, gy, T(1), x2.gy)
+  hasgrad(v[1]) && BLAS.gemm!('N', 'T', T(1), v.grad, v[2].data, T(1), v[1].grad)
+  hasgrad(v[2]) && BLAS.gemm!('T', 'N', T(1), v[1].data, v.grad, T(1), v[2].grad)
 end
