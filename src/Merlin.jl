@@ -2,6 +2,7 @@ module Merlin
 
 using Compat
 using Base.LinAlg.BLAS
+import Compat.view
 
 @compat if is_windows()
   const libname = joinpath(dirname(@__FILE__), "../deps/libmerlin.dll")
@@ -36,29 +37,31 @@ for name in [
   "math/plus",
   "math/times",
   "concat",
+  #"conv",
   "embed",
   "data",
   "embed",
   "linear",
+  "reshape",
   "softmax",
-  "sum"
+  "sum",
+  "window"
   ]
   include("layers/$(name).jl")
 end
 
-#=
 for name in [
     "gru"]
   include("graphs/$(name).jl")
 end
 
+export update!
 for name in [
     "adagrad",
     "adam",
     "sgd"]
   include("optimizers/$(name).jl")
 end
-=#
 
 #include("caffe/Caffe.jl")
 

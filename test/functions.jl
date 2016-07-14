@@ -57,8 +57,8 @@ end
   x4 = Data(rand(T,5,7))
   @test @checkgrad *(x1,x4) [x1,x4]
 
-  #x = Var(rand(T,10,5))
-  #@test @gradcheck reshape(x,2,5,5) [x]
+  x = Data(rand(T,10,5))
+  @test @checkgrad reshape(x,2,5,5) [x]
 
   x = Data(rand(T,10,5,3,4))
   for dim = 1:ndims(x.data)

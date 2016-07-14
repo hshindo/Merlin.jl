@@ -2,11 +2,11 @@
 #include <stdio.h>
 
 template <typename T>
-void window2d(T *x, T *y, int *size_x, int *params) {
+void window2d(T *x, T *y, int *size_x, int *winsize, int *stride, int *padsize) {
   int x1 = size_x[0], x2 = size_x[1], x3 = size_x[2];
-  int w1 = params[0], w2 = params[1];
-  int s1 = params[2], s2 = params[3];
-  int p1 = params[4], p2 = params[5];
+  int w1 = winsize[0], w2 = winsize[1];
+  int s1 = stride[0], s2 = stride[1];
+  int p1 = padsize[0], p2 = padsize[1];
   int n1 = (x1 + 2 * p1 - w1) / s1 + 1;
   int n2 = (x2 + 2 * p2 - w2) / s2 + 1;
   int o = 0;
@@ -31,11 +31,11 @@ void window2d(T *x, T *y, int *size_x, int *params) {
 }
 
 template <typename T>
-void window2d_grad(T *gx, T *gy, int *size_x, int *params) {
+void window2d_grad(T *gx, T *gy, int *size_x, int *winsize, int *stride, int *padsize) {
   int x1 = size_x[0], x2 = size_x[1], x3 = size_x[2];
-  int w1 = params[0], w2 = params[1];
-  int s1 = params[2], s2 = params[3];
-  int p1 = params[4], p2 = params[5];
+  int w1 = winsize[0], w2 = winsize[1];
+  int s1 = stride[0], s2 = stride[1];
+  int p1 = padsize[0], p2 = padsize[1];
   int n1 = (x1 + 2 * p1 - w1) / s1 + 1;
   int n2 = (x2 + 2 * p2 - w2) / s2 + 1;
   int o = 0;
@@ -58,15 +58,17 @@ void window2d_grad(T *gx, T *gy, int *size_x, int *params) {
   }
 }
 
-#define WINDOW_CAPI(DIM,T) \
-void window ## DIM ## _ ## T(T *x, T *y, int *size_x, int *params) { \
-  window ## DIM (x, y, size_x, params); \
+#define WINDOW_CAPI(NAME,T) \
+void NAME ## _ ## T(T *x, T *y, int *size_x, \
+  int *winsize, int *stride, int *padsize) { \
+  NAME(x, y, size_x, winsize, stride, padsize); \
 } \
-void window ## DIM ## _ ## grad ## _ ## T(T *gx, T *gy, int *size_x, int *params) { \
-  window ## DIM ## _ ## grad(gx, gy, size_x, params); \
+void NAME ## _ ## grad ## _ ## T(T *gx, T *gy, int *size_x, \
+  int *winsize, int *stride, int *padsize) { \
+  NAME ## _ ## grad(gx, gy, size_x, winsize, stride, padsize); \
 }
 
 extern "C" {
-  WINDOW_CAPI(2d, float)
-  WINDOW_CAPI(2d, double)
+  WINDOW_CAPI(window2d, float)
+  WINDOW_CAPI(window2d, double)
 }

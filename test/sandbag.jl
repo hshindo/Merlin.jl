@@ -2,12 +2,20 @@ workspace()
 using Merlin
 using Merlin.Caffe
 using CUDA
-using Base.LinAlg.BLAS
+using Base.LinAlg.BLASｄ
 using Base.Test
 using HDF5
 
-a = :(f(w,b,x))
-a.args
+function bench()
+  x = rand(10,9,8,7,6,5,4,3,2,1)
+  for i = 1:10000
+    y = [size(x,i) for i=1:ndims(x)]
+  end
+end
+@time bench()
+
+x = Data(rand(Float32,3,2,1))
+window(x, (3,1),(1,1),(0,0)).data
 
 v = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary
 # f = Lookup(Float32,10000,100, device=:CUDA)

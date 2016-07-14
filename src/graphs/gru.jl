@@ -19,10 +19,10 @@ gru(:x=>x, :h=>h)
 """
 function GRU{T}(::Type{T}, xsize::Int)
   @graph begin
-    Ws = [param(rand(T,xsize,xsize)) for i=1:3]
-    Us = [param(rand(T,xsize,xsize)) for i=1:3]
-    x = Var(:x)
-    h = Var(:h)
+    Ws = [Param(rand(T,xsize,xsize)) for i=1:3]
+    Us = [Param(rand(T,xsize,xsize)) for i=1:3]
+    x = Data(:x)
+    h = Data(:h)
     r = sigmoid(Ws[1]*x + Us[1]*h)
     z = sigmoid(Ws[2]*x + Us[2]*h)
     h_ = tanh(Ws[3]*x + Us[3]*(r.*h))
