@@ -62,8 +62,8 @@ end
 
   x = Data(rand(T,10,5,3,4))
   for dim = 1:ndims(x.data)
-    #@test @checkgrad softmax(x,dim) [x]
-    #@test @checkgrad logsoftmax(x,dim) [x]
+    @test @checkgrad softmax(x,dim) [x]
+    @test @checkgrad logsoftmax(x,dim) [x]
   end
 
   p = Data([1:5;])

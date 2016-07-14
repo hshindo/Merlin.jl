@@ -40,7 +40,7 @@ for name in [
   "data",
   "embed",
   "linear",
-  #"softmax",
+  "softmax",
   "sum"
   ]
   include("layers/$(name).jl")
