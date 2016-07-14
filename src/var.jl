@@ -46,3 +46,16 @@ Base.setindex!(v::Var, value, key::Int) = v.tails[key] = value
 
 hasdata(v::Var) = v.data != nothing && !(typeof(v.data) <: Symbol)
 hasgrad(v::Var) = v.grad != nothing
+
+"""
+    checkargs(expr)
+    
+Check arguments and decide eager or lazy evaluation..
+"""
+macro checkargs(f, args)
+  quote
+    if any(a -> typeof(a.value) == Symbol, $args)
+      return Var(Symbol(), $f, $args)
+    end
+  end
+end
