@@ -18,10 +18,9 @@ end
 
 ### 👉 Example
 ```julia
-v = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary
-# f = Lookup(Float32,10000,100, device=:CUDA)
+f = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary
 x = Var(rand(1:1000,5,3))
-y = v(x)
+y = f(x)
 ```
 """
 function Embed{T}(::Type{T}, indim::Int, outdim::Int)

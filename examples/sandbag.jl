@@ -6,6 +6,9 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+a = :(f(w,b,x))
+a.args
+
 v = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary
 # f = Lookup(Float32,10000,100, device=:CUDA)
 x = Data(rand(1:1000,5,3))
