@@ -8,12 +8,24 @@ type Embed <: Var
 end
 
 function Embed(w::Var, x::Var)
+  (hasdata(w) && hasdata(x)) || return Embed(nothing, nothing, [w,x], IntSet())
   data = lookup(w.data, x.data)
   Embed(data, nothing, [w,x], IntSet())
 end
 
+"""
+    Embed{T}(::Type{T}, indim, outdim, [device])
+
+### 👉 Example
+```julia
+v = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary
+# f = Lookup(Float32,10000,100, device=:CUDA)
+x = Var(rand(1:1000,5,3))
+y = v(x)
+```
+"""
 function Embed{T}(::Type{T}, indim::Int, outdim::Int)
-  Embed(randn(T,outdim,indim), Data())
+  Embed(Param(randn(T,outdim,indim)), Data())
 end
 
 @compat (v::Embed)(x::Var) = Embed(v[1], x)

@@ -1,3 +1,5 @@
+import Base.tanh
+
 type Tanh <: Var
   data
   grad
@@ -11,10 +13,10 @@ function tanh(x::Var)
   y = hasdata(x) ? tanh(x.data) : nothing
   Tanh(y, nothing, [x])
 end
-@compat (v::Tanh)(x::Var) = tanh(x)
+@compat (::Tanh)(x::Var) = tanh(x)
 
 function backward!(v::Tanh)
-  hasgrad(v.x) || return
+  hasgrad(v[1]) || return
   ∇tanh!(v[1].data, v[1].grad, v.data, v.grad)
 end
 

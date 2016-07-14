@@ -1,6 +1,21 @@
 abstract Var
 export Var
 
+function topsort(top::Var)
+  sorted = Var[]
+  dict = ObjectIdDict()
+  function visit(v)
+    haskey(dict, v) && return
+    dict[v] = v
+    for t in v.tails
+      visit(t)
+    end
+    push!(sorted, v)
+  end
+  visit(top)
+  sorted
+end
+
 macro Var3(name, fields...)
   exprs = Expr[]
   for f in fields

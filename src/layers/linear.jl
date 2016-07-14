@@ -14,9 +14,7 @@ function Linear(T::Type, indim::Int, outdim::Int)
 end
 
 @compat (l::Linear)(x::Var) = linear(l[1], l[2], x)
-
-forward(l::Linear, w::Var, b::Var, x::Var) = linear(w, b, x)
-forward(l::Linear, xs::Vector) = linear(xs[1], xs[2], xs[3])
+@compat (::Linear)(w::Var, b::Var, x::Var) = linear(w, b, x)
 
 function linear(w::Var, b::Var, x::Var)
   !hasdata(w) || !hasdata(b) || !hasdata(x) && return Linear(nothing, nothing, [w,b,x])

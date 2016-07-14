@@ -13,9 +13,7 @@ function relu(x::Var)
   y = hasdata(x) ? relu(x.data) : nothing
   ReLU(y, nothing, [x])
 end
-
-forward(v::ReLU, x::Var) = relu(x)
-forward(v::ReLU, xs::Vector) = relu(xs[1])
+@compat (::ReLU)(x::Var) = relu(x)
 
 function backward!(v::ReLU)
   hasgrad(v[1]) || return

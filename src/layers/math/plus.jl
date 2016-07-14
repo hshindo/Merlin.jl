@@ -7,30 +7,22 @@ type Plus <: Var
   as::Vector
 end
 
-function +(x1::Var, x2::Var)
-  plus([x1,x2], [1,1])
-end
+@compat (::Plus)(x1::Var, x2::Var) = x1 + x2
 
++(x1::Var, x2::Var) = plus([x1,x2], [1,1])
 +(a::Number, x::Var) = Data(a) + x
 +(x::Var, a::Number) = x + Data(a)
-+(x1::GraphNode, x2::Var) = GraphNode(+, x1, x2)
-+(x1::Var, x2::GraphNode) = GraphNode(+, x1, x2)
-+(x1::GraphNode, x2::GraphNode) = GraphNode(+, x1, x2)
 
 -(x1::Var, x2::Var) = plus([x1,x2], [1,-1])
 -(a::Number, x::Var) = Data(a) - x
 -(x::Var, a::Number) = x - Data(a)
--(x::Var) = Plus([x], [-1])
--(x1::Var, x2::GraphNode) = GraphNode(-, x1, x2)
--(x1::GraphNode, x2::Var) = GraphNode(-, x1, x2)
--(x1::GraphNode, x2::GraphNode) = GraphNode(-, x1, x2)
+-(x::Var) = plus([x], [-1])
 
 *(a::Number, x::Var) = plus([x], [a])
 *(x::Var, a::Number) = a * x
-*(a::Number, x::GraphNode) = GraphNode(*, a, x)
-*(x::GraphNode, a::Number) = GraphNode(*, x, a)
 
 function plus(xs::Vector, as::Vector)
+  (hasdata(xs[1]) && hasdata(xs[2])) || return Plus(nothing, nothing, xs, as)
   maxi, maxlen = 0, 0
   for i = 1:length(xs)
     n = length(xs[i].data)
@@ -47,7 +39,7 @@ function plus(xs::Vector, as::Vector)
 end
 
 function backward!(v::Plus)
-  xs = v.xs
+  xs = v.tails
   for i = 1:length(xs)
     hasgrad(xs[i]) && ∇add!(v.as[i], xs[i].grad, v.grad)
   end

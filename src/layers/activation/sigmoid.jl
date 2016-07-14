@@ -13,10 +13,10 @@ function sigmoid(x::Var)
   y = hasdata(x) ? sigmoid(x.data) : nothing
   Sigmoid(y, nothing, [x])
 end
-@compat (v::Sigmoid)(x::Var) = sigmoid(x)
+@compat (::Sigmoid)(x::Var) = sigmoid(x)
 
 function backward!(v::Sigmoid)
-  hasgrad(v.x) || return
+  hasgrad(v[1]) || return
   ∇sigmoid!(v[1].data, v[1].grad, v.data, v.grad)
 end
 

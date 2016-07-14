@@ -6,13 +6,25 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+v = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary
+# f = Lookup(Float32,10000,100, device=:CUDA)
+x = Data(rand(1:1000,5,3))
+y = v(x)
+
 g = @graph begin
   x = Data(:x)
   x = Linear(Float32,10,4)(x)
   x = relu(x)
   x = Linear(Float32,4,3)(x)
 end
-y = g(:x=>rand(Float32,10,5))
+
+function bench()
+  x = rand(Float32,10,5)
+  for i = 1:10000
+    y = g(:x=>x)
+  end
+end
+@time bench()
 gradient!(y)
 
 x = Data(rand(Float32,10,5))

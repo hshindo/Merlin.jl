@@ -30,17 +30,18 @@ include("native.jl")
 #include("serialize.jl")
 
 for name in [
-  #"math/plus",
-  #"math/times",
   "activation/relu",
-  #"activation/sigmoid",
-  #"activation/tanh",
-  #"concat",
+  "activation/sigmoid",
+  "activation/tanh",
+  "math/plus",
+  "math/times",
+  "concat",
+  "embed",
   "data",
   "embed",
   "linear",
   #"softmax",
-  #"sum"
+  "sum"
   ]
   include("layers/$(name).jl")
 end
