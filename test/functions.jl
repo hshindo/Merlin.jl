@@ -38,8 +38,8 @@ end
 
   x = Data(rand(T,10,5))
   l = Linear(T, 10, 7)
-  #l.b = Data(rand(T, size(l.b.value)))
-  @test @checkgrad l(x) [l[1],x]
+  l[3] = Param(rand(T,size(l[3].data)))
+  @test @checkgrad l(x) [l[1],x,l[3]]
 
   #x = Var(rand(1:10,3,2))
   #f = Lookup(Float32, 10, 5)

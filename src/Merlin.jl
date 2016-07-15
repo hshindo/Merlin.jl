@@ -37,7 +37,7 @@ for name in [
   "math/plus",
   "math/times",
   "concat",
-  #"conv",
+  "conv",
   "embed",
   "data",
   "embed",
@@ -45,7 +45,7 @@ for name in [
   "reshape",
   "softmax",
   "sum",
-  "window"
+  #"window"
   ]
   include("layers/$(name).jl")
 end
