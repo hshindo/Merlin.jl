@@ -19,7 +19,10 @@ y = crossentropy(p, x)
 ```
 """
 function crossentropy(p::Var, x::Var, dim::Int)
-    CrossEntropy(dim)(p, x)
+    hasdata(p,x) || return CrossEntropy(nothing, nothing, [p,x], dim, nothing)
+    logx = logsoftmax(x.data, dim)
+    y = crossentropy(p.data, logx)
+    CrossEntropy(y, nothing, [p,x], dim, logx)
 end
 
 type CrossEntropy <: Var
@@ -27,17 +30,17 @@ type CrossEntropy <: Var
     grad
     tails::Vector
     dim::Int
+    logx
 end
 
-@compat function (f::SoftmaxCrossEntropy)(p::Var, x::Var)
-    @checkargs f (p,x)
-    logx = logsoftmax(x.value, f.dim)
-    y = softmax_crossentropy(p.value, logx)
-    df(gy) = hasgrad(x) && ∇softmax_crossentropy!(p.value, logx, x.grad, gy)
-    Var(y, df, [x])
+@compat (c::CrossEntropy)(p::Var, x::Var) = crossentropy(p, x, c.dim)
+
+function backward!(y::CrossEntropy)
+    hasgrad(y[1],y[2]) || return
+    ∇crossentropy!(y[1].data, y.logx, y[2].grad, y.grad)
 end
 
-function softmax_crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
+function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
     y = Array(T, 1, size(p,2))
     for j = 1:size(p,2)
         s = T(0)
@@ -49,7 +52,7 @@ function softmax_crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
     y
 end
 
-function softmax_crossentropy{T}(p::Vector{Int}, logx::Matrix{T})
+function crossentropy{T}(p::Vector{Int}, logx::Matrix{T})
     y = Array(T, 1, length(p))
     @inbounds @simd for j = 1:length(p)
         y[j] = -logx[p[j],j]
@@ -57,7 +60,7 @@ function softmax_crossentropy{T}(p::Vector{Int}, logx::Matrix{T})
     y
 end
 
-function ∇softmax_crossentropy!{T}(p::Matrix{T}, logx::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
+function ∇crossentropy!{T}(p::Matrix{T}, logx::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
     for j = 1:size(p,2)
         g = gy[j]
         @inbounds @simd for i = 1:size(p,1)
@@ -66,7 +69,7 @@ function ∇softmax_crossentropy!{T}(p::Matrix{T}, logx::Matrix{T}, gx::Matrix{T
     end
 end
 
-function ∇softmax_crossentropy!{T}(p::Vector{Int}, logx::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
+function ∇crossentropy!{T}(p::Vector{Int}, logx::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
     for j = 1:length(p)
         g = gy[j]
         @inbounds @simd for i = 1:size(logx,1)

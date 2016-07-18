@@ -6,6 +6,12 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+function bench()
+    
+    for i = 1:10000
+    end
+end
+
 x1 = Data(rand(Float32,10,5))
 x2 = Data(rand(Float32,10,5))
 gemm('N','T',1.0,x1,x2)
@@ -33,17 +39,17 @@ x = Data(rand(1:1000,5,3))
 y = v(x)
 
 g = @graph begin
-  x = Data(:x)
-  x = Linear(Float32,10,4)(x)
-  x = relu(x)
-  x = Linear(Float32,4,3)(x)
+    x = Data(:x)
+    x = Linear(Float32,10,4)(x)
+    x = relu(x)
+    x = Linear(Float32,4,3)(x)
 end
 
 function bench()
-  x = rand(Float32,10,5)
-  for i = 1:10000
-    y = g(:x=>x)
-  end
+    x = rand(Float32,10,5)
+    for i = 1:10000
+        y = g(:x=>x)
+    end
 end
 @time bench()
 gradient!(y)
@@ -68,12 +74,12 @@ y = Merlin.window2((1,1), w,x)
 yy = Merlin.window3((1,1), w,x)
 
 function bench()
-  x = rand(Float32,100,100,3,30)
-  w = rand(Float32,2,2,3,4)
-  for i = 1:100
-    #Merlin.softmax_mocha(x,2)
-    Merlin.window2((1,1), w,x)
-  end
+    x = rand(Float32,100,100,3,30)
+    w = rand(Float32,2,2,3,4)
+    for i = 1:100
+        #Merlin.softmax_mocha(x,2)
+        Merlin.window2((1,1), w,x)
+    end
 end
 @time bench()
 
@@ -89,9 +95,9 @@ data_y = [Var([1,2,3]) for i=1:100] # correct labels
 
 opt = SGD(0.0001)
 for epoch = 1:10
-  println("epoch: $(epoch)")
-  loss = fit(f, softmax_crossentropy, opt, data_x, data_y)
-  println("loss: $(loss)")
+    println("epoch: $(epoch)")
+    loss = fit(f, softmax_crossentropy, opt, data_x, data_y)
+    println("loss: $(loss)")
 end
 
 path = "C:/Users/hshindo/Desktop/aa.h5"
@@ -138,11 +144,11 @@ a = Merlin.@testest () (x,x)
 a[2]
 
 macro aaa(x)
-  x
+    x
 end
 function ddd()
-  a = 2
-  @aaa (a,a)
+    a = 2
+    @aaa (a,a)
 end
 ddd()
 
@@ -152,12 +158,12 @@ g = Caffe.load(path)
 g.nodes
 
 function bench()
-  for i = 1:10000
-    @simd for j = 1:10000
-      a = rand(Float32)
+    for i = 1:10000
+        @simd for j = 1:10000
+            a = rand(Float32)
+        end
+        #rand(Float32,100,100)
+        #a * b
     end
-    #rand(Float32,100,100)
-    #a * b
-  end
 end
 @time bench()
