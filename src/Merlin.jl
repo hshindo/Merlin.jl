@@ -44,10 +44,10 @@ for name in [
   "data",
   "embed",
   "linear",
+  "max",
   "reshape",
   "softmax",
   "sum",
-  #"window"
   ]
   include("layers/$(name).jl")
 end

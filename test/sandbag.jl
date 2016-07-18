@@ -6,21 +6,11 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
-macro aaa(a, b...)
-  quote
-    
-    a = $(b[2])
-    a
-  end
-end
-x = 3
-@aaa(x, x, x)
-
 x1 = Data(rand(Float32,10,5))
 x2 = Data(rand(Float32,10,5))
 gemm('N','T',1.0,x1,x2)
 
-gemm
+max(x1, 2)
 
 rand(Float32,10)
 tanh()
