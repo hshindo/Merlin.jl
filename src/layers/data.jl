@@ -1,10 +1,6 @@
 export Data, Param
 
-type Data <: Var
-  data
-  grad
-  tails::Vector{Var}
-end
+@Var(Data)
 
 Data(data) = Data(data, nothing, Var[])
 Data() = Data(nothing)

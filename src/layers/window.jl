@@ -9,7 +9,7 @@ type Window{N}
   data
   grad
   tails::Vector
-  winsize::NTuple{N,Int}
+  dim::NTuple{N,Int}
   stride::NTuple{N,Int}
   padsize::NTuple{N,Int}
 end

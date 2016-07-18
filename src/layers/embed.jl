@@ -1,11 +1,6 @@
 export Embed
 
-type Embed <: Var
-  data
-  grad
-  tails::Vector{Var}
-  idset::IntSet
-end
+@Var(Embed, idset::IntSet)
 
 function Embed(w::Var, x::Var)
   (hasdata(w) && hasdata(x)) || return Embed(nothing, nothing, [w,x], IntSet())

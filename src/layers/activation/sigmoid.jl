@@ -1,10 +1,6 @@
 export sigmoid
 
-type Sigmoid <: Var
-  data
-  grad
-  tails::Vector{Var}
-end
+@Var(Sigmoid)
 
 """
     sigmoid(x)

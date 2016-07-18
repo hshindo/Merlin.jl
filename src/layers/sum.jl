@@ -1,11 +1,6 @@
 import Base.sum
 
-type Sum <: Var
-  data
-  grad
-  tails::Vector{Var}
-  dim::Int
-end
+@Var(Sum, dim::Int)
 
 """
     sum(x, dim::Int)

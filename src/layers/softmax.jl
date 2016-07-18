@@ -1,18 +1,7 @@
 export softmax, logsoftmax
 
-type Softmax <: Var
-  data
-  grad
-  tails::Vector{Var}
-  dim::Int
-end
-
-type LogSoftmax <: Var
-  data
-  grad
-  tails::Vector{Var}
-  dim::Int
-end
+@Var(Softmax, dim::Int)
+@Var(LogSoftmax, dim::Int)
 
 const SOFTMAX_F32 = Libdl.dlsym(libmerlin, :softmax_float)
 const SOFTMAX_F64 = Libdl.dlsym(libmerlin, :softmax_double)

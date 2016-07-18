@@ -1,5 +1,5 @@
+export @Var
 abstract Var
-export Var
 
 function topsort(top::Var)
   sorted = Var[]
@@ -14,6 +14,22 @@ function topsort(top::Var)
   end
   visit(top)
   sorted
+end
+
+macro Var(name, fields...)
+  exprs = Expr[]
+  for f in fields
+    push!(exprs, f)
+  end
+  body = Expr(:block, exprs...)
+  quote
+    type $name <: Var
+      data
+      grad
+      tails::Vector
+      $body
+    end
+  end
 end
 
 macro Var3(name, fields...)
@@ -49,7 +65,7 @@ hasgrad(v::Var) = v.grad != nothing
 
 """
     checkargs(expr)
-    
+
 Check arguments and decide eager or lazy evaluation..
 """
 macro checkargs(f, args)

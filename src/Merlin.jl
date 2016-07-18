@@ -5,11 +5,10 @@ using Base.LinAlg.BLAS
 import Compat.view
 
 @compat if is_windows()
-  const libname = joinpath(dirname(@__FILE__), "../deps/libmerlin.dll")
+  const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.dll"))
 else
-  const libname = joinpath(dirname(@__FILE__), "../deps/libmerlin.so")
+  const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.so"))
 end
-const libmerlin = Libdl.dlopen(libname)
 
 USE_CUDA = false
 if USE_CUDA

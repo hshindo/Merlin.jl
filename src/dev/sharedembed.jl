@@ -1,4 +1,4 @@
-type SharedEmbed <: Layer
+type BlockEmbed <: Var
   w::Matrix
   alpha::Matrix
   rho::Float64
@@ -6,7 +6,7 @@ type SharedEmbed <: Layer
 end
 
 @compat function (w::SharedEmbed)(x::Array{Int})
-
+  
 end
 
 function update!(l::SharedEmbed, opt)

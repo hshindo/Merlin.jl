@@ -1,11 +1,6 @@
 export concat
 
-type Concat <: Var
-  data
-  grad
-  tails::Vector{Var}
-  dim::Int
-end
+@Var(Concat, dim::Int)
 
 """
     concat(dim::Int, xs::Var...)
@@ -38,6 +33,27 @@ function concat{T<:Array}(dim::Int, xs::Vector{T})
   offset = 1
   for x in xs
     s = size(x, dim)
+    range[dim] = offset:(offset+s-1)
+    y[range...] = x
+    offset += s
+  end
+  y
+end
+
+function concat{T,N}(dim::Int, xs::Vector{CuArray{T,N}})
+  sum = 0
+  for x in xs
+    sum += size(x, dim)
+  end
+  outsize = [size(xs[1])...]
+  outsize[dim] = sum
+  y = CuArray(T, outsize...)
+
+  range = map(s -> 1:s, outsize)
+  offset = 1
+  for x in xs
+    s = size(x, dim)
+    copy()
     range[dim] = offset:(offset+s-1)
     y[range...] = x
     offset += s

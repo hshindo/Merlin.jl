@@ -1,11 +1,6 @@
 import Base: reshape, transpose
 
-type Reshape <: Var
-  data
-  grad
-  tails::Vector
-  dims::Tuple
-end
+@Var(Reshape, dims::Tuple)
 
 """
     reshape(x::Var, dims::Int...)

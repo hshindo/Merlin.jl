@@ -6,6 +6,47 @@ using Base.LinAlg.BLASｄ
 using Base.Test
 using HDF5
 
+macro aaa(name, fields...)
+  exprs = Expr[]
+  for f in fields
+    push!(exprs, f)
+  end
+  body = Expr(:block, exprs...)
+  quote
+    type XXX
+      $body
+    end
+  end
+end
+
+@aaa(xxx, a::Int, d::Int)
+
+x = XXX(2,5)
+x.d
+
+macro Var(name, fields)
+  exprs = Expr[]
+  for f in fields
+    #println(f)
+    s, t = f.args[1], f.args[2]
+    #push!(exprs, :($s::$t))
+  end
+  body = Expr(:block, exprs...)
+  quote
+    type $name
+      $body
+    end
+  end
+end
+@Var(XXX, a::Int)
+@Var XXX (
+  a::Int
+  )
+
+macroexpand(:(@Var(XXX,(a,Int)))) |> println
+
+x = XXX(3)
+
 v = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary
 # f = Lookup(Float32,10000,100, device=:CUDA)
 x = Data(rand(1:1000,5,3))

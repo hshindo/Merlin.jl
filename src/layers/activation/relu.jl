@@ -1,10 +1,6 @@
 export relu
 
-type ReLU <: Var
-  data
-  grad
-  tails::Vector
-end
+@Var(ReLU)
 
 """
     relu(x)
