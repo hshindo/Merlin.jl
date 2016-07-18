@@ -15,7 +15,7 @@ $ f(p,x)=-∑_{i} p_{i} \log x_{i} $
 ```julia
 p = Data([1:5;])
 x = Data(rand(Float32,10,5))
-y = crossentropy(p, x)
+y = crossentropy(p, x, 1)
 ```
 """
 function crossentropy(p::Var, x::Var, dim::Int)
