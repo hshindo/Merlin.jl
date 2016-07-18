@@ -1,4 +1,4 @@
-import Base: reshape, transpose
+import Base.reshape
 
 @Var(Reshape, dims::Tuple)
 
@@ -19,13 +19,6 @@ function reshape(x::Var, dims::Tuple)
 end
 reshape(x::Var, dims::Int...) = reshape(x, dims)
 @compat (f::Reshape)(x::Var) = reshape(x, f.dims)
-
-"""
-    transpose(x::Var)
-"""
-function transpose(x::Var)
-  reshape(x, reverse(size(x.data)))
-end
 
 function backward!(y::Reshape)
   hasgrad(y[1]) || return

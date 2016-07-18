@@ -48,6 +48,7 @@ for name in [
   "reshape",
   "softmax",
   "sum",
+  "transpose"
   ]
   include("layers/$(name).jl")
 end

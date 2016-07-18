@@ -82,4 +82,7 @@ end
   for dim = 1:ndims(x.data)
     @test @checkgrad sum(x,dim) [x]
   end
+
+  x = Data(rand(T,10,5))
+  @test @checkgrad x.' [x]
 end
