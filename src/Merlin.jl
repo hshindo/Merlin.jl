@@ -51,7 +51,7 @@ for name in [
   "sum",
   "transpose"
   ]
-  include("layers/$(name).jl")
+  include("functions/$(name).jl")
 end
 
 for name in [
