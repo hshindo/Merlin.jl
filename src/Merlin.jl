@@ -40,6 +40,7 @@ for name in [
   "math/times",
   "concat",
   "conv",
+  "crossentropy",
   "embed",
   "data",
   "embed",
