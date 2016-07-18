@@ -2,50 +2,40 @@ workspace()
 using Merlin
 using Merlin.Caffe
 using CUDA
-using Base.LinAlg.BLASｄ
+using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
-macro aaa(name, fields...)
-  exprs = Expr[]
-  for f in fields
-    push!(exprs, f)
-  end
-  body = Expr(:block, exprs...)
+macro aaa(a, b...)
   quote
-    type XXX
-      $body
-    end
+    
+    a = $(b[2])
+    a
   end
 end
+x = 3
+@aaa(x, x, x)
 
-@aaa(xxx, a::Int, d::Int)
+x1 = Data(rand(Float32,10,5))
+x2 = Data(rand(Float32,10,5))
+gemm('N','T',1.0,x1,x2)
 
-x = XXX(2,5)
-x.d
+gemm
 
-macro Var(name, fields)
-  exprs = Expr[]
-  for f in fields
-    #println(f)
-    s, t = f.args[1], f.args[2]
-    #push!(exprs, :($s::$t))
-  end
-  body = Expr(:block, exprs...)
-  quote
-    type $name
-      $body
-    end
-  end
-end
-@Var(XXX, a::Int)
-@Var XXX (
-  a::Int
-  )
+rand(Float32,10)
+tanh()
+x = Data(rand(Float32,10,5))
+tanh(x.data)
 
-macroexpand(:(@Var(XXX,(a,Int)))) |> println
+x = Data(rand(Float32,5,4,3,2))
+c = Conv(rand(Float32,2,2,3,4), stride=(1,1), paddims=(0,0))
+y = c(x)
+y.data
 
-x = XXX(3)
+Merlin.@Var(AX, work::Any)
+fieldnames(AX)
+
+macroexpand(:(Merlin.@Var(AX, work::Int))) |> println
 
 v = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary
 # f = Lookup(Float32,10000,100, device=:CUDA)

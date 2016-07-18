@@ -9,7 +9,7 @@ function tanh(x::Var)
   y = hasdata(x) ? tanh(x.data) : nothing
   Tanh(y, nothing, [x])
 end
-@compat (::Tanh)(x::Var) = tanh(x)
+@compat (::Tanh)(x::Var) = Tanh(tanh(x.data), nothing, [x])
 
 function backward!(v::Tanh)
   hasgrad(v[1]) || return

@@ -21,6 +21,8 @@ else
   typealias CuMatrix{T} CuArray{T,2}
 end
 
+typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
+
 include("util.jl")
 include("var.jl")
 include("gradient.jl")
@@ -33,6 +35,7 @@ for name in [
   "activation/relu",
   "activation/sigmoid",
   "activation/tanh",
+  "blas/gemm",
   "math/plus",
   "math/times",
   "concat",

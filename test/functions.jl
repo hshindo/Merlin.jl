@@ -25,9 +25,17 @@ end
 
   x = Data(rand(T,5,4))
   for f in [sigmoid, tanh]
-    @test @checkgrad f(x) [x]
+    #@test @checkgrad f(x) [x]
     #@test @cuda_test f(x) (x,)
   end
+
+  x1 = Data(rand(T,10,5))
+  x2 = Data(rand(T,5,10))
+  x3 = Data(rand(T,10,5))
+  @test @checkgrad gemm('N','N',0.2,x1,x2) [x1,x2]
+  @test @checkgrad gemm('N','T',0.3,x1,x3) [x1,x3]
+  @test @checkgrad gemm('T','N',0.4,x1,x3) [x1,x3]
+  @test @checkgrad gemm('T','T',0.5,x1,x2) [x1,x2]
 
   x1 = Data(rand(T,10,5,2))
   x2 = Data(rand(T,10,5,2))
