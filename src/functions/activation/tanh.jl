@@ -1,6 +1,10 @@
 import Base.tanh
 
-@Var(Tanh)
+type Tanh <: Var
+    data
+    grad
+    tails::Vector
+end
 
 """
     tanh(x)

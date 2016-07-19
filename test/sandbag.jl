@@ -6,32 +6,23 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
+A = Param(rand(Float32,10,5,3))
+B = Param(rand(Float32,5,10,3))
+C = gemm(A, B)
+gradient!(C)
+
+tanh(rand(5,4))
+
 function bench()
-    
+
     for i = 1:10000
     end
 end
 
-x1 = Data(rand(Float32,10,5))
-x2 = Data(rand(Float32,10,5))
-gemm('N','T',1.0,x1,x2)
-
-max(x1, 2)
-
-rand(Float32,10)
-tanh()
-x = Data(rand(Float32,10,5))
-tanh(x.data)
-
-x = Data(rand(Float32,5,4,3,2))
+x = Param(rand(Float32,5,4,3,2))
 c = Conv(rand(Float32,2,2,3,4), stride=(1,1), paddims=(0,0))
 y = c(x)
-y.data
-
-Merlin.@Var(AX, work::Any)
-fieldnames(AX)
-
-macroexpand(:(Merlin.@Var(AX, work::Int))) |> println
+gradient!(y)
 
 v = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary
 # f = Lookup(Float32,10000,100, device=:CUDA)

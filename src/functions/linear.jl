@@ -1,6 +1,10 @@
 export Linear, linear
 
-@Var(Linear)
+type Linear <: Var
+    data
+    grad
+    tails::Vector
+end
 
 function Linear(T::Type, indim::Int, outdim::Int)
     r = T(sqrt(6 / (indim+outdim)))
