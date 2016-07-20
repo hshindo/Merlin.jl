@@ -62,9 +62,9 @@ function ∇lookup!(w, x::Array{Int}, gy)
     end
 end
 
-function update!(opt, v::Embed)
+function update!(v::Embed, opt)
     for id in v.idset
-        update!(opt, v.data, v.grad)
+        opt(v.data, v.grad)
     end
     empty!(v.idset)
 end
