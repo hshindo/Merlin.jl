@@ -33,10 +33,10 @@ type CrossEntropy <: Var
     logx
 end
 
-@compat (c::CrossEntropy)(p::Var, x::Var) = crossentropy(p, x, c.dim)
+@compat (v::CrossEntropy)(p::Var, x::Var) = crossentropy(p, x, v.dim)
 
 function backward!(y::CrossEntropy)
-    hasgrad(y[1],y[2]) || return
+    hasgrad(y[2]) || return
     ∇crossentropy!(y[1].data, y.logx, y[2].grad, y.grad)
 end
 

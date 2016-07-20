@@ -81,7 +81,7 @@ end
 p = Data([1:5;])
 x = Data(rand(Float32,10,5))
 for dim = 1:1
-    #@test @checkgrad crossentropy(p,x,dim) [x]
+    @test @checkgrad crossentropy(p,x,dim) [x]
 end
 
 x = Data(rand(T,10,5,4,3))
