@@ -53,10 +53,10 @@ l = Linear(T, 10, 7)
 l[3] = Param(rand(T,size(l[3].data)))
 @test @checkgrad l(x) [l[1],x,l[3]]
 
-#x = Var(rand(1:10,3,2))
-#f = Lookup(Float32, 10, 5)
-#args = f(x).args
-#@test @gradcheck f(x) (x,)
+w = Embed(Float32,10000,100)
+x = Data(rand(1:1000,5,3))
+y = w(x)
+gradient!(y)
 
 x1 = Data(rand(T,10,5))
 x2 = Data(rand(T,10,5))

@@ -1,11 +1,5 @@
 export fit
 
-type Trainer
-    decode
-    lossfun
-    opt
-end
-
 function fit(decode, lossfun, opt, xs, ys)
     loss = 0.0
     for i in randperm(length(xs))

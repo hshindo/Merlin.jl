@@ -44,7 +44,6 @@ for name in [
   "data",
   "embed",
   "linear",
-  "lookup",
   "max",
   "reshape",
   "softmax",

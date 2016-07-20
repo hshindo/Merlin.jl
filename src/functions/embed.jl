@@ -1,4 +1,4 @@
-export lookup
+export embed, Embed
 
 type Embed <: Var
     data
@@ -7,30 +7,20 @@ type Embed <: Var
     idset::IntSet
 end
 
-type Lookup <: Var
-    data
-    grad
-    tails::Vector
-    idset::IntSet
-end
-
-function Lookup(w::Var, x::Var, idset=IntSet())
-    hasdata(w,x) || return Lookup(nothing, nothing, [w,x], idset)
-    y = lookup(w.data, x.data)
-    Lookup(y, nothing, [w,x], idset)
+function Embed(w::Var, x::Var, idset=IntSet())
+    hasdata(w,x) || return Embed(nothing, nothing, [w,x], idset)
+    y = embed(w.data, x.data)
+    Embed(y, nothing, [w,x], idset)
 end
 
 """
-    Lookup{T}(::Type{T}, indim, outdim)
+    Embed{T}(::Type{T}, indim, outdim)
 
 ### 👉 Example
 ```julia
-w = Embed(Float32,10000,100)
-y = lookup(w,x)
-
-f = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary
+w = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary
 x = Data(rand(1:1000,5,3))
-y = f(x)
+y = w(x)
 ```
 """
 function Embed{T}(::Type{T}, indim::Int, outdim::Int)
@@ -48,12 +38,12 @@ function Embed{T}(path, ::Type{T})
     Embed(ws)
 end
 
-@compat (y::Embed)(x::Var) = Embed(v[1], x, y.idset)
+@compat (y::Embed)(x::Var) = Embed(y[1], x, y.idset)
 @compat (y::Embed)(w::Var, x::Var) = Embed(w, x, y.idset)
 
-function lookup(w, x::Array{Int})
-    n = size(w, 1)
-    s = Int[size(x,i) for i=1:ndims(x)]
+function embed(w::Array, x::Array{Int})
+    n = size(w,1)
+    s = Int[size(x)...]
     s[1] *= n
     y = similar(w, s...)
     for i = 1:length(x)
@@ -62,13 +52,15 @@ function lookup(w, x::Array{Int})
     y
 end
 
-backward!(v::Embed) = ∇lookup!()
+function backward!(v::Embed)
+    hasgrad(v[1]) || return
+    ∇embed!(v[1].grad, v[2].data, v.grad)
+end
 
-function ∇lookup!(w, x::Array{Int}, gy)
-    T = eltype(gy)
-    n = size(w, 1)
+function ∇embed!{T}(gw::Array{T}, x::Array{Int}, gy::Array{T})
+    n = size(gw,1)
     for i = 1:length(x)
-        BLAS.axpy!(n, T(1), pointer(gy,(i-1)*n+1), 1, pointer(gx,(x[1]-1)*n+1), 1)
+        BLAS.axpy!(n, T(1), pointer(gy,(i-1)*n+1), 1, pointer(gw,(x[i]-1)*n+1), 1)
     end
 end
 

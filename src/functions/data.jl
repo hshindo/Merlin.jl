@@ -8,7 +8,6 @@ end
 
 Data(data) = Data(data, nothing, Var[])
 Data() = Data(nothing)
-Data(T::Type, indim::Int, outdim::Int)
 Param(data) = Data(data, zeros(data), Var[])
 
 backward!(v::Data) = nothing
