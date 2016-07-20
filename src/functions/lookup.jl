@@ -1,4 +1,4 @@
-export Embed
+export lookup
 
 type Embed <: Var
     data
@@ -7,19 +7,29 @@ type Embed <: Var
     idset::IntSet
 end
 
-function Embed(w::Var, x::Var, idset=IntSet())
-    hasdata(w,x) || return Embed(nothing, nothing, [w,x], idset)
+type Lookup <: Var
+    data
+    grad
+    tails::Vector
+    idset::IntSet
+end
+
+function Lookup(w::Var, x::Var, idset=IntSet())
+    hasdata(w,x) || return Lookup(nothing, nothing, [w,x], idset)
     y = lookup(w.data, x.data)
-    Embed(y, nothing, [w,x], idset)
+    Lookup(y, nothing, [w,x], idset)
 end
 
 """
-Embed{T}(::Type{T}, indim, outdim)
+    Lookup{T}(::Type{T}, indim, outdim)
 
 ### 👉 Example
 ```julia
+w = Embed(Float32,10000,100)
+y = lookup(w,x)
+
 f = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary
-x = Var(rand(1:1000,5,3))
+x = Data(rand(1:1000,5,3))
 y = f(x)
 ```
 """
