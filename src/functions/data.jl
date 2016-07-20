@@ -15,5 +15,5 @@ forward(v::Data, x::Var) = Data(x)
 backward!(v::Data) = nothing
 
 function update!(v::Data, opt)
-  hasgrad(v) && opt(v.data, v.grad)
+  v.grad == nothing || opt(v.data, v.grad)
 end
