@@ -32,12 +32,12 @@
         }, 
         {
             "location": "/functions/", 
-            "text": "Functions\n\n\n#\n\n\nMerlin.relu\n \n \nMethod\n.\n\n\nrelu(x)\n\n\n\n\n\nRectifier liner unit.\n\n\n#\n\n\nMerlin.sigmoid\n \n \nMethod\n.\n\n\nsigmoid(x)\n\n\n\n\n\n#\n\n\nBase.tanh\n \n \nMethod\n.\n\n\ntanh(x)\n\n\n\n\n\n#\n\n\nMerlin.concat\n \n \nMethod\n.\n\n\nconcat(dim::Int, xs::Var...)\nconcat(dim::Int, xs::Vector{Var})\n\n\n\n\n\nConcatenate arrays along the given dimension.\n\n\n#\n\n\nMerlin.Linear\n \n \nMethod\n.\n\n\nLinear(w::Var, b::Var)\n\n\n\n\n\nCreate an object of linear function (a.k.a. affine transformation).\n\n\n$ f(x) = w * x + b $\n\n\nArguments\n\n\n\n\nw::Var\n: weight matrix\n\n\nb::Var\n: bias vector\n\n\n\n\n#\n\n\nBase.max\n \n \nMethod\n.\n\n\nmax(x::Var, dim::Int)\n\n\n\n\n\nCompute the maximum value along the given dimensions.\n\n\n#\n\n\nBase.reshape\n \n \nMethod\n.\n\n\nreshape(x::Var, dims::Int...)\nreshape(x::Var, dims::Tuple)\n\n\n\n\n\nReshape an array according to the given dimensions.\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n,\n3\n))\n\n\ny\n \n=\n \nreshape\n(\nx\n,\n \n5\n,\n \n3\n,\n \n5\n,\n \n2\n)\n\n\n\n\n\n\n#\n\n\nMerlin.softmax\n \n \nMethod\n.\n\n\nnothing\n\n#\n\n\nMerlin.logsoftmax\n \n \nMethod\n.\n\n\nnothing\n\n#\n\n\nMerlin.softmax_crossentropy\n \n \nMethod\n.\n\n\nsoftmax_crossentropy(p::Var, x::Var, dim::Int)\n\n\n\n\n\nCompute cross-entropy between $p$ and $x$ along the given dimension.\n\n\n$ f(p,x)=-\u2211\n{i} p\n \\log x_{i} $\n\n\nArguments\n\n\n\n\np: var of \nVector{Int}\n or \nMatrix{Float}\n. $p$ must be normalized.\n\n\nx: var of \nMatrix{Float}\n.\n\n\n\n\n\ud83d\udc49 Example\n\n\np\n \n=\n \nVar\n([\n1\n:\n5\n;])\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\ny\n \n=\n \nsoftmax_crossentropy\n(\np\n,\n \nx\n)\n\n\n\n\n\n\n#\n\n\nBase.sum\n \n \nMethod\n.\n\n\nsum(x::Var, dim::Int)\n\n\n\n\n\nCompute the sum along the given dimensions.", 
+            "text": "Functions\n\n\nrelu(x::Var)\nsigmoid(x::Var)\ntanh(x::Var)\nconcat(dim::Int, xs::Vector{Var})\nLinear(w, b)\nmax(x::Var, dim::Int)\nreshape(x::Var, dims)\nsoftmax(x::Var)\nlogsoftmax(x::Var)\nsoftmax_crossentropy(p::Var, x::Var, dim::Int)\nsum(x::Var, dim::Int)", 
             "title": "Functions"
         }, 
         {
             "location": "/functions/#functions", 
-            "text": "#  Merlin.relu     Method .  relu(x)  Rectifier liner unit.  #  Merlin.sigmoid     Method .  sigmoid(x)  #  Base.tanh     Method .  tanh(x)  #  Merlin.concat     Method .  concat(dim::Int, xs::Var...)\nconcat(dim::Int, xs::Vector{Var})  Concatenate arrays along the given dimension.  #  Merlin.Linear     Method .  Linear(w::Var, b::Var)  Create an object of linear function (a.k.a. affine transformation).  $ f(x) = w * x + b $  Arguments   w::Var : weight matrix  b::Var : bias vector   #  Base.max     Method .  max(x::Var, dim::Int)  Compute the maximum value along the given dimensions.  #  Base.reshape     Method .  reshape(x::Var, dims::Int...)\nreshape(x::Var, dims::Tuple)  Reshape an array according to the given dimensions.  \ud83d\udc49 Example  x   =   Var ( rand ( Float32 , 10 , 5 , 3 ))  y   =   reshape ( x ,   5 ,   3 ,   5 ,   2 )   #  Merlin.softmax     Method .  nothing #  Merlin.logsoftmax     Method .  nothing #  Merlin.softmax_crossentropy     Method .  softmax_crossentropy(p::Var, x::Var, dim::Int)  Compute cross-entropy between $p$ and $x$ along the given dimension.  $ f(p,x)=-\u2211 {i} p  \\log x_{i} $  Arguments   p: var of  Vector{Int}  or  Matrix{Float} . $p$ must be normalized.  x: var of  Matrix{Float} .   \ud83d\udc49 Example  p   =   Var ([ 1 : 5 ;])  x   =   Var ( rand ( Float32 , 10 , 5 ))  y   =   softmax_crossentropy ( p ,   x )   #  Base.sum     Method .  sum(x::Var, dim::Int)  Compute the sum along the given dimensions.", 
+            "text": "relu(x::Var)\nsigmoid(x::Var)\ntanh(x::Var)\nconcat(dim::Int, xs::Vector{Var})\nLinear(w, b)\nmax(x::Var, dim::Int)\nreshape(x::Var, dims)\nsoftmax(x::Var)\nlogsoftmax(x::Var)\nsoftmax_crossentropy(p::Var, x::Var, dim::Int)\nsum(x::Var, dim::Int)", 
             "title": "Functions"
         }, 
         {
@@ -52,12 +52,12 @@
         }, 
         {
             "location": "/optimizers/", 
-            "text": "Optimizers\n\n\n#\n\n\nMerlin.AdaGrad\n \n \nType\n.\n\n\nAdaGrad implementation. See: http://jmlr.org/papers/v12/duchi11a.html\n\n\n#\n\n\nMerlin.Adam\n \n \nType\n.\n\n\nAdam\n\n\nAdam: A Method for Stochastic Optimization See: http://arxiv.org/abs/1412.6980v8\n\n\n#\n\n\nMerlin.SGD\n \n \nType\n.\n\n\nStochastic Gradient Descent.", 
+            "text": "Optimizers\n\n\n#\n\n\nMerlin.AdaGrad\n \n \nType\n.\n\n\nAdaGrad implementation. See: http://jmlr.org/papers/v12/duchi11a.html\n\n\n#\n\n\nMerlin.Adam\n \n \nType\n.\n\n\nAdam\n\n\nAdam: A Method for Stochastic Optimization See: http://arxiv.org/abs/1412.6980v8\n\n\n#\n\n\nMerlin.SGD\n \n \nType\n.\n\n\nSGD\n\n\n\n\n\nStochastic Gradient Descent.\n\n\n\n\nrate: learning rate", 
             "title": "Optimizers"
         }, 
         {
             "location": "/optimizers/#optimizers", 
-            "text": "#  Merlin.AdaGrad     Type .  AdaGrad implementation. See: http://jmlr.org/papers/v12/duchi11a.html  #  Merlin.Adam     Type .  Adam  Adam: A Method for Stochastic Optimization See: http://arxiv.org/abs/1412.6980v8  #  Merlin.SGD     Type .  Stochastic Gradient Descent.", 
+            "text": "#  Merlin.AdaGrad     Type .  AdaGrad implementation. See: http://jmlr.org/papers/v12/duchi11a.html  #  Merlin.Adam     Type .  Adam  Adam: A Method for Stochastic Optimization See: http://arxiv.org/abs/1412.6980v8  #  Merlin.SGD     Type .  SGD  Stochastic Gradient Descent.   rate: learning rate", 
             "title": "Optimizers"
         }
     ]
