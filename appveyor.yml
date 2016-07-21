@@ -8,6 +8,10 @@ branches:
     - master
     - /release-.*/
 
+cache:
+  #- mingw-w64-bin-x86_64-20140102.7z
+  - C:\mingw64
+
 notifications:
   - provider: Email
     on_build_success: false
@@ -24,6 +28,7 @@ install:
 
 build_script:
 # Need to convert from shallow to complete for Pkg.clone to work
+  - set PATH=C:\mingw64\bin;%PATH%
   - IF EXIST .git\shallow (git fetch --unshallow)
   - C:\projects\julia\bin\julia -F -e "versioninfo();
       Pkg.clone(pwd(), \"Merlin\"); Pkg.build(\"Merlin\")"
