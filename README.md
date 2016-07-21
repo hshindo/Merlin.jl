@@ -32,7 +32,7 @@ First, install [Julia](http://julialang.org/). Currently, version 0.4.x is recom
 Then, clone the package.
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
-julia> `Pkg.update()`
+julia> Pkg.update()
 ```
 
 For OSX and Linux, build `Merlin` as follows:

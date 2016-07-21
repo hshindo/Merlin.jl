@@ -1,69 +1,28 @@
 export Linear
 
-doc"""
-    Linear(w::Var, b::Var)
-
-Create an object of linear function (a.k.a. affine transformation).
-
-$ f(x) = w * x + b $
-
-## Arguments
-* `w::Var`: weight matrix
-* `b::Var`: bias vector
-"""
 type Linear
-  w::Var
-  b::Var
+    w::Var
+    b::Var
 end
 
-"""
-    Linear(::Type{T}, indim::Int, outdim::Int)
-
-## Arguments
-* `T`: element type
-* `indim`: input dimension
-* `outdim`: output dimension
-
-## 👉 Example
-```julia
-x = Var(rand(Float32,10,5))
-f = Linear(Float32, 10, 7)
-y = f(x)
-```
-"""
-function Linear{T}(::Type{T}, indim::Int, outdim::Int)
-  x = sqrt(6 / (indim + outdim))
-  r = rand(outdim, indim) * 2x - x
-  w = convert(Matrix{T}, r)
-  b = fill(T(0), outdim, 1)
-  Linear(param(w), param(b))
+function Linear(T::Type, indim::Int, outdim::Int)
+    r = T(sqrt(6 / (indim+outdim)))
+    w = rand(-r, r, outdim, indim)
+    b = fill(T(0), outdim, 1)
+    Linear(Param(w), Param(b))
 end
 
 @compat (f::Linear)(x::Var) = linear(f.w, x, f.b)
 
 function linear(w::Var, x::Var, b::Var)
-  @checkargs linear (w,x,b)
-  y = linear(w.value, x.value, b.value)
-  df(gy) = begin
-    T = eltype(gy)
-    hasgrad(w) && BLAS.gemm!('N', 'T', T(1), gy, x.value, T(1), w.grad)
-    hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w.value, gy, T(1), x.grad)
-    for offset = 1:length(b.value):length(gy)
-      BLAS.axpy!(length(b.value), T(1), pointer(gy,offset), stride(gy,1),
-        pointer(b.grad), stride(b.grad,1))
+    y = w.data * x.data
+    broadcast!(.+, y, y, b.data)
+    function df{T}(gy::UniArray{T})
+        hasgrad(w) && BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
+        hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
+        for offset = 1:length(b.data):length(gy)
+            BLAS.axpy!(length(b.data), T(1), pointer(gy,offset), 1, pointer(b.grad), 1)
+        end
     end
-  end
-  Var(y, df, [w,x,b])
-end
-
-function linear{T}(w::Matrix{T}, x::Matrix{T}, b::Matrix{T})
-  y = w * x
-  broadcast!(.+, y, y, b)
-  y
-end
-
-function linear{T}(w::CuMatrix{T}, x::CuMatrix{T}, b::CuMatrix{T})
-  y = w * x
-  CUDNN.add!(b, y)
-  y
+    Var(y, [w,x,b], df)
 end

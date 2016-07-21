@@ -2,23 +2,16 @@ module Merlin
 
 using Compat
 using Base.LinAlg.BLAS
+import Compat.view
 
-@windows? begin
-  const libname = "libmerlin.dll"
-end : begin
-  const libname = "libmerlin.so"
+@compat if is_windows()
+  const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.dll"))
+else
+  const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.so"))
 end
 
-const libpath = abspath(joinpath(dirname(@__FILE__), "..", "deps", libname))
-
-try
-  const global library = Libdl.dlopen(libpath)
-catch y
-  println("ERROR: Could not load native extension at $libpath. Try `Pkg.build("Merlin.jl")` to compile native codes.")
-  throw(y)
-end
-
-if haskey(ENV, "USE_CUDA") && ENV["USE_CUDA"] == true
+USE_CUDA = false
+if USE_CUDA
   using CUDA
   using CUDNN
 else
@@ -28,35 +21,37 @@ else
   typealias CuMatrix{T} CuArray{T,2}
 end
 
+typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
+
 include("util.jl")
 include("var.jl")
-include("gradient.jl")
-include("graph.jl")
+#include("gradient.jl")
+#include("graph.jl")
 include("training.jl")
 include("native.jl")
-include("serialize.jl")
+#include("serialize.jl")
 
 for name in [
-  "activation",
-  "concat",
-  "linear",
-  "logsoftmax",
-  "lookup",
-  "math",
-  "max",
-  "reshape",
-  "softmax",
-  "softmax_crossentropy",
-  "sum"
-  ]
-  include("functions/$(name).jl")
+    "activation",
+    "concat",
+    "conv",
+    "crossentropy",
+    "embed",
+    "gemm",
+    "linear",
+    "reshape",
+    "softmax",
+    "transpose",
+    ]
+    include("functions/$(name).jl")
 end
 
-for name in [
-    "gru"]
-  include("graphs/$(name).jl")
-end
+#for name in [
+#    "gru"]
+#  include("graphs/$(name).jl")
+#end
 
+export update!
 for name in [
     "adagrad",
     "adam",
