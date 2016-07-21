@@ -8,7 +8,7 @@ function fit(decode, lossfun, opt, xs, ys)
         loss += sum(out.data)
         vars = gradient!(out)
         for v in vars
-            isempty(v.tails) && update!(v, opt)
+            opt(v.data, v.grad)
         end
     end
     loss

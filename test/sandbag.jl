@@ -6,10 +6,24 @@ using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 
-A = Param(rand(Float32,10,5,3))
-B = Param(rand(Float32,5,10,3))
-C = gemm(A, B)
-gradient!(C)
+f = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary
+x = Var(rand(1:1000,5,3))
+y = f(x)
+
+x = Param(rand(Float32,10,5))
+y = transpose(x)
+gradient!(y)
+
+x = Var(rand(Float32,5,4,3,2))
+f = Conv(Float32, (2,2), (3,4), stride=(1,1), paddims=(0,0))
+y = f(x)
+
+gradient!(y)
+
+x = Data(rand(Float32,5,4))
+c = Conv(rand(Float32,2,2,1,1), stride=(1,1), paddims=(0,0))
+y = c(x)
+gradient!(y)
 
 tanh(rand(5,4))
 

@@ -1,10 +1,43 @@
 export crossentropy
 
-function crossentropy(p::Var, x::Var)
-    logx = logsoftmax(x.data, 1)
+doc"""
+crossentropy(p::Var, x::Var, dim::Int)
+
+Compute cross-entropy between $p$ and $x$ along the given dimension.
+
+$ f(p,x)=-∑_{i} p_{i} \log x_{i} $
+
+## Arguments
+* p: var of `Vector{Int}` or `Matrix{Float}`. $p$ must be normalized.
+* x: var of `Matrix{Float}`.
+
+### 👉 Example
+```julia
+p = Data([1:5;])
+x = Data(rand(Float32,10,5))
+y = crossentropy(p, x, 1)
+```
+"""
+function crossentropy(p::Var, x::Var, dim::Int)
+    hasdata(p,x) || return CrossEntropy(nothing, nothing, [p,x], dim, nothing)
+    logx = logsoftmax(x.data, dim)
     y = crossentropy(p.data, logx)
-    df(gy) = ∇crossentropy!(p.data, logx, x.grad, gy)
-    Var(y, [p,x], df)
+    CrossEntropy(y, nothing, [p,x], dim, logx)
+end
+
+type CrossEntropy <: Var
+    data
+    grad
+    tails::Vector
+    dim::Int
+    logx
+end
+
+@compat (v::CrossEntropy)(p::Var, x::Var) = crossentropy(p, x, v.dim)
+
+function backward!(y::CrossEntropy)
+    hasgrad(y[2]) || return
+    ∇crossentropy!(y[1].data, y.logx, y[2].grad, y.grad)
 end
 
 function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})

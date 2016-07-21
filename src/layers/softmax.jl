@@ -1,5 +1,8 @@
 export softmax, logsoftmax
 
+@Var(Softmax, dim::Int)
+@Var(LogSoftmax, dim::Int)
+
 const SOFTMAX_F32 = Libdl.dlsym(libmerlin, :softmax_float)
 const SOFTMAX_F64 = Libdl.dlsym(libmerlin, :softmax_double)
 const ∇SOFTMAX_F32 = Libdl.dlsym(libmerlin, :softmax_grad_float)
@@ -16,10 +19,22 @@ softmax_handle(::Type{Float64}) = SOFTMAX_F64, ∇SOFTMAX_F64
 logsoftmax_handle(::Type{Float32}) = LOGSOFTMAX_F32, ∇LOGSOFTMAX_F32
 logsoftmax_handle(::Type{Float64}) = LOGSOFTMAX_F64, ∇LOGSOFTMAX_F64
 
+doc"""
+    softmax(x, dim::Int)
+
+Compute softmax along the given axis.
+
+$ p(x) = {\exp(f(x)) \over \sum_{x_2} \exp(f(x))} $
+"""
 function softmax(x::Var, dim::Int)
-  y = softmax(x.data, dim)
-  df(gy) = ∇softmax!(x.grad, y, gy, dim)
-  Var(y, [x], df)
+  y = hasdata(x) ? softmax(x.data,dim) : nothing
+  Softmax(y, nothing, [x], dim)
+end
+@compat (f::Softmax)(x::Var) = softmax(x, f.dim)
+
+function backward!(v::Softmax)
+  hasgrad(v[1]) || return
+  ∇softmax!(v[1].grad, v.data, v.grad, v.dim)
 end
 
 function softmax{T}(x::Array{T}, dim::Int)
@@ -85,9 +100,14 @@ end
 Compute log-softmax along the given axis.
 """
 function logsoftmax(x::Var, dim)
-    y = logsoftmax(x.data, dim)
-    df(gy) = ∇logsoftmax!(x.grad, y, gy, dim)
-    Var(y, [x], df)
+  y = hasdata(x) ? logsoftmax(x.data,dim) : nothing
+  LogSoftmax(y, nothing, [x], dim)
+end
+@compat (f::LogSoftmax)(x::Var) = logsoftmax(x, f.dim)
+
+function backward!(v::LogSoftmax)
+  hasgrad(v[1]) || return
+  ∇logsoftmax!(v[1].grad, v.data, v.grad, v.dim)
 end
 
 function logsoftmax{T}(x::Array{T}, dim::Int)

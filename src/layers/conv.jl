@@ -6,11 +6,14 @@ const WINDOW2D_F64 = Libdl.dlsym(libmerlin, :window2d_double)
 const ∇WINDOW2D_F32 = Libdl.dlsym(libmerlin, :window2d_grad_float)
 const ∇WINDOW2D_F64 = Libdl.dlsym(libmerlin, :window2d_grad_double)
 
-type Conv{N}
-    w::Var
-    filterdims::NTuple{N,Int}
+type Conv{N} <: Var
+    data
+    grad
+    tails::Vector
+    windims::NTuple{N,Int}
     stride::NTuple{N,Int}
     paddims::NTuple{N,Int}
+    work
 end
 
 handle(::Type{Conv{2}}, ::Type{Float32}) = WINDOW2D_F32
@@ -19,39 +22,38 @@ handle(::Type{Conv{2}}, ::Type{Float64}) = WINDOW2D_F64
 ∇handle(::Type{Conv{2}}, ::Type{Float64}) = ∇WINDOW2D_F64
 
 """
-    Conv(T, channel, filter, [stride, pad])
+    Conv(w, [stride, pad])
 
 N-dimensional convolution function.
 
 ## Arguments
-* T: Type
-* windims::NTuple{N,Int}: window size..., input channel, output channel
+* w: weight (windowsize, input channel, output channel)
 * stride::NTuple{N,Int}: stride size. Default: (1,1,...)
 * paddims::NTuple{N,Int}: padding size. Default: (0,0,...)
 
 ## 👉 Example
 ```julia
-x = Var(rand(Float32,5,4,3,2))
-f = Conv(Float32, (2,2), (3,4), stride=(1,1), pad=(0,0))
+x = Data(rand(Float32,5,4,3,2))
+f = Conv(rand(Float32,2,2,3,4), stride=(1,1), paddims=(0,0))
 y = f(x)
 ```
 """
-function Conv(T::Type, filterdims, channeldims; stride=(), paddims=())
-    N = length(filterdims)
-    w = rand(T(-0.001), T(0.001), filterdims..., channeldims...)
+function Conv(w::Var; stride=(), paddims=())
+    N = ndims(w.data) - 2
+    windims = tuple([size(w.data,i) for i=1:N]...)
     length(stride) == 0 && (stride = ntuple(_ -> 1, N))
     length(paddims) == 0 && (paddims = ntuple(_ -> 0, N))
-    Conv(Param(w), filterdims, stride, paddims)
+    Conv(nothing, nothing, [w], windims, stride, paddims, nothing)
 end
+Conv(w::Array; stride=(), paddims=()) = Conv(Param(w), stride=stride, paddims=paddims)
 
-@compat function (f::Conv)(x::Var)
-    y, work = conv(f.w.data, x.data, f.filterdims, f.stride, f.paddims)
-    function df(gy)
-        ∇conv!(f.w.data, f.w.grad, x.data, x.grad, work, y, gy,
-        f.filterdims, f.stride, f.paddims)
-    end
-    Var(y, [f.w,x], df)
+@compat function (c::Conv{N}){N}(w::Var, x::Var)
+    windims, stride, paddims = c.windims, c.stride, c.paddims
+    hasdata(w,x) || return Conv(nothing, nothing, [w,x], windims, stride, paddims, nothing)
+    y, work = conv(w.data, x.data, windims, stride, paddims)
+    Conv(y, nothing, [w,x], windims, stride, paddims, work)
 end
+@compat (c::Conv)(x::Var) = c(c[1], x)
 
 function conv{T}(w::Array{T}, x::Array{T}, windims, stride, paddims)
     N = length(windims)
@@ -82,6 +84,12 @@ end
 function outsize(x::Array, windims, stride, paddims)
     N = length(windims)
     Int[(size(x,i)+2*paddims[i]-windims[i]) ÷ stride[i] + 1 for i=1:N]
+end
+
+function backward!(y::Conv)
+    w, x = y[1], y[2]
+    ∇conv!(w.data, w.grad, x.data, x.grad, y.work, y.data, y.grad,
+    y.windims, y.stride, y.paddims)
 end
 
 function ∇conv!(w::Array, gw, x::Array, gx, work::Array, y::Array, gy::Array,

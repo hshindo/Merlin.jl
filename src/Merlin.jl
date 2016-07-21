@@ -25,38 +25,31 @@ typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
 
 include("util.jl")
 include("var.jl")
-include("gradient.jl")
-include("graph.jl")
+#include("gradient.jl")
+#include("graph.jl")
 include("training.jl")
 include("native.jl")
-include("serialize.jl")
+#include("serialize.jl")
 
 for name in [
-  "activation/relu",
-  "activation/sigmoid",
-  "activation/tanh",
-  "blas/gemm",
-  "math/plus",
-  "math/times",
-  "concat",
-  "conv",
-  "crossentropy",
-  "data",
-  "embed",
-  "linear",
-  "max",
-  "reshape",
-  "softmax",
-  "sum",
-  "transpose"
-  ]
-  include("functions/$(name).jl")
+    "activation",
+    "concat",
+    "conv",
+    "crossentropy",
+    "embed",
+    "gemm",
+    "linear",
+    "reshape",
+    "softmax",
+    "transpose",
+    ]
+    include("functions/$(name).jl")
 end
 
-for name in [
-    "gru"]
-  include("graphs/$(name).jl")
-end
+#for name in [
+#    "gru"]
+#  include("graphs/$(name).jl")
+#end
 
 export update!
 for name in [
