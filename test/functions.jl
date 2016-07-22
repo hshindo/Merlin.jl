@@ -45,7 +45,7 @@ x1 = Var(rand(T,10,5,2))
 x2 = Var(rand(T,10,5,2))
 x3 = Var(rand(T,10,5,2))
 for dim = 1:3
-    @test @checkgrad concat(dim,x1,x2,x3) [x1,x2,x3]
+    @test checkgrad(()->concat(dim,x1,x2,x3), x1,x2,x3)
 end
 
 #=
