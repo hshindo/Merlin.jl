@@ -1,12 +1,15 @@
 workspace()
 using Merlin
 using Merlin.Caffe
-using CUDA
+using JuCUDA
 using Base.LinAlg.BLAS
 using Base.Test
 using HDF5
 using Compat
 
+x = Var(rand(Float32,5,4))
+cux = Var(CuArray(x.data))
+sigmoid(x)
 
 type XXX
     dim::Int

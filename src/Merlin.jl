@@ -10,12 +10,13 @@ else
     const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.so"))
 end
 
-if isdir(joinpath(Pkg.dir(),"JuCUDA")) && isdir(joinpath(Pkg.dir(),"JuCUDNN"))
-    using JuCUDA
-    using JuCUDNN
-    info("JuCUDA and JuCUDNN are loaded.")
+export cuda_available
+cuda_available() = isdir(joinpath(Pkg.dir(),"JuCUDA")) && isdir(joinpath(Pkg.dir(),"JuCUDNN"))
+
+if cuda_available()
+    using JuCUDA, JuCUDNN
 else
-    info("JuCUDA or JuCUDNN is not found.")
+    info("JuCUDA or JuCUDNN is not loaded.")
     type CuArray{T,N}; end
     typealias CuVector{T} CuArray{T,1}
     typealias CuMatrix{T} CuArray{T,2}
@@ -25,7 +26,7 @@ typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
 
 include("util.jl")
 include("var.jl")
-#include("gradient.jl")
+include("gradient.jl")
 #include("graph.jl")
 include("training.jl")
 include("native.jl")

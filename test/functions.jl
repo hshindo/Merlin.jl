@@ -1,34 +1,27 @@
 const T = Float64
 
-macro cuda_test(f, args)
-    quote
-        haskey(ENV, "USE_CUDA") || return true
-
-        local f() = $(esc(f))
-        local args = $(esc(args))
-        eps = 1e-3
-        y1 = f().data
-        for v in args
-            v.data = CuArray(v.data)
-        end
-        y2 = Array(f().data)
-        b = all(d -> abs(d) < 2eps, y1 - y2)
-
-        for v in args
-            v.data = Array(v.data)
-        end
-        b
+function checkcuda(f, x::Var)
+    eps = 1e-2
+    cux = Var(CuArray(x.data))
+    grads = gradient!(f(x))
+    cugrads = gradient!(f(cux))
+    for i = 1:length(grads)
+        g, cug = grads[i], cugrads[i]
+        all(d -> abs(d) < eps, g - Array(cug)) && continue
+        println(gx1 - gx2)
+        return false
     end
+    true
 end
 
 @testset "functions" for i = 1:5
 
 x = Var(rand(T,5,4))
 for f in [sigmoid, tanh]
-    @test @checkgrad f(x) [x]
-    #@test @cuda_test f(x) (x,)
+    @test checkgrad(()->f(x), x)
 end
 
+#=
 x1 = Var(rand(T,10,5,2))
 x2 = Var(rand(T,10,5,2))
 x3 = Var(rand(T,10,5,2))
@@ -63,7 +56,7 @@ for dim = 1:ndims(x.data)
     @test @checkgrad logsoftmax(x,dim) [x]
 end
 
-#=
+
 x = Data(rand(T,5,4))
 for f in [sigmoid, tanh]
     @test @checkgrad f(x) [x]
