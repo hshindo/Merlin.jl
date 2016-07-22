@@ -11,54 +11,19 @@
             "title": "Merlin.jl"
         }, 
         {
-            "location": "/overview/", 
-            "text": "Overview\n\n\n\n\nWrap data with \nVar\n.\n\n\nApply functions to the variables.\n\n\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\ny\n \n=\n \nLinear\n(\nFloat32\n,\n10\n,\n7\n)(\nx\n)\n\n\ny\n \n=\n \nrelu\n(\ny\n)\n\n\ny\n \n=\n \nLinear\n(\nFloat32\n,\n7\n,\n3\n)(\ny\n)\n\n\ny\n\n\n\n\n\n\n\n\nForward and Backward Computation\n\n\nx\n \n=\n \nparam\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nFloat32\n,\n10\n,\n7\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\ngradient!\n(\ny\n)\n\n\nx\n.\ngrad\n\n\n\n\n\n\n\n\nTraining\n\n\nRather than call \ngradient!\n manually, Merlin provides \nfit\n function for training your model.\n\n\nusing\n \nMerlin\n\n\n\ndata_x\n \n=\n \n[\nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n \nfor\n \ni\n=\n1\n:\n100\n]\n \n# input data\n\n\ndata_y\n \n=\n \n[\nVar\n([\n1\n,\n2\n,\n3\n])\n \nfor\n \ni\n=\n1\n:\n100\n]\n \n# correct labels\n\n\n\nopt\n \n=\n \nSGD\n(\n0.0001\n)\n\n\nfor\n \nepoch\n \n=\n \n1\n:\n10\n\n  \nprintln\n(\nepoch: \n$(epoch)\n)\n\n  \nloss\n \n=\n \nfit\n(\nf\n,\n \ncrossentropy\n,\n \nopt\n,\n \ndata_x\n,\n \ndata_y\n)\n\n  \nprintln\n(\nloss: \n$(loss)\n)\n\n\nend\n\n\n\n\n\n\nwhere \nfit\n tales five arguments: \ndecode\n, \nloss function\n, \noptimizer\n, \ndata_x\n and \ndata_y\n.", 
-            "title": "Overview"
-        }, 
-        {
-            "location": "/overview/#overview", 
-            "text": "Wrap data with  Var .  Apply functions to the variables.   x   =   Var ( rand ( Float32 , 10 , 5 ))  y   =   Linear ( Float32 , 10 , 7 )( x )  y   =   relu ( y )  y   =   Linear ( Float32 , 7 , 3 )( y )  y", 
-            "title": "Overview"
-        }, 
-        {
-            "location": "/overview/#forward-and-backward-computation", 
-            "text": "x   =   param ( rand ( Float32 , 10 , 5 ))  f   =   Linear ( Float32 , 10 , 7 )  y   =   f ( x )  gradient! ( y )  x . grad", 
-            "title": "Forward and Backward Computation"
-        }, 
-        {
-            "location": "/overview/#training", 
-            "text": "Rather than call  gradient!  manually, Merlin provides  fit  function for training your model.  using   Merlin  data_x   =   [ Var ( rand ( Float32 , 10 , 5 ))   for   i = 1 : 100 ]   # input data  data_y   =   [ Var ([ 1 , 2 , 3 ])   for   i = 1 : 100 ]   # correct labels  opt   =   SGD ( 0.0001 )  for   epoch   =   1 : 10 \n   println ( epoch:  $(epoch) ) \n   loss   =   fit ( f ,   crossentropy ,   opt ,   data_x ,   data_y ) \n   println ( loss:  $(loss) )  end   where  fit  tales five arguments:  decode ,  loss function ,  optimizer ,  data_x  and  data_y .", 
-            "title": "Training"
-        }, 
-        {
             "location": "/functions/", 
-            "text": "Functions\n\n\nrelu(x::Var)\nsigmoid(x::Var)\ntanh(x::Var)\nconcat(dim::Int, xs::Vector{Var})\nLinear(w, b)\nmax(x::Var, dim::Int)\nreshape(x::Var, dims)\nsoftmax(x::Var)\nlogsoftmax(x::Var)\nsoftmax_crossentropy(p::Var, x::Var, dim::Int)\nsum(x::Var, dim::Int)", 
+            "text": "Functions\n\n\n\n\nActivation\n\n\n#\n\n\nMerlin.relu\n \n \nMethod\n.\n\n\nrelu(x)\n\n\n\n\n\n\n\nlink to \nrelu(x)\n\n\n\n\n#\n\n\nMerlin.sigmoid\n \n \nMethod\n.\n\n\nsigmoid(x)\n\n\n\n\n\n\n\nlink to \nsigmoid(x)", 
             "title": "Functions"
         }, 
         {
             "location": "/functions/#functions", 
-            "text": "relu(x::Var)\nsigmoid(x::Var)\ntanh(x::Var)\nconcat(dim::Int, xs::Vector{Var})\nLinear(w, b)\nmax(x::Var, dim::Int)\nreshape(x::Var, dims)\nsoftmax(x::Var)\nlogsoftmax(x::Var)\nsoftmax_crossentropy(p::Var, x::Var, dim::Int)\nsum(x::Var, dim::Int)", 
+            "text": "", 
             "title": "Functions"
         }, 
         {
-            "location": "/graph/", 
-            "text": "Graph\n\n\nGraph\n is a container of computational graph.\n\n\nf\n \n=\n \n@\ngraph\n \nbegin\n\n  \nx\n \n=\n \nVar\n(:\nx\n)\n\n  \nx\n \n=\n \nLinearFun\n(\nFloat32\n,\n10\n,\n5\n)\n\n  \nx\n \n=\n \nrelu\n(\nx\n)\n\n  \nx\n \n=\n \nLinearFun\n(\nFLoat32\n,\n5\n,\n3\n)\n\n  \nx\n\n\nend\n\n\n\n\n\n\nThen, apply the function \ng\n to input var.\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n10\n))\n\n\ny\n \n=\n \nf\n(:\nx\n \n=\n \nx\n)", 
-            "title": "Graph"
-        }, 
-        {
-            "location": "/graph/#graph", 
-            "text": "Graph  is a container of computational graph.  f   =   @ graph   begin \n   x   =   Var (: x ) \n   x   =   LinearFun ( Float32 , 10 , 5 ) \n   x   =   relu ( x ) \n   x   =   LinearFun ( FLoat32 , 5 , 3 ) \n   x  end   Then, apply the function  g  to input var.  x   =   Var ( rand ( Float32 , 10 , 10 ))  y   =   f (: x   =   x )", 
-            "title": "Graph"
-        }, 
-        {
-            "location": "/optimizers/", 
-            "text": "Optimizers\n\n\n#\n\n\nMerlin.AdaGrad\n \n \nType\n.\n\n\nAdaGrad implementation. See: http://jmlr.org/papers/v12/duchi11a.html\n\n\n#\n\n\nMerlin.Adam\n \n \nType\n.\n\n\nAdam\n\n\nAdam: A Method for Stochastic Optimization See: http://arxiv.org/abs/1412.6980v8\n\n\n#\n\n\nMerlin.SGD\n \n \nType\n.\n\n\nSGD\n\n\n\n\n\nStochastic Gradient Descent.\n\n\n\n\nrate: learning rate", 
-            "title": "Optimizers"
-        }, 
-        {
-            "location": "/optimizers/#optimizers", 
-            "text": "#  Merlin.AdaGrad     Type .  AdaGrad implementation. See: http://jmlr.org/papers/v12/duchi11a.html  #  Merlin.Adam     Type .  Adam  Adam: A Method for Stochastic Optimization See: http://arxiv.org/abs/1412.6980v8  #  Merlin.SGD     Type .  SGD  Stochastic Gradient Descent.   rate: learning rate", 
-            "title": "Optimizers"
+            "location": "/functions/#activation", 
+            "text": "#  Merlin.relu     Method .  relu(x)   link to  relu(x)   #  Merlin.sigmoid     Method .  sigmoid(x)   link to  sigmoid(x)", 
+            "title": "Activation"
         }
     ]
 }

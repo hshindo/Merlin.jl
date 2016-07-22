@@ -175,15 +175,6 @@
           
             
   <li>
-    <a class="" title="Overview" href="../overview/">
-      Overview
-    </a>
-    
-  </li>
-
-          
-            
-  <li>
     <a class="current" title="Functions" href="./">
       Functions
     </a>
@@ -192,24 +183,16 @@
         
       
       
-    
-  </li>
-
+        <ul>
           
-            
-  <li>
-    <a class="" title="Graph" href="../graph/">
-      Graph
-    </a>
-    
-  </li>
-
+            <li class="anchor">
+              <a title="Activation" href="#activation">
+                Activation
+              </a>
+            </li>
           
-            
-  <li>
-    <a class="" title="Optimizers" href="../optimizers/">
-      Optimizers
-    </a>
+        </ul>
+      
     
   </li>
 
@@ -226,18 +209,26 @@
           
           <p><a id='Functions-1'></a></p>
 <h1 id="functions">Functions</h1>
-<div class="codehilite"><pre><span></span>relu(x::Var)
-sigmoid(x::Var)
-tanh(x::Var)
-concat(dim::Int, xs::Vector{Var})
-Linear(w, b)
-max(x::Var, dim::Int)
-reshape(x::Var, dims)
-softmax(x::Var)
-logsoftmax(x::Var)
-softmax_crossentropy(p::Var, x::Var, dim::Int)
-sum(x::Var, dim::Int)
+<p><a id='Activation-1'></a></p>
+<h2 id="activation">Activation</h2>
+<p><a id='Merlin.relu-Tuple{Merlin.Var}' href='#Merlin.relu-Tuple{Merlin.Var}'>#</a>
+<strong><code>Merlin.relu</code></strong> &mdash; <em>Method</em>.</p>
+<div class="codehilite"><pre><span></span>relu(x)
 </pre></div>
+
+
+<ul>
+<li>link to <a href="./#Merlin.relu-Tuple{Merlin.Var}"><code>relu(x)</code></a></li>
+</ul>
+<p><a id='Merlin.sigmoid-Tuple{Merlin.Var}' href='#Merlin.sigmoid-Tuple{Merlin.Var}'>#</a>
+<strong><code>Merlin.sigmoid</code></strong> &mdash; <em>Method</em>.</p>
+<div class="codehilite"><pre><span></span>sigmoid(x)
+</pre></div>
+
+
+<ul>
+<li>link to <a href="./#Merlin.sigmoid-Tuple{Merlin.Var}"><code>sigmoid(x)</code></a></li>
+</ul>
           <aside class="copyright" role="note">
             
             Documentation built with
@@ -254,7 +245,7 @@ sum(x::Var, dim::Int)
   <nav class="pagination" aria-label="Footer">
     <div class="previous">
       
-        <a href="../overview/" title="Overview">
+        <a href=".." title="Home">
           <span class="direction">
             Previous
           </span>
@@ -264,7 +255,7 @@ sum(x::Var, dim::Int)
             </div>
             <div class="stretch">
               <div class="title">
-                Overview
+                Home
               </div>
             </div>
           </div>
@@ -272,22 +263,6 @@ sum(x::Var, dim::Int)
       
     </div>
     <div class="next">
-      
-        <a href="../graph/" title="Graph">
-          <span class="direction">
-            Next
-          </span>
-          <div class="page">
-            <div class="stretch">
-              <div class="title">
-                Graph
-              </div>
-            </div>
-            <div class="button button-next" role="button" aria-label="Next">
-              <i class="icon icon-forward"></i>
-            </div>
-          </div>
-        </a>
       
     </div>
   </nav>
