@@ -7,6 +7,8 @@ else
     const Test = BaseTestNext
 end
 
+import Merlin.CuArray
+
 tests = ["functions"]
 
 for t in tests
@@ -14,5 +16,3 @@ for t in tests
     println("$path ...")
     include(path)
 end
-
-#cuda_available() && include("cuda.jl")

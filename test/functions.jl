@@ -1,17 +1,36 @@
 const T = Float64
 
-function checkcuda(f, x::Var)
+function checkcuda(f, xs::Var...)
     eps = 1e-2
-    cux = Var(CuArray(x.data))
-    grads = gradient!(f(x))
-    cugrads = gradient!(f(cux))
-    for i = 1:length(grads)
-        g, cug = grads[i], cugrads[i]
-        all(d -> abs(d) < eps, g - Array(cug)) && continue
-        println(gx1 - gx2)
-        return false
+    for x in xs
+        x.grad = zeros(x.data)
     end
-    true
+    out = f()
+    y = copy(out.data)
+    gxs = map(v -> v.grad, gradient!(out))
+
+    for x in xs
+        x.data = CuArray(x.data)
+        x.grad = zeros(x.data)
+    end
+
+    out = f()
+    cuy = Array(out.data)
+    cugxs = map(v -> Array(v.grad), gradient!(out))
+
+    b = true
+    for i = 1:length(gxs)
+        diff = gxs[i] - cugxs[i]
+        if any(d -> abs(d) >= eps, diff)
+            println(diff)
+            b = false
+        end
+    end
+    for x in xs
+        x.data = Array(x.data)
+        x.grad = zeros(x.data)
+    end
+    b
 end
 
 @testset "functions" for i = 1:5
@@ -19,9 +38,9 @@ end
 x = Var(rand(T,5,4))
 for f in [sigmoid, tanh]
     @test checkgrad(()->f(x), x)
+    @test checkcuda(()->f(x), x)
 end
 
-#=
 x1 = Var(rand(T,10,5,2))
 x2 = Var(rand(T,10,5,2))
 x3 = Var(rand(T,10,5,2))
@@ -29,6 +48,7 @@ for dim = 1:3
     @test @checkgrad concat(dim,x1,x2,x3) [x1,x2,x3]
 end
 
+#=
 x = Var(rand(Float32,5,4,3,2))
 f = Conv(Float32, (2,2), (3,4), stride=(1,1), paddims=(0,0))
 @test @checkgrad f(x) [f.w,x]

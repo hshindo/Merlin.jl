@@ -39,7 +39,7 @@ function ∇concat!{T<:UniArray}(dim::Int, gxs::Vector{T}, gy::T)
   for gx in gxs
     s = size(gx, dim)
     range[dim] = offset:(offset+s-1)
-    BLAS.axpy!(eltype(gy)(1), gy[range...], gx)
+    BLAS.axpy!(eltype(gy)(1), view(gy, range...), gx)
     offset += s
   end
 end
