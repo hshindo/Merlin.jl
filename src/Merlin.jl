@@ -5,20 +5,20 @@ using Base.LinAlg.BLAS
 import Compat.view
 
 @compat if is_windows()
-  const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps\\libmerlin.dll"))
+    const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps\\libmerlin.dll"))
 else
-  const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.so"))
+    const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.so"))
 end
 
-USE_CUDA = false
-if USE_CUDA
-  using CUDA
-  using CUDNN
+if isdir(joinpath(Pkg.dir(),"JuCUDA")) && isdir(joinpath(Pkg.dir(),"JuCUDNN"))
+    using JuCUDA
+    using JuCUDNN
+    info("JuCUDA and JuCUDNN are loaded.")
 else
-  type CuArray{T,N}
-  end
-  typealias CuVector{T} CuArray{T,1}
-  typealias CuMatrix{T} CuArray{T,2}
+    info("JuCUDA or JuCUDNN is not found.")
+    type CuArray{T,N}; end
+    typealias CuVector{T} CuArray{T,1}
+    typealias CuMatrix{T} CuArray{T,2}
 end
 
 typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
@@ -56,7 +56,7 @@ for name in [
     "adagrad",
     "adam",
     "sgd"]
-  include("optimizers/$(name).jl")
+    include("optimizers/$(name).jl")
 end
 
 #include("caffe/Caffe.jl")
