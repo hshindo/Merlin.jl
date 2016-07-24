@@ -3,3 +3,4 @@ Compat
 ProtoBuf
 HDF5
 BaseTestNext
+ProgressMeter

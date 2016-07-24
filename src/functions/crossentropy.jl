@@ -1,10 +1,10 @@
 export crossentropy
 
-function crossentropy(p::Var, x::Var)
+function crossentropy(p, x::Var)
     logx = logsoftmax(x.data, 1)
-    y = crossentropy(p.data, logx)
-    df(gy) = ∇crossentropy!(p.data, logx, x.grad, gy)
-    Var(y, [p,x], df)
+    y = crossentropy(p, logx)
+    df(gy) = ∇crossentropy!(p, logx, x.grad, gy)
+    Var(y, [x], df)
 end
 
 function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
