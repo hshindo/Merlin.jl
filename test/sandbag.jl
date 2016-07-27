@@ -7,6 +7,14 @@ using Base.Test
 using HDF5
 using Compat
 
+x1 = curand(Float32,4,3)
+x1 = zeros(x1)
+x2 = curand(Float32,4,3)
+x2 = ones(x2)
+x3 = zeros(x1)
+y = concat(1,[x1,x2,x3])
+Array(y)
+
 x = Var(rand(Float32,5,4))
 cux = Var(CuArray(x.data))
 sigmoid(x)

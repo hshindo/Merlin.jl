@@ -12,7 +12,7 @@ g2 = @graph ...
 save("/home/xxx/cnn.h5", ("g1",g1), ("g2",g2))
 ```
 """
-function save(path::AbstractString)
+function save(path::String)
   function write(g, d::Dict)
     for (k,v) in d
       if typeof(v) <: Dict
@@ -30,7 +30,7 @@ function save(path::AbstractString)
   end
 end
 
-function load(path::AbstractString)
+function load(path::String)
   dict = h5read(path, "Merlin")
   for (k,v) in dict
     if typeof(v) <: Dict

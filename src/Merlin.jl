@@ -2,7 +2,7 @@ module Merlin
 
 using Compat
 using Base.LinAlg.BLAS
-import Compat.view
+import Compat: String, view
 
 @compat if is_windows()
     const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps\\libmerlin.dll"))

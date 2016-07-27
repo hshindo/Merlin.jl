@@ -38,7 +38,7 @@ end
 x = Var(rand(T,5,4))
 for f in [sigmoid, tanh]
     @test checkgrad(()->f(x), x)
-    #@test checkcuda(()->f(x), x)
+    @test checkcuda(()->f(x), x)
 end
 
 x1 = Var(rand(T,10,5,2))
@@ -46,6 +46,7 @@ x2 = Var(rand(T,10,5,2))
 x3 = Var(rand(T,10,5,2))
 for dim = 1:3
     @test checkgrad(()->concat(dim,x1,x2,x3), x1,x2,x3)
+    @test checkcuda(()->concat(dim,x1,x2,x3), x1,x2,x3)
 end
 
 p = [1:5;]

@@ -3,7 +3,7 @@ using ProgressMeter
 
 function fit(decode, lossfun, optimize, xs::Vector, ys::Vector)
     @assert length(xs) == length(ys)
-    progress = Progress(length(xs))
+    prog = Progress(length(xs))
     loss = 0.0
     for i in randperm(length(xs))
         z = decode(xs[i])
@@ -13,7 +13,7 @@ function fit(decode, lossfun, optimize, xs::Vector, ys::Vector)
         for v in vars
             optimize(v.data, v.grad)
         end
-        next!(progress)
+        next!(prog)
     end
     loss
 end
