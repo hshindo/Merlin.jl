@@ -8,10 +8,6 @@ branches:
     - master
     - /release-.*/
 
-cache:
-  #- mingw-w64-bin-x86_64-20140102.7z
-  #- C:\mingw64
-
 notifications:
   - provider: Email
     on_build_success: false
@@ -25,6 +21,7 @@ install:
         "C:\projects\julia-binary.exe")
 # Run installer silently, output to C:\projects\julia
   - C:\projects\julia-binary.exe /S /D=C:\projects\julia
+  - set PATH=C:\msys64\usr\bin;%PATH%
 
 build_script:
 # Need to convert from shallow to complete for Pkg.clone to work
