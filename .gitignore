@@ -1,7 +1,2 @@
-*.jl.cov
-*.jl.*.cov
-*.jl.mem
-*.so
 docs/build/
 docs/site/
-lib/

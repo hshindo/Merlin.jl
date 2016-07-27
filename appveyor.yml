@@ -24,7 +24,6 @@ install:
 
 build_script:
 # Need to convert from shallow to complete for Pkg.clone to work
-  - C:\MinGW\msys\1.0\bin\sh --login /c/projects/merlin-jl/msys_build.sh
   - IF EXIST .git\shallow (git fetch --unshallow)
   - C:\projects\julia\bin\julia -F -e "versioninfo();
       Pkg.clone(pwd(), \"Merlin\"); Pkg.build(\"Merlin\")"
