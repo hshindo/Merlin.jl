@@ -16,6 +16,9 @@ softmax_handle(::Type{Float64}) = SOFTMAX_F64, ∇SOFTMAX_F64
 logsoftmax_handle(::Type{Float32}) = LOGSOFTMAX_F32, ∇LOGSOFTMAX_F32
 logsoftmax_handle(::Type{Float64}) = LOGSOFTMAX_F64, ∇LOGSOFTMAX_F64
 
+"""
+    softmax(x::Var, dim::Int)
+"""
 function softmax(x::Var, dim::Int)
   y = softmax(x.data, dim)
   df(gy) = ∇softmax!(x.grad, y, gy, dim)
@@ -80,7 +83,7 @@ function ∇softmax_jl!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
 end
 
 """
-    logsoftmax(x, dim::Int)
+    logsoftmax(x::Var, dim::Int)
 
 Compute log-softmax along the given axis.
 """
