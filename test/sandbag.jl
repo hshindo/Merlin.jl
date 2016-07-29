@@ -7,6 +7,8 @@ using Base.Test
 using HDF5
 using Compat
 
+
+
 nprocs()
 path = "C:/Users/hshindo/Desktop/nin_imagenet.caffemodel"
 g = Caffe.load(path)

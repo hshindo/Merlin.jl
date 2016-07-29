@@ -1,8 +1,6 @@
 export Var, Param
 
-abstract Node
-
-type Var <: Node
+type Var
   data
   args::Vector{Var}
   df
@@ -34,11 +32,3 @@ function topsort(top::Var)
     visit(top)
     sorted
 end
-
-type Data <: Node
-    value
-    grad
-    opt
-end
-
-update!(x::Data) = opt(x.value, x.grad)
