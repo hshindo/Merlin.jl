@@ -7,6 +7,10 @@ using Base.Test
 using HDF5
 using Compat
 
+x = Var(rand(Float32,5,4,3,2))
+f = Conv(Float32, (2,2), (3,4), stride=(1,1), paddims=(0,0))
+y = f(x)
+
 function bench()
     dict = Dict(:1=>1,:2=>2,:3=>3,:4=>4,:5=>5,:6=>6,:7=>7,:8=>8,:9=>9,:10=>10)
     for i = 1:10000
