@@ -242,7 +242,40 @@ concat(dim::Int, xs::Vector{Var})
 </pre></div>
 
 
-<div class="codehilite"><pre><span></span>sigmoid(x::Var)
+<p><a id='Merlin.gemm-Tuple{Any,Any,Any,Merlin.Var,Merlin.Var}' href='#Merlin.gemm-Tuple{Any,Any,Any,Merlin.Var,Merlin.Var}'>#</a>
+<strong><code>Merlin.gemm</code></strong> &mdash; <em>Method</em>.</p>
+<div class="codehilite"><pre><span></span>gemm(tA::Char, tB::Char, alpha::Float64, A::Var, B::Var)
+gemm(A::Var, B::Var)
+</pre></div>
+
+
+<p>C = alpha * tA(A) * tB(B)</p>
+<ul>
+<li>tA: transpose ('T') or not ('N'). default: 'N'</li>
+<li>tB: same as tA</li>
+</ul>
+<p><a id='Base.max-Tuple{Merlin.Var,Int64}' href='#Base.max-Tuple{Merlin.Var,Int64}'>#</a>
+<strong><code>Base.max</code></strong> &mdash; <em>Method</em>.</p>
+<p><a id='Base.reshape-Tuple{Merlin.Var,Any}' href='#Base.reshape-Tuple{Merlin.Var,Any}'>#</a>
+<strong><code>Base.reshape</code></strong> &mdash; <em>Method</em>.</p>
+<p><a id='Merlin.softmax-Tuple{Merlin.Var,Int64}' href='#Merlin.softmax-Tuple{Merlin.Var,Int64}'>#</a>
+<strong><code>Merlin.softmax</code></strong> &mdash; <em>Method</em>.</p>
+<div class="codehilite"><pre><span></span>softmax(x::Var, dim::Int)
+</pre></div>
+
+
+<p><a id='Merlin.logsoftmax-Tuple{Merlin.Var,Int64}' href='#Merlin.logsoftmax-Tuple{Merlin.Var,Int64}'>#</a>
+<strong><code>Merlin.logsoftmax</code></strong> &mdash; <em>Method</em>.</p>
+<div class="codehilite"><pre><span></span>logsoftmax(x::Var, dim::Int)
+</pre></div>
+
+
+<p>Compute log-softmax along the given axis.</p>
+<p><a id='Base.sum-Tuple{Any,Int64}' href='#Base.sum-Tuple{Any,Int64}'>#</a>
+<strong><code>Base.sum</code></strong> &mdash; <em>Method</em>.</p>
+<p><a id='Base.transpose-Tuple{Merlin.Var}' href='#Base.transpose-Tuple{Merlin.Var}'>#</a>
+<strong><code>Base.transpose</code></strong> &mdash; <em>Method</em>.</p>
+<div class="codehilite"><pre><span></span>transpose(x::Var)
 </pre></div>
           <aside class="copyright" role="note">
             
