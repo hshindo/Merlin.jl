@@ -25,7 +25,7 @@ Our primary goal is to develop a natural language processing toolkit based on `M
 
 ## [Experimental] CUDA GPU
 If you use CUDA GPU, the following is required.
-- [cuDNN](https://developer.nvidia.com/cudnn) v5
+- [cuDNN](https://developer.nvidia.com/cudnn) v5 or later
 - [JuCUDA.jl](https://github.com/hshindo/JuCUDA.jl.git) (CUDA bindings for Julia)
 - [JuCUDNN.jl](https://github.com/hshindo/JuCUDNN.jl.git) (cuDNN wrapper for Julia)
 
