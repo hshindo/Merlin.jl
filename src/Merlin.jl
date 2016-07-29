@@ -32,6 +32,8 @@ include("training.jl")
 include("native.jl")
 #include("serialize.jl")
 
+include("graphs/sequence.jl")
+
 for name in [
     "activation",
     "concat",

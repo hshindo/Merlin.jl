@@ -53,3 +53,70 @@ julia> Pkg.build("Merlin.jl")
 julia> Pkg.clone("https://github.com/hshindo/CUDA.jl.git")
 julia> Pkg.clone("https://github.com/hshindo/CUDNN.jl.git")
 ```
+
+## Quick Start
+Basically,
+
+1. Wrap your data with `Var`.
+2. Apply functions to `Var`s. `Var` memorizes a history of functional applications for auto-differentiation.
+
+### Example1: Feed-Forward Neural Network
+Static network can be constructed by `@graph` macro.
+
+Here is an example of three-layer network:
+
+<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/feedforward.png" width="120"></p>
+
+```julia
+using Merlin
+
+f = @graph begin
+  T = Float32
+  x = Var(:x)
+  x = Linear(T,10,7)(x)
+  x = relu(x)
+  x = Linear(T,7,3)(x)
+  x
+end
+x = Var(rand(Float32,10,5))
+y = f(:x => x)
+```
+where `Var(:<name>)` is a place-holder of input variable.
+
+### Example2: Recurrent Neural Network (RNN)
+<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="270"></p>
+
+```julia
+using Merlin
+
+T = Float32
+f_h = @graph ... # function for hidden unit
+f_y = @graph ... # function for output unit
+
+h = Var(rand(T,50,1)) # initial hidden vector
+xs = [Var(rand(T,50,1)) for i=1:10] # input vars
+ys = Array(Var, length(xs)) # output vars
+
+for i = 1:length(xs)
+ x = xs[i]
+ c = concat(1, x, h) # concatanate x and h along the first dimension.
+ h = f_h(:x => c)
+ ys[i] = f_y(:x => h)
+end
+```
+
+### Training
+`Merlin` provides `fit` function to train your model.
+```julia
+data_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
+data_y = [Var([1,2,3]) for i=1:100] # correct labels
+f = ...
+
+opt = SGD(0.0001)
+for epoch = 1:10
+  println("epoch: $(epoch)")
+  loss = fit(f, softmax_crossentropy, opt, data_x, data_y)
+  println("loss: $(loss)")
+end
+```
+See documentation for more details.
