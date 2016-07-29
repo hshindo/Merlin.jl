@@ -4,6 +4,8 @@ This is alpha version.
 
 [NLP Demo](http://158.199.141.203/)
 
+See [JukaiNLP](https://github.com/hshindo/JukaiNLP.jl.git) for more details.
+
 # Merlin: deep learning framework in Julia
 
 `Merlin` is a deep learning framework written in [Julia](http://julialang.org/).
