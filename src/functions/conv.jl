@@ -33,7 +33,7 @@ N-dimensional convolution function.
 ## 👉 Example
 ```julia
 x = Var(rand(Float32,5,4,3,2))
-f = Conv(Float32, (2,2), (3,4), stride=(1,1), pad=(0,0))
+f = Conv(Float32, (2,2), (3,4), stride=(1,1), paddims=(0,0))
 y = f(x)
 ```
 """

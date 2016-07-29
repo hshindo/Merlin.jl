@@ -2,6 +2,17 @@ export crossentropy
 
 """
     crossentropy(p,x)
+
+Computes cross-entropy between p and x. x is assumed to be unnormalized.
+
+* p: Vector{Int} or Matrix{Float}
+
+## 👉 Example
+```julia
+p = [1:5;]
+x = Var(rand(Float32,10,5))
+y = crossentropy(p,x)
+```
 """
 function crossentropy(p, x::Var)
     logx = logsoftmax(x.data, 1)
