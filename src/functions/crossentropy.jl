@@ -1,5 +1,8 @@
 export crossentropy
 
+"""
+    crossentropy(p,x)
+"""
 function crossentropy(p, x::Var)
     logx = logsoftmax(x.data, 1)
     y = crossentropy(p, logx)

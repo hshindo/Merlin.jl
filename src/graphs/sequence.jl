@@ -1,5 +1,3 @@
-export @graph
-
-macro graph(expr)
-    expr
+type Sequence
+    funs::Vector
 end

@@ -7,7 +7,14 @@ using Base.Test
 using HDF5
 using Compat
 
-
+function bench()
+    dict = Dict(:1=>1,:2=>2,:3=>3,:4=>4,:5=>5,:6=>6,:7=>7,:8=>8,:9=>9,:10=>10)
+    for i = 1:10000
+        for k = 1:10
+            dict[k]
+        end
+    end
+end
 
 nprocs()
 path = "C:/Users/hshindo/Desktop/nin_imagenet.caffemodel"

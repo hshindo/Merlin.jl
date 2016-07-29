@@ -1,4 +1,4 @@
-import Base.transpose
+import Base: transpose
 
 """
     transpose(x::Var)
