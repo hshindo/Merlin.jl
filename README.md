@@ -31,8 +31,8 @@ If you use CUDA GPU, the following is required.
 
 Install the following packages:
 ```julia
-julia> Pkg.clone("https://github.com/hshindo/CUDA.jl.git")
-julia> Pkg.clone("https://github.com/hshindo/CUDNN.jl.git")
+julia> Pkg.clone("https://github.com/hshindo/JuCUDA.jl.git")
+julia> Pkg.clone("https://github.com/hshindo/JuCUDNN.jl.git")
 ```
 
 ## Installation
