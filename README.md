@@ -23,18 +23,6 @@ Our primary goal is to develop a natural language processing toolkit based on `M
 - Julia 0.4 or later
 - g++ (for OSX or Linux)
 
-## [Experimental] CUDA GPU
-If you use CUDA GPU, the following is required.
-- [cuDNN](https://developer.nvidia.com/cudnn) v5 or later
-- [JuCUDA.jl](https://github.com/hshindo/JuCUDA.jl.git) (CUDA bindings for Julia)
-- [JuCUDNN.jl](https://github.com/hshindo/JuCUDNN.jl.git) (cuDNN wrapper for Julia)
-
-Install the following packages:
-```julia
-julia> Pkg.clone("https://github.com/hshindo/JuCUDA.jl.git")
-julia> Pkg.clone("https://github.com/hshindo/JuCUDNN.jl.git")
-```
-
 ## Installation
 First, install [Julia](http://julialang.org/). Currently, version 0.4.x is recommended.
 
@@ -52,6 +40,18 @@ which generates `libmerlin.so` on `deps/`.
 
 For Windows, `libmerlin.dll` is provided on `deps/`, however,
 if you have installed `g++` with mingw-x64, you can build `Merlin` as follows:
+
+## [Experimental] CUDA GPU
+If you use CUDA GPU, the following is required.
+- [cuDNN](https://developer.nvidia.com/cudnn) v5 or later
+- [JuCUDA.jl](https://github.com/hshindo/JuCUDA.jl.git) (CUDA bindings for Julia)
+- [JuCUDNN.jl](https://github.com/hshindo/JuCUDNN.jl.git) (cuDNN wrapper for Julia)
+
+Install the following packages:
+```julia
+julia> Pkg.clone("https://github.com/hshindo/JuCUDA.jl.git")
+julia> Pkg.clone("https://github.com/hshindo/JuCUDNN.jl.git")
+```
 
 ## Quick Start
 Basically,
