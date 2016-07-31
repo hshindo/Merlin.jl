@@ -118,4 +118,3 @@ for epoch = 1:10
   println("loss: $(loss)")
 end
 ```
-See documentation for more details.
