@@ -7,6 +7,13 @@ using Base.Test
 using HDF5
 using Compat
 
+g = @graph begin
+  T = Float32
+  x = GraphNode(:x)
+  x = relu(x)
+  x
+end
+
 x = Var(rand(Float32,5,4,3,2))
 f = Conv(Float32, (2,2), (3,4), stride=(1,1), paddims=(0,0))
 y = f(x)

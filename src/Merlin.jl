@@ -27,7 +27,7 @@ typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
 include("util.jl")
 include("var.jl")
 include("gradient.jl")
-#include("graph.jl")
+include("graph.jl")
 include("training.jl")
 include("native.jl")
 #include("serialize.jl")

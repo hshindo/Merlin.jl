@@ -9,6 +9,7 @@ function relu(x::Var)
     df(gy) = hasgrad(x) && ∇relu!(x.data, x.grad, y, gy)
     Var(y, [x], df)
 end
+relu(x::GraphNode) = GraphNode(relu, x)
 
 function relu{T}(x::Array{T})
     y = similar(x)

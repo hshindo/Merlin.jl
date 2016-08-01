@@ -1,4 +1,4 @@
-export Graph, @graph
+export Graph, GraphNode, @graph
 
 type GraphNode
     f
@@ -7,7 +7,7 @@ type GraphNode
 end
 
 function GraphNode(f, args...)
-    GraphNode(f, args, tails)
+    GraphNode(f, args, Int[])
 end
 
 type Graph
@@ -76,9 +76,6 @@ macro graph(expr)
         Graph(eval($(esc(expr))))
     end
 end
-
-
-
 
 function hdf5(g::Graph)
 
