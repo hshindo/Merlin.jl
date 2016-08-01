@@ -1,14 +1,11 @@
 export Graph, GraphNode, @graph
 
 type GraphNode
-    f
     args::Tuple
     tails::Vector{Int}
 end
 
-function GraphNode(f, args...)
-    GraphNode(f, args, Int[])
-end
+GraphNode(args...) = GraphNode(args, Int[])
 
 type Graph
     nodes::Vector{Var} # sorted in topological order
