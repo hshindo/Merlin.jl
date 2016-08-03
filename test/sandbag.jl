@@ -7,6 +7,12 @@ using Base.Test
 using HDF5
 using Compat
 
+a = Embed(Float32,100,10)
+a.ws[1].data
+y = a(Var([1,2,3,4,5]))
+
+
+
 g = @graph begin
   T = Float32
   x = GraphNode(:x)

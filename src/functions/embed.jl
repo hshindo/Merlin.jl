@@ -51,7 +51,7 @@ end
     n = length(w1.data)
     dims = [size(x)...]
     dims[1] *= n
-    y = similar(x, dims...)
+    y = Array(T, dims...)
     for i = 1:length(x)
         copy!(y, (i-1)*n+1, v.ws[x[i]].data, 1, n)
     end
