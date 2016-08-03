@@ -15,7 +15,7 @@ const compiler = "g++"
   #run(cmd)
   #end
 elseif is_apple()
-  flags    = ["-fPIC", "-Wall", "-O3", "-shared", "-march=native"]
+  flags    = ["-fPIC", "-Wall", "-O3", "-shared"]
   libname = "libmerlin.so"
   cmd = `$compiler $flags -o $libname $sources`
   println("Running $cmd")
