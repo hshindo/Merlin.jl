@@ -1,6 +1,5 @@
 type WeightDecay
 end
 
-function update!(opt::WeightDecay)
-  
+function (opt::WeightDecay)(x)
 end

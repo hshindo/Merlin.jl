@@ -1,6 +1,9 @@
 export fit
+using ProgressMeter
 
-function fit(decode, lossfun, opt, xs, ys)
+function fit(decode, lossfun, optimize, xs::Vector, ys::Vector)
+    @assert length(xs) == length(ys)
+    prog = Progress(length(xs))
     loss = 0.0
     for i in randperm(length(xs))
         z = decode(xs[i])
@@ -8,8 +11,9 @@ function fit(decode, lossfun, opt, xs, ys)
         loss += sum(out.data)
         vars = gradient!(out)
         for v in vars
-            opt(v.data, v.grad)
+            optimize(v.data, v.grad)
         end
+        next!(prog)
     end
     loss
 end

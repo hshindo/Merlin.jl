@@ -25,14 +25,15 @@ N-dimensional convolution function.
 
 ## Arguments
 * T: Type
-* windims::NTuple{N,Int}: window size..., input channel, output channel
-* stride::NTuple{N,Int}: stride size. Default: (1,1,...)
-* paddims::NTuple{N,Int}: padding size. Default: (0,0,...)
+* filterdims::NTuple{N,Int}: window size
+* channeldims::Tuple{Int,Int}: input channel, output channel
+* [stride::NTuple{N,Int}]: stride size. Default: (1,1,...)
+* [paddims::NTuple{N,Int}]: padding size. Default: (0,0,...)
 
 ## 👉 Example
 ```julia
 x = Var(rand(Float32,5,4,3,2))
-f = Conv(Float32, (2,2), (3,4), stride=(1,1), pad=(0,0))
+f = Conv(Float32, (2,2), (3,4), stride=(1,1), paddims=(0,0))
 y = f(x)
 ```
 """

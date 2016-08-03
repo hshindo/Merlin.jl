@@ -1,11 +1,5 @@
-export Graph, GraphNode, @graph
-
-type GraphNode
-    args::Tuple
-    tails::Vector{Int}
-end
-
-GraphNode(args...) = GraphNode(args, Int[])
+export Graph
+export @graph
 
 type Graph
     nodes::Vector{Var} # sorted in topological order
@@ -72,20 +66,4 @@ macro graph(expr)
     quote
         Graph(eval($(esc(expr))))
     end
-end
-
-function hdf5(g::Graph)
-
-end
-
-function to_hdf5(g::Graph)
-  d_nodes = Dict()
-  for i = 1:length(g.nodes)
-    d_nodes[string(i)] = to_hdf5(g.nodes[i])
-  end
-  d_sym2id = Dict()
-  for (k,v) in g.sym2id
-    d_sym2id[string(k)] = v
-  end
-  Dict("Graph" => Dict("nodes" => d_nodes, "sym2id" => d_sym2id))
 end

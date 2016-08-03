@@ -9,6 +9,7 @@ function relu(x::Var)
     df(gy) = hasgrad(x) && ∇relu!(x.data, x.grad, y, gy)
     Var(y, [x], df)
 end
+relu(x::GraphNode) = GraphNode(relu, x)
 
 function relu{T}(x::Array{T})
     y = similar(x)
@@ -77,5 +78,5 @@ function ∇tanh!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
 end
 
 function ∇tanh!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-    ∇activation!(CUDNN_ACTIVATION_TANH, y, dy, x, dx, beta=1.0)
+    ∇activation!(CUDNN_ACTIVATION_TANH, y, gy, x, gx, beta=1.0)
 end

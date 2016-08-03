@@ -6,7 +6,7 @@ end
 
 """
     Embed{T}(::Type{T}, indim, outdim)
-
+    
 ### 👉 Example
 ```julia
 f = Embed(Float32,10000,100) # 100-length vector, 10k vocabulary

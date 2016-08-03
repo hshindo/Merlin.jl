@@ -1,7 +1,7 @@
 export crossentropy
 
 doc"""
-crossentropy(p::Var, x::Var, dim::Int)
+    crossentropy(p::Var, x::Var, dim::Int)
 
 Compute cross-entropy between $p$ and $x$ along the given dimension.
 
@@ -13,8 +13,8 @@ $ f(p,x)=-∑_{i} p_{i} \log x_{i} $
 
 ### 👉 Example
 ```julia
-p = Data([1:5;])
-x = Data(rand(Float32,10,5))
+p = Var([1:5;])
+x = Var(rand(Float32,10,5))
 y = crossentropy(p, x, 1)
 ```
 """
