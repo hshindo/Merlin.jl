@@ -4,7 +4,7 @@ using Compat
 using Base.LinAlg.BLAS
 import Compat: String, view
 
-#abstract Var
+abstract AbstractVar
 
 @compat if is_windows()
     const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.dll"))

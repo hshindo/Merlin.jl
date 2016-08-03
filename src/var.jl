@@ -32,3 +32,19 @@ function topsort(top::Var)
     visit(top)
     sorted
 end
+
+type SparseVar
+    data
+    grad
+    idset::IntSet
+end
+
+SparseVar(data) = SparseVar(data, nothing, IntSet())
+SparseParam(data) = SparseVar(data, zeros(data), IntSet())
+
+function update!(v::SparseVar, opt)
+    for id in v.idset
+        #opt(v.data[id].data, v.ws[id].grad)
+    end
+    empty!(v.idset)
+end
