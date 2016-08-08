@@ -4,7 +4,7 @@ using Compat
 using Base.LinAlg.BLAS
 import Compat: String, view
 
-abstract AbstractVar
+abstract Functor
 
 @compat if is_windows()
     const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.dll"))
@@ -28,8 +28,9 @@ typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
 
 include("util.jl")
 include("var.jl")
-include("gradient.jl")
+include("sequence.jl")
 include("graph.jl")
+include("gradient.jl")
 include("training.jl")
 include("native.jl")
 #include("serialize.jl")
@@ -39,7 +40,7 @@ for name in [
     "concat",
     "conv",
     "crossentropy",
-    "embed",
+    "embedding",
     "gemm",
     "linear",
     "reshape",

@@ -1,11 +1,15 @@
-export Graph, GraphNode, @graph
+export @graph
 
 type GraphNode
     args::Tuple
-    tails::Vector{Int}
+    expr::Expr
+
+    GraphNode(args...) = new(args)
 end
 
-GraphNode(args...) = GraphNode(args, Int[])
+function aaaa()
+    
+end
 
 type Graph
     nodes::Vector{Var} # sorted in topological order
@@ -13,16 +17,16 @@ type Graph
     names::Dict{Symbol,Int}
 end
 
-function Graph(top::Var)
+function Graph(top::GraphNode)
     nodes = topsort(top)
     tails = Vector{Int}[]
     names = Dict{Symbol,Int}()
     dict = ObjectIdDict()
     for i in 1:length(nodes)
         n = nodes[i]
-        typeof(n.data) <: Symbol && (names[n.data] = i)
-        tail_ids = Int[map(t -> dict[t], n.tails)...]
-        push!(tails, tail_ids)
+        typeof(n.args[1]) == Symbol && (names[n.args[1]] = i)
+        tailids = Int[map(t -> dict[t], n.tails)...]
+        push!(tails, tailids)
         dict[n] = i
     end
     Graph(nodes, tails, names)
@@ -68,9 +72,12 @@ function forward!(g::Graph, outs::Vector)
     outs
 end
 
+Base.size(v::GraphNode) = GraphNode(size, v)
+Base.size(v::GraphNode, dim::Int) = GraphNode(size, v, dim)
+
 macro graph(expr)
     quote
-        Graph(eval($(esc(expr))))
+        Graph($(esc(expr)))
     end
 end
 
@@ -88,4 +95,20 @@ function to_hdf5(g::Graph)
     d_sym2id[string(k)] = v
   end
   Dict("Graph" => Dict("nodes" => d_nodes, "sym2id" => d_sym2id))
+end
+
+macro graph2(expr)
+    isnode(ex) = typeof(ex) == Expr && ex.head == :call && ex.args[1] == :GraphNode
+    function conv(ex::Expr)
+        for a in ex.args
+            typeof(a) == Expr && conv(a)
+        end
+        ex.head == :call || return
+        any(isnode, ex.args) && unshift!(ex.args, :GraphNode)
+    end
+    conv(expr)
+    expr
+    #quote
+    #    Graph($(esc(expr)))
+    #end
 end

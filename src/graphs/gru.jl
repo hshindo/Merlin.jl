@@ -17,6 +17,26 @@ h = Var(rand(Float32,100))
 gru(:x=>x, :h=>h)
 ```
 """
+type GRU
+    ws::Vector
+    us::Vector
+end
+
+function GRU(T::Type, xsize::Int)
+    ws = [Param(rand(T,xsize,xsize)) for i=1:3]
+    us = [Param(rand(T,xsize,xsize)) for i=1:3]
+    GRU(ws, us)
+end
+
+@compat function (f::GRU)(x::Var, h::Var)
+    r = sigmoid(f.ws[1]*x + f.us[1]*h)
+    z = sigmoid(f.ws[2]*x + f.us[2]*h)
+    h_ = tanh(f.ws[3]*x + f.us[3]*(r.*h))
+    h_next = (1 - z) .* h + z .* h_
+    h_next
+end
+
+#=
 function GRU{T}(::Type{T}, xsize::Int)
   @graph begin
     Ws = [Param(rand(T,xsize,xsize)) for i=1:3]
@@ -30,3 +50,4 @@ function GRU{T}(::Type{T}, xsize::Int)
     h_next
   end
 end
+=#

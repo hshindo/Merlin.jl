@@ -16,6 +16,10 @@ end
 *(a::Number, x::Var) = plus([x], [a])
 *(x::Var, a::Number) = a * x
 
+function +(a1, x1::Var, a2, x2::Var)
+    
+end
+
 function plus(xs::Vector, as::Vector)
   (hasdata(xs[1]) && hasdata(xs[2])) || return Plus(nothing, nothing, xs, as)
   maxi, maxlen = 0, 0

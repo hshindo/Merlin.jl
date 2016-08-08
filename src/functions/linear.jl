@@ -1,6 +1,6 @@
 export Linear
 
-type Linear
+type Linear <: Functor
     w::Var
     b::Var
 end
@@ -12,9 +12,8 @@ function Linear(T::Type, indim::Int, outdim::Int)
     Linear(Param(w), Param(b))
 end
 
-@compat (f::Linear)(x::Var) = linear(f.w, x, f.b)
-
-function linear(w::Var, x::Var, b::Var)
+@compat function (f::Linear)(x::Var)
+    w, b = f.w, f.b
     y = w.data * x.data
     broadcast!(.+, y, y, b.data)
     function df{T}(gy::UniArray{T})
@@ -24,5 +23,12 @@ function linear(w::Var, x::Var, b::Var)
             BLAS.axpy!(length(b.data), T(1), pointer(gy,offset), 1, pointer(b.grad), 1)
         end
     end
-    Var(y, [w,x,b], df)
+    Var(y, [x], f, df)
+end
+
+@compat (f::Linear)(x::GraphNode) = GraphNode(f, x)
+
+function update!(f::Linear, opt)
+    opt(f.w.data, f.w.grad)
+    opt(f.b.data, f.b.grad)
 end

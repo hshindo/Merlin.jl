@@ -22,8 +22,10 @@ logsoftmax_handle(::Type{Float64}) = LOGSOFTMAX_F64, ∇LOGSOFTMAX_F64
 function softmax(x::Var, dim::Int)
   y = softmax(x.data, dim)
   df(gy) = ∇softmax!(x.grad, y, gy, dim)
-  Var(y, [x], df)
+  Var(y, [x], softmax, df)
 end
+
+softmax(x::GraphNode, dim::Int) = GraphNode(softmax, x, dim)
 
 function softmax{T}(x::Array{T}, dim::Int)
   @assert 0 < dim <= ndims(x)
@@ -90,8 +92,10 @@ Compute log-softmax along the given axis.
 function logsoftmax(x::Var, dim)
     y = logsoftmax(x.data, dim)
     df(gy) = ∇logsoftmax!(x.grad, y, gy, dim)
-    Var(y, [x], df)
+    Var(y, [x], logsoftmax, df)
 end
+
+logsoftmax(x::GraphNode, dim::Int) = GraphNode(logsoftmax, x, dim)
 
 function logsoftmax{T}(x::Array{T}, dim::Int)
   @assert 0 < dim <= ndims(x)

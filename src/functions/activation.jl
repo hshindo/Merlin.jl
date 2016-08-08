@@ -7,8 +7,9 @@ import Base.tanh
 function relu(x::Var)
     y = relu(x.data)
     df(gy) = hasgrad(x) && ∇relu!(x.data, x.grad, y, gy)
-    Var(y, [x], df)
+    Var(y, [x], relu, df)
 end
+
 relu(x::GraphNode) = GraphNode(relu, x)
 
 function relu{T}(x::Array{T})
@@ -37,8 +38,10 @@ end
 function sigmoid(x::Var)
     y = sigmoid(x.data)
     df(gy) = hasgrad(x) && ∇sigmoid!(x.data, x.grad, y, gy)
-    Var(y, [x], df)
+    Var(y, [x], sigmoid, df)
 end
+
+sigmoid(x::GraphNode) = GraphNode(sigmoid, x)
 
 function sigmoid{T}(x::Array{T})
     y = similar(x)
@@ -66,8 +69,10 @@ end
 function tanh(x::Var)
     y = tanh(x.data)
     df(gy) = hasgrad(x) && ∇tanh!(x.data, x.grad, y, gy)
-    Var(y, [x], df)
+    Var(y, [x], tanh, df)
 end
+
+tanh(x::GraphNode) = GraphNode(tanh, x)
 
 tanh(x::CuArray) = activation!(CUDNN_ACTIVATION_TANH, x, similar(x))
 

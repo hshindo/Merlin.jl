@@ -14,9 +14,11 @@ function gemm(tA, tB, alpha, A::Var, B::Var)
     function df(gC)
         ∇gemm!(tA, tB, alpha, A.data, A.grad, B.data, B.grad, C, gC)
     end
-    Var(C, [A,B], df)
+    Var(C, [A,B], gemm, df)
 end
 gemm(A, B; tA='N', tB='N', alpha=1.0) = gemm(tA, tB, alpha, A, B)
+
+gemm(tA, tB, alpha, A::GraphNode, B::GraphNode) = GraphNode(gemm, tA, tB, alpha, A, B)
 
 function ∇gemm!(A, gA, B, gB, C, gC; tA='N', tB='N', alpha=1.0)
     ∇gemm!(tA, tB, alpha, A, gA, B, gB, C, gC)
