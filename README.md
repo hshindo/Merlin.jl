@@ -2,7 +2,7 @@
 
 This is alpha version.
 
-[NLP Demo](http://158.199.141.203/) (See [JukaiNLP](https://github.com/hshindo/JukaiNLP.jl.git) for more details.)
+[NLP Demo](http://jukainlp.hshindo.com/) (See [JukaiNLP](https://github.com/hshindo/JukaiNLP.jl.git) for more details.)
 
 # Merlin: deep learning framework in Julia
 
