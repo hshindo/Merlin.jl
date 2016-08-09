@@ -199,83 +199,18 @@
           
           <p><a id='Functions-1'></a></p>
 <h1 id="functions">Functions</h1>
-<p><a id='Merlin.relu-Tuple{Merlin.Var}' href='#Merlin.relu-Tuple{Merlin.Var}'>#</a>
-<strong><code>Merlin.relu</code></strong> &mdash; <em>Method</em>.</p>
-<div class="codehilite"><pre><span></span>relu(x)
-</pre></div>
-
-
-<p><a id='Merlin.sigmoid-Tuple{Merlin.Var}' href='#Merlin.sigmoid-Tuple{Merlin.Var}'>#</a>
-<strong><code>Merlin.sigmoid</code></strong> &mdash; <em>Method</em>.</p>
-<div class="codehilite"><pre><span></span>sigmoid(x)
-</pre></div>
-
-
-<p><a id='Base.tanh-Tuple{Merlin.Var}' href='#Base.tanh-Tuple{Merlin.Var}'>#</a>
-<strong><code>Base.tanh</code></strong> &mdash; <em>Method</em>.</p>
-<div class="codehilite"><pre><span></span>tanh(x)
-</pre></div>
-
-
-<p><a id='Merlin.concat-Tuple{Int64,Array{Merlin.Var,1}}' href='#Merlin.concat-Tuple{Int64,Array{Merlin.Var,1}}'>#</a>
-<strong><code>Merlin.concat</code></strong> &mdash; <em>Method</em>.</p>
-<div class="codehilite"><pre><span></span>concat(dim::Int, xs::Var...)
+<div class="codehilite"><pre><span></span>relu(x::Var)
+sigmoid(x::Var)
+tanh(x::Var)
 concat(dim::Int, xs::Vector{Var})
-</pre></div>
-
-
-<p>Concatenate arrays along the given dimension.</p>
-<p><a id='Merlin.crossentropy-Tuple{Any,Merlin.Var}' href='#Merlin.crossentropy-Tuple{Any,Merlin.Var}'>#</a>
-<strong><code>Merlin.crossentropy</code></strong> &mdash; <em>Method</em>.</p>
-<div class="codehilite"><pre><span></span>crossentropy(p,x)
-</pre></div>
-
-
-<p>Computes cross-entropy between p and x. x is assumed to be unnormalized.</p>
-<ul>
-<li>p: Vector{Int} or Matrix{Float}</li>
-</ul>
-<p><strong>👉 Example</strong></p>
-<div class="codehilite"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">5</span><span class="p">;]</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">crossentropy</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">x</span><span class="p">)</span>
-</pre></div>
-
-
-<p><a id='Merlin.gemm-Tuple{Any,Any,Any,Merlin.Var,Merlin.Var}' href='#Merlin.gemm-Tuple{Any,Any,Any,Merlin.Var,Merlin.Var}'>#</a>
-<strong><code>Merlin.gemm</code></strong> &mdash; <em>Method</em>.</p>
-<div class="codehilite"><pre><span></span>gemm(tA::Char, tB::Char, alpha::Float64, A::Var, B::Var)
-gemm(A::Var, B::Var)
-</pre></div>
-
-
-<p>C = alpha * tA(A) * tB(B)</p>
-<ul>
-<li>tA: transpose ('T') or not ('N'). default: 'N'</li>
-<li>tB: same as tA</li>
-</ul>
-<p><a id='Base.max-Tuple{Merlin.Var,Int64}' href='#Base.max-Tuple{Merlin.Var,Int64}'>#</a>
-<strong><code>Base.max</code></strong> &mdash; <em>Method</em>.</p>
-<p><a id='Base.reshape-Tuple{Merlin.Var,Any}' href='#Base.reshape-Tuple{Merlin.Var,Any}'>#</a>
-<strong><code>Base.reshape</code></strong> &mdash; <em>Method</em>.</p>
-<p><a id='Merlin.softmax-Tuple{Merlin.Var,Int64}' href='#Merlin.softmax-Tuple{Merlin.Var,Int64}'>#</a>
-<strong><code>Merlin.softmax</code></strong> &mdash; <em>Method</em>.</p>
-<div class="codehilite"><pre><span></span>softmax(x::Var, dim::Int)
-</pre></div>
-
-
-<p><a id='Merlin.logsoftmax-Tuple{Merlin.Var,Int64}' href='#Merlin.logsoftmax-Tuple{Merlin.Var,Int64}'>#</a>
-<strong><code>Merlin.logsoftmax</code></strong> &mdash; <em>Method</em>.</p>
-<div class="codehilite"><pre><span></span>logsoftmax(x::Var, dim::Int)
-</pre></div>
-
-
-<p>Compute log-softmax along the given axis.</p>
-<p><a id='Base.sum-Tuple{Any,Int64}' href='#Base.sum-Tuple{Any,Int64}'>#</a>
-<strong><code>Base.sum</code></strong> &mdash; <em>Method</em>.</p>
-<p><a id='Base.transpose-Tuple{Merlin.Var}' href='#Base.transpose-Tuple{Merlin.Var}'>#</a>
-<strong><code>Base.transpose</code></strong> &mdash; <em>Method</em>.</p>
-<div class="codehilite"><pre><span></span>transpose(x::Var)
+crossentropy(p, x::Var)
+gemm(tA, tB, alpha, A::Var, B::Var)
+max(x::Var, dim::Int)
+reshape(x::Var, dims)
+softmax(x::Var, dim::Int)
+logsoftmax(x::Var, dim::Int)
+sum(x, dim::Int)
+transpose(x::Var)
 </pre></div>
           <aside class="copyright" role="note">
             
