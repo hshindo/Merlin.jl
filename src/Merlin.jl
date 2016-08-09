@@ -43,6 +43,7 @@ for name in [
     "embedding",
     "gemm",
     "linear",
+    "math",
     "reshape",
     "softmax",
     "sum",

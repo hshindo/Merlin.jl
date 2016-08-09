@@ -1,16 +1,29 @@
-export @graph
+export GraphNode, Graph, @graph
 
 type GraphNode
-    args::Tuple
-    expr::Expr
+    args::Vector
 
-    GraphNode(args...) = new(args)
+    GraphNode(args...) = new(Any[args...])
 end
 
-function aaaa()
-    
+type Graph
 end
 
+function Graph(top::GraphNode)
+    nodes = topsort(top)
+    dict = Dict{GraphNode,Expr}()
+    for i = length(nodes):-1:1
+        node = nodes[i]
+        args = map(node.args) do a
+            typeof(a) == GraphNode ? dict[a] : a
+        end
+        dict[node] = Expr(:call, args)
+    end
+    f(top)
+    dict[top]
+end
+
+#=
 type Graph
     nodes::Vector{Var} # sorted in topological order
     tails::Vector{Vector{Int}}
@@ -71,6 +84,7 @@ function forward!(g::Graph, outs::Vector)
     end
     outs
 end
+=#
 
 Base.size(v::GraphNode) = GraphNode(size, v)
 Base.size(v::GraphNode, dim::Int) = GraphNode(size, v, dim)

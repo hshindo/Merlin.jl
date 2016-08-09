@@ -7,6 +7,11 @@ using Base.Test
 using HDF5
 using Compat
 
+g = @graph begin
+    x = GraphNode(:x)
+    relu(x)
+end
+
 a.args[2].args
 GraphNode(1)
 g = quote
