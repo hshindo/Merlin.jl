@@ -1,7 +1,7 @@
 export fit
 using ProgressMeter
 
-function fit(decode, lossfun, optimize, xs::Vector, ys::Vector)
+function fit(decode, lossfun, opt, xs::Vector, ys::Vector)
     @assert length(xs) == length(ys)
     prog = Progress(length(xs))
     loss = 0.0
@@ -11,7 +11,7 @@ function fit(decode, lossfun, optimize, xs::Vector, ys::Vector)
         loss += sum(out.data)
         vars = gradient!(out)
         for v in vars
-            optimize(v.data, v.grad)
+            typeof(v.f) <: Functor && update!(v.f, opt)
         end
         next!(prog)
     end

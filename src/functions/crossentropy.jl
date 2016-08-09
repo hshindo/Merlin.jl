@@ -18,8 +18,10 @@ function crossentropy(p, x::Var)
     logx = logsoftmax(x.data, 1)
     y = crossentropy(p, logx)
     df(gy) = ∇crossentropy!(p, logx, x.grad, gy)
-    Var(y, [x], df)
+    Var(y, [x], crossentropy, df)
 end
+
+crossentropy(p, x::GraphNode) = GraphNode(crossentropy, p, x)
 
 function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
     y = Array(T, 1, size(p,2))

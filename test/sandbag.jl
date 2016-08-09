@@ -7,31 +7,47 @@ using Base.Test
 using HDF5
 using Compat
 
-a = Embed(Float32,100,10)
-a.ws[1].data
-y = a(Var([1,2,3,4,5]))
+g = @graph begin
+    x = GraphNode(:x)
+    relu(x)
+end
 
-
+a.args[2].args
+GraphNode(1)
+g = quote
+    x = GraphNode(:x)
+    x = relu(x)
+end
+g.args[4].args[2]
 
 g = @graph begin
-  T = Float32
-  x = GraphNode(:x)
-  x = relu(x)
-  x
+    T = Float32
+    x = GraphNode(:x)
+    x = Embedding(T,100,10)(x)
+    x
 end
 
-x = Var(rand(Float32,5,4,3,2))
-f = Conv(Float32, (2,2), (3,4), stride=(1,1), paddims=(0,0))
-y = f(x)
-
-function bench()
-    dict = Dict(:1=>1,:2=>2,:3=>3,:4=>4,:5=>5,:6=>6,:7=>7,:8=>8,:9=>9,:10=>10)
-    for i = 1:10000
-        for k = 1:10
-            dict[k]
-        end
-    end
+g = @graph begin
+    T = Float32
+    x = Var(:x)
+    x = reshape(x,1,length(x))
+    x = Embedding(T,100,10)(x)
+    x = Conv(T, (10,7), (1,70), paddims=(0,3))(x)
+    x = reshape(x, size(x,2), size(x,3))
+    x = transpose(x)
+    x = relu(x)
+    x = Linear(T,70,4)(x)
+    x
 end
+g
+
+x = Var(reshape(chars,1,length(chars)))
+x = m.embed(x)
+x = m.conv(x)
+x = reshape(x, size(x,2), size(x,3))
+x = transpose(x)
+x = relu(x)
+x = m.linear(x)
 
 nprocs()
 path = "C:/Users/hshindo/Desktop/nin_imagenet.caffemodel"

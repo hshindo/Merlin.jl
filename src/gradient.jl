@@ -8,13 +8,11 @@ function gradient!(top::Var)
     (hasgrad(v) || isempty(v.args)) && continue
     v.grad = zeros(v.data)
   end
-  bottoms = Var[]
   for i = length(sorted):-1:1
     v = sorted[i]
     v.df == nothing || v.df(v.grad)
-    isempty(v.args) && hasgrad(v) && push!(bottoms, v)
   end
-  bottoms
+  sorted
 end
 
 const gradeps = 1e-2

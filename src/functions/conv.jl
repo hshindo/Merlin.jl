@@ -6,7 +6,7 @@ const WINDOW2D_F64 = Libdl.dlsym(libmerlin, :window2d_double)
 const ∇WINDOW2D_F32 = Libdl.dlsym(libmerlin, :window2d_grad_float)
 const ∇WINDOW2D_F64 = Libdl.dlsym(libmerlin, :window2d_grad_double)
 
-type Conv{N}
+type Conv{N} <: Functor
     w::Var
     filterdims::NTuple{N,Int}
     stride::NTuple{N,Int}
@@ -51,8 +51,10 @@ end
         ∇conv!(f.w.data, f.w.grad, x.data, x.grad, work, y, gy,
         f.filterdims, f.stride, f.paddims)
     end
-    Var(y, [f.w,x], df)
+    Var(y, [x], f, df)
 end
+
+@compat (f::Conv)(x::GraphNode) = GraphNode(f, x)
 
 function conv{T}(w::Array{T}, x::Array{T}, windims, stride, paddims)
     N = length(windims)
@@ -62,10 +64,6 @@ function conv{T}(w::Array{T}, x::Array{T}, windims, stride, paddims)
 
     w = reshape(w, size(work,2), size(w,N+2))
     y = gemm(work, w)
-    #y = Array(T, size(work,1), size(w,2), size(work,3))
-    #for i = 1:size(x,N+2)
-    #    BLAS.gemm!('N', 'N', T(1), view(work,:,:,i), w, T(0), view(y,:,:,i))
-    #end
     y = reshape(y, outdims..., size(y,2), size(y,3))
     y, work
 end
@@ -112,4 +110,8 @@ function ∇window!{T}(gx::Array{T}, gy::Array{T}, windims, stride, paddims)
     ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
     gx, gy, xsize, Cint[windims...], Cint[stride...], Cint[paddims...])
     gx
+end
+
+function update!(f::Conv, opt)
+    opt(f.w.data, f.w.grad)
 end
