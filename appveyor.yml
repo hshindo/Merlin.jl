@@ -24,7 +24,6 @@ install:
 
 build_script:
   - set PATH=C:\MinGW\bin;%PATH%
-  - sh --login /c/projects/julia/contrib/windows/msys_build.sh
 
 # Need to convert from shallow to complete for Pkg.clone to work
   - IF EXIST .git\shallow (git fetch --unshallow)

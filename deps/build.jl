@@ -7,7 +7,7 @@ const sources = [
 const compiler = "g++"
 
 @compat if is_windows()
-    flags    = ["-Wall", "-O3", "-shared", "-march=native"]
+    flags    = ["-fopenmp", "-Wall", "-O3", "-shared", "-march=native"]
     libname = "libmerlin.dll"
     cmd = `$compiler $flags -o $libname $sources`
     println("Running $cmd")
