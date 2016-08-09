@@ -23,7 +23,7 @@ install:
   - C:\projects\julia-binary.exe /S /D=C:\projects\julia
 
 build_script:
-- set PATH=C:\MinGW\bin;%PATH%
+  - set PATH=C:\MinGW\bin;%PATH%
 
 # Need to convert from shallow to complete for Pkg.clone to work
   - IF EXIST .git\shallow (git fetch --unshallow)
