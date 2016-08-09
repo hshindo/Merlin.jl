@@ -7,25 +7,23 @@ const sources = [
 const compiler = "g++"
 
 @compat if is_windows()
-  #if haskey(ENV, "MERLIN_BUILD_WINDOWS")
-  #flags    = ["-fopenmp", "-Wall", "-O3", "-shared", "-march=native"]
-  #libname = "libmerlin.dll"
-  #cmd = `$compiler $flags -o $libname $sources`
-  #println("Running $cmd")
-  #run(cmd)
-  #end
+    flags    = ["-fopenmp", "-Wall", "-O3", "-shared", "-march=native"]
+    libname = "libmerlin.dll"
+    cmd = `$compiler $flags -o $libname $sources`
+    println("Running $cmd")
+    run(cmd)
 elseif is_apple()
-  flags    = ["-fPIC", "-Wall", "-O3", "-shared"]
-  libname = "libmerlin.so"
-  cmd = `$compiler $flags -o $libname $sources`
-  println("Running $cmd")
-  run(cmd)
+    flags    = ["-fPIC", "-Wall", "-O3", "-shared"]
+    libname = "libmerlin.so"
+    cmd = `$compiler $flags -o $libname $sources`
+    println("Running $cmd")
+    run(cmd)
 elseif is_linux()
-  flags    = ["-fopenmp", "-fPIC", "-Wall", "-O3", "-shared", "-march=native"]
-  libname = "libmerlin.so"
-  cmd = `$compiler $flags -o $libname $sources`
-  println("Running $cmd")
-  run(cmd)
+    flags    = ["-fopenmp", "-fPIC", "-Wall", "-O3", "-shared", "-march=native"]
+    libname = "libmerlin.so"
+    cmd = `$compiler $flags -o $libname $sources`
+    println("Running $cmd")
+    run(cmd)
 else
-  throw("Unknown OS.")
+    throw("Unknown OS.")
 end
