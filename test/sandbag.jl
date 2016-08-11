@@ -5,6 +5,10 @@ using JuCUDA
 using HDF5
 using Compat
 
+x = Var(rand(10,5))
+y = x[1:5] + x[6:10]
+gradient!(y)
+
 x1 = Param(3)
 x2 = Param(4)
 y = x1+x2
