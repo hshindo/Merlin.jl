@@ -6,12 +6,18 @@ type GraphNode <: AbstractNode
     GraphNode(args...) = new(Any[args...])
 end
 
-function compile(top::GraphNode, syms::Symbol...)
+type Graph
+    top::GraphNode
+    f
+end
+
+@compat (g::Graph)(xs...) = g.f(xs...)
+
+function compile(top::GraphNode, syms::Tuple{Vararg{Symbol}})
     nodes = topsort(top)
     dict = ObjectIdDict()
     for node in nodes
         args = map(node.args) do n
-            #typeof(n) == Symbol && (syms[n] = n)
             typeof(n) == GraphNode ? dict[n] : n
         end
         dict[node] = Expr(:call, args...)
@@ -20,13 +26,17 @@ function compile(top::GraphNode, syms::Symbol...)
     eval(expr)
 end
 
-macro graph(expr)
+macro graph(args, expr)
     bottomup(expr) do ex
         if ex.head == :call
             unshift!(ex.args, :(Merlin.GraphNode))
         end
     end
-    esc(expr)
+    quote
+        local top = $(esc(expr))
+        local f = compile(top, $args)
+        Graph(top, f)
+    end
 end
 
 #=
@@ -40,21 +50,5 @@ function to_hdf5(g::Graph)
     d_sym2id[string(k)] = v
   end
   Dict("Graph" => Dict("nodes" => d_nodes, "sym2id" => d_sym2id))
-end
-
-macro graph2(expr)
-    isnode(ex) = typeof(ex) == Expr && ex.head == :call && ex.args[1] == :GraphNode
-    function conv(ex::Expr)
-        for a in ex.args
-            typeof(a) == Expr && conv(a)
-        end
-        ex.head == :call || return
-        any(isnode, ex.args) && unshift!(ex.args, :GraphNode)
-    end
-    conv(expr)
-    expr
-    #quote
-    #    Graph($(esc(expr)))
-    #end
 end
 =#
