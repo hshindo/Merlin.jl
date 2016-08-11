@@ -69,16 +69,17 @@ Here is an example of three-layer network:
 ```julia
 using Merlin
 
+T = Float32
+linears = [Linear(T,10,7), Linear(T,7,3)]
 f = @graph begin
-  T = Float32
   x = Var(:x)
-  x = Linear(T,10,7)(x)
+  x = linears[1](x)
   x = relu(x)
-  x = Linear(T,7,3)(x)
+  x = linears[2](x)
   x
 end
 x = Var(rand(Float32,10,5))
-y = f(:x => x)
+y = f(x)
 ```
 where `Var(:<name>)` is a place-holder of input variable.
 
