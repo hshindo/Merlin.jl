@@ -5,12 +5,24 @@ using JuCUDA
 using HDF5
 using Compat
 
+T = Float32
+ls = [Linear(T,10,7), Linear(T,7,3)]
+f = @graph (:x,) begin
+  x = Var(:x)
+  x = ls[1](x)
+  x = relu(x)
+  x = ls[2](x)
+  x
+end
+x = rand(Float32,10,5)
+y = f(x)
+
 macro aaa(args)
     quote
         $args
     end
 end
-
+@aaa (:s,:ss)
 function bench()
     x = rand(Float32, 100,100)
     for i = 1:10000
