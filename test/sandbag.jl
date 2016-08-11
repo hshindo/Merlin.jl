@@ -5,12 +5,14 @@ using JuCUDA
 using HDF5
 using Compat
 
+[rand(Float32,50,1) for i=1:10]
+
 macro aaa(args)
     quote
         $args
     end
 end
-
+@aaa (:s,:ss)
 function bench()
     x = rand(Float32, 100,100)
     for i = 1:10000
