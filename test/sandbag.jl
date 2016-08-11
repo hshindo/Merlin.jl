@@ -2,28 +2,58 @@ workspace()
 using Merlin
 using Merlin.Caffe
 using JuCUDA
-using Base.LinAlg.BLAS
-using Base.Test
 using HDF5
 using Compat
 
-GraphNode(1)
-g = quote
-    x = GraphNode(:x)
-    x = relu(x)
+x1 = Param(3)
+x2 = Param(4)
+y = x1+x2
+gradient!(y)
+
+x = rand(10,5)
+x[(1:5,1:5)]
+x = Var(rand(Float32,10,5))
+x.data[1:5]
+x[1]
+
+y = Param(3) + Param(5)
+
+g = begin
+    local l = Linear(Float32,10,5)
+    @graph begin
+        x = l(:x)
+        x = relu(x)
+        x
+    end
 end
-g.args[4].args[2]
+
+f = compile(g)
+f(Var(rand(Float32,10,3)))
+
+g(Var(rand(Float32,10,3)))
+g.tails
+
+g(rand(10))
+
+g2 = @graph begin
+    T = Float32
+    x = ExprNode(:x)
+    h = ExprNode(:h)
+    x = @lazy Linear(T,10,3)(x)
+    h = @lazy Linear(T,10,3)(x)
+    concat(1,x,h)
+end
+f = eval(g2)
+f(Var(rand(Float32,10,4)), Var(rand(Float32,10,4)))
+
+x = rand(Float32,10)
+eval(g)
+
+g.args[2].args
 
 g = @graph begin
     T = Float32
     x = GraphNode(:x)
-    x = Embedding(T,100,10)(x)
-    x
-end
-
-g = @graph begin
-    T = Float32
-    x = Var(:x)
     x = reshape(x,1,length(x))
     x = Embedding(T,100,10)(x)
     x = Conv(T, (10,7), (1,70), paddims=(0,3))(x)

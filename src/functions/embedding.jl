@@ -20,6 +20,22 @@ function Embedding{T}(::Type{T}, indim::Int, outdim::Int)
     Embedding(ws, IntSet())
 end
 
+"""
+    Embed(path, T)
+
+Construc embeddings from file.
+"""
+function Embedding(path, T::Type)
+    lines = open(readlines, path)
+    ws = Array(Var, length(lines))
+    for i = 1:length(lines)
+        items = split(chomp(lines[i]), ' ')
+        w = map(x -> parse(T,x), items)
+        ws[i] = param(w)
+    end
+    Embedding(ws, IntSet())
+end
+
 @compat function (f::Embedding)(x::Var)
     y = embedding(f.ws, x.data)
     function df(gy)
@@ -58,20 +74,4 @@ function update!(f::Embedding, opt)
         opt(w.data, w.grad)
     end
     empty!(f.idset)
-end
-
-"""
-    Embed(path, T)
-
-Construc embeddings from file.
-"""
-function Embed(path, T::Type)
-    lines = open(readlines, path)
-    ws = Array(Var, length(lines))
-    for i = 1:length(lines)
-        items = split(chomp(lines[i]), ' ')
-        w = map(x -> parse(T,x), items)
-        ws[i] = param(w)
-    end
-    Embed(ws, IntSet())
 end

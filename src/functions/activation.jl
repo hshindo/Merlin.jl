@@ -10,8 +10,6 @@ function relu(x::Var)
     Var(y, [x], relu, df)
 end
 
-relu(x::GraphNode) = GraphNode(relu, x)
-
 function relu{T}(x::Array{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
@@ -41,8 +39,6 @@ function sigmoid(x::Var)
     Var(y, [x], sigmoid, df)
 end
 
-sigmoid(x::GraphNode) = GraphNode(sigmoid, x)
-
 function sigmoid{T}(x::Array{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
@@ -71,8 +67,6 @@ function tanh(x::Var)
     df(gy) = hasgrad(x) && ∇tanh!(x.data, x.grad, y, gy)
     Var(y, [x], tanh, df)
 end
-
-tanh(x::GraphNode) = GraphNode(tanh, x)
 
 tanh(x::CuArray) = activation!(CUDNN_ACTIVATION_TANH, x, similar(x))
 

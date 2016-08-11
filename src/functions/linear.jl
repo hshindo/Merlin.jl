@@ -26,8 +26,6 @@ end
     Var(y, [x], f, df)
 end
 
-@compat (f::Linear)(x::GraphNode) = GraphNode(f, x)
-
 function update!(f::Linear, opt)
     opt(f.w.data, f.w.grad)
     opt(f.b.data, f.b.grad)
