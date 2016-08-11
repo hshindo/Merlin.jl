@@ -13,8 +13,6 @@ function concat(dim::Int, xs::Vector{Var})
 end
 concat(dim::Int, xs::Var...) = concat(dim, Var[xs...])
 
-concat(dim::Int, xs::GraphNode...) = GraphNode(concat, dim, xs...)
-
 function concat{T<:UniArray}(dim::Int, xs::Vector{T})
     sum = 0
     for x in xs

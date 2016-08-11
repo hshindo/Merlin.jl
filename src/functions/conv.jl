@@ -54,8 +54,6 @@ end
     Var(y, [x], f, df)
 end
 
-@compat (f::Conv)(x::GraphNode) = GraphNode(f, x)
-
 function conv{T}(w::Array{T}, x::Array{T}, windims, stride, paddims)
     N = length(windims)
     outdims = outsize(x, windims, stride, paddims)

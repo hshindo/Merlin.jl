@@ -27,6 +27,7 @@ end
 typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
 
 include("util.jl")
+include("abstractnode.jl")
 include("var.jl")
 include("sequence.jl")
 include("graph.jl")
@@ -42,12 +43,12 @@ for name in [
     "crossentropy",
     "embedding",
     "gemm",
+    "index",
     "linear",
     "math",
     "reshape",
     "softmax",
     "sum",
-    "transpose",
     ]
     include("functions/$(name).jl")
 end
