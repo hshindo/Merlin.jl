@@ -46,6 +46,7 @@ for name in [
     "index",
     "linear",
     "math",
+    "norm",
     "reshape",
     "softmax",
     "sum",
