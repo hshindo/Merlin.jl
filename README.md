@@ -70,21 +70,23 @@ Here is an example of three-layer network:
 using Merlin
 
 T = Float32
-linears = [Linear(T,10,7), Linear(T,7,3)]
-f = @graph begin
-  x = Var(:x)
-  x = linears[1](x)
-  x = relu(x)
-  x = linears[2](x)
-  x
+ls = [Linear(T,10,7), Linear(T,7,3)]
+f = @graph (:x,) begin
+    x = Var(:x)
+    x = ls[1](x)
+    x = relu(x)
+    x = ls[2](x)
+    x
 end
-x = Var(rand(Float32,10,5))
+x = rand(Float32,10,5)
 y = f(x)
 ```
-where `Var(:<name>)` is a place-holder of input variable.
+where `:x` is a place-holder of input argument.
 
 ### Example2: Recurrent Neural Network (RNN)
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="270"></p>
+
+Dynamic network structures such as recurrent neural network (RNN) can be easily described with control flow constructs (`for`, `if`, etc.) in Julia.
 
 ```julia
 using Merlin
@@ -98,10 +100,10 @@ xs = [Var(rand(T,50,1)) for i=1:10] # input vars
 ys = Array(Var, length(xs)) # output vars
 
 for i = 1:length(xs)
- x = xs[i]
- c = concat(1, x, h) # concatanate x and h along the first dimension.
- h = f_h(:x => c)
- ys[i] = f_y(:x => h)
+    x = xs[i]
+    c = concat(1, x, h) # concatanate x and h along the first dimension.
+    h = f_h(c)
+    ys[i] = f_y(h)
 end
 ```
 
@@ -112,10 +114,10 @@ data_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
 data_y = [Var([1,2,3]) for i=1:100] # correct labels
 f = ...
 
-opt = SGD(0.0001)
+opt = SGD(0.0001, 0.9)
 for epoch = 1:10
   println("epoch: $(epoch)")
-  loss = fit(f, softmax_crossentropy, opt, data_x, data_y)
+  loss = fit(f, crossentropy, opt, data_x, data_y)
   println("loss: $(loss)")
 end
 ```
