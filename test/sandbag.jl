@@ -5,9 +5,14 @@ using JuCUDA
 using HDF5
 using Compat
 
-getindex
-x = rand(10,5) |> Var
-x[[1,3,5]]
+function bench()
+    x = rand(Float32, 100,100)
+    for i = 1:10000
+        vecnorm(x, 2)
+    end
+end
+
+@time bench()
 
 x = Var(rand(10,5))
 x[1:1]
