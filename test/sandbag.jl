@@ -5,7 +5,12 @@ using JuCUDA
 using HDF5
 using Compat
 
+getindex
+x = rand(10,5) |> Var
+x[[1,3,5]]
+
 x = Var(rand(10,5))
+x[1:1]
 y = x[1:5] + x[6:10]
 gradient!(y)
 
