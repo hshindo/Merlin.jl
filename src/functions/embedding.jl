@@ -31,7 +31,7 @@ function Embedding(path, T::Type)
     for i = 1:length(lines)
         items = split(chomp(lines[i]), ' ')
         w = map(x -> parse(T,x), items)
-        ws[i] = param(w)
+        ws[i] = Param(w)
     end
     Embedding(ws, IntSet())
 end
