@@ -14,7 +14,7 @@ type SGD
     states::ObjectIdDict
 end
 
-function SGD(rate, momentum=0.0)
+function SGD(rate; momentum=0.0)
     SGD(rate, momentum, ObjectIdDict())
 end
 
