@@ -5,7 +5,21 @@ using JuCUDA
 using HDF5
 using Compat
 
-[rand(Float32,50,1) for i=1:10]
+parse("Merlin.concat")
+g = @graph (:x,) begin
+    concat(1, :x)
+end
+dict = Merlin.to_hdf5(g)
+save_hdf5(path, dict)
+load_hdf5(path)
+
+path = "C:/Users/shindo/Desktop/tokenizer_20.h5"
+dict = Dict()
+dict["a1"] = [1,2,3,4]
+dict["a2"] = 3.4
+dict["a3"] = "abracatabra"
+save_hdf5(path, dict)
+d = load_hdf5(path)
 
 macro aaa(args)
     quote

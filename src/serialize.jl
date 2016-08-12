@@ -1,101 +1,84 @@
 using HDF5
 
+export save_hdf5, load_hdf5, to_dict
+
 """
-    save(dict, path)
+    save_hdf5(path, dict)
 
 Save graph objects as a HDF5 format.
-
-## 👉 Example
-```julia
-g1 = @graph ...
-g2 = @graph ...
-save("/home/xxx/cnn.h5", ("g1",g1), ("g2",g2))
-```
 """
-function save(path::String)
-  function write(g, d::Dict)
-    for (k,v) in d
-      if typeof(v) <: Dict
-        write(g_create(g, string(k)), v)
-      elseif applicable(to_hdf5, v)
-        write(g, to_hdf5(v))
-      else
-        g[string(k)] = v
-      end
+function save_hdf5(path::String, dict::Dict)
+    function _write(g, d::Dict)
+        for (k,v) in d
+            if typeof(v) <: Dict
+                _write(g_create(g,string(k)), v)
+            else
+                g[string(k)] = v
+            end
+        end
     end
-  end
-  h5open(path, "w") do h
-    g = g_create(h, "Merlin")
-    write(g, dict)
-  end
-end
-
-function load(path::String)
-  dict = h5read(path, "Merlin")
-  for (k,v) in dict
-    if typeof(v) <: Dict
-      load(eval(parse(k)), v)
+    h5open(path, "w") do h
+        g = g_create(h, "Merlin")
+        _write(g, dict)
     end
-  end
 end
 
-function to_hdf5(v::Var)
-  d = Dict()
-  d["value"] = typeof(v.value) == Symbol ? string(v.value) : v.value
-  d["f"] = string(v.f)
-  d["argtype"] = string(typeof(v.args))
-  d["args"] = Int[v.args...]
-  Dict("Var" => d)
-end
-
-function to_hdf5(g::Graph)
-  d_nodes = Dict()
-  for i = 1:length(g.nodes)
-    d_nodes[string(i)] = to_hdf5(g.nodes[i])
-  end
-  d_sym2id = Dict()
-  for (k,v) in g.sym2id
-    d_sym2id[string(k)] = v
-  end
-  Dict("Graph" => Dict("nodes" => d_nodes, "sym2id" => d_sym2id))
-end
-
-function load(::Type{Graph}, dict)
-  nodes = Var[]
-  dict = h5read(path, "graph")
-  for (k,v) in dict["nodes"]
-    id = parse(Int, k)
-    while id > length(nodes)
-      push!(nodes, Var(nothing))
+"""
+    load_hdf5
+"""
+function load_hdf5(path::String)
+    dict = h5read(path, "Merlin")
+    for (k,v) in dict
+        #if typeof(v) <: Dict
+        #    load_hdf5(eval(parse(k)), v)
+        #end
     end
-    nodes[id] = v
-  end
+    dict
 end
 
-function load(::Type{Var}, dict)
-
-end
-
-function load_hdf5(::Type{Graph}, path::AbstractString)
-  nodes = Var[]
-  dict = h5read(path, "graph")
-  for (k,v) in dict["nodes"]
-    id = parse(Int, k)
-    while id > length(nodes)
-      push!(nodes, Var(nothing))
+function to_dict{T}(x::T)
+    dict = Dict()
+    names = fieldnames(T)
+    for i = 1:nfields(T)
+        f = getfield(x, i)
+        dict[string(names[i])] = f
     end
-    nodes[id] = v
-  end
+    Dict(string(T) => dict)
+end
+
+function load_hdf5(::Type{Graph}, dict)
+    nodes = Var[]
+    for (k,v) in dict["nodes"]
+        id = parse(Int, k)
+        while id > length(nodes)
+            push!(nodes, Var(nothing))
+        end
+        nodes[id] = v
+    end
+end
+
+function load_hdf5(::Type{Graph}, path::String)
+    nodes = Var[]
+    dict = h5read(path, "graph")
+    for (k,v) in dict["nodes"]
+        id = parse(Int, k)
+        while id > length(nodes)
+            push!(nodes, Var(nothing))
+        end
+        nodes[id] = v
+    end
 end
 
 #=
-function todict{T}(x::T)
-  d = Dict()
-  names = fieldnames(T)
-  for i = 1:nfields(T)
-    f = getfield(x, i)
-    d[string(names[i])] = f
-  end
-  d
+function to_hdf5(g::Graph)
+d_nodes = Dict()
+for i = 1:length(g.nodes)
+d_nodes[string(i)] = to_hdf5(g.nodes[i])
+end
+d_sym2id = Dict()
+for (k,v) in g.sym2id
+d_sym2id[string(k)] = v
+end
+Dict("Graph" => Dict("nodes" => d_nodes, "sym2id" => d_sym2id))
 end
 =#
