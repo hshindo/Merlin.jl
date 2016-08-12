@@ -5,6 +5,14 @@ using JuCUDA
 using HDF5
 using Compat
 
+function bench()
+    for i = 1:10000
+        #rand(Float32,500)
+        Array(Float32,100)
+    end
+end
+@time bench()
+
 parse("Merlin.concat")
 g = @graph (:x,) begin
     concat(1, :x)
