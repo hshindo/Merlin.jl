@@ -7,8 +7,8 @@ using Compat
 
 function bench()
     for i = 1:10000
-        #rand(Float32,500)
-        Array(Float32,100)
+        #rand(Float32,1000)
+        Array(Float32,1000)
     end
 end
 @time bench()
