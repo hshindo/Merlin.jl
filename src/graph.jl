@@ -11,6 +11,9 @@ type Graph
     f
 end
 
+function Graph()
+end
+
 @compat (g::Graph)(xs...) = g.f(xs...)
 
 function compile(top::GraphNode, syms::Tuple{Vararg{Symbol}})
@@ -39,16 +42,25 @@ macro graph(args, expr)
     end
 end
 
-#=
+to_hdf5(x::Function) = string(x)
+to_hdf5(x::Number) = x
+to_hdf5{T}(data::Tuple{Vararg{T}}) = T[data...]
+to_hdf5(s::Symbol) = string(s)
+
 function to_hdf5(g::Graph)
-  d_nodes = Dict()
-  for i = 1:length(g.nodes)
-    d_nodes[string(i)] = to_hdf5(g.nodes[i])
-  end
-  d_sym2id = Dict()
-  for (k,v) in g.sym2id
-    d_sym2id[string(k)] = v
-  end
-  Dict("Graph" => Dict("nodes" => d_nodes, "sym2id" => d_sym2id))
+    dict = Dict()
+    nodes = topsort(g.top)
+    nodedict = ObjectIdDict()
+    for i = 1:length(nodes)
+        n = nodes[i]
+        d = Dict()
+        for j = 1:length(n.args)
+            a = n.args[j]
+            h5 = typeof(a) == GraphNode ? nodedict[a] : to_hdf5(a)
+            d[j] = h5
+        end
+        dict[i] = Dict("GraphNode" => d)
+        nodedict[n] = i
+    end
+    Dict("Graph" => dict)
 end
-=#

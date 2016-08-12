@@ -34,7 +34,7 @@ include("graph.jl")
 include("gradient.jl")
 include("training.jl")
 include("native.jl")
-#include("serialize.jl")
+include("serialize.jl")
 
 for name in [
     "activation",
@@ -54,10 +54,10 @@ for name in [
     include("functions/$(name).jl")
 end
 
-#for name in [
-#    "gru"]
-#  include("graphs/$(name).jl")
-#end
+for name in [
+    "gru"]
+  include("graphs/$(name).jl")
+end
 
 export update!
 for name in [
