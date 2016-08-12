@@ -59,6 +59,12 @@ Basically,
 1. Wrap your data with `Var`.
 2. Apply functions to `Var`s. `Var` memorizes a history of functional applications for auto-differentiation.
 
+```julia
+x = Var(rand(Float32,10,5))
+f = Linear(Float32,10,7)
+y = f(x)
+```
+
 ### Example1: Feed-Forward Neural Network
 Static network can be constructed by `@graph` macro.
 
@@ -72,13 +78,13 @@ using Merlin
 T = Float32
 ls = [Linear(T,10,7), Linear(T,7,3)]
 f = @graph (:x,) begin
-    x = Var(:x)
+    x = :x
     x = ls[1](x)
     x = relu(x)
     x = ls[2](x)
     x
 end
-x = rand(Float32,10,5)
+x = Var(rand(Float32,10,5))
 y = f(x)
 ```
 where `:x` is a place-holder of input argument.
@@ -86,7 +92,7 @@ where `:x` is a place-holder of input argument.
 ### Example2: Recurrent Neural Network (RNN)
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="270"></p>
 
-Dynamic network structures such as recurrent neural network (RNN) can be easily described with control flow constructs (`for`, `if`, etc.) in Julia.
+Dynamic network structures such as recurrent neural network (RNN) can be easily described with Julia's standard control-flow constructs (`for`, `if`, etc.).
 
 ```julia
 using Merlin
@@ -114,7 +120,7 @@ data_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
 data_y = [Var([1,2,3]) for i=1:100] # correct labels
 f = ...
 
-opt = SGD(0.0001, 0.9)
+opt = SGD(0.0001, momentum=0.9)
 for epoch = 1:10
   println("epoch: $(epoch)")
   loss = fit(f, crossentropy, opt, data_x, data_y)
