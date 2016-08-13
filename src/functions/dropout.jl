@@ -20,7 +20,7 @@ function dropout{T}(x::Array{T}, ratio::Float64)
     y
 end
 
-function ∇dropout!(ratio::Float64, rx::Array{T,N}, gx::Array{T,N}, gy::Array{T,N})
+function ∇dropout!{T}(ratio::Float64, rx::Array{T}, gx::Array{T}, gy::Array{T})
   @inbounds @simd for i = 1:length(x)
       gx[i] += ifelse(randx[i] <= T(ratio), T(0), scale*gy[i])
   end
