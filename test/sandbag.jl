@@ -5,10 +5,16 @@ using JuCUDA
 using HDF5
 using Compat
 
+x = Param(rand(Float32,5,4,1))
+x.data
+y = maxpooling(x, (2,2))
+gradient!(y)
+x.grad
+
 function bench()
+    x = Var(rand(Float32,30,50,1))
     for i = 1:10000
-        #rand(Float32,1000)
-        Array(Float32,1000)
+        maxpooling(x, (2,2))
     end
 end
 @time bench()

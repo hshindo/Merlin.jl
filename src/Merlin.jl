@@ -26,6 +26,8 @@ end
 
 typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
 
+include("interop/c/carray.jl")
+
 include("util.jl")
 include("abstractnode.jl")
 include("var.jl")
@@ -41,12 +43,14 @@ for name in [
     "concat",
     "conv",
     "crossentropy",
+    "dropout",
     "embedding",
     "gemm",
     "index",
     "linear",
     "math",
     "norm",
+    "pooling",
     "reshape",
     "softmax",
     "sum",

@@ -1,9 +1,10 @@
 export dropout
 
 """
-    dropout(x::Var, ratio::Float64)
+    dropout(x::Var, ratio::Float64, istrain::Bool)
 """
-function dropout(x::Var, ratio::Float64)
+function dropout(x::Var, ratio::Float64, istrain::Bool)
+    istrain || return x
     y = dropout(x.data, ratio)
     df(gy) = gy * self.mask
     Var(y, [x], dropout, df)
@@ -17,10 +18,6 @@ function dropout{T}(x::Array{T}, ratio::Float64)
         y[i] = ifelse(rx[i] <= T(ratio), T(0), scale*x[i])
     end
     y
-end
-
-function dropout{T,N}(x::CuArray{T,N}, ratio::Float64)
-
 end
 
 function ∇dropout!(ratio::Float64, rx::Array{T,N}, gx::Array{T,N}, gy::Array{T,N})
