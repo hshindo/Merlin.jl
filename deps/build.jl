@@ -1,8 +1,9 @@
 using Compat
 
 const sources = [
-  "softmax.cpp",
-  "window.cpp"]
+    "pooling.cpp",
+    "softmax.cpp",
+    "window.cpp"]
 
 const compiler = "g++"
 
@@ -11,7 +12,7 @@ const compiler = "g++"
     libname = "libmerlin.dll"
     cmd = `$compiler $flags -o $libname $sources`
     println("Running $cmd")
-    #run(cmd)
+    run(cmd)
 elseif is_apple()
     flags    = ["-fPIC", "-Wall", "-O3", "-shared"]
     libname = "libmerlin.so"
