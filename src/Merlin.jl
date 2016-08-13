@@ -43,6 +43,7 @@ for name in [
     "concat",
     "conv",
     "crossentropy",
+    "dropout",
     "embedding",
     "gemm",
     "index",
