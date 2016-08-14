@@ -11,7 +11,7 @@ function max(x::Var, dim::Int)
     Var(y, [x], max, df)
 end
 
-function ∇max!{T}(idx::Vector{Int}, gx::Array{T}, gy::Array{T})
+function ∇max!{T}(idx::Array{Int}, gx::Array{T}, gy::Array{T})
     @inbounds @simd for i = 1:length(idx)
         gx[idx[i]] += gy[i]
     end
