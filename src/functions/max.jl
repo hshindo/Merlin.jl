@@ -11,8 +11,6 @@ function max(x::Var, dim::Int)
     Max(y, [x], max, df)
 end
 
-max(x::GraphNode, dim::Int) = GraphNode(max, x, dim)
-
 function ∇max!{T}(idx::Vector{Int}, gx::Array{T}, gy::Array{T})
     @inbounds @simd for i = 1:length(idx)
         gx[idx[i]] += gy[i]
