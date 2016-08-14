@@ -75,3 +75,13 @@ function update!(f::Embedding, opt)
     end
     empty!(f.idset)
 end
+
+export quantize!
+function quantize!(f::Embedding)
+    for w in f.ws
+        x = w.data
+        for i = 1:length(x)
+            x[i] = round(x[i], 1)
+        end
+    end
+end
