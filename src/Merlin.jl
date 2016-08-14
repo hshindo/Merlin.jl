@@ -49,6 +49,7 @@ for name in [
     "index",
     "linear",
     "math",
+    "max",
     "norm",
     "pooling",
     "reshape",
