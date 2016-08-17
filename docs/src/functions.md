@@ -6,6 +6,12 @@
 Pages = ["functions.md"]
 ```
 
+## Types
+```@docs
+Conv
+Linear
+```
+
 ## Activation
 ```@docs
 relu
@@ -18,8 +24,7 @@ tanh
 concat
 ```
 
-## Image Processing
+## Pooling
 ```@docs
-Conv
 maxpooling
 ```

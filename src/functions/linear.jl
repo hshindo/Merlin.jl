@@ -1,5 +1,22 @@
 export Linear
 
+"""
+    Linear(w::Var, x::Var, [b::Var])
+
+Compute linear function (a.k.a. affine transformation).
+
+```math
+f(x) = W^{\mathrm{T}}x + b
+```
+where ``W`` is a weight matrix and ``b`` is a bias vector.
+
+### 👉 Example
+```julia
+x = Var(rand(Float32,10,5))
+f = Linear(Float32,10,7)
+y = f(x)
+```
+"""
 type Linear <: Functor
     w::Var
     b::Var
