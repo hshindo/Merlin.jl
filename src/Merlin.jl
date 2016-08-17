@@ -51,7 +51,7 @@ for name in [
     "math",
     "max",
     "norm",
-    "pooling",
+    "pooling/maxpooling",
     "reshape",
     "softmax",
     "sum",
