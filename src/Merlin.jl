@@ -53,7 +53,7 @@ for name in [
     "embedding",
     "gemm",
     "linear",
-    "math",
+    "math/math",
     "max",
     "norm",
     "sum",

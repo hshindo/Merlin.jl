@@ -31,6 +31,14 @@ reshape
 transpose
 ```
 
+## Math
+```@docs
+add
+exp
+log
+multiply
+```
+
 ## Pooling
 ```@docs
 maxpooling
