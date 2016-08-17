@@ -1,21 +1,51 @@
 # Functions
+`Merlin` provides standard functions used in deep learning.
+
+## Index
+```@index
+Pages = ["functions.md"]
+```
+
+## Types
+```@docs
+Conv
+Linear
+```
 
 ## Activation
 ```@docs
-relu(x::Var)
-sigmoid(x::Var)
-tanh(x::Var)
+relu
+sigmoid
+tanh
 ```
 
+## Indexing
 ```@docs
-concat(dim::Int, xs::Vector{Var})
+getindex
+```
 
-crossentropy(p, x::Var)
-gemm(tA, tB, alpha, A::Var, B::Var)
-max(x::Var, dim::Int)
-reshape(x::Var, dims)
-softmax(x::Var, dim::Int)
-logsoftmax(x::Var, dim::Int)
-sum(x, dim::Int)
-transpose(x::Var)
+## Manipulation
+```@docs
+concat
+reshape
+transpose
+```
+
+## Math
+```@docs
+add
+exp
+log
+multiply
+```
+
+## Pooling
+```@docs
+maxpooling
+```
+
+## Softmax
+```@docs
+logsoftmax
+softmax
 ```

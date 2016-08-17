@@ -6,18 +6,6 @@ const WINDOW2D_F64 = Libdl.dlsym(libmerlin, :window2d_double)
 const ∇WINDOW2D_F32 = Libdl.dlsym(libmerlin, :window2d_grad_float)
 const ∇WINDOW2D_F64 = Libdl.dlsym(libmerlin, :window2d_grad_double)
 
-type Conv{N} <: Functor
-    w::Var
-    filterdims::NTuple{N,Int}
-    stride::NTuple{N,Int}
-    paddims::NTuple{N,Int}
-end
-
-handle(::Type{Conv{2}}, ::Type{Float32}) = WINDOW2D_F32
-handle(::Type{Conv{2}}, ::Type{Float64}) = WINDOW2D_F64
-∇handle(::Type{Conv{2}}, ::Type{Float32}) = ∇WINDOW2D_F32
-∇handle(::Type{Conv{2}}, ::Type{Float64}) = ∇WINDOW2D_F64
-
 """
     Conv(T, channel, filter, [stride, pad])
 
@@ -37,6 +25,18 @@ f = Conv(Float32, (2,2), (3,4), stride=(1,1), paddims=(0,0))
 y = f(x)
 ```
 """
+type Conv{N} <: Functor
+    w::Var
+    filterdims::NTuple{N,Int}
+    stride::NTuple{N,Int}
+    paddims::NTuple{N,Int}
+end
+
+handle(::Type{Conv{2}}, ::Type{Float32}) = WINDOW2D_F32
+handle(::Type{Conv{2}}, ::Type{Float64}) = WINDOW2D_F64
+∇handle(::Type{Conv{2}}, ::Type{Float32}) = ∇WINDOW2D_F32
+∇handle(::Type{Conv{2}}, ::Type{Float64}) = ∇WINDOW2D_F64
+
 function Conv(T::Type, filterdims, channeldims; stride=(), paddims=())
     N = length(filterdims)
     w = rand(T(-0.001), T(0.001), filterdims..., channeldims...)

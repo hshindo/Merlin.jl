@@ -2,11 +2,12 @@
 `Graph` is a container of computational graph.
 
 ```julia
-f = @graph begin
-  x = Var(:x)
-  x = LinearFun(Float32,10,5)
+ls = [Linear(Float32,10,5), Linear(FLoat32,5,3)]
+f = @graph (:x,) begin
+  x = :x
+  x = ls[1](x)
   x = relu(x)
-  x = LinearFun(FLoat32,5,3)
+  x = ls[2](x)
   x
 end
 ```
@@ -14,5 +15,5 @@ end
 Then, apply the function `g` to input var.
 ```julia
 x = Var(rand(Float32,10,10))
-y = f(:x => x)
+y = f(x)
 ```
