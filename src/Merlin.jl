@@ -45,6 +45,8 @@ for name in [
     "manipulation/reshape",
     "manipulation/transpose",
     "pooling/maxpooling",
+    "softmax/softmax",
+    "softmax/logsoftmax",
     "conv",
     "crossentropy",
     "dropout",
@@ -54,7 +56,6 @@ for name in [
     "math",
     "max",
     "norm",
-    "softmax",
     "sum",
     "window2"
     ]

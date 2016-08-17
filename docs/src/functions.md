@@ -35,3 +35,9 @@ transpose
 ```@docs
 maxpooling
 ```
+
+## Softmax
+```@docs
+logsoftmax
+softmax
+```
