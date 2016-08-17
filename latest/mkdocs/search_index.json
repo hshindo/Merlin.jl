@@ -2,22 +2,22 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Merlin.jl\n\n\nMerlin\n is a deep learning framework written in \nJulia\n. It aims to provide a fast, flexible and compact deep learning library for machine learning.\n\n\nSee README.md for basic usage.", 
+            "text": "Merlin.jl\n\n\nMerlin\n is a deep learning framework written in \nJulia\n. It aims to provide a fast, flexible and compact deep learning library for machine learning.\n\n\nSee README.md for basic usage.\n\n\nBasically, * Wrap your data with \nVar\n type. * Apply functions to the \nVar\n.\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nFloat32\n,\n10\n,\n3\n)\n\n\ny\n \n=\n \nf\n(\nx\n)", 
             "title": "Home"
         }, 
         {
             "location": "/#merlinjl", 
-            "text": "Merlin  is a deep learning framework written in  Julia . It aims to provide a fast, flexible and compact deep learning library for machine learning.  See README.md for basic usage.", 
+            "text": "Merlin  is a deep learning framework written in  Julia . It aims to provide a fast, flexible and compact deep learning library for machine learning.  See README.md for basic usage.  Basically, * Wrap your data with  Var  type. * Apply functions to the  Var .  x   =   Var ( rand ( Float32 , 10 , 5 ))  f   =   Linear ( Float32 , 10 , 3 )  y   =   f ( x )", 
             "title": "Merlin.jl"
         }, 
         {
             "location": "/functions/", 
-            "text": "Functions\n\n\n\n\nActivation\n\n\n#\n\n\nMerlin.relu\n \n \nMethod\n.\n\n\nrelu(x::Var)\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.sigmoid\n \n \nMethod\n.\n\n\nsigmoid(x::Var)\n\n\n\n\n\nsource\n\n\n#\n\n\nBase.tanh\n \n \nMethod\n.\n\n\ntanh(x::Var)\n\n\n\n\n\nsource\n\n\nconcat(dim::Int, xs::Vector{Var})\ncrossentropy(p, x::Var)\ngemm(tA, tB, alpha, A::Var, B::Var)\nmax(x::Var, dim::Int)\nreshape(x::Var, dims)\nsoftmax(x::Var, dim::Int)\nlogsoftmax(x::Var, dim::Int)\nsum(x, dim::Int)\ntranspose(x::Var)", 
+            "text": "Functions\n\n\nMerlin\n provides standard functions used in deep learning. Every function takes \n\n\n\n\nActivation\n\n\n#\n\n\nMerlin.relu\n \n \nMethod\n.\n\n\nrelu(x::Var)\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.sigmoid\n \n \nMethod\n.\n\n\nsigmoid(x::Var)\n\n\n\n\n\nsource\n\n\n#\n\n\nBase.tanh\n \n \nMethod\n.\n\n\ntanh(x::Var)\n\n\n\n\n\nsource\n\n\nconcat(dim::Int, xs::Vector{Var})\ncrossentropy(p, x::Var)\ngemm(tA, tB, alpha, A::Var, B::Var)\nmax(x::Var, dim::Int)\nreshape(x::Var, dims)\nsoftmax(x::Var, dim::Int)\nlogsoftmax(x::Var, dim::Int)\nsum(x, dim::Int)\ntranspose(x::Var)", 
             "title": "Functions"
         }, 
         {
             "location": "/functions/#functions", 
-            "text": "", 
+            "text": "Merlin  provides standard functions used in deep learning. Every function takes", 
             "title": "Functions"
         }, 
         {

@@ -203,6 +203,11 @@
 <h1 id="merlinjl">Merlin.jl</h1>
 <p><code>Merlin</code> is a deep learning framework written in <a href="http://julialang.org/">Julia</a>. It aims to provide a fast, flexible and compact deep learning library for machine learning.</p>
 <p>See README.md for basic usage.</p>
+<p>Basically, * Wrap your data with <code>Var</code> type. * Apply functions to the <code>Var</code>.</p>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
           <aside class="copyright" role="note">
             
             Documentation built with
