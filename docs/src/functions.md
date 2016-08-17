@@ -20,6 +20,6 @@ concat
 
 ## Image Processing
 ```@docs
-conv
+Conv
 maxpooling
 ```
