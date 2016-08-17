@@ -40,13 +40,19 @@ for name in [
     "activation/relu",
     "activation/sigmoid",
     "activation/tanh",
+
     "indexing/getindex",
+    "indexing/view",
+
     "manipulation/concat",
     "manipulation/reshape",
     "manipulation/transpose",
+
     "pooling/maxpooling",
+
     "softmax/softmax",
     "softmax/logsoftmax",
+
     "conv",
     "crossentropy",
     "dropout",

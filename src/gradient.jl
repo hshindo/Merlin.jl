@@ -1,18 +1,18 @@
 export gradient!, checkgrad
 
 function gradient!(top::Var)
-  sorted = topsort(top)
-  hasgrad(top) || (top.grad = ones(top.data))
-  for i = 1:length(sorted)-1 # excludes top
-    v = sorted[i]
-    (hasgrad(v) || isempty(v.args)) && continue
-    v.grad = zeros(v.data)
-  end
-  for i = length(sorted):-1:1
-    v = sorted[i]
-    v.df == nothing || v.df(v.grad)
-  end
-  sorted
+    sorted = topsort(top)
+    hasgrad(top) || (top.grad = ones(top.data))
+    for i = 1:length(sorted)-1 # excludes top
+        v = sorted[i]
+        (hasgrad(v) || isempty(v.args)) && continue
+        v.grad = zeros(v.data)
+    end
+    for i = length(sorted):-1:1
+        v = sorted[i]
+        v.df == nothing || v.df(v.grad)
+    end
+    sorted
 end
 
 const gradeps = 1e-2

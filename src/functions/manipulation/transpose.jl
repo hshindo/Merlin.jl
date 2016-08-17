@@ -1,10 +1,10 @@
-import Base: transpose
+import Base.transpose
 
 """
     transpose(x::Var)
 """
 function transpose(x::Var)
     y = transpose(x.data)
-    df{T}(gy::UniArray{T}) = hasgrad(x) && BLAS.axpy!(T(1), transpose(gy), x.grad)
+    df(gy::UniArray) = hasgrad(x) && (x.grad .+= transpose(gy))
     Var(y, [x], transpose, df)
 end

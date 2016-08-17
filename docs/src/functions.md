@@ -6,12 +6,6 @@
 Pages = ["functions.md"]
 ```
 
-## Types
-```@docs
-Conv
-Linear
-```
-
 ## Activation
 ```@docs
 relu
@@ -22,6 +16,7 @@ tanh
 ## Indexing
 ```@docs
 getindex
+view
 ```
 
 ## Manipulation
