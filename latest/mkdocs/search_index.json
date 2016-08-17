@@ -12,17 +12,17 @@
         }, 
         {
             "location": "/functions/", 
-            "text": "Functions\n\n\nMerlin\n provides standard functions used in deep learning. Every function takes \n\n\n\n\nActivation\n\n\n#\n\n\nMerlin.relu\n \n \nMethod\n.\n\n\nrelu(x::Var)\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.sigmoid\n \n \nMethod\n.\n\n\nsigmoid(x::Var)\n\n\n\n\n\nsource\n\n\n#\n\n\nBase.tanh\n \n \nMethod\n.\n\n\ntanh(x::Var)\n\n\n\n\n\nsource\n\n\nconcat(dim::Int, xs::Vector{Var})\ncrossentropy(p, x::Var)\ngemm(tA, tB, alpha, A::Var, B::Var)\nmax(x::Var, dim::Int)\nreshape(x::Var, dims)\nsoftmax(x::Var, dim::Int)\nlogsoftmax(x::Var, dim::Int)\nsum(x, dim::Int)\ntranspose(x::Var)", 
+            "text": "Functions\n\n\nMerlin\n provides standard functions used in deep learning.\n\n\n\n\nActivation\n\n\n#\n\n\nMerlin.relu\n \n \nMethod\n.\n\n\nrelu(x::Var)\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.sigmoid\n \n \nMethod\n.\n\n\nsigmoid(x::Var)\n\n\n\n\n\nsource\n\n\n#\n\n\nBase.tanh\n \n \nMethod\n.\n\n\ntanh(x::Var)\n\n\n\n\n\nsource\n\n\nrelu(x::Var)", 
             "title": "Functions"
         }, 
         {
             "location": "/functions/#functions", 
-            "text": "Merlin  provides standard functions used in deep learning. Every function takes", 
+            "text": "Merlin  provides standard functions used in deep learning.", 
             "title": "Functions"
         }, 
         {
             "location": "/functions/#activation", 
-            "text": "#  Merlin.relu     Method .  relu(x::Var)  source  #  Merlin.sigmoid     Method .  sigmoid(x::Var)  source  #  Base.tanh     Method .  tanh(x::Var)  source  concat(dim::Int, xs::Vector{Var})\ncrossentropy(p, x::Var)\ngemm(tA, tB, alpha, A::Var, B::Var)\nmax(x::Var, dim::Int)\nreshape(x::Var, dims)\nsoftmax(x::Var, dim::Int)\nlogsoftmax(x::Var, dim::Int)\nsum(x, dim::Int)\ntranspose(x::Var)", 
+            "text": "#  Merlin.relu     Method .  relu(x::Var)  source  #  Merlin.sigmoid     Method .  sigmoid(x::Var)  source  #  Base.tanh     Method .  tanh(x::Var)  source  relu(x::Var)", 
             "title": "Activation"
         }
     ]
