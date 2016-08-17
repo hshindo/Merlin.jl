@@ -4,3 +4,13 @@
 It aims to provide a fast, flexible and compact deep learning library for machine learning.
 
 See README.md for basic usage.
+
+Basically,
+* Wrap your data with `Var` type.
+* Apply functions to the `Var`.
+
+```julia
+x = Var(rand(Float32,10,5))
+f = Linear(Float32,10,3)
+y = f(x)
+```

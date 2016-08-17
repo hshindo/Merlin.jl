@@ -1,4 +1,6 @@
 # Functions
+`Merlin` provides standard functions used in deep learning.
+Every function takes 
 
 ## Activation
 ```@docs
