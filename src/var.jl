@@ -15,6 +15,6 @@ Param(data) = Var(data, Var[], nothing, nothing, zeros(data))
 
 hasgrad(v::Var) = v.grad != nothing
 
-Base.size(v::Var) = size(v.data)
-Base.size(v::Var, dim::Int) = size(v.data, dim)
-Base.length(v::Var) = length(v.data)
+#Base.size(v::Var) = size(v.data)
+#Base.size(v::Var, dim::Int) = size(v.data, dim)
+#Base.length(v::Var) = length(v.data)
