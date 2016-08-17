@@ -4,10 +4,13 @@ export gemm
     gemm(tA::Char, tB::Char, alpha::Float64, A::Var, B::Var)
     gemm(A::Var, B::Var)
 
+```math
 C = alpha * tA(A) * tB(B)
+```
 
+## Arguments
 * tA: transpose ('T') or not ('N'). default: 'N'
-* tB: same as tA
+* tB: the same as tA
 """
 function gemm(tA, tB, alpha, A::Var, B::Var)
     C = gemm(tA, tB, alpha, A.data, B.data)
@@ -17,8 +20,6 @@ function gemm(tA, tB, alpha, A::Var, B::Var)
     Var(C, [A,B], gemm, df)
 end
 gemm(A, B; tA='N', tB='N', alpha=1.0) = gemm(tA, tB, alpha, A, B)
-
-gemm(tA, tB, alpha, A::GraphNode, B::GraphNode) = GraphNode(gemm, tA, tB, alpha, A, B)
 
 function ∇gemm!(A, gA, B, gB, C, gC; tA='N', tB='N', alpha=1.0)
     ∇gemm!(tA, tB, alpha, A, gA, B, gB, C, gC)

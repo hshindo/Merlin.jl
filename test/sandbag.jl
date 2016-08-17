@@ -9,7 +9,9 @@ A = rand(10,5)
 B = rand(10,5)
 A .+= B
 
-x = Var(rand(Float32,4,3))
+x = Param(rand(Float32,4,3))
+y = dropout(x, 0.5, true)
+gradient!(y)[1].grad
 y = window2d(x, (4,2), (1,1), (0,0))
 x.data
 y.data

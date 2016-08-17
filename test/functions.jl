@@ -86,6 +86,8 @@ xx = Var(rand(T,1)[1])
 @test checkgrad(()->exp(x1), x1)
 #@test checkgrad(()->exp(xx), xx) # TODO: fail test
 #@test checkgrad(()->log(x1), x1) # TODO: fail test
+x1 = Var(rand(T,10,5))
+#@test checkgrad(()->dropout(x1,0.5,true), x1)
 
 x = Var(rand(T,10,5,3,4))
 for dim = 1:ndims(x.data)

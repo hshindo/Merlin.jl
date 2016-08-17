@@ -17,8 +17,6 @@ function logsoftmax(x::Var, dim)
     Var(y, [x], logsoftmax, df)
 end
 
-logsoftmax(x::GraphNode, dim::Int) = GraphNode(logsoftmax, x, dim)
-
 function logsoftmax{T}(x::Array{T}, dim::Int)
     @assert 0 < dim <= ndims(x)
     h = logsoftmax_handle(T)[1]
