@@ -35,7 +35,7 @@ function make_params(f::Window2D)
     Int32[f.w1, f.w2, f.s1, f.s2, f.p1, f.p2]
 end
 
-@compat function (f::Window2D)(args::Vector{Var})
+function (f::Window2D)(args::Vector{Var})
     x = args[1]
     y, params = window2d(f, x.value)
     df(gy) = hasgrad(x) && ∇window2d!(f, params, x.value, x.grad, gy)

@@ -36,7 +36,7 @@ function Embedding(path, T::Type)
     Embedding(ws, IntSet())
 end
 
-@compat function (f::Embedding)(x::Var)
+function (f::Embedding)(x::Var)
     y = embedding(f.ws, x.data)
     function df(gy)
         ∇embedding!(f.ws, x.data, gy)
@@ -46,8 +46,6 @@ end
     end
     Var(y, [x], f, df)
 end
-
-@compat (f::Embedding)(x::GraphNode) = GraphNode(f, x)
 
 function embedding(ws::Vector{Var}, x::Array{Int})
     n = length(ws[1].data)

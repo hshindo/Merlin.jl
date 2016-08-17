@@ -1,12 +1,10 @@
 module Merlin
 
-using Compat
 using Base.LinAlg.BLAS
-import Compat: String, view
 
 abstract Functor
 
-@compat if is_windows()
+if is_windows()
     const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps","libmerlin.dll"))
 else
     const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps","libmerlin.so"))

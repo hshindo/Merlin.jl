@@ -11,7 +11,7 @@ end
 
 AdaGrad(alpha::Float64) = AdaGrad(alpha, ObjectIdDict())
 
-@compat function (opt::AdaGrad){T}(value::Array{T}, grad::Array{T})
+function (opt::AdaGrad){T}(value::Array{T}, grad::Array{T})
   state = get!(opt.states, value, nothing)
   if state == nothing
     sqgrad = zeros(T, length(value))

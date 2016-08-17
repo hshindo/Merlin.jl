@@ -45,7 +45,7 @@ function Conv(T::Type, filterdims, channeldims; stride=(), paddims=())
     Conv(Param(w), filterdims, stride, paddims)
 end
 
-@compat function (f::Conv)(x::Var)
+function (f::Conv)(x::Var)
     y, work = conv(f.w.data, x.data, f.filterdims, f.stride, f.paddims)
     function df(gy)
         ∇conv!(f.w.data, f.w.grad, x.data, x.grad, work, y, gy,
