@@ -12,13 +12,18 @@
         }, 
         {
             "location": "/functions/", 
-            "text": "Functions\n\n\nrelu(x::Var)\nsigmoid(x::Var)\ntanh(x::Var)\nconcat(dim::Int, xs::Vector{Var})\ncrossentropy(p, x::Var)\ngemm(tA, tB, alpha, A::Var, B::Var)\nmax(x::Var, dim::Int)\nreshape(x::Var, dims)\nsoftmax(x::Var, dim::Int)\nlogsoftmax(x::Var, dim::Int)\nsum(x, dim::Int)\ntranspose(x::Var)", 
+            "text": "Functions\n\n\n\n\nActivation\n\n\n#\n\n\nMerlin.relu\n \n \nMethod\n.\n\n\nrelu(x)\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.sigmoid\n \n \nMethod\n.\n\n\nsigmoid(x)\n\n\n\n\n\nsource\n\n\n#\n\n\nBase.tanh\n \n \nMethod\n.\n\n\ntanh(x)\n\n\n\n\n\nsource\n\n\n\n\nlink to \nrelu(x::Var)\n\n\nlink to \nsigmoid(x)\n\n\n\n\nconcat(dim::Int, xs::Vector{Var})\n\ncrossentropy(p, x::Var)\ngemm(tA, tB, alpha, A::Var, B::Var)\nmax(x::Var, dim::Int)\nreshape(x::Var, dims)\nsoftmax(x::Var, dim::Int)\nlogsoftmax(x::Var, dim::Int)\nsum(x, dim::Int)\ntranspose(x::Var)", 
             "title": "Functions"
         }, 
         {
             "location": "/functions/#functions", 
-            "text": "relu(x::Var)\nsigmoid(x::Var)\ntanh(x::Var)\nconcat(dim::Int, xs::Vector{Var})\ncrossentropy(p, x::Var)\ngemm(tA, tB, alpha, A::Var, B::Var)\nmax(x::Var, dim::Int)\nreshape(x::Var, dims)\nsoftmax(x::Var, dim::Int)\nlogsoftmax(x::Var, dim::Int)\nsum(x, dim::Int)\ntranspose(x::Var)", 
+            "text": "", 
             "title": "Functions"
+        }, 
+        {
+            "location": "/functions/#activation", 
+            "text": "#  Merlin.relu     Method .  relu(x)  source  #  Merlin.sigmoid     Method .  sigmoid(x)  source  #  Base.tanh     Method .  tanh(x)  source   link to  relu(x::Var)  link to  sigmoid(x)   concat(dim::Int, xs::Vector{Var})\n\ncrossentropy(p, x::Var)\ngemm(tA, tB, alpha, A::Var, B::Var)\nmax(x::Var, dim::Int)\nreshape(x::Var, dims)\nsoftmax(x::Var, dim::Int)\nlogsoftmax(x::Var, dim::Int)\nsum(x, dim::Int)\ntranspose(x::Var)", 
+            "title": "Activation"
         }
     ]
 }
