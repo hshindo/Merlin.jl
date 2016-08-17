@@ -35,6 +35,8 @@ transpose
 axsum
 exp
 log
+max
+sum
 ```
 
 ## Pooling Functions

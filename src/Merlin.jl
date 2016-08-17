@@ -52,7 +52,9 @@ for name in [
     "math/axsum",
     "math/exp",
     "math/log",
+    "math/max",
     "math/multiply",
+    "math/sum",
 
     "pooling/maxpooling",
 
@@ -65,9 +67,7 @@ for name in [
     "embedding",
     "gemm",
     "linear",
-    "max",
     "norm",
-    "sum",
     "window2"
     ]
     include("functions/$(name).jl")
