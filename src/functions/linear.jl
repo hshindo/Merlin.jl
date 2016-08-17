@@ -6,7 +6,7 @@ export Linear
 Compute linear function (a.k.a. affine transformation).
 
 ```math
-f(x) = W^{\mathrm{T}}x + b
+f(x) = W^{T}x + b
 ```
 where ``W`` is a weight matrix and ``b`` is a bias vector.
 
