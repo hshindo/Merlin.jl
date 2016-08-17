@@ -19,7 +19,7 @@ handle(::Type{Conv{2}}, ::Type{Float64}) = WINDOW2D_F64
 ∇handle(::Type{Conv{2}}, ::Type{Float64}) = ∇WINDOW2D_F64
 
 """
-    Conv(T, channel, filter, [stride, pad])
+Conv(T, channel, filter, [stride, pad])
 
 N-dimensional convolution function.
 

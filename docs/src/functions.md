@@ -17,3 +17,9 @@ tanh
 ```@docs
 concat
 ```
+
+## Image Processing
+```@docs
+conv
+maxpooling
+```

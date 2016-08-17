@@ -21,7 +21,7 @@ function Pooling{N}(windims::NTuple{N,Int}, stride, paddims)
 end
 
 """
-    maxpooling(window, [stride, padding])
+maxpooling(window, [stride, padding])
 
 ## Arguments
 * windims::NTuple{N,Int}: window size
