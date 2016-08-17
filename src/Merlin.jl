@@ -1,12 +1,10 @@
 module Merlin
 
-using Compat
 using Base.LinAlg.BLAS
-import Compat: String, view
 
 abstract Functor
 
-@compat if is_windows()
+if is_windows()
     const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps","libmerlin.dll"))
 else
     const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps","libmerlin.so"))
@@ -39,7 +37,9 @@ include("native.jl")
 include("serialize.jl")
 
 for name in [
-    "activation",
+    "activation/relu",
+    "activation/sigmoid",
+    "activation/tanh",
     "concat",
     "conv",
     "crossentropy",
@@ -49,11 +49,13 @@ for name in [
     "index",
     "linear",
     "math",
+    "max",
     "norm",
     "pooling",
     "reshape",
     "softmax",
     "sum",
+    "window2"
     ]
     include("functions/$(name).jl")
 end

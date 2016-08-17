@@ -11,7 +11,7 @@ This is alpha version.
 It aims to provide a fast, flexible and compact deep learning library for machine learning.
 Our primary goal is to develop a natural language processing toolkit based on `Merlin`.
 
-`Merlin` is tested against Julia `0.4` and `0.5` on Linux, OS X, and Windows (x64).
+`Merlin` is tested against Julia `0.5` on Linux, OS X, and Windows (x64).
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 <!-- [![Build status](https://ci.appveyor.com/api/projects/status/v2u1kyjy61ph0ihn/branch/master?svg=true)](https://ci.appveyor.com/project/hshindo/merlin-jl/branch/master) -->
@@ -20,11 +20,11 @@ Our primary goal is to develop a natural language processing toolkit based on `M
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](http://hshindo.github.io/Merlin.jl/latest/)
 
 ## Requirements
-- Julia 0.4 or 0.5
+- Julia 0.5 or later
 - g++ (for OSX or Linux)
 
 ## Installation
-First, install [Julia](http://julialang.org/). Currently, version 0.4.x is recommended.
+First, install [Julia](http://julialang.org/). Currently, version 0.5 is recommended.
 
 Then, clone the package.
 ```julia

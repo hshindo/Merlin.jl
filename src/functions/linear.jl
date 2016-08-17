@@ -12,7 +12,7 @@ function Linear(T::Type, indim::Int, outdim::Int)
     Linear(Param(w), Param(b))
 end
 
-@compat function (f::Linear)(x::Var)
+function (f::Linear)(x::Var)
     w, b = f.w, f.b
     y = w.data * x.data
     broadcast!(.+, y, y, b.data)

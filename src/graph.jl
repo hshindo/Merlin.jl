@@ -14,7 +14,7 @@ end
 function Graph()
 end
 
-@compat (g::Graph)(xs...) = g.f(xs...)
+(g::Graph)(xs...) = g.f(xs...)
 
 function compile(top::GraphNode, syms::Tuple{Vararg{Symbol}})
     nodes = topsort(top)

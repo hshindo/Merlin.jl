@@ -1,23 +1,12 @@
 export sigmoid
 
-type Sigmoid <: Var
-    data
-    grad
-    tails::Vector
-end
-
 """
     sigmoid(x)
 """
 function sigmoid(x::Var)
-    y = hasdata(x) ? sigmoid(x.data) : nothing
-    Sigmoid(y, nothing, [x])
-end
-@compat (::Sigmoid)(x::Var) = sigmoid(x)
-
-function backward!(v::Sigmoid)
-    hasgrad(v[1]) || return
-    ∇sigmoid!(v[1].data, v[1].grad, v.data, v.grad)
+    y = sigmoid(x.data)
+    df(gy) = hasgrad(x) && ∇sigmoid!(x.data, x.grad, y, gy)
+    Var(y, [x], sigmoid, df)
 end
 
 function sigmoid{T}(x::Array{T})

@@ -1,23 +1,12 @@
 export relu
 
-type ReLU <: Var
-    data
-    grad
-    tails::Vector
-end
-
 """
     relu(x)
 """
 function relu(x::Var)
-    y = hasdata(x) ? relu(x.data) : nothing
-    ReLU(y, nothing, [x])
-end
-@compat (::ReLU)(x::Var) = relu(x)
-
-function backward!(v::ReLU)
-    hasgrad(v[1]) || return
-    ∇relu!(v[1].data, v[1].grad, v.data, v.grad)
+    y = relu(x.data)
+    df(gy) = hasgrad(x) && ∇relu!(x.data, x.grad, y, gy)
+    Var(y, [x], relu, df)
 end
 
 function relu{T}(x::Array{T})

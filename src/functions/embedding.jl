@@ -16,7 +16,7 @@ y = f(x)
 ```
 """
 function Embedding{T}(::Type{T}, indim::Int, outdim::Int)
-    ws = Var[Param(Vector{T}(randn(outdim))) for i=1:indim]
+    ws = Var[Param(Vector{T}(rand(outdim))) for i=1:indim]
     Embedding(ws, IntSet())
 end
 
@@ -36,7 +36,7 @@ function Embedding(path, T::Type)
     Embedding(ws, IntSet())
 end
 
-@compat function (f::Embedding)(x::Var)
+function (f::Embedding)(x::Var)
     y = embedding(f.ws, x.data)
     function df(gy)
         ∇embedding!(f.ws, x.data, gy)
@@ -46,8 +46,6 @@ end
     end
     Var(y, [x], f, df)
 end
-
-@compat (f::Embedding)(x::GraphNode) = GraphNode(f, x)
 
 function embedding(ws::Vector{Var}, x::Array{Int})
     n = length(ws[1].data)
@@ -74,4 +72,16 @@ function update!(f::Embedding, opt)
         opt(w.data, w.grad)
     end
     empty!(f.idset)
+end
+
+export quantize!
+function quantize!(f::Embedding)
+    for w in f.ws
+        x = w.data
+        for i = 1:length(x)
+            x[i] < -0.0 && (x[i] = 0.0)
+            x[1] > 1.0 && (x[i] = 1.0)
+            x[i] = round(x[i], 1)
+        end
+    end
 end

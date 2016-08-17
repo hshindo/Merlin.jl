@@ -15,7 +15,7 @@ end
 
 Adam() = Adam(0.001, 0.9, 0.999, 1e-8, ObjectIdDict())
 
-@compat function (opt::Adam){T}(param::Array{T}, grad::Array{T})
+function (opt::Adam){T}(param::Array{T}, grad::Array{T})
   @assert length(param) == length(grad)
   state = get!(opt.states, param, nothing)
   if state == nothing

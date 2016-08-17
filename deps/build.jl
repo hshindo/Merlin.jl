@@ -1,13 +1,11 @@
-using Compat
-
 const sources = [
     "pooling.cpp",
     "softmax.cpp",
-    "window.cpp"]
+    "window.cpp", "window2.cpp"]
 
 const compiler = "g++"
 
-@compat if is_windows()
+if is_windows()
     flags    = ["-fopenmp", "-Wall", "-O3", "-shared", "-march=native"]
     libname = "libmerlin.dll"
     cmd = `$compiler $flags -o $libname $sources`
