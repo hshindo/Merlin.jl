@@ -1,3 +1,5 @@
+import Base.getindex
+
 """
     getindex(x::Var, inds...)
 
@@ -8,8 +10,8 @@ y = x[1:3]
 y = x[2]
 ```
 """
-function Base.getindex(x::Var, inds...)
+function getindex(x::Var, inds...)
     y = x.data[inds...]
-    df(gy) = hasgrad(x) && (x.grad[inds...] += gy) # TODO: more efficient in-place operation
+    df(gy) = hasgrad(x) && (x.grad[inds...] .+= gy)
     Var(y, [x], getindex, df)
 end
