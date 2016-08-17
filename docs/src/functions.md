@@ -19,9 +19,16 @@ sigmoid
 tanh
 ```
 
-##
+## Indexing
+```@docs
+getindex
+```
+
+## Manipulation
 ```@docs
 concat
+reshape
+transpose
 ```
 
 ## Pooling

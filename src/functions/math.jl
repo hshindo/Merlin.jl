@@ -89,14 +89,3 @@ function ∇elemtimes!{T,N}(x2::Array{T,N}, gx1::Array{T,N}, gy::Array{T,N})
         broadcast!(.+, gx1, gx1, gy.*x2)
     end
 end
-
-import Base: transpose
-
-"""
-    transpose(x::Var)
-"""
-function transpose(x::Var)
-    y = transpose(x.data)
-    df{T}(gy::UniArray{T}) = hasgrad(x) && BLAS.axpy!(T(1), transpose(gy), x.grad)
-    Var(y, [x], transpose, df)
-end
