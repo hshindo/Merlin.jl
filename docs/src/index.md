@@ -6,8 +6,9 @@ It aims to provide a fast, flexible and compact deep learning library for machin
 See README.md for basic usage.
 
 Basically,
-* Wrap your data with `Var` type.
-* Apply functions to the `Var`.
+
+1. Wrap your data with `Var` type.
+2. Apply functions to the `Var`.
 
 ```julia
 x = Var(rand(Float32,10,5))

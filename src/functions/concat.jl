@@ -1,8 +1,8 @@
 export concat
 
 """
-    concat(dim::Int, xs::Var...)
-    concat(dim::Int, xs::Vector{Var})
+concat(dim::Int, xs::Var...)
+concat(dim::Int, xs::Vector{Var})
 
 Concatenate arrays along the given dimension.
 """
