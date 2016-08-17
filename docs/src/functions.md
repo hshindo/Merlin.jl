@@ -1,10 +1,13 @@
 # Functions
 
 ```@docs
+## Activation
 relu(x::Var)
 sigmoid(x::Var)
 tanh(x::Var)
+
 concat(dim::Int, xs::Vector{Var})
+
 crossentropy(p, x::Var)
 gemm(tA, tB, alpha, A::Var, B::Var)
 max(x::Var, dim::Int)
