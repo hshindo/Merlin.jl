@@ -1,7 +1,7 @@
 export sigmoid
 
 """
-    sigmoid(x)
+    sigmoid(x::Var)
 """
 function sigmoid(x::Var)
     y = sigmoid(x.data)

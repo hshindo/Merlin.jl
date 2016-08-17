@@ -6,8 +6,6 @@ relu(x::Var)
 sigmoid(x::Var)
 tanh(x::Var)
 ```
-- link to [`relu(x::Var)`](@ref)
-- link to [`sigmoid(x)`](@ref)
 
 ```@docs
 concat(dim::Int, xs::Vector{Var})
