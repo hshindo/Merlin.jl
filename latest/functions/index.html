@@ -286,7 +286,7 @@
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/264883ab3f7d986d32ba3788d778ddbc448906e3/src/functions/conv.jl#L9-L27' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f3459cb3be39b9bf00a8de7d8854762830d1f44a/src/functions/conv.jl#L9-L27' class='documenter-source'>source</a><br></p>
 <p><a id='Merlin.Linear' href='#Merlin.Linear'>#</a>
 <strong><code>Merlin.Linear</code></strong> &mdash; <em>Type</em>.</p>
 <div class="codehilite"><pre><span></span>Linear(w::Var, x::Var, [b::Var])
@@ -307,7 +307,7 @@ f(x) = W^{mathrm{T}}x + b
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/264883ab3f7d986d32ba3788d778ddbc448906e3/src/functions/linear.jl#L3-L19' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f3459cb3be39b9bf00a8de7d8854762830d1f44a/src/functions/linear.jl#L3-L19' class='documenter-source'>source</a><br></p>
 <p><a id='Activation-1'></a></p>
 <h2 id="activation">Activation</h2>
 <p><a id='Merlin.relu' href='#Merlin.relu'>#</a>
@@ -316,21 +316,21 @@ f(x) = W^{mathrm{T}}x + b
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/264883ab3f7d986d32ba3788d778ddbc448906e3/src/functions/activation/relu.jl#L3-L5' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f3459cb3be39b9bf00a8de7d8854762830d1f44a/src/functions/activation/relu.jl#L3-L5' class='documenter-source'>source</a><br></p>
 <p><a id='Merlin.sigmoid' href='#Merlin.sigmoid'>#</a>
 <strong><code>Merlin.sigmoid</code></strong> &mdash; <em>Function</em>.</p>
 <div class="codehilite"><pre><span></span>sigmoid(x::Var)
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/264883ab3f7d986d32ba3788d778ddbc448906e3/src/functions/activation/sigmoid.jl#L3-L5' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f3459cb3be39b9bf00a8de7d8854762830d1f44a/src/functions/activation/sigmoid.jl#L3-L5' class='documenter-source'>source</a><br></p>
 <p><a id='Base.tanh' href='#Base.tanh'>#</a>
 <strong><code>Base.tanh</code></strong> &mdash; <em>Function</em>.</p>
 <div class="codehilite"><pre><span></span>tanh(x::Var)
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/264883ab3f7d986d32ba3788d778ddbc448906e3/src/functions/activation/tanh.jl#L3-L5' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f3459cb3be39b9bf00a8de7d8854762830d1f44a/src/functions/activation/tanh.jl#L3-L5' class='documenter-source'>source</a><br></p>
 <p><a id='Indexing-1'></a></p>
 <h2 id="indexing">Indexing</h2>
 <p><a id='Base.getindex' href='#Base.getindex'>#</a>
@@ -339,7 +339,14 @@ f(x) = W^{mathrm{T}}x + b
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/264883ab3f7d986d32ba3788d778ddbc448906e3/src/functions/indexing/getindex.jl#L1-L3' class='documenter-source'>source</a><br></p>
+<p><strong>👉 Example</strong></p>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</pre></div>
+
+
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f3459cb3be39b9bf00a8de7d8854762830d1f44a/src/functions/indexing/getindex.jl#L1-L10' class='documenter-source'>source</a><br></p>
 <p><a id='Manipulation-1'></a></p>
 <h2 id="manipulation">Manipulation</h2>
 <p><a id='Merlin.concat' href='#Merlin.concat'>#</a>
@@ -350,7 +357,7 @@ concat(dim::Int, xs::Vector{Var})
 
 
 <p>Concatenate arrays along the given dimension.</p>
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/264883ab3f7d986d32ba3788d778ddbc448906e3/src/functions/manipulation/concat.jl#L3-L8' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f3459cb3be39b9bf00a8de7d8854762830d1f44a/src/functions/manipulation/concat.jl#L3-L8' class='documenter-source'>source</a><br></p>
 <p><a id='Base.reshape' href='#Base.reshape'>#</a>
 <strong><code>Base.reshape</code></strong> &mdash; <em>Function</em>.</p>
 <div class="codehilite"><pre><span></span>reshape(x::Var, dims::Int...)
@@ -358,14 +365,14 @@ concat(dim::Int, xs::Vector{Var})
 
 
 <p>Reshape an array according to the given dimensions.</p>
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/264883ab3f7d986d32ba3788d778ddbc448906e3/src/functions/manipulation/reshape.jl#L3-L7' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f3459cb3be39b9bf00a8de7d8854762830d1f44a/src/functions/manipulation/reshape.jl#L3-L7' class='documenter-source'>source</a><br></p>
 <p><a id='Base.transpose' href='#Base.transpose'>#</a>
 <strong><code>Base.transpose</code></strong> &mdash; <em>Function</em>.</p>
 <div class="codehilite"><pre><span></span>transpose(x::Var)
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/264883ab3f7d986d32ba3788d778ddbc448906e3/src/functions/manipulation/transpose.jl#L3-L5' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f3459cb3be39b9bf00a8de7d8854762830d1f44a/src/functions/manipulation/transpose.jl#L3-L5' class='documenter-source'>source</a><br></p>
 <p><a id='Pooling-1'></a></p>
 <h2 id="pooling">Pooling</h2>
 <p><a id='Merlin.maxpooling' href='#Merlin.maxpooling'>#</a>
@@ -386,7 +393,7 @@ concat(dim::Int, xs::Vector{Var})
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/264883ab3f7d986d32ba3788d778ddbc448906e3/src/functions/pooling/maxpooling.jl#L23-L36' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f3459cb3be39b9bf00a8de7d8854762830d1f44a/src/functions/pooling/maxpooling.jl#L23-L36' class='documenter-source'>source</a><br></p>
 <p><a id='Softmax-1'></a></p>
 <h2 id="softmax">Softmax</h2>
 <p><a id='Merlin.logsoftmax' href='#Merlin.logsoftmax'>#</a>
@@ -395,14 +402,14 @@ concat(dim::Int, xs::Vector{Var})
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/264883ab3f7d986d32ba3788d778ddbc448906e3/src/functions/softmax/logsoftmax.jl#L11-L13' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f3459cb3be39b9bf00a8de7d8854762830d1f44a/src/functions/softmax/logsoftmax.jl#L11-L13' class='documenter-source'>source</a><br></p>
 <p><a id='Merlin.softmax' href='#Merlin.softmax'>#</a>
 <strong><code>Merlin.softmax</code></strong> &mdash; <em>Function</em>.</p>
 <div class="codehilite"><pre><span></span>softmax(x::Var, dim::Int)
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/264883ab3f7d986d32ba3788d778ddbc448906e3/src/functions/softmax/softmax.jl#L11-L13' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f3459cb3be39b9bf00a8de7d8854762830d1f44a/src/functions/softmax/softmax.jl#L11-L13' class='documenter-source'>source</a><br></p>
           <aside class="copyright" role="note">
             
             Documentation built with
