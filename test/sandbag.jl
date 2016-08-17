@@ -5,6 +5,10 @@ using JuCUDA
 using HDF5
 using Compat
 
+x = Var(rand(Float32,10,5))
+y = x[1:3]
+y = x[2]
+
 x = Var(rand(Float32,4,3))
 y = window2d(x, (4,2), (1,1), (0,0))
 x.data
