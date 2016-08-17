@@ -68,7 +68,7 @@ x3 = Var(rand(T,10,5,3))
 
 x = Var(rand(T,10,5))
 f = Linear(T,10,7)
-f.b = Param(rand(T,size(f.b)))
+f.b = Param(rand(T,size(f.b.data)))
 @test checkgrad(()->f(x), f.w, x, f.b)
 
 x1 = Var(rand(T,10,5))
