@@ -1,7 +1,7 @@
 import Base.tanh
 
 """
-    tanh(x)
+    tanh(x::Var)
 """
 function tanh(x::Var)
     y = tanh(x.data)

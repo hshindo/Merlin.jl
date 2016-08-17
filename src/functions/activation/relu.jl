@@ -1,7 +1,7 @@
 export relu
 
 """
-    relu(x)
+    relu(x::Var)
 """
 function relu(x::Var)
     y = relu(x.data)
