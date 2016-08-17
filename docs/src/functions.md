@@ -6,40 +6,43 @@
 Pages = ["functions.md"]
 ```
 
-## Activation
+## Activation Functions
 ```@docs
 relu
 sigmoid
 tanh
 ```
 
-## Indexing
+## Indexing Functions
 ```@docs
 getindex
 view
 ```
 
-## Manipulation
+## Manipulation Functions
 ```@docs
 concat
 reshape
 transpose
 ```
 
-## Math
+## Math Functions
 ```@docs
-add
++
+-
+*
+.*
+axsum
 exp
 log
-multiply
 ```
 
-## Pooling
+## Pooling Functions
 ```@docs
 maxpooling
 ```
 
-## Softmax
+## Softmax Functions
 ```@docs
 logsoftmax
 softmax
