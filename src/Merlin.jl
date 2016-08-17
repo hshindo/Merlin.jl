@@ -48,6 +48,12 @@ for name in [
     "manipulation/reshape",
     "manipulation/transpose",
 
+    "math/add",
+    "math/axsum",
+    "math/exp",
+    "math/log",
+    "math/multiply",
+
     "pooling/maxpooling",
 
     "softmax/softmax",
@@ -59,7 +65,6 @@ for name in [
     "embedding",
     "gemm",
     "linear",
-    "math/math",
     "max",
     "norm",
     "sum",

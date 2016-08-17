@@ -28,10 +28,13 @@ transpose
 
 ## Math Functions
 ```@docs
-add
++
+-
+*
+.*
+axsum
 exp
 log
-multiply
 ```
 
 ## Pooling Functions
