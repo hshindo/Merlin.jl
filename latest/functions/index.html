@@ -225,6 +225,7 @@
 <p><a id='Index-1'></a></p>
 <h2 id="index">Index</h2>
 <ul>
+<li><a href="./#Merlin.Conv"><code>Merlin.Conv</code></a></li>
 <li><a href="./#Base.tanh"><code>Base.tanh</code></a></li>
 <li><a href="./#Merlin.concat"><code>Merlin.concat</code></a></li>
 <li><a href="./#Merlin.maxpooling"><code>Merlin.maxpooling</code></a></li>
@@ -239,21 +240,21 @@
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/b9e5c32f2324eacbb7a457bb41247399db4b15b6/src/functions/activation/relu.jl#L3-L5' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/c6850a62bf6085222634f945b704cd7951eeac7e/src/functions/activation/relu.jl#L3-L5' class='documenter-source'>source</a><br></p>
 <p><a id='Merlin.sigmoid' href='#Merlin.sigmoid'>#</a>
 <strong><code>Merlin.sigmoid</code></strong> &mdash; <em>Function</em>.</p>
 <div class="codehilite"><pre><span></span>sigmoid(x::Var)
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/b9e5c32f2324eacbb7a457bb41247399db4b15b6/src/functions/activation/sigmoid.jl#L3-L5' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/c6850a62bf6085222634f945b704cd7951eeac7e/src/functions/activation/sigmoid.jl#L3-L5' class='documenter-source'>source</a><br></p>
 <p><a id='Base.tanh' href='#Base.tanh'>#</a>
 <strong><code>Base.tanh</code></strong> &mdash; <em>Function</em>.</p>
 <div class="codehilite"><pre><span></span>tanh(x::Var)
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/b9e5c32f2324eacbb7a457bb41247399db4b15b6/src/functions/activation/tanh.jl#L3-L5' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/c6850a62bf6085222634f945b704cd7951eeac7e/src/functions/activation/tanh.jl#L3-L5' class='documenter-source'>source</a><br></p>
 <p><a id='-1'></a></p>
 <h2 id="_1"></h2>
 <p><a id='Merlin.concat' href='#Merlin.concat'>#</a>
@@ -264,12 +265,51 @@ concat(dim::Int, xs::Vector{Var})
 
 
 <p>Concatenate arrays along the given dimension.</p>
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/b9e5c32f2324eacbb7a457bb41247399db4b15b6/src/functions/concat.jl#L3-L8' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/c6850a62bf6085222634f945b704cd7951eeac7e/src/functions/concat.jl#L3-L8' class='documenter-source'>source</a><br></p>
 <p><a id='Image-Processing-1'></a></p>
 <h2 id="image-processing">Image Processing</h2>
-<div class="codehilite"><pre><span></span>conv
-maxpooling
+<p><a id='Merlin.Conv' href='#Merlin.Conv'>#</a>
+<strong><code>Merlin.Conv</code></strong> &mdash; <em>Type</em>.</p>
+<div class="codehilite"><pre><span></span>Conv(T, channel, filter, [stride, pad])
 </pre></div>
+
+
+<p>N-dimensional convolution function.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li>T: Type</li>
+<li>filterdims::NTuple{N,Int}: window size</li>
+<li>channeldims::Tuple{Int,Int}: input channel, output channel</li>
+<li>[stride::NTuple{N,Int}]: stride size. Default: (1,1,...)</li>
+<li>[paddims::NTuple{N,Int}]: padding size. Default: (0,0,...)</li>
+</ul>
+<p><strong>👉 Example</strong></p>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Conv</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">paddims</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/c6850a62bf6085222634f945b704cd7951eeac7e/src/functions/conv.jl#L21-L39' class='documenter-source'>source</a><br></p>
+<p><a id='Merlin.maxpooling' href='#Merlin.maxpooling'>#</a>
+<strong><code>Merlin.maxpooling</code></strong> &mdash; <em>Function</em>.</p>
+<div class="codehilite"><pre><span></span>maxpooling(window, [stride, padding])
+</pre></div>
+
+
+<p><strong>Arguments</strong></p>
+<ul>
+<li>windims::NTuple{N,Int}: window size</li>
+<li>stride::NTuple{N,Int}: stride size. Default: (1,1,...)</li>
+<li>paddims::NTuple{N,Int}: padding size. Default: (0,0,...)</li>
+</ul>
+<p><strong>👉 Example</strong></p>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">maxpooling</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">stride</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">paddims</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+</pre></div>
+
+
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/c6850a62bf6085222634f945b704cd7951eeac7e/src/functions/pooling.jl#L23-L36' class='documenter-source'>source</a><br></p>
           <aside class="copyright" role="note">
             
             Documentation built with
