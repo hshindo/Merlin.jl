@@ -192,14 +192,20 @@
             </li>
           
             <li class="anchor">
+              <a title="Types" href="#types">
+                Types
+              </a>
+            </li>
+          
+            <li class="anchor">
               <a title="Activation" href="#activation">
                 Activation
               </a>
             </li>
           
             <li class="anchor">
-              <a title="Image Processing" href="#image-processing">
-                Image Processing
+              <a title="Pooling" href="#pooling">
+                Pooling
               </a>
             </li>
           
@@ -226,48 +232,15 @@
 <h2 id="index">Index</h2>
 <ul>
 <li><a href="./#Merlin.Conv"><code>Merlin.Conv</code></a></li>
+<li><a href="./#Merlin.Linear"><code>Merlin.Linear</code></a></li>
 <li><a href="./#Base.tanh"><code>Base.tanh</code></a></li>
 <li><a href="./#Merlin.concat"><code>Merlin.concat</code></a></li>
 <li><a href="./#Merlin.maxpooling"><code>Merlin.maxpooling</code></a></li>
 <li><a href="./#Merlin.relu"><code>Merlin.relu</code></a></li>
 <li><a href="./#Merlin.sigmoid"><code>Merlin.sigmoid</code></a></li>
 </ul>
-<p><a id='Activation-1'></a></p>
-<h2 id="activation">Activation</h2>
-<p><a id='Merlin.relu' href='#Merlin.relu'>#</a>
-<strong><code>Merlin.relu</code></strong> &mdash; <em>Function</em>.</p>
-<div class="codehilite"><pre><span></span>relu(x::Var)
-</pre></div>
-
-
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f81970008829866b8a97980b17f433eeaba14d07/src/functions/activation/relu.jl#L3-L5' class='documenter-source'>source</a><br></p>
-<p><a id='Merlin.sigmoid' href='#Merlin.sigmoid'>#</a>
-<strong><code>Merlin.sigmoid</code></strong> &mdash; <em>Function</em>.</p>
-<div class="codehilite"><pre><span></span>sigmoid(x::Var)
-</pre></div>
-
-
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f81970008829866b8a97980b17f433eeaba14d07/src/functions/activation/sigmoid.jl#L3-L5' class='documenter-source'>source</a><br></p>
-<p><a id='Base.tanh' href='#Base.tanh'>#</a>
-<strong><code>Base.tanh</code></strong> &mdash; <em>Function</em>.</p>
-<div class="codehilite"><pre><span></span>tanh(x::Var)
-</pre></div>
-
-
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f81970008829866b8a97980b17f433eeaba14d07/src/functions/activation/tanh.jl#L3-L5' class='documenter-source'>source</a><br></p>
-<p><a id='-1'></a></p>
-<h2 id="_1"></h2>
-<p><a id='Merlin.concat' href='#Merlin.concat'>#</a>
-<strong><code>Merlin.concat</code></strong> &mdash; <em>Function</em>.</p>
-<div class="codehilite"><pre><span></span>concat(dim::Int, xs::Var...)
-concat(dim::Int, xs::Vector{Var})
-</pre></div>
-
-
-<p>Concatenate arrays along the given dimension.</p>
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f81970008829866b8a97980b17f433eeaba14d07/src/functions/concat.jl#L3-L8' class='documenter-source'>source</a><br></p>
-<p><a id='Image-Processing-1'></a></p>
-<h2 id="image-processing">Image Processing</h2>
+<p><a id='Types-1'></a></p>
+<h2 id="types">Types</h2>
 <p><a id='Merlin.Conv' href='#Merlin.Conv'>#</a>
 <strong><code>Merlin.Conv</code></strong> &mdash; <em>Type</em>.</p>
 <div class="codehilite"><pre><span></span>Conv(T, channel, filter, [stride, pad])
@@ -290,7 +263,64 @@ concat(dim::Int, xs::Vector{Var})
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f81970008829866b8a97980b17f433eeaba14d07/src/functions/conv.jl#L21-L39' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f4794705c0b51b05792564328bcdecc3fea06f14/src/functions/conv.jl#L9-L27' class='documenter-source'>source</a><br></p>
+<p><a id='Merlin.Linear' href='#Merlin.Linear'>#</a>
+<strong><code>Merlin.Linear</code></strong> &mdash; <em>Type</em>.</p>
+<div class="codehilite"><pre><span></span>Linear(w::Var, x::Var, [b::Var])
+</pre></div>
+
+
+<p>Compute linear function (a.k.a. affine transformation).</p>
+<p>
+<script type="math/tex; mode=display">
+f(x) = W^{mathrm{T}}x + b
+</script>
+</p>
+<p>where $W$ is a weight matrix and $b$ is a bias vector.</p>
+<p><strong>👉 Example</strong></p>
+<div class="codehilite"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">rand</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">Linear</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f4794705c0b51b05792564328bcdecc3fea06f14/src/functions/linear.jl#L3-L19' class='documenter-source'>source</a><br></p>
+<p><a id='Activation-1'></a></p>
+<h2 id="activation">Activation</h2>
+<p><a id='Merlin.relu' href='#Merlin.relu'>#</a>
+<strong><code>Merlin.relu</code></strong> &mdash; <em>Function</em>.</p>
+<div class="codehilite"><pre><span></span>relu(x::Var)
+</pre></div>
+
+
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f4794705c0b51b05792564328bcdecc3fea06f14/src/functions/activation/relu.jl#L3-L5' class='documenter-source'>source</a><br></p>
+<p><a id='Merlin.sigmoid' href='#Merlin.sigmoid'>#</a>
+<strong><code>Merlin.sigmoid</code></strong> &mdash; <em>Function</em>.</p>
+<div class="codehilite"><pre><span></span>sigmoid(x::Var)
+</pre></div>
+
+
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f4794705c0b51b05792564328bcdecc3fea06f14/src/functions/activation/sigmoid.jl#L3-L5' class='documenter-source'>source</a><br></p>
+<p><a id='Base.tanh' href='#Base.tanh'>#</a>
+<strong><code>Base.tanh</code></strong> &mdash; <em>Function</em>.</p>
+<div class="codehilite"><pre><span></span>tanh(x::Var)
+</pre></div>
+
+
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f4794705c0b51b05792564328bcdecc3fea06f14/src/functions/activation/tanh.jl#L3-L5' class='documenter-source'>source</a><br></p>
+<p><a id='-1'></a></p>
+<h2 id="_1"></h2>
+<p><a id='Merlin.concat' href='#Merlin.concat'>#</a>
+<strong><code>Merlin.concat</code></strong> &mdash; <em>Function</em>.</p>
+<div class="codehilite"><pre><span></span>concat(dim::Int, xs::Var...)
+concat(dim::Int, xs::Vector{Var})
+</pre></div>
+
+
+<p>Concatenate arrays along the given dimension.</p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f4794705c0b51b05792564328bcdecc3fea06f14/src/functions/concat.jl#L3-L8' class='documenter-source'>source</a><br></p>
+<p><a id='Pooling-1'></a></p>
+<h2 id="pooling">Pooling</h2>
 <p><a id='Merlin.maxpooling' href='#Merlin.maxpooling'>#</a>
 <strong><code>Merlin.maxpooling</code></strong> &mdash; <em>Function</em>.</p>
 <div class="codehilite"><pre><span></span>maxpooling(window, [stride, padding])
@@ -309,7 +339,7 @@ concat(dim::Int, xs::Vector{Var})
 </pre></div>
 
 
-<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f81970008829866b8a97980b17f433eeaba14d07/src/functions/pooling/maxpooling.jl#L23-L36' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/hshindo/Merlin.jl/tree/f4794705c0b51b05792564328bcdecc3fea06f14/src/functions/pooling/maxpooling.jl#L23-L36' class='documenter-source'>source</a><br></p>
           <aside class="copyright" role="note">
             
             Documentation built with
