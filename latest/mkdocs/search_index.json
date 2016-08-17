@@ -12,7 +12,7 @@
         }, 
         {
             "location": "/functions/", 
-            "text": "Functions\n\n\nMerlin\n provides standard functions used in deep learning.\n\n\n\n\nIndex\n\n\n\n\nMerlin.Conv\n\n\nMerlin.Linear\n\n\nBase.tanh\n\n\nMerlin.concat\n\n\nMerlin.maxpooling\n\n\nMerlin.relu\n\n\nMerlin.sigmoid\n\n\n\n\n\n\nTypes\n\n\n#\n\n\nMerlin.Conv\n \n \nType\n.\n\n\nConv(T, channel, filter, [stride, pad])\n\n\n\n\n\nN-dimensional convolution function.\n\n\nArguments\n\n\n\n\nT: Type\n\n\nfilterdims::NTuple{N,Int}: window size\n\n\nchanneldims::Tuple{Int,Int}: input channel, output channel\n\n\n[stride::NTuple{N,Int}]: stride size. Default: (1,1,...)\n\n\n[paddims::NTuple{N,Int}]: padding size. Default: (0,0,...)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n5\n,\n4\n,\n3\n,\n2\n))\n\n\nf\n \n=\n \nConv\n(\nFloat32\n,\n \n(\n2\n,\n2\n),\n \n(\n3\n,\n4\n),\n \nstride\n=\n(\n1\n,\n1\n),\n \npaddims\n=\n(\n0\n,\n0\n))\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.Linear\n \n \nType\n.\n\n\nLinear(w::Var, x::Var, [b::Var])\n\n\n\n\n\nCompute linear function (a.k.a. affine transformation).\n\n\n\n\n\nf(x) = W^{mathrm{T}}x + b\n\n\n\n\n\nwhere $W$ is a weight matrix and $b$ is a bias vector.\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nFloat32\n,\n10\n,\n7\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\nsource\n\n\n\n\nActivation\n\n\n#\n\n\nMerlin.relu\n \n \nFunction\n.\n\n\nrelu(x::Var)\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.sigmoid\n \n \nFunction\n.\n\n\nsigmoid(x::Var)\n\n\n\n\n\nsource\n\n\n#\n\n\nBase.tanh\n \n \nFunction\n.\n\n\ntanh(x::Var)\n\n\n\n\n\nsource\n\n\n\n\n\n\n#\n\n\nMerlin.concat\n \n \nFunction\n.\n\n\nconcat(dim::Int, xs::Var...)\nconcat(dim::Int, xs::Vector{Var})\n\n\n\n\n\nConcatenate arrays along the given dimension.\n\n\nsource\n\n\n\n\nPooling\n\n\n#\n\n\nMerlin.maxpooling\n \n \nFunction\n.\n\n\nmaxpooling(window, [stride, padding])\n\n\n\n\n\nArguments\n\n\n\n\nwindims::NTuple{N,Int}: window size\n\n\nstride::NTuple{N,Int}: stride size. Default: (1,1,...)\n\n\npaddims::NTuple{N,Int}: padding size. Default: (0,0,...)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n5\n,\n4\n,\n3\n,\n2\n))\n\n\ny\n \n=\n \nmaxpooling\n(\nx\n,\n \n(\n3\n,\n3\n),\n \nstride\n=\n(\n1\n,\n1\n),\n \npaddims\n=\n(\n0\n,\n0\n))\n\n\n\n\n\n\nsource", 
+            "text": "Functions\n\n\nMerlin\n provides standard functions used in deep learning.\n\n\n\n\nIndex\n\n\n\n\nMerlin.Conv\n\n\nMerlin.Linear\n\n\nBase.getindex\n\n\nBase.reshape\n\n\nBase.tanh\n\n\nBase.transpose\n\n\nMerlin.concat\n\n\nMerlin.maxpooling\n\n\nMerlin.relu\n\n\nMerlin.sigmoid\n\n\n\n\n\n\nTypes\n\n\n#\n\n\nMerlin.Conv\n \n \nType\n.\n\n\nConv(T, channel, filter, [stride, pad])\n\n\n\n\n\nN-dimensional convolution function.\n\n\nArguments\n\n\n\n\nT: Type\n\n\nfilterdims::NTuple{N,Int}: window size\n\n\nchanneldims::Tuple{Int,Int}: input channel, output channel\n\n\n[stride::NTuple{N,Int}]: stride size. Default: (1,1,...)\n\n\n[paddims::NTuple{N,Int}]: padding size. Default: (0,0,...)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n5\n,\n4\n,\n3\n,\n2\n))\n\n\nf\n \n=\n \nConv\n(\nFloat32\n,\n \n(\n2\n,\n2\n),\n \n(\n3\n,\n4\n),\n \nstride\n=\n(\n1\n,\n1\n),\n \npaddims\n=\n(\n0\n,\n0\n))\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.Linear\n \n \nType\n.\n\n\nLinear(w::Var, x::Var, [b::Var])\n\n\n\n\n\nCompute linear function (a.k.a. affine transformation).\n\n\n\n\n\nf(x) = W^{mathrm{T}}x + b\n\n\n\n\n\nwhere $W$ is a weight matrix and $b$ is a bias vector.\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n10\n,\n5\n))\n\n\nf\n \n=\n \nLinear\n(\nFloat32\n,\n10\n,\n7\n)\n\n\ny\n \n=\n \nf\n(\nx\n)\n\n\n\n\n\n\nsource\n\n\n\n\nActivation\n\n\n#\n\n\nMerlin.relu\n \n \nFunction\n.\n\n\nrelu(x::Var)\n\n\n\n\n\nsource\n\n\n#\n\n\nMerlin.sigmoid\n \n \nFunction\n.\n\n\nsigmoid(x::Var)\n\n\n\n\n\nsource\n\n\n#\n\n\nBase.tanh\n \n \nFunction\n.\n\n\ntanh(x::Var)\n\n\n\n\n\nsource\n\n\n\n\nIndexing\n\n\n#\n\n\nBase.getindex\n \n \nFunction\n.\n\n\ngetindex(x::Var, inds...)\n\n\n\n\n\nsource\n\n\n\n\nManipulation\n\n\n#\n\n\nMerlin.concat\n \n \nFunction\n.\n\n\nconcat(dim::Int, xs::Var...)\nconcat(dim::Int, xs::Vector{Var})\n\n\n\n\n\nConcatenate arrays along the given dimension.\n\n\nsource\n\n\n#\n\n\nBase.reshape\n \n \nFunction\n.\n\n\nreshape(x::Var, dims::Int...)\n\n\n\n\n\nReshape an array according to the given dimensions.\n\n\nsource\n\n\n#\n\n\nBase.transpose\n \n \nFunction\n.\n\n\ntranspose(x::Var)\n\n\n\n\n\nsource\n\n\n\n\nPooling\n\n\n#\n\n\nMerlin.maxpooling\n \n \nFunction\n.\n\n\nmaxpooling(window, [stride, padding])\n\n\n\n\n\nArguments\n\n\n\n\nwindims::NTuple{N,Int}: window size\n\n\nstride::NTuple{N,Int}: stride size. Default: (1,1,...)\n\n\npaddims::NTuple{N,Int}: padding size. Default: (0,0,...)\n\n\n\n\n\ud83d\udc49 Example\n\n\nx\n \n=\n \nVar\n(\nrand\n(\nFloat32\n,\n5\n,\n4\n,\n3\n,\n2\n))\n\n\ny\n \n=\n \nmaxpooling\n(\nx\n,\n \n(\n3\n,\n3\n),\n \nstride\n=\n(\n1\n,\n1\n),\n \npaddims\n=\n(\n0\n,\n0\n))\n\n\n\n\n\n\nsource", 
             "title": "Functions"
         }, 
         {
@@ -22,7 +22,7 @@
         }, 
         {
             "location": "/functions/#index", 
-            "text": "Merlin.Conv  Merlin.Linear  Base.tanh  Merlin.concat  Merlin.maxpooling  Merlin.relu  Merlin.sigmoid", 
+            "text": "Merlin.Conv  Merlin.Linear  Base.getindex  Base.reshape  Base.tanh  Base.transpose  Merlin.concat  Merlin.maxpooling  Merlin.relu  Merlin.sigmoid", 
             "title": "Index"
         }, 
         {
@@ -34,6 +34,16 @@
             "location": "/functions/#activation", 
             "text": "#  Merlin.relu     Function .  relu(x::Var)  source  #  Merlin.sigmoid     Function .  sigmoid(x::Var)  source  #  Base.tanh     Function .  tanh(x::Var)  source", 
             "title": "Activation"
+        }, 
+        {
+            "location": "/functions/#indexing", 
+            "text": "#  Base.getindex     Function .  getindex(x::Var, inds...)  source", 
+            "title": "Indexing"
+        }, 
+        {
+            "location": "/functions/#manipulation", 
+            "text": "#  Merlin.concat     Function .  concat(dim::Int, xs::Var...)\nconcat(dim::Int, xs::Vector{Var})  Concatenate arrays along the given dimension.  source  #  Base.reshape     Function .  reshape(x::Var, dims::Int...)  Reshape an array according to the given dimensions.  source  #  Base.transpose     Function .  transpose(x::Var)  source", 
+            "title": "Manipulation"
         }, 
         {
             "location": "/functions/#pooling", 
