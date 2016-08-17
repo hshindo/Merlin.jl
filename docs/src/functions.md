@@ -1,13 +1,19 @@
 # Functions
 `Merlin` provides standard functions used in deep learning.
 
-## Activation
-```@docs
-relu(x::Var)
-sigmoid(x::Var)
-tanh(x::Var)
+## Index
+```@index
+Pages = ["functions.md"]
 ```
 
+## Activation
 ```@docs
-relu(x::Var)
+relu
+sigmoid
+tanh
+```
+
+##
+```@docs
+concat
 ```
