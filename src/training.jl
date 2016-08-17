@@ -13,7 +13,7 @@ function fit(decode, lossfun, opt, xs::Vector, ys::Vector)
         for v in vars
             typeof(v.f) <: Functor && update!(v.f, opt)
         end
-        #next!(prog)
+        next!(prog)
     end
     loss
 end

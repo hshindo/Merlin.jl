@@ -5,6 +5,11 @@ using JuCUDA
 using HDF5
 using Compat
 
+x = Var(rand(Float32,4,3))
+y = window2d(x, (4,2), (1,1), (0,0))
+x.data
+y.data
+
 x = Param(rand(Float32,5,4,1))
 x.data
 y = maxpooling(x, (2,2))

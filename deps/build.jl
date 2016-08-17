@@ -3,7 +3,7 @@ using Compat
 const sources = [
     "pooling.cpp",
     "softmax.cpp",
-    "window.cpp"]
+    "window.cpp", "window2.cpp"]
 
 const compiler = "g++"
 

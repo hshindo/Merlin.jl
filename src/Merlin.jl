@@ -39,7 +39,9 @@ include("native.jl")
 include("serialize.jl")
 
 for name in [
-    "activation",
+    "activation/relu",
+    "activation/sigmoid",
+    "activation/tanh",
     "concat",
     "conv",
     "crossentropy",
@@ -55,6 +57,7 @@ for name in [
     "reshape",
     "softmax",
     "sum",
+    "window2"
     ]
     include("functions/$(name).jl")
 end

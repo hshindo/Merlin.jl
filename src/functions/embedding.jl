@@ -16,7 +16,7 @@ y = f(x)
 ```
 """
 function Embedding{T}(::Type{T}, indim::Int, outdim::Int)
-    ws = Var[Param(Vector{T}(randn(outdim))) for i=1:indim]
+    ws = Var[Param(Vector{T}(rand(outdim))) for i=1:indim]
     Embedding(ws, IntSet())
 end
 
@@ -81,6 +81,8 @@ function quantize!(f::Embedding)
     for w in f.ws
         x = w.data
         for i = 1:length(x)
+            x[i] < -0.0 && (x[i] = 0.0)
+            x[1] > 1.0 && (x[i] = 1.0)
             x[i] = round(x[i], 1)
         end
     end
