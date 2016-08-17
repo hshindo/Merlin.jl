@@ -12,7 +12,7 @@
         }, 
         {
             "location": "/functions/", 
-            "text": "Functions\n\n\nMerlin\n provides standard functions used in deep learning.\n\n\n\n\nIndex\n\n\n\n\nBase.tanh\n\n\nMerlin.concat\n\n\nMerlin.relu\n\n\nMerlin.sigmoid\n\n\n\n\n\n\nActivation\n\n\n#\n\n\nMerlin.relu\n \n \nFunction\n.\n\n\nrelu(x::Var)\n\n\nsource\n\n\n#\n\n\nMerlin.sigmoid\n \n \nFunction\n.\n\n\nsigmoid(x::Var)\n\n\nsource\n\n\n#\n\n\nBase.tanh\n \n \nFunction\n.\n\n\ntanh(x::Var)\n\n\nsource\n\n\n\n\n\n\n#\n\n\nMerlin.concat\n \n \nFunction\n.\n\n\nconcat(dim::Int, xs::Var...) concat(dim::Int, xs::Vector{Var})\n\n\nConcatenate arrays along the given dimension.\n\n\nsource", 
+            "text": "Functions\n\n\nMerlin\n provides standard functions used in deep learning.\n\n\n\n\nIndex\n\n\n\n\nBase.tanh\n\n\nMerlin.concat\n\n\nMerlin.maxpooling\n\n\nMerlin.relu\n\n\nMerlin.sigmoid\n\n\n\n\n\n\nActivation\n\n\n#\n\n\nMerlin.relu\n \n \nFunction\n.\n\n\nrelu(x::Var)\n\n\nsource\n\n\n#\n\n\nMerlin.sigmoid\n \n \nFunction\n.\n\n\nsigmoid(x::Var)\n\n\nsource\n\n\n#\n\n\nBase.tanh\n \n \nFunction\n.\n\n\ntanh(x::Var)\n\n\nsource\n\n\n\n\n\n\n#\n\n\nMerlin.concat\n \n \nFunction\n.\n\n\nconcat(dim::Int, xs::Var...) concat(dim::Int, xs::Vector{Var})\n\n\nConcatenate arrays along the given dimension.\n\n\nsource\n\n\n\n\nImage Processing\n\n\nconv\nmaxpooling", 
             "title": "Functions"
         }, 
         {
@@ -22,13 +22,18 @@
         }, 
         {
             "location": "/functions/#index", 
-            "text": "Base.tanh  Merlin.concat  Merlin.relu  Merlin.sigmoid", 
+            "text": "Base.tanh  Merlin.concat  Merlin.maxpooling  Merlin.relu  Merlin.sigmoid", 
             "title": "Index"
         }, 
         {
             "location": "/functions/#activation", 
             "text": "#  Merlin.relu     Function .  relu(x::Var)  source  #  Merlin.sigmoid     Function .  sigmoid(x::Var)  source  #  Base.tanh     Function .  tanh(x::Var)  source", 
             "title": "Activation"
+        }, 
+        {
+            "location": "/functions/#image-processing", 
+            "text": "conv\nmaxpooling", 
+            "title": "Image Processing"
         }
     ]
 }
