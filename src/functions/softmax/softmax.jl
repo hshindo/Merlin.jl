@@ -17,8 +17,6 @@ function softmax(x::Var, dim::Int)
     Var(y, [x], softmax, df)
 end
 
-softmax(x::GraphNode, dim::Int) = GraphNode(softmax, x, dim)
-
 function softmax{T}(x::Array{T}, dim::Int)
     @assert 0 < dim <= ndims(x)
     h = softmax_handle(T)[1]

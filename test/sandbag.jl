@@ -11,7 +11,7 @@ A .+= B
 
 x = Param(rand(Float32,4,3))
 y = dropout(x, 0.5, true)
-gradient!(y)
+gradient!(y)[1].grad
 y = window2d(x, (4,2), (1,1), (0,0))
 x.data
 y.data
