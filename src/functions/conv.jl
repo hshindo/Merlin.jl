@@ -66,6 +66,8 @@ function conv{T}(w::Array{T}, x::Array{T}, windims, stride, paddims)
     y, work
 end
 
+conv(w::CuArray, x::CuArray, windims, stride, paddims) = convolution(x, w, paddims, stride)
+
 function window!{T}(x::Array{T}, y::Array{T}, windims, stride, paddims)
     N = length(windims)
     h = handle(Conv{N}, T)
@@ -94,10 +96,11 @@ function ∇conv!(w::Array, gw, x::Array, gx, work::Array, y::Array, gy::Array,
     gx == nothing || ∇window!(gx, gwork, windims, stride, paddims)
 end
 
-function ∇conv!(w::CuArray)
-    #convdesc = ConvolutionDesc(T, f.pad, f.stride)
-    #isempty(gw) || ∇convolution_filter!(x, gy, convdesc, gw)
-    #isempty(gx) || ∇convolution_data!(w, gy, convdesc, gx)
+function ∇conv!(w::CuArray, gw::CuArray, x::CuArray, gx::CuArray,
+    work::CuArray, y::CuArray, gy::CuArray, windims, stride, paddims)
+
+    isempty(gw) || ∇convolution_filter!(x, gy, paddims, stride, gw)
+    isempty(gx) || ∇convolution_data!(x, w, gy, paddims, stride, gx)
 end
 
 function ∇window!{T}(gx::Array{T}, gy::Array{T}, windims, stride, paddims)
