@@ -5,7 +5,8 @@ export save_hdf5, load_hdf5, to_dict
 """
     save_hdf5(path, dict)
 
-Save graph objects as a HDF5 format.
+Save dictionary as a HDF5 format.
+A key is stored as a group name, and a value is stored as a dataset in hdf5.
 """
 function save_hdf5(path::String, dict::Dict)
     function _write(g, d::Dict)

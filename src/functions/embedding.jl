@@ -13,7 +13,7 @@ Embedding(w::UniArray) = Embedding(Param(w))
 
 Construct Embedding from HDF5 format file.
 """
-Embedding(path::String) = Embedding(h5read(path, "Embedding"))
+load(::Type{Embedding}, path::String) = Embedding(h5read(path,"Embedding"))
 
 """
     Embedding{T}(::Type{T}, indim, outdim)

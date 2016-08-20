@@ -3,7 +3,23 @@ using Merlin
 using Merlin.Caffe
 using JuCUDA
 using HDF5
-using Compat
+
+path = "C:/Users/shindo/Dropbox/tagging/nyt100.lst"
+readdlm(path, ' ', Float32)
+
+f = Embedding(Float32,1000,100)
+
+g = @graph (:x,) begin
+    x = :x
+    x = relu(x)
+    x
+end
+to_hdf5(g)
+
+v = Var(rand(Float32,10,5))
+t = 15
+z = [1,3]
+save("C:/Users/shindo/Desktop/test.jld", "v", v)
 
 A = rand(10,5)
 B = rand(10,5)
