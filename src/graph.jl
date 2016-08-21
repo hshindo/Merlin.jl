@@ -42,43 +42,37 @@ macro graph(args, expr)
     end
 end
 
-function save_hdf5(path::String, name::String, obj)
-    h5open(path, "w") do h
-        write_hdf5(h, name, obj)
-    end
-end
-
-function write_hdf5(parent, name::String, obj)
-    g = g_create(parent, name)
-    attrs(g)["type"] = string(typeof(obj))
-    h5 = to_hdf5(obj)
-    if typeof(h5) <: Dict
-        for (k,v) in h5
-            write_hdf5(g, k, v)
-        end
-    else
-        g[name] = h5
-    end
-end
-
 function to_hdf5(g::Graph)
     dict = Dict()
+    argdict = ObjectIdDict()
     for i = 1:length(g)
-        dict[i] = to_hdf5(g[i])
+        d = Dict()
+        dict[i] = d
+        for j = 1:length(g[i])
+            n = g[i][j]
+            key = "$(j)::$(typeof(n))"
+            if typeof(n) == GraphNode
+                d[key] = argdict[n]
+            else
+                d[key] = to_hdf5(n)
+            end
+        end
+        argdict[g[i]] = i
     end
     dict
 end
 
-function to_hdf5(node::GraphNode)
-    dict = Dict()
-    for i = 1:length(node.args)
-        dict[i] = to_hdf5(node.args[i])
+function from_hdf5(::Type{Graph}, dict::Dict)
+    nodes = GraphNode[]
+    nodedict = ObjectIdDict()
+    for (nodeid,nodedict) in dict
+        args = []
+        for (k,v) in nodedict
+            exprs = parse(k).args
+            id, T = exprs[1], eval(exprs[2])
+            args[id] = from_hdf5(T, v)
+        end
+        GraphNode(args...)
     end
-    dict
+    Graph(nodes, nothing)
 end
-
-to_hdf5(x::Function) = string(x)
-to_hdf5(x::Number) = x
-to_hdf5{T<:Number}(x::Array{T}) = x
-to_hdf5{T<:Number}(x::Tuple{Vararg{T}}) = T[x...]
-to_hdf5(x::Symbol) = string(x)

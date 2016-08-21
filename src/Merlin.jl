@@ -1,6 +1,7 @@
 module Merlin
 
 using Base.LinAlg.BLAS
+using HDF5
 
 abstract Functor
 
@@ -34,7 +35,7 @@ include("graph.jl")
 include("gradient.jl")
 include("training.jl")
 include("native.jl")
-#include("serialize.jl")
+include("serialize.jl")
 
 for name in [
     "activation/relu",

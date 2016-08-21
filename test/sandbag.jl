@@ -4,6 +4,20 @@ using Merlin.Caffe
 using JuCUDA
 using HDF5
 
+path = "C:/Users/shindo/Desktop/hdf5.h5"
+
+embed = Embedding(Float32,100,10)
+g = @graph (:x,) begin
+    x = :x
+    x = embed(x)
+    x = relu(x)
+    x
+end
+
+save_hdf5(path, "g1"=>embed)
+
+load_hdf5(path)["g1"]
+
 path = "C:/Users/shindo/Dropbox/tagging/nyt100.lst"
 readdlm(path, ' ', Float32)
 
