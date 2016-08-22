@@ -4,16 +4,25 @@ using Merlin.Caffe
 using JuCUDA
 using HDF5
 
-path = "C:/Users/shindo/Desktop/hdf5.h5"
+path = "C:/Users/hshindo/Desktop/hdf5.h5"
+
+h5 = HDFDict(g)
+
+h5["1"] = [1,2,3]
+h5.dict
+Merlin.save(path, h5)
 
 embed = Embedding(Float32,100,10)
+linear = Linear(Float32,10,7)
 g = @graph (:x,) begin
     x = :x
     x = embed(x)
+    x = linear(x)
     x = relu(x)
     x
 end
 
+h5 = h5read(path, "Merlin")
 save_hdf5(path, "g1"=>embed)
 
 load_hdf5(path)["g1"]

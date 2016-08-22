@@ -66,8 +66,8 @@ function update!(f::Embedding, opt)
     empty!(idset)
 end
 
-to_hdf5(f::Embedding) = f.w.data
-from_hdf5(::Type{Embedding}, w) = Embedding(w)
+HDFDict(f::Embedding) = HDFDict(Embedding, f.w.data)
+#from_hdf5(::Type{Embedding}, w) = Embedding(w)
 
 export quantize!
 function quantize!(f::Embedding)

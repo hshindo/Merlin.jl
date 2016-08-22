@@ -47,3 +47,5 @@ function update!(f::Linear, opt)
     opt(f.w.data, f.w.grad)
     opt(f.b.data, f.b.grad)
 end
+
+HDFDict(f::Linear) = HDFDict(Linear, Dict("w"=>f.w.data,"b"=>f.b.data))
