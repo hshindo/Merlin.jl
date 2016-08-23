@@ -4,6 +4,15 @@ using Merlin.Caffe
 using JuCUDA
 using HDF5
 
+g = @graph (x,)
+
+a = @graph2 begin
+    x = relu(:x)
+    x
+end
+
+a
+
 path = "C:/Users/hshindo/Desktop/hdf5.h5"
 data = [1,"abra",[2,3,4]]
 
@@ -11,19 +20,32 @@ h5save(path, embed)
 h5load(path).ws[1].data
 
 embed = Embedding(Float32,100,10)
+embed(Var([1,3,4])).data
 
 path = "C:/Users/hshindo/Dropbox/tagging/nyt100.lst"
 e = Embedding(path,Float32)
 
+macro ggg(a)
+    a
+end
+@ggg :x
+
+a = quote
+    (x) -> begin
+        1+1
+    end
+end
+a.args[2].head
 
 linear = Linear(Float32,10,7)
-g = @graph (:x,) begin
+g = @graph2 begin
     x = :x
     x = embed(x)
     x = linear(x)
-    x = relu(x)
+    #x = relu(x)
     x
 end
+f = compile(g, :x)
 
 h5 = h5read(path, "Merlin")
 save_hdf5(path, "g1"=>embed)
