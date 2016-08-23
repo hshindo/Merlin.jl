@@ -19,10 +19,3 @@ function topsort{T}(top::T)
     visit(top)
     sorted
 end
-
-function bottomup{T}(f, node::T)
-    for arg in node.args
-        typeof(arg) == T && bottomup(f, arg)
-    end
-    f(node)
-end
