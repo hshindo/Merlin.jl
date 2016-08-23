@@ -3,7 +3,49 @@ using Merlin
 using Merlin.Caffe
 using JuCUDA
 using HDF5
-using Compat
+
+path = "C:/Users/hshindo/Desktop/hdf5.h5"
+data = [1,"abra",[2,3,4]]
+
+h5save(path, embed)
+h5load(path).ws[1].data
+
+embed = Embedding(Float32,100,10)
+
+path = "C:/Users/hshindo/Dropbox/tagging/nyt100.lst"
+e = Embedding(path,Float32)
+
+
+linear = Linear(Float32,10,7)
+g = @graph (:x,) begin
+    x = :x
+    x = embed(x)
+    x = linear(x)
+    x = relu(x)
+    x
+end
+
+h5 = h5read(path, "Merlin")
+save_hdf5(path, "g1"=>embed)
+
+load_hdf5(path)["g1"]
+
+path = "C:/Users/shindo/Dropbox/tagging/nyt100.lst"
+readdlm(path, ' ', Float32)
+
+f = Embedding(Float32,1000,100)
+
+g = @graph (:x,) begin
+    x = :x
+    x = relu(x)
+    x
+end
+to_hdf5(g)
+
+v = Var(rand(Float32,10,5))
+t = 15
+z = [1,3]
+save("C:/Users/shindo/Desktop/test.jld", "v", v)
 
 A = rand(10,5)
 B = rand(10,5)

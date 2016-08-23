@@ -47,3 +47,6 @@ function update!(f::Linear, opt)
     opt(f.w.data, f.w.grad)
     opt(f.b.data, f.b.grad)
 end
+
+h5convert(f::Linear) = h5convert(Linear, "w"=>f.w.data, "b"=>f.b.data)
+h5deconvert(::Type{Linear}, data) = Linear(Param(data["w"]), Param(data["b"]))

@@ -5,6 +5,8 @@ type Embedding <: Functor
     idset::IntSet
 end
 
+Embedding(ws::Vector{Var}) = Embedding(ws, IntSet())
+
 """
     Embedding{T}(::Type{T}, indim, outdim)
 
@@ -15,15 +17,15 @@ x = Var(rand(1:1000,5,3))
 y = f(x)
 ```
 """
-function Embedding{T}(::Type{T}, indim::Int, outdim::Int)
-    ws = Var[Param(Vector{T}(rand(outdim))) for i=1:indim]
-    Embedding(ws, IntSet())
+function Embedding(T::Type, indim::Int, outdim::Int)
+    ws = Var[Param(rand(T,outdim)) for i=1:indim]
+    Embedding(ws)
 end
 
 """
     Embed(path, T)
 
-Construc embeddings from file.
+Construct embeddings from file.
 """
 function Embedding(path, T::Type)
     lines = open(readlines, path)
@@ -33,7 +35,7 @@ function Embedding(path, T::Type)
         w = map(x -> parse(T,x), items)
         ws[i] = Param(w)
     end
-    Embedding(ws, IntSet())
+    Embedding(ws)
 end
 
 function (f::Embedding)(x::Var)
@@ -74,6 +76,25 @@ function update!(f::Embedding, opt)
     empty!(f.idset)
 end
 
+function h5convert(f::Embedding)
+    n = length(f.ws[1].data)
+    w = similar(f.ws[1].data, length(f.ws), length(f.ws[1].data))
+    for i = 1:length(f.ws)
+        copy!(w, (i-1)*n+1, f.ws[i].data, 1, n)
+    end
+    h5convert(Embedding, "w"=>w)
+end
+
+function h5deconvert(::Type{Embedding}, data)
+    w = data["w"]
+    n = size(w,1)
+    ws = Array(Var, size(w,2))
+    for i = 1:length(ws)
+        ws[i] = Param(w[(i-1)*n+1:i*n])
+    end
+    Embedding(ws)
+end
+
 export quantize!
 function quantize!(f::Embedding)
     for w in f.ws
@@ -85,3 +106,35 @@ function quantize!(f::Embedding)
         end
     end
 end
+
+### old ###
+#=
+function (f::Embedding)(x::Var)
+    y = embedding(f.w.data, x.data)
+    function df(gy)
+        ∇embedding!(f.w.data, x.data, gy)
+        for id in x.data
+            push!(f.idset, id)
+        end
+    end
+    Var(y, [x], f, df)
+end
+
+function embedding{T}(w::Array{T}, x::Array{Int})
+    n = size(w, 1)
+    dims = [size(x)...]
+    dims[1] *= n
+    y = Array(T, dims...)
+    for i = 1:length(x)
+        copy!(y, (i-1)*n+1, w, (x[i]-1)*n+1, n)
+    end
+    y
+end
+
+function ∇embedding!{T}(gw::Array{T}, x::Array{Int}, gy::Array{T})
+    n = size(gw, 1)
+    for i = 1:length(x)
+        BLAS.axpy!(n, T(1), pointer(gy,(i-1)*n+1), 1, pointer(gw, (x[i]-1)*n+1), 1)
+    end
+end
+=#

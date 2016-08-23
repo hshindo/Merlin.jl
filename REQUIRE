@@ -1,6 +1,4 @@
-julia 0.4-
-Compat
+julia 0.5-
 ProtoBuf
 HDF5
-BaseTestNext
 ProgressMeter
