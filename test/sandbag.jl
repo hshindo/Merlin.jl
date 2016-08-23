@@ -5,14 +5,17 @@ using JuCUDA
 using HDF5
 
 path = "C:/Users/hshindo/Desktop/hdf5.h5"
+data = [1,"abra",[2,3,4]]
 
-h5 = HDFDict(g)
-
-h5["1"] = [1,2,3]
-h5.dict
-Merlin.save(path, h5)
+h5save(path, embed)
+h5load(path).ws[1].data
 
 embed = Embedding(Float32,100,10)
+
+path = "C:/Users/hshindo/Dropbox/tagging/nyt100.lst"
+e = Embedding(path,Float32)
+
+
 linear = Linear(Float32,10,7)
 g = @graph (:x,) begin
     x = :x
