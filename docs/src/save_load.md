@@ -3,7 +3,6 @@
 
 ## Save
 ```julia
-x =
 Merlin.save("<filename>", x)
 ```
 
@@ -13,25 +12,9 @@ To deserialize objects,
 Merlin.load()
 ```
 
-## Index
-```@index
-Pages = ["functions.md"]
-```
-
-## Activation Functions
-```@docs
-relu
-sigmoid
-tanh
-```
-
 ## How to serialize your object?
 It requires
 * HDF5Dict(x)
 * load_hdf5(::Type{T}, x::Dict)
 
 See examples.
-
-```@docs
-
-```
