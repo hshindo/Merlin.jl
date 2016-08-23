@@ -1,7 +1,8 @@
 export AdaGrad
 
 """
-AdaGrad implementation.
+    AdaGrad
+
 See: http://jmlr.org/papers/v12/duchi11a.html
 """
 type AdaGrad
@@ -21,7 +22,9 @@ function (opt::AdaGrad){T}(value::Array{T}, grad::Array{T})
     end
     @inbounds @simd for i = 1:length(grad)
         sqgrad[i] += grad[i] * grad[i]
-        value[i] -= T(opt.alpha) * grad[i] / (sqrt(sqgrad[i]) + T(1e-8))
+        if abs(sqgrad[i]) > T(1e-8)
+            value[i] -= T(opt.alpha) * grad[i] / sqrt(sqgrad[i])
+        end
     end
     fill!(grad, T(0.0))
 end
