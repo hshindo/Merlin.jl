@@ -269,7 +269,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Save and Load",
     "title": "Save",
     "category": "section",
-    "text": "x =\nMerlin.save(\"<filename>\", x)"
+    "text": "Merlin.save(\"<filename>\", x)"
 },
 
 {
@@ -278,22 +278,6 @@ var documenterSearchIndex = {"docs": [
     "title": "Load",
     "category": "section",
     "text": "To deserialize objects,Merlin.load()"
-},
-
-{
-    "location": "save_load.html#Index-1",
-    "page": "Save and Load",
-    "title": "Index",
-    "category": "section",
-    "text": "Pages = [\"functions.md\"]"
-},
-
-{
-    "location": "save_load.html#Activation-Functions-1",
-    "page": "Save and Load",
-    "title": "Activation Functions",
-    "category": "section",
-    "text": "relu\nsigmoid\ntanh"
 },
 
 {
