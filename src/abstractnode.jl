@@ -8,7 +8,7 @@ Base.length(n::AbstractNode) = length(n.args)
 function topsort{T}(top::T)
     sorted = T[]
     dict = ObjectIdDict()
-    function visit(node::AbstractNode)
+    function visit(node::T)
         haskey(dict,node) && return
         dict[node] = node
         for a in node.args

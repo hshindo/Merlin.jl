@@ -65,13 +65,13 @@ using Merlin
 
 T = Float32
 ls = [Linear(T,10,7), Linear(T,7,3)]
-f = @graph (:x,) begin
-    x = :x
-    x = ls[1](x)
+g = @graph begin
+    x = ls[1](:x)
     x = relu(x)
     x = ls[2](x)
     x
 end
+f = compile(g, :x)
 x = Var(rand(Float32,10,5))
 y = f(x)
 ```
