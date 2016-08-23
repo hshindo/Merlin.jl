@@ -1,19 +1,11 @@
 export Embedding
 
 type Embedding <: Functor
-    w::Var
+    ws::Vector{Var}
     idset::IntSet
 end
 
-Embedding(w::Var) = Embedding(w, IntSet())
-Embedding(w::UniArray) = Embedding(Param(w))
-
-"""
-    Embedding(path::String)
-
-Construct Embedding from HDF5 format file.
-"""
-load(::Type{Embedding}, path::String) = Embedding(h5read(path,"Embedding"))
+Embedding(ws::Vector{Var}) = Embedding(ws, IntSet())
 
 """
     Embedding{T}(::Type{T}, indim, outdim)
@@ -25,8 +17,98 @@ x = Var(rand(1:1000,5,3))
 y = f(x)
 ```
 """
-Embedding(T::Type, indim::Int, outdim::Int) = Embedding(rand(T,outdim,indim))
+function Embedding(T::Type, indim::Int, outdim::Int)
+    ws = Var[Param(rand(T,outdim)) for i=1:indim]
+    Embedding(ws)
+end
 
+"""
+    Embed(path, T)
+
+Construct embeddings from file.
+"""
+function Embedding(path, T::Type)
+    lines = open(readlines, path)
+    ws = Array(Var, length(lines))
+    for i = 1:length(lines)
+        items = split(chomp(lines[i]), ' ')
+        w = map(x -> parse(T,x), items)
+        ws[i] = Param(w)
+    end
+    Embedding(ws)
+end
+
+function (f::Embedding)(x::Var)
+    y = embedding(f.ws, x.data)
+    function df(gy)
+        ∇embedding!(f.ws, x.data, gy)
+        for id in x.data
+            push!(f.idset, id)
+        end
+    end
+    Var(y, [x], f, df)
+end
+
+function embedding(ws::Vector{Var}, x::Array{Int})
+    n = length(ws[1].data)
+    dims = [size(x)...]
+    dims[1] *= n
+    y = similar(ws[1].data, dims...)
+    for i = 1:length(x)
+        copy!(y, (i-1)*n+1, ws[x[i]].data, 1, n)
+    end
+    y
+end
+
+function ∇embedding!{T}(ws::Vector{Var}, x::Array{Int}, gy::Array{T})
+    n = length(ws[1].data)
+    for i = 1:length(x)
+        gw = ws[x[i]].grad
+        BLAS.axpy!(n, T(1), pointer(gy,(i-1)*n+1), 1, pointer(gw), 1)
+    end
+end
+
+function update!(f::Embedding, opt)
+    for id in f.idset
+        w = f.ws[id]
+        opt(w.data, w.grad)
+    end
+    empty!(f.idset)
+end
+
+function h5convert(f::Embedding)
+    n = length(f.ws[1].data)
+    w = similar(f.ws[1].data, length(f.ws), length(f.ws[1].data))
+    for i = 1:length(f.ws)
+        copy!(w, (i-1)*n+1, f.ws[i].data, 1, n)
+    end
+    h5convert(Embedding, "w"=>w)
+end
+
+function h5deconvert(::Type{Embedding}, data)
+    w = data["w"]
+    n = size(w,1)
+    ws = Array(Var, size(w,2))
+    for i = 1:length(ws)
+        ws[i] = Param(w[(i-1)*n+1:i*n])
+    end
+    Embedding(ws)
+end
+
+export quantize!
+function quantize!(f::Embedding)
+    for w in f.ws
+        x = w.data
+        for i = 1:length(x)
+            x[i] < -0.0 && (x[i] = 0.0)
+            x[1] > 1.0 && (x[i] = 1.0)
+            x[i] = round(x[i], 1)
+        end
+    end
+end
+
+### old ###
+#=
 function (f::Embedding)(x::Var)
     y = embedding(f.w.data, x.data)
     function df(gy)
@@ -55,28 +137,4 @@ function ∇embedding!{T}(gw::Array{T}, x::Array{Int}, gy::Array{T})
         BLAS.axpy!(n, T(1), pointer(gy,(i-1)*n+1), 1, pointer(gw, (x[i]-1)*n+1), 1)
     end
 end
-
-function update!(f::Embedding, opt)
-    w, idset = f.w, f.idset
-    n = size(w.data, 1)
-    for id in idset
-        o = (id-1) * n + 1
-        opt(w.data[o:o+n-1], w.grad[o:o+n-1]) # TODO: use view
-    end
-    empty!(idset)
-end
-
-HDFDict(f::Embedding) = HDFDict(Embedding, f.w.data)
-#from_hdf5(::Type{Embedding}, w) = Embedding(w)
-
-export quantize!
-function quantize!(f::Embedding)
-    for w in f.ws
-        x = w.data
-        for i = 1:length(x)
-            x[i] < -0.0 && (x[i] = 0.0)
-            x[1] > 1.0 && (x[i] = 1.0)
-            x[i] = round(x[i], 1)
-        end
-    end
-end
+=#

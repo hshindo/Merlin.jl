@@ -48,4 +48,5 @@ function update!(f::Linear, opt)
     opt(f.b.data, f.b.grad)
 end
 
-HDFDict(f::Linear) = HDFDict(Linear, Dict("w"=>f.w.data,"b"=>f.b.data))
+h5convert(f::Linear) = h5convert(Linear, "w"=>f.w.data, "b"=>f.b.data)
+h5deconvert(::Type{Linear}, data) = Linear(Param(data["w"]), Param(data["b"]))
