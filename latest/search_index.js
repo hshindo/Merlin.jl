@@ -13,7 +13,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Merlin.jl",
     "category": "section",
-    "text": "Merlin is a deep learning framework written in Julia. It aims to provide a fast, flexible and compact deep learning library for machine learning.See README.md for basic usage.Basically,Wrap your data with Var type.\nApply functions to the Var.x = Var(rand(Float32,10,5))\nf = Linear(Float32,10,3)\ny = f(x)"
+    "text": "Merlin is a deep learning framework written in Julia. It aims to provide a fast, flexible and compact deep learning library for machine learning.See README.md for basic usage.Basically,Wrap your data with Var type.\nApply functions to the Var.\nCompute gradient if necessary.x = Var(rand(Float32,10,5))\nzerograd!(x)\nf = Linear(Float32,10,3)\ny = f(x)\ngradient!(y)"
 },
 
 {
@@ -397,7 +397,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Save and Load",
     "title": "Merlin.h5save",
     "category": "Function",
-    "text": "h5save(filename::String, data)\n\nSave objects as a HDF5 format.\n\n\n\n"
+    "text": "h5save(filename::String, data)\n\nSave objects as a HDF5 format. Note that the objects are required to implement h5convert and h5load! functions.\n\n\n\n"
 },
 
 {
@@ -405,23 +405,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Save and Load",
     "title": "Save",
     "category": "section",
-    "text": "To save objects, use h5save function.h5save"
-},
-
-{
-    "location": "save_load.html#Example-1",
-    "page": "Save and Load",
-    "title": "👉 Example",
-    "category": "section",
-    "text": "x = Embeddings(Float32,10000,100)\nh5save(\"<filename>\", x)A network structure can be saved as well:"
-},
-
-{
-    "location": "save_load.html#Example-2",
-    "page": "Save and Load",
-    "title": "👉 Example",
-    "category": "section",
-    "text": "T = Float32\nls = [Linear(T,10,7), Linear(T,7,3)]\ng = @graph begin\n    x = ls[1](:x)\n    x = relu(x)\n    x = ls[2](x)\n    x\nend\nh5save(\"<filename>\", g)"
+    "text": "h5saveFor example,x = Embeddings(Float32,10000,100)\nh5save(\"<filename>.h5\", x)A graph structure can be saved as well:T = Float32\nls = [Linear(T,10,7), Linear(T,7,3)]\ng = @graph begin\n    x = ls[1](:x)\n    x = relu(x)\n    x = ls[2](x)\n    x\nend\nh5save(\"<filename>.h5\", g)The saved HDF5 file is as follows: <p><img src=\"https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/sample.h5.png\"></p>"
 },
 
 {
@@ -437,7 +421,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Save and Load",
     "title": "Load",
     "category": "section",
-    "text": "To load objects, use h5load function.h5load"
+    "text": "h5load"
 },
 
 {
@@ -449,11 +433,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "save_load.html#Saving-Custom-Objects-1",
+    "location": "save_load.html#Saving-Your-Own-Objects-1",
     "page": "Save and Load",
-    "title": "Saving Custom Objects",
+    "title": "Saving Your Own Objects",
     "category": "section",
-    "text": "It requires h5convert and h5load! functions.h5dict"
+    "text": "It requires to implement h5convert and h5load! functions.h5dict"
 },
 
 ]}
