@@ -8,6 +8,7 @@ makedocs(
     pages = Any[
         "Home" => "index.md",
         "Functions" => "functions.md",
+        "Optimizers" => "optimizers.md",
         "Save and Load" => "save_load.md",
     ]
 )

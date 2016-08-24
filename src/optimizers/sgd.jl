@@ -5,6 +5,7 @@ export SGD
 
 Stochastic Gradient Descent.
 
+## Arguments
 * rate: learning rate
 * momentum: momentum coefficient
 """
