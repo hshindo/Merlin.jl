@@ -8,14 +8,14 @@ To save objects, use `h5save` function.
 h5save
 ```
 
-## 👉 Example
+### 👉 Example
 ```julia
 x = Embeddings(Float32,10000,100)
 h5save("<filename>", x)
 ```
 
 A network structure can be saved as well:
-## 👉 Example
+### 👉 Example
 ```julia
 T = Float32
 ls = [Linear(T,10,7), Linear(T,7,3)]
@@ -36,7 +36,7 @@ h5load
 ```
 
 ## Saving Custom Objects
-It requires `h5convert` and `h5load!` functions.
+It requires to implement `h5convert` and `h5load!` functions.
 
 ```@docs
 h5dict
