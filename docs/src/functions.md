@@ -48,3 +48,8 @@ maxpooling
 logsoftmax
 softmax
 ```
+
+## Graph
+```@docs
+GRU
+```

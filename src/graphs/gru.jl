@@ -4,12 +4,12 @@ export GRU
     GRU(::Type, xsize::Int)
 
 Gated Recurrent Unit (GRU).
-Ref: Chung et al. "Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling", 2014
+See: Chung et al. "Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling", 2014
 
 ## Arguments
 * xsize: size of input vector (= size of hidden vector)
 
-## Usage
+## 👉 Example
 ```julia
 gru = GRU(Float32,100)
 x = Var(rand(Float32,100))
@@ -18,9 +18,9 @@ y = gru(x, h)
 ```
 """
 function GRU(T::Type, xsize::Int)
-    ws = [Param(rand(T,xsize,xsize)) for i=1:3]
-    us = [Param(rand(T,xsize,xsize)) for i=1:3]
-    @graph (:x,:h) begin
+    ws = [zerograd!(Var(rand(T,xsize,xsize))) for i=1:3]
+    us = [zerograd!(Var(rand(T,xsize,xsize))) for i=1:3]
+    g = @graph begin
         x = :x
         h = :h
         r = sigmoid(ws[1]*x + us[1]*h)
@@ -29,4 +29,5 @@ function GRU(T::Type, xsize::Int)
         h_next = (1 - z) .* h + z .* h_
         h_next
     end
+    compile(g, :x, :h)
 end
