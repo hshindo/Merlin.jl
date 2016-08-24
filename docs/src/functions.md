@@ -38,6 +38,11 @@ max
 sum
 ```
 
+## Convolution
+```@docs
+Conv
+```
+
 ## Pooling
 ```@docs
 maxpooling
@@ -53,6 +58,16 @@ softmax
 ```@docs
 Linear
 gemm
+```
+
+## Loss
+```@docs
+crossentropy
+```
+
+## Others
+```@docs
+dropout
 ```
 
 ## Graph
