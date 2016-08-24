@@ -29,13 +29,13 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Functions",
     "category": "section",
-    "text": "Merlin provides standard functions used in deep learning."
+    "text": ""
 },
 
 {
-    "location": "functions.html#Index-1",
+    "location": "functions.html#API-Index-1",
     "page": "Functions",
-    "title": "Index",
+    "title": "API Index",
     "category": "section",
     "text": "Pages = [\"functions.md\"]"
 },
@@ -65,9 +65,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Activation-Functions-1",
+    "location": "functions.html#Activation-1",
     "page": "Functions",
-    "title": "Activation Functions",
+    "title": "Activation",
     "category": "section",
     "text": "relu\nsigmoid\ntanh"
 },
@@ -89,9 +89,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Indexing-Functions-1",
+    "location": "functions.html#Indexing-1",
     "page": "Functions",
-    "title": "Indexing Functions",
+    "title": "Indexing",
     "category": "section",
     "text": "getindex\nview"
 },
@@ -121,9 +121,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Manipulation-Functions-1",
+    "location": "functions.html#Manipulation-1",
     "page": "Functions",
-    "title": "Manipulation Functions",
+    "title": "Manipulation",
     "category": "section",
     "text": "concat\nreshape\ntranspose"
 },
@@ -201,9 +201,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Math-Functions-1",
+    "location": "functions.html#Math-1",
     "page": "Functions",
-    "title": "Math Functions",
+    "title": "Math",
     "category": "section",
     "text": "+\n-\n*\n.*\naxsum\nexp\nlog\nmax\nsum"
 },
@@ -217,9 +217,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Pooling-Functions-1",
+    "location": "functions.html#Pooling-1",
     "page": "Functions",
-    "title": "Pooling Functions",
+    "title": "Pooling",
     "category": "section",
     "text": "maxpooling"
 },
@@ -241,9 +241,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Softmax-Functions-1",
+    "location": "functions.html#Softmax-1",
     "page": "Functions",
-    "title": "Softmax Functions",
+    "title": "Softmax",
     "category": "section",
     "text": "logsoftmax\nsoftmax"
 },
