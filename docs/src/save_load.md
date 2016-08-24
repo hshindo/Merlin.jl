@@ -1,20 +1,44 @@
 # Save and Load
-`Merlin` supports saving and loading objects (network structures, parameters, etc.) in HDF5 format.
+`Merlin` supports saving and loading objects in HDF5 format.
 
 ## Save
+To save objects, use `h5save` function.
+
 ```julia
-Merlin.save("<filename>", x)
+x = Embeddings(Float32,10000,100)
+h5save("<filename>", x)
+```
+
+A network structure can be saved as well:
+```julia
+T = Float32
+ls = [Linear(T,10,7), Linear(T,7,3)]
+g = @graph begin
+    x = ls[1](:x)
+    x = relu(x)
+    x = ls[2](x)
+    x
+end
+h5save("<filename>", x)
+```
+
+```@docs
+h5save
 ```
 
 ## Load
-To deserialize objects,
+To load objects, use `h5load` function.
 ```julia
-Merlin.load()
+x = h5load("<filename>")
 ```
 
-## How to serialize your object?
-It requires
-* HDF5Dict(x)
-* load_hdf5(::Type{T}, x::Dict)
+```@docs
+h5load
+```
 
-See examples.
+## Custom
+It requires `h5convert` and `h5load!` functions.
+
+```@docs
+h5dict
+```
