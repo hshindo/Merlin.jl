@@ -32,7 +32,9 @@ Load a HDF5 file.
 h5load(filename::String) = h5load!(h5read(filename,"Merlin"))
 
 """
-    h5dict
+    h5dict(T::Type, x::Pair...)
+
+Create a hdf5 dictionary with type information.
 """
 function h5dict(T::Type, x::Pair...)
     dict = Dict{String,Any}("#TYPE"=>string(T))

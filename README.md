@@ -39,7 +39,7 @@ julia> Pkg.build("Merlin")
 which generates `libmerlin.so` on `deps/`.
 
 For Windows, `libmerlin.dll` is provided on `deps/`, however,
-if you have installed `g++` with mingw-x64, you can build `Merlin` as follows:
+if you have installed `g++` with mingw-x64, you can build `Merlin`.
 
 ## Quick Start
 Basically,
