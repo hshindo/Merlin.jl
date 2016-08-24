@@ -265,6 +265,46 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "optimizers.html#",
+    "page": "Optimizers",
+    "title": "Optimizers",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "optimizers.html#Merlin.AdaGrad",
+    "page": "Optimizers",
+    "title": "Merlin.AdaGrad",
+    "category": "Type",
+    "text": "AdaGrad\n\nSee: http://jmlr.org/papers/v12/duchi11a.html\n\n\n\n"
+},
+
+{
+    "location": "optimizers.html#Merlin.Adam",
+    "page": "Optimizers",
+    "title": "Merlin.Adam",
+    "category": "Type",
+    "text": "Adam\n\nAdam: A Method for Stochastic Optimization See: http://arxiv.org/abs/1412.6980v8\n\n\n\n"
+},
+
+{
+    "location": "optimizers.html#Merlin.SGD",
+    "page": "Optimizers",
+    "title": "Merlin.SGD",
+    "category": "Type",
+    "text": "SGD\n\nStochastic Gradient Descent.\n\nArguments\n\nrate: learning rate\nmomentum: momentum coefficient\n\n\n\n"
+},
+
+{
+    "location": "optimizers.html#Optimizers-1",
+    "page": "Optimizers",
+    "title": "Optimizers",
+    "category": "section",
+    "text": "AdaGrad\nAdam\nSGD"
+},
+
+{
     "location": "save_load.html#",
     "page": "Save and Load",
     "title": "Save and Load",
