@@ -209,6 +209,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#Merlin.Conv",
+    "page": "Functions",
+    "title": "Merlin.Conv",
+    "category": "Type",
+    "text": "Conv(T, channel, filter, [stride, pad])\n\nN-dimensional convolution function.\n\nArguments\n\nT: Type\nfilterdims::NTuple{N,Int}: window size\nchanneldims::Tuple{Int,Int}: input channel, output channel\n[stride::NTuple{N,Int}]: stride size. Default: (1,1,...)\n[paddims::NTuple{N,Int}]: padding size. Default: (0,0,...)\n\n👉 Example\n\nx = Var(rand(Float32,5,4,3,2))\nf = Conv(Float32, (2,2), (3,4), stride=(1,1), paddims=(0,0))\ny = f(x)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Convolution-1",
+    "page": "Functions",
+    "title": "Convolution",
+    "category": "section",
+    "text": "Conv"
+},
+
+{
     "location": "functions.html#Merlin.maxpooling",
     "page": "Functions",
     "title": "Merlin.maxpooling",
@@ -270,6 +286,38 @@ var documenterSearchIndex = {"docs": [
     "title": "Linear",
     "category": "section",
     "text": "Linear\ngemm"
+},
+
+{
+    "location": "functions.html#Merlin.crossentropy",
+    "page": "Functions",
+    "title": "Merlin.crossentropy",
+    "category": "Function",
+    "text": "crossentropy(p,x)\n\nComputes cross-entropy between p and x. x is assumed to be unnormalized.\n\np: Vector{Int} or Matrix{Float}\n\n👉 Example\n\np = [1:5;]\nx = Var(rand(Float32,10,5))\ny = crossentropy(p,x)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Loss-1",
+    "page": "Functions",
+    "title": "Loss",
+    "category": "section",
+    "text": "crossentropy"
+},
+
+{
+    "location": "functions.html#Merlin.dropout",
+    "page": "Functions",
+    "title": "Merlin.dropout",
+    "category": "Function",
+    "text": "dropout(x::Var, ratio::Float64, istrain::Bool)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Others-1",
+    "page": "Functions",
+    "title": "Others",
+    "category": "section",
+    "text": "dropout"
 },
 
 {
