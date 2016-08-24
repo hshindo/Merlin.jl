@@ -24,9 +24,9 @@ end
 
 function Linear(T::Type, indim::Int, outdim::Int)
     r = T(sqrt(6 / (indim+outdim)))
-    w = rand(-r, r, outdim, indim)
-    b = fill(T(0), outdim, 1)
-    Linear(Param(w), Param(b))
+    w = Var(rand(-r, r, outdim, indim))
+    b = Var(fill(T(0), outdim, 1))
+    Linear(zerograd!(w), zerograd!(b))
 end
 
 function (f::Linear)(x::Var)
@@ -48,5 +48,9 @@ function update!(f::Linear, opt)
     opt(f.b.data, f.b.grad)
 end
 
-h5convert(f::Linear) = h5convert(Linear, "w"=>f.w.data, "b"=>f.b.data)
-h5deconvert(::Type{Linear}, data) = Linear(Param(data["w"]), Param(data["b"]))
+h5convert(f::Linear) = h5dict(Linear, "w"=>f.w.data, "b"=>f.b.data)
+
+function h5load!(::Type{Linear}, data)
+    w, b = Var(data["w"]), Var(data["b"])
+    Linear(zerograd!(w),zerograd!(b))
+end

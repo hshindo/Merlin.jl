@@ -55,37 +55,42 @@ function bottomup{T}(f, node::T)
     f(node)
 end
 
-function to_hdf5(g::Graph)
-    dict = Dict()
+function h5convert(x::Graph)
+    dict = h5dict(Graph)
     argdict = ObjectIdDict()
-    for i = 1:length(g)
-        d = Dict()
-        dict[i] = d
-        for j = 1:length(g[i])
-            n = g[i][j]
-            key = "$(j)::$(typeof(n))"
+    for i = 1:length(x)
+        d = Dict{String,Any}()
+        dict[string(i)] = d
+        for j = 1:length(x[i])
+            n = x[i][j]
             if typeof(n) == GraphNode
-                d[key] = argdict[n]
+                d[string(j)] = Dict("#NODE"=>argdict[n])
             else
-                d[key] = to_hdf5(n)
+                d[string(j)] = h5convert(n)
             end
         end
-        argdict[g[i]] = i
+        argdict[x[i]] = i
     end
     dict
 end
 
-function from_hdf5(::Type{Graph}, dict::Dict)
+function h5load!(::Type{Graph}, data::Dict)
     nodes = GraphNode[]
-    nodedict = ObjectIdDict()
-    for (nodeid,nodedict) in dict
-        args = []
-        for (k,v) in nodedict
-            exprs = parse(k).args
-            id, T = exprs[1], eval(exprs[2])
-            args[id] = from_hdf5(T, v)
+    for (k,v) in data
+        args = h5load!(Vector{Any}, v)
+        id = parse(Int, k)
+        while id > length(nodes)
+            push!(nodes, GraphNode())
         end
-        GraphNode(args...)
+        nodes[id] = GraphNode(args...)
     end
-    Graph(nodes, nothing)
+    for node in nodes
+        for i = 1:length(node)
+            typeof(node[i]) <: Dict || continue
+            haskey(node[i], "#NODE") || continue
+            id = node[i]["#NODE"]
+            node[i] = nodes[id]
+        end
+    end
+    Graph(nodes)
 end

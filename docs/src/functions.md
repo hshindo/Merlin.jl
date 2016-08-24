@@ -1,32 +1,31 @@
 # Functions
-`Merlin` provides standard functions used in deep learning.
 
-## Index
+## API Index
 ```@index
 Pages = ["functions.md"]
 ```
 
-## Activation Functions
+## Activation
 ```@docs
 relu
 sigmoid
 tanh
 ```
 
-## Indexing Functions
+## Indexing
 ```@docs
 getindex
 view
 ```
 
-## Manipulation Functions
+## Manipulation
 ```@docs
 concat
 reshape
 transpose
 ```
 
-## Math Functions
+## Math
 ```@docs
 +
 -
@@ -39,12 +38,12 @@ max
 sum
 ```
 
-## Pooling Functions
+## Pooling
 ```@docs
 maxpooling
 ```
 
-## Softmax Functions
+## Softmax
 ```@docs
 logsoftmax
 softmax
