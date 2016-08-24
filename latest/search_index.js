@@ -261,7 +261,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Save and Load",
     "title": "Save and Load",
     "category": "section",
-    "text": "Merlin supports saving and loading objects (network structures, parameters, etc.) in HDF5 format."
+    "text": "Merlin supports saving and loading objects in HDF5 format."
+},
+
+{
+    "location": "save_load.html#Merlin.h5save",
+    "page": "Save and Load",
+    "title": "Merlin.h5save",
+    "category": "Function",
+    "text": "h5save(filename::String, data)\n\nSave objects as a HDF5 format.\n\n\n\n"
 },
 
 {
@@ -269,7 +277,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Save and Load",
     "title": "Save",
     "category": "section",
-    "text": "Merlin.save(\"<filename>\", x)"
+    "text": "To save objects, use h5save function.x = Embeddings(Float32,10000,100)\nh5save(\"<filename>\", x)A network structure can be saved as well:T = Float32\nls = [Linear(T,10,7), Linear(T,7,3)]\ng = @graph begin\n    x = ls[1](:x)\n    x = relu(x)\n    x = ls[2](x)\n    x\nend\nh5save(\"<filename>\", x)h5save"
+},
+
+{
+    "location": "save_load.html#Merlin.h5load",
+    "page": "Save and Load",
+    "title": "Merlin.h5load",
+    "category": "Function",
+    "text": "h5load(filename::String)\n\nLoad a HDF5 file.\n\n\n\n"
 },
 
 {
@@ -277,15 +293,23 @@ var documenterSearchIndex = {"docs": [
     "page": "Save and Load",
     "title": "Load",
     "category": "section",
-    "text": "To deserialize objects,Merlin.load()"
+    "text": "To load objects, use h5load function.x = h5load(\"<filename>\")h5load"
 },
 
 {
-    "location": "save_load.html#How-to-serialize-your-object?-1",
+    "location": "save_load.html#Merlin.h5dict",
     "page": "Save and Load",
-    "title": "How to serialize your object?",
+    "title": "Merlin.h5dict",
+    "category": "Function",
+    "text": "h5dict(T::Type, x::Pair...)\n\nCreate a hdf5 dictionary with type information.\n\n\n\n"
+},
+
+{
+    "location": "save_load.html#Custom-1",
+    "page": "Save and Load",
+    "title": "Custom",
     "category": "section",
-    "text": "It requires * HDF5Dict(x) * load_hdf5(::Type{T}, x::Dict)See examples."
+    "text": "It requires h5convert and h5load! functions.h5dict"
 },
 
 ]}
