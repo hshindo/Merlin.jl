@@ -28,7 +28,6 @@ typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
 include("interop/c/carray.jl")
 
 include("util.jl")
-include("abstractnode.jl")
 include("var.jl")
 include("sequence.jl")
 include("graph.jl")
@@ -36,7 +35,6 @@ include("gradient.jl")
 include("training.jl")
 include("native.jl")
 include("hdf5.jl")
-#include("serialize.jl")
 
 for name in [
     "activation/relu",

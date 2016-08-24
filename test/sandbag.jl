@@ -4,11 +4,16 @@ using Merlin.Caffe
 using JuCUDA
 using HDF5
 
-gru = GRU(Float32,100)
-x = Var(rand(Float32,100))
-h = Var(rand(Float32,100))
-y = gru(x, h)
-y.data
+T = Float32
+ls = [Linear(T,10,7), Linear(T,7,3)]
+g = @graph begin
+    x = ls[1](:x)
+    x = relu(x)
+    x = ls[2](x)
+    x
+end
+path = "C:/Users/hshindo/Desktop/hdf5.h5"
+h5save(path, g)
 
 x = Var(rand(Float32,10,5), grad=true)
 f = Linear(Float32,10,7)

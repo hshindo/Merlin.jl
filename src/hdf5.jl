@@ -4,6 +4,7 @@ export h5save, h5load, h5dict, h5convert
     h5save(filename::String, data)
 
 Save objects as a HDF5 format.
+Note that the objects are required to implement `h5convert` and `h5load!` functions.
 """
 function h5save(filename::String, data)
     function f(g::HDF5Group, dict::Dict)
