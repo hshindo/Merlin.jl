@@ -4,6 +4,11 @@ using Merlin.Caffe
 using JuCUDA
 using HDF5
 
+x = Var(rand(Float32,10,5), grad=true)
+f = Linear(Float32,10,7)
+y = f(x)
+gradient!(y)
+
 T = Float32
 ls = [Linear(T,10,7), Linear(T,7,3)]
 g = @graph begin
@@ -22,33 +27,19 @@ a
 path = "C:/Users/hshindo/Desktop/hdf5.h5"
 data = [1,"abra",[2,3,4]]
 
-h5save(path, embed)
-h5load(path).ws[1].data
+h5save(path, g)
+g = h5load(path)
+f = compile(g,:x)
+x = Var(rand(Float32,10,5))
+y = f(x)
 
 embed = Embedding(Float32,100,10)
-embed(Var([1,3,4])).data
-
-path = "C:/Users/hshindo/Dropbox/tagging/nyt100.lst"
-e = Embedding(path,Float32)
-
-macro ggg(a)
-    a
-end
-@ggg :x
-
-a = quote
-    (x) -> begin
-        1+1
-    end
-end
-a.args[2].head
-
 linear = Linear(Float32,10,7)
-g = @graph2 begin
+g = @graph begin
     x = :x
     x = embed(x)
     x = linear(x)
-    #x = relu(x)
+    x = relu(x)
     x
 end
 f = compile(g, :x)
