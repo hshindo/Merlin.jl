@@ -4,6 +4,12 @@ using Merlin.Caffe
 using JuCUDA
 using HDF5
 
+gru = GRU(Float32,100)
+x = Var(rand(Float32,100))
+h = Var(rand(Float32,100))
+y = gru(x, h)
+y.data
+
 x = Var(rand(Float32,10,5), grad=true)
 f = Linear(Float32,10,7)
 y = f(x)

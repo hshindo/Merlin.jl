@@ -75,10 +75,10 @@ for name in [
     include("functions/$(name).jl")
 end
 
-#for name in [
-#    "gru"]
-#  include("graphs/$(name).jl")
-#end
+for name in [
+    "gru"]
+  include("graphs/$(name).jl")
+end
 
 export update!
 for name in [

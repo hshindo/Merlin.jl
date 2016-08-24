@@ -1,14 +1,4 @@
 # Overview
-* Wrap data with `Var`.
-* Apply functions to the variables.
-
-```julia
-x = Var(rand(Float32,10,5))
-y = Linear(Float32,10,7)(x)
-y = relu(y)
-y = Linear(Float32,7,3)(y)
-y
-```
 
 ## Forward and Backward Computation
 ```julia
