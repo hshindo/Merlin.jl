@@ -249,6 +249,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#Merlin.GRU",
+    "page": "Functions",
+    "title": "Merlin.GRU",
+    "category": "Function",
+    "text": "GRU(::Type, xsize::Int)\n\nGated Recurrent Unit (GRU). See: Chung et al. \"Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling\", 2014\n\nArguments\n\nxsize: size of input vector (= size of hidden vector)\n\n👉 Example\n\ngru = GRU(Float32,100)\nx = Var(rand(Float32,100))\nh = Var(rand(Float32,100))\ny = gru(x, h)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Graph-1",
+    "page": "Functions",
+    "title": "Graph",
+    "category": "section",
+    "text": "GRU"
+},
+
+{
     "location": "save_load.html#",
     "page": "Save and Load",
     "title": "Save and Load",
@@ -277,7 +293,23 @@ var documenterSearchIndex = {"docs": [
     "page": "Save and Load",
     "title": "Save",
     "category": "section",
-    "text": "To save objects, use h5save function.x = Embeddings(Float32,10000,100)\nh5save(\"<filename>\", x)A network structure can be saved as well:T = Float32\nls = [Linear(T,10,7), Linear(T,7,3)]\ng = @graph begin\n    x = ls[1](:x)\n    x = relu(x)\n    x = ls[2](x)\n    x\nend\nh5save(\"<filename>\", x)h5save"
+    "text": "To save objects, use h5save function.h5save"
+},
+
+{
+    "location": "save_load.html#Example-1",
+    "page": "Save and Load",
+    "title": "👉 Example",
+    "category": "section",
+    "text": "x = Embeddings(Float32,10000,100)\nh5save(\"<filename>\", x)A network structure can be saved as well:"
+},
+
+{
+    "location": "save_load.html#Example-2",
+    "page": "Save and Load",
+    "title": "👉 Example",
+    "category": "section",
+    "text": "T = Float32\nls = [Linear(T,10,7), Linear(T,7,3)]\ng = @graph begin\n    x = ls[1](:x)\n    x = relu(x)\n    x = ls[2](x)\n    x\nend\nh5save(\"<filename>\", g)"
 },
 
 {
@@ -293,7 +325,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Save and Load",
     "title": "Load",
     "category": "section",
-    "text": "To load objects, use h5load function.x = h5load(\"<filename>\")h5load"
+    "text": "To load objects, use h5load function.h5load"
 },
 
 {
@@ -305,9 +337,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "save_load.html#Custom-1",
+    "location": "save_load.html#Saving-Custom-Objects-1",
     "page": "Save and Load",
-    "title": "Custom",
+    "title": "Saving Custom Objects",
     "category": "section",
     "text": "It requires h5convert and h5load! functions.h5dict"
 },
