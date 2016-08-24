@@ -249,6 +249,30 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#Merlin.Linear",
+    "page": "Functions",
+    "title": "Merlin.Linear",
+    "category": "Type",
+    "text": "Linear(w::Var, x::Var, [b::Var])\n\nCompute linear function (a.k.a. affine transformation).\n\nf(x) = W^Tx + b\n\nwhere W is a weight matrix and b is a bias vector.\n\n👉 Example\n\nx = Var(rand(Float32,10,5))\nf = Linear(Float32,10,7)\ny = f(x)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Merlin.gemm",
+    "page": "Functions",
+    "title": "Merlin.gemm",
+    "category": "Function",
+    "text": "gemm(tA::Char, tB::Char, alpha::Float64, A::Var, B::Var)\ngemm(A::Var, B::Var)\n\nC = alpha * tA(A) * tB(B)\n\nArguments\n\ntA: transpose ('T') or not ('N'). default: 'N'\ntB: the same as tA\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Linear-1",
+    "page": "Functions",
+    "title": "Linear",
+    "category": "section",
+    "text": "Linear\ngemm"
+},
+
+{
     "location": "functions.html#Merlin.GRU",
     "page": "Functions",
     "title": "Merlin.GRU",
