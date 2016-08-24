@@ -18,7 +18,7 @@ y = f(x)
 ```
 """
 function Embedding(T::Type, indim::Int, outdim::Int)
-    ws = Var[Param(rand(T,outdim)) for i=1:indim]
+    ws = Var[zerograd!(Var(rand(T,outdim))) for i=1:indim]
     Embedding(ws)
 end
 
@@ -82,15 +82,15 @@ function h5convert(f::Embedding)
     for i = 1:length(f.ws)
         copy!(w, (i-1)*n+1, f.ws[i].data, 1, n)
     end
-    h5convert(Embedding, "w"=>w)
+    h5dict(Embedding, "w"=>w)
 end
 
-function h5deconvert(::Type{Embedding}, data)
+function h5load!(::Type{Embedding}, data)
     w = data["w"]
     n = size(w,1)
     ws = Array(Var, size(w,2))
     for i = 1:length(ws)
-        ws[i] = Param(w[(i-1)*n+1:i*n])
+        ws[i] = Var(w[(i-1)*n+1:i*n]) |> zerograd!
     end
     Embedding(ws)
 end

@@ -1,20 +1,24 @@
-export Var, Param
+export Var
 
-type Var <: AbstractNode
+type Var
     data
+    grad
     args::Vector{Var}
     f
     df
-    grad
 end
 
-Var(data, args, f, df=nothing) = Var(data, args, f, df, nothing)
-Var(data) = Var(data, Var[], nothing)
-
-Param(data) = Var(data, Var[], nothing, nothing, zeros(data))
+Var(data, args, f, df) = Var(data, nothing, args, f, df)
+Var(data, grad=nothing) = Var(data, grad, Var[], nothing, nothing)
 
 hasgrad(v::Var) = v.grad != nothing
 
-#Base.size(v::Var) = size(v.data)
-#Base.size(v::Var, dim::Int) = size(v.data, dim)
-#Base.length(v::Var) = length(v.data)
+function zerograd!(v::Var)
+    T = eltype(v.data)
+    if typeof(v.data) <: UniArray
+        hasgrad(v) ? fill!(v.grad, T(0)) : (v.grad = zeros(v.data))
+    elseif typeof(v.data) <: Number
+        v.grad = T(0)
+    end
+    v
+end
