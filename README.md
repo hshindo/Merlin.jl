@@ -48,9 +48,13 @@ Basically,
 2. Apply functions to `Var`s. `Var` memorizes a history of functional applications for auto-differentiation.
 
 ```julia
+using Merlin
+
 x = Var(rand(Float32,10,5))
+zerograd!(x)
 f = Linear(Float32,10,7)
 y = f(x)
+gradient!(y)
 ```
 
 ### Example1: Feed-Forward Neural Network
@@ -75,7 +79,7 @@ f = compile(g, :x)
 x = Var(rand(Float32,10,5))
 y = f(x)
 ```
-where `:x` is a place-holder of input argument.
+where `:x` is a place-holder for input argument.
 
 ### Example2: Recurrent Neural Network (RNN)
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="270"></p>

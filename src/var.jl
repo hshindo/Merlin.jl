@@ -1,4 +1,4 @@
-export Var
+export Var, zerograd!
 
 type Var
     data

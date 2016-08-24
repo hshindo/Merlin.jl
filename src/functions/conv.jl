@@ -39,10 +39,10 @@ handle(::Type{Conv{2}}, ::Type{Float64}) = WINDOW2D_F64
 
 function Conv(T::Type, filterdims, channeldims; stride=(), paddims=())
     N = length(filterdims)
-    w = rand(T(-0.001), T(0.001), filterdims..., channeldims...)
+    w = Var(rand(T(-0.001), T(0.001), filterdims..., channeldims...))
     length(stride) == 0 && (stride = ntuple(_ -> 1, N))
     length(paddims) == 0 && (paddims = ntuple(_ -> 0, N))
-    Conv(Param(w), filterdims, stride, paddims)
+    Conv(zerograd!(w), filterdims, stride, paddims)
 end
 
 function (f::Conv)(x::Var)
