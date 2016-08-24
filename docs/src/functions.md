@@ -49,6 +49,12 @@ logsoftmax
 softmax
 ```
 
+## Linear
+```@docs
+Linear
+gemm
+```
+
 ## Graph
 ```@docs
 GRU
