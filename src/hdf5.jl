@@ -1,4 +1,4 @@
-export h5convert, h5save, h5load
+export h5save, h5load, h5dict, h5convert
 
 """
     h5save(filename::String, data)
@@ -29,22 +29,27 @@ end
 
 Load a HDF5 file.
 """
-h5load(filename::String) = h5deconvert(h5read(filename,"Merlin"))
+h5load(filename::String) = h5load!(h5read(filename,"Merlin"))
 
-function h5convert(T::Type, x::Pair...)
-    dict = h5convert(x...)
-    dict["#TYPE"] = string(T)
+"""
+    h5dict
+"""
+function h5dict(T::Type, x::Pair...)
+    dict = Dict{String,Any}("#TYPE"=>string(T))
+    for (k,v) in x
+        dict[string(k)] = h5convert(v)
+    end
     dict
 end
 
 h5convert(x::Number) = x
 h5convert{T<:Number}(x::Array{T}) = x
 h5convert(x::String) = x
-h5convert(x::Symbol) = h5convert(Symbol, "#NAME"=>string(x))
-h5convert(x::Function) = h5convert(Function, "#NAME"=>string(x))
+h5convert(x::Symbol) = h5dict(Symbol, "s"=>string(x))
+h5convert(x::Function) = h5dict(Function, "f"=>string(x))
 
 function h5convert(x::Vector{Any})
-    dict = h5convert(Vector{Any})
+    dict = h5dict(Vector{Any})
     for i = 1:length(x)
         dict[string(i)] = h5convert(x[i])
     end
@@ -59,68 +64,33 @@ function h5convert(x::Dict)
     dict
 end
 
-function h5convert(x::Pair...)
-    dict = Dict{String,Any}()
-    for (k,v) in x
-        dict[string(k)] = h5convert(v)
-    end
-    dict
-end
-
-function h5deconvert(data::Dict)
+function h5load!(data::Dict)
     if haskey(data, "#TYPE")
         T = eval(parse(data["#TYPE"]))
         delete!(data, "#TYPE")
-        h5deconvert(T, data)
+        h5load!(T, data)
     else
         for (k,v) in data
-            typeof(v) <: Dict && (data[k] = f(v))
+            typeof(v) <: Dict && (data[k] = h5load!(v))
         end
         data
     end
 end
 
-h5deconvert(::Type{Function}, data) = parse(data["#NAME"])
-h5deconvert(::Type{Symbol}, data) = parse(data["#NAME"])
-h5deconvert(x::Number) = x
-h5deconvert{T<:Number}(x::Array{T}) = x
-h5deconvert(x::String) = x
+h5load!(::Type{Function}, data) = parse(data["f"])
+h5load!(::Type{Symbol}, data) = parse(data["s"])
+h5load!(x::Number) = x
+h5load!{T<:Number}(x::Array{T}) = x
+h5load!(x::String) = x
 
-function h5deconvert(::Type{Vector{Any}}, dict::Dict)
+function h5load!(::Type{Vector{Any}}, data::Dict)
     vec = []
-    for (k,v) in dict
+    for (k,v) in data
         i = parse(Int, k)
         while i > length(vec)
             push!(vec, nothing)
         end
-        vec[i] = h5deconvert(v)
+        vec[i] = h5load!(v)
     end
     vec
-end
-
-function h5convert(x::Graph)
-    dict = h5convert(Graph)
-    argdict = ObjectIdDict()
-    for i = 1:length(x)
-        d = h5convert(GraphNode)
-        dict[string(i)] = d
-        for j = 1:length(x[i])
-            n = x[i][j]
-            if typeof(n) == GraphNode
-                d[string(j)] = h5convert(GraphNode)
-                d[string(j)]["id"] = argdict[n]
-            else
-                d[string(j)] = h5convert(n)
-            end
-        end
-        argdict[x[i]] = i
-    end
-    dict
-end
-
-function h5deconvert(::Type{Graph}, data::Dict)
-    nodes = GraphNode[]
-    for (k,v) in data
-
-    end
 end
