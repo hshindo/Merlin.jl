@@ -7,6 +7,15 @@ end
 
 Embedding(ws::Vector{Var}) = Embedding(ws, IntSet())
 
+function Embedding(w::Matrix)
+    n = size(w,1)
+    ws = Array(Var, size(w,2))
+    for i = 1:length(ws)
+        ws[i] = Var(w[(i-1)*n+1:i*n]) |> zerograd!
+    end
+    Embedding(ws)
+end
+
 """
     Embedding{T}(::Type{T}, indim, outdim)
 
@@ -85,15 +94,7 @@ function h5convert(f::Embedding)
     h5dict(Embedding, "w"=>w)
 end
 
-function h5load!(::Type{Embedding}, data)
-    w = data["w"]
-    n = size(w,1)
-    ws = Array(Var, size(w,2))
-    for i = 1:length(ws)
-        ws[i] = Var(w[(i-1)*n+1:i*n]) |> zerograd!
-    end
-    Embedding(ws)
-end
+h5load!(::Type{Embedding}, data) = Embedding(data["w"])
 
 export quantize!
 function quantize!(f::Embedding)
