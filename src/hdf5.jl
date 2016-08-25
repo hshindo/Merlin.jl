@@ -1,4 +1,4 @@
-export h5save, h5load, h5dict, h5convert
+export h5save, h5writedict, h5load, h5dict, h5convert
 
 """
     h5save(filename::String, data)
@@ -7,21 +7,24 @@ Save objects as a HDF5 format.
 Note that the objects are required to implement `h5convert` and `h5load!` functions.
 """
 function h5save(filename::String, data)
-    function f(g::HDF5Group, dict::Dict)
-        for (k,v) in dict
-            if typeof(v) <: Dict
-                c = g_create(g, k)
-                f(c, v)
-            else
-                g[k] = v
-            end
-        end
-    end
-
     h5open(filename, "w") do h
         h["version"] = string(VERSION)
         g = g_create(h, "Merlin")
-        f(g, h5convert(data))
+        h5writedict(g, h5convert(data))
+    end
+end
+
+"""
+    h5writedict(g, data)
+"""
+function h5writedict(g, data::Dict)
+    for (k,v) in data
+        if typeof(v) <: Dict
+            c = g_create(g, string(k))
+            h5writedict(c, v)
+        else
+            g[string(k)] = v
+        end
     end
 end
 
