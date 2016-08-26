@@ -21,8 +21,6 @@ function crossentropy(p, x::Var)
     Var(y, [x], crossentropy, df)
 end
 
-crossentropy(p, x::GraphNode) = GraphNode(crossentropy, p, x)
-
 function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
     y = Array(T, 1, size(p,2))
     for j = 1:size(p,2)
