@@ -22,7 +22,12 @@ function crossentropy(p, x::Var; normalize=false)
             y[i] /= length(y)
         end
     end
-    df(gy) = ∇crossentropy!(p, logx, x.grad, gy)
+    function df(gy)
+        ∇crossentropy!(p, logx, x.grad, gy)
+        for i = 1:length(x.grad)
+            x.grad[i] /= length(gy)
+        end
+    end
     Var(y, [x], crossentropy, df)
 end
 
