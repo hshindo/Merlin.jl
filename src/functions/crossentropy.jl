@@ -14,9 +14,14 @@ x = Var(rand(Float32,10,5))
 y = crossentropy(p,x)
 ```
 """
-function crossentropy(p, x::Var)
+function crossentropy(p, x::Var; normalize=false)
     logx = logsoftmax(x.data, 1)
     y = crossentropy(p, logx)
+    if normalize
+        for i = 1:length(y)
+            y[i] /= length(y)
+        end
+    end
     df(gy) = ∇crossentropy!(p, logx, x.grad, gy)
     Var(y, [x], crossentropy, df)
 end
