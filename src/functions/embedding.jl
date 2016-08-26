@@ -42,7 +42,8 @@ function Embedding(path, T::Type)
     for i = 1:length(lines)
         items = split(chomp(lines[i]), ' ')
         w = map(x -> parse(T,x), items)
-        ws[i] = Param(w)
+        ws[i] = Var(w)
+        zerograd!(ws[i])
     end
     Embedding(ws)
 end
@@ -87,7 +88,7 @@ end
 
 function h5convert(f::Embedding)
     n = length(f.ws[1].data)
-    w = similar(f.ws[1].data, length(f.ws), length(f.ws[1].data))
+    w = similar(f.ws[1].data, length(f.ws[1].data), length(f.ws))
     for i = 1:length(f.ws)
         copy!(w, (i-1)*n+1, f.ws[i].data, 1, n)
     end

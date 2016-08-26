@@ -46,6 +46,7 @@ Basically,
 
 1. Wrap your data with `Var`.
 2. Apply functions to `Var`s. `Var` memorizes a history of functional applications for auto-differentiation.
+3. Compute gradient if necessary.
 
 ```julia
 using Merlin
@@ -75,7 +76,7 @@ g = @graph begin
     x = ls[2](x)
     x
 end
-f = compile(g, :x)
+f = compile(g, :x) # create a function from graph
 x = Var(rand(Float32,10,5))
 y = f(x)
 ```

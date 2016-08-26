@@ -26,7 +26,7 @@ function (opt::SGD){T}(data::Array{T}, grad::Array{T})
             v = zeros(data)
             opt.states[data] = v
         else
-            v = state
+            v = state::Array{T}
         end
         BLAS.scal!(length(v), T(opt.momentum), v, 1)
         BLAS.axpy!(T(opt.rate), grad, v)
