@@ -1,4 +1,4 @@
-export @graph, compile
+export @graph
 
 type GraphNode
     args::Vector
@@ -12,24 +12,35 @@ Base.setindex!(n::GraphNode, value, key::Int) = n.args[key] = value
 
 type Graph
     nodes::Vector{GraphNode} # sorted in bottom-up order
+    f
 end
 
-Graph(top::GraphNode) = Graph(topsort(top))
+function Graph(nodes::Vector{GraphNode})
+    args = Symbol[]
+    for n in nodes
+        append!(args, filter(a -> typeof(a) == Symbol, n.args))
+    end
+    @assert length(args) > 0
+    f = compile(nodes, args)
+    Graph(nodes, f)
+end
+
+(g::Graph)(x...) = g.f(x...)
 
 """
-    compile(g::Graph, args::Symbol...)
+    compile(nodes, args::Vector{Symbol})
 
 Compile a computational graph and generate an anonymous function.
 """
-function compile(g::Graph, args::Symbol...)
+function compile(nodes::Vector{GraphNode}, args::Vector{Symbol})
     dict = ObjectIdDict()
-    for node in g.nodes
+    for node in nodes
         exprs = map(node.args) do n
             typeof(n) == GraphNode ? dict[n] : n
         end
         dict[node] = Expr(:call, exprs...)
     end
-    expr = Expr(:->, Expr(:tuple, args...), dict[g.nodes[end]]) # create anonymous function
+    expr = Expr(:->, Expr(:tuple, args...), dict[nodes[end]]) # create anonymous function
     eval(expr)
 end
 
@@ -44,7 +55,8 @@ macro graph(expr)
         end
     end
     quote
-        Graph($(esc(expr)))
+        local top = $(esc(expr))
+        Graph(topsort(top))
     end
 end
 

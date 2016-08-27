@@ -53,6 +53,7 @@ h5convert{T<:Number}(x::Array{T}) = x
 h5convert(x::String) = x
 h5convert(x::Symbol) = h5dict(Symbol, "s"=>string(x))
 h5convert(x::Function) = h5dict(Function, "f"=>string(x))
+h5convert(x::DataType) = h5dict(DataType, "t"=>string(x))
 
 function h5convert(x::Vector{Any})
     dict = h5dict(Vector{Any})
@@ -83,8 +84,9 @@ function h5load!(data::Dict)
     end
 end
 
-h5load!(::Type{Function}, data) = parse(data["f"])
+h5load!(::Type{Function}, data) = eval(parse(data["f"]))
 h5load!(::Type{Symbol}, data) = parse(data["s"])
+h5load!(::Type{DataType}, data) = eval(parse(data["t"]))
 h5load!(x::Number) = x
 h5load!{T<:Number}(x::Array{T}) = x
 h5load!(x::String) = x
