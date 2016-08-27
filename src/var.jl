@@ -22,3 +22,6 @@ function zerograd!(v::Var)
     end
     v
 end
+
+h5convert(x::Var) = h5dict(Var, "data"=>h5convert(x.data))
+h5load!(::Type{Var}, data::Dict) = Var(data["data"])

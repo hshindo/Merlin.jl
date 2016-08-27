@@ -1,7 +1,7 @@
 workspace()
 using Merlin
-using Merlin.Caffe
-using JuCUDA
+#using Merlin.Caffe
+#using JuCUDA
 using HDF5
 
 T = Float32
@@ -12,6 +12,8 @@ g = @graph begin
     x = ls[2](x)
     x
 end
+g(Var(rand(T,10,10)))
+
 path = "C:/Users/hshindo/Desktop/hdf5.h5"
 h5save(path, g)
 
