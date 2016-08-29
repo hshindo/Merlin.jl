@@ -36,45 +36,35 @@ include("native.jl")
 include("hdf5.jl")
 
 for name in [
-    "activation/relu",
-    "activation/sigmoid",
-    "activation/tanh",
-
-    "indexing/getindex",
-    "indexing/view",
-
-    "manipulation/concat",
-    "manipulation/reshape",
-    "manipulation/transpose",
-
-    "math/add",
-    "math/axsum",
-    "math/exp",
-    "math/log",
-    "math/max",
-    "math/multiply",
-    "math/sum",
-
-    "pooling/maxpooling",
-
-    "softmax/softmax",
-    "softmax/logsoftmax",
-
+    "add",
+    "axsum",
+    "concat",
     "conv",
     "crossentropy",
     "dropout",
     "embedding",
+    "exp",
     "gemm",
+    "getindex",
+    "gru",
     "linear",
+    "log",
+    "logsoftmax",
+    "max",
+    "maxpooling",
+    "multiply",
     "norm",
+    "relu",
+    "reshape",
+    "sigmoid",
+    "softmax",
+    "sum",
+    "tanh",
+    "transpose",
+    "view",
     "window2"
     ]
     include("functions/$(name).jl")
-end
-
-for name in [
-    "gru"]
-  include("graphs/$(name).jl")
 end
 
 export update!
