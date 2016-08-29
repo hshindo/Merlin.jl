@@ -100,4 +100,9 @@ for dim = 1:ndims(x.data)
     @test checkgrad(()->sum(x,dim), x)
 end
 
+x = Var(rand(T,100,1)) |> zerograd!
+h = Var(rand(T,100,1)) |> zerograd!
+f = GRU(T, 100)
+@test checkgrad(()->f(x,h), x, h)
+
 end
