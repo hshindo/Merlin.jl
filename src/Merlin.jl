@@ -29,7 +29,6 @@ include("interop/c/carray.jl")
 
 include("util.jl")
 include("var.jl")
-include("sequence.jl")
 include("graph.jl")
 include("gradient.jl")
 include("training.jl")

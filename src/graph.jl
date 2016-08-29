@@ -15,10 +15,18 @@ type Graph
     f
 end
 
+[3,1,2,5,4]
+
 function Graph(nodes::Vector{GraphNode})
+    dict = ObjectIdDict()
     args = Symbol[]
     for n in nodes
-        append!(args, filter(a -> typeof(a) == Symbol, n.args))
+        for a in n.args
+            if typeof(a) == Symbol && !haskey(dict, a)
+              dict[a] = length(dict)
+              push!(args, a)
+            end
+        end
     end
     @assert length(args) > 0
     f = compile(nodes, args)
