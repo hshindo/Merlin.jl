@@ -66,7 +66,8 @@ function conv{T}(w::Array{T}, x::Array{T}, windims, stride, paddims)
     y, work
 end
 
-conv(w::CuArray, x::CuArray, windims, stride, paddims) = convolution(x, w, paddims, stride)
+conv(w::CuArray, x::CuArray, windims, stride, paddims) = convolution(
+    x, w, paddims, stride)
 
 function window!{T}(x::Array{T}, y::Array{T}, windims, stride, paddims)
     N = length(windims)
