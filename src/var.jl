@@ -13,6 +13,8 @@ Var(data, grad=nothing) = Var(data, grad, Var[], nothing, nothing)
 
 hasgrad(v::Var) = v.grad != nothing
 
+zerograd(data) = Var(data, zeros(data))
+
 function zerograd!(v::Var)
     v.grad = zeros(v.data)
     v
