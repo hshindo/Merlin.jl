@@ -47,13 +47,14 @@ for name in [
     "gemm",
     "getindex",
     "gru",
+    "kl_divergence",
     "linear",
     "log",
     "logsoftmax",
     "max",
     "maxpooling",
     "multiply",
-    "norm",
+    #"norm",
     "relu",
     "reshape",
     "sigmoid",
@@ -62,7 +63,8 @@ for name in [
     "tanh",
     "transpose",
     "view",
-    "window2"
+    "window",
+    "dev/cluster"
     ]
     include("functions/$(name).jl")
 end

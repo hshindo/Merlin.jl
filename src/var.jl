@@ -13,13 +13,10 @@ Var(data, grad=nothing) = Var(data, grad, Var[], nothing, nothing)
 
 hasgrad(v::Var) = v.grad != nothing
 
+zerograd(data) = Var(data, zeros(data))
+
 function zerograd!(v::Var)
-    T = eltype(v.data)
-    if typeof(v.data) <: UniArray
-        hasgrad(v) ? fill!(v.grad, T(0)) : (v.grad = zeros(v.data))
-    elseif typeof(v.data) <: Number
-        v.grad = T(0)
-    end
+    v.grad = zeros(v.data)
     v
 end
 

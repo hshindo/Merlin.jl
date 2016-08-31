@@ -15,8 +15,6 @@ type Graph
     f
 end
 
-[3,1,2,5,4]
-
 function Graph(nodes::Vector{GraphNode})
     dict = ObjectIdDict()
     args = Symbol[]

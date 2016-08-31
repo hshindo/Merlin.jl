@@ -105,4 +105,8 @@ h = Var(rand(T,100,1)) |> zerograd!
 f = GRU(T, 100)
 @test checkgrad(()->f(x,h), x, h)
 
+p = Var(rand(T,10,5)) |> zerograd!
+q = Var(rand(T,10,5)) |> zerograd!
+#@test checkgrad(()->kl_divergence(p,q), p, q)
+
 end
