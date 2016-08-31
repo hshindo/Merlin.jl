@@ -24,10 +24,18 @@ function dropout{T}(x::Array{T}, ratio::Float64, rx::Array{T})
     y
 end
 
+dropout{T}(x::CuArray, ratio::Float64, rx::CuArray{T}) = dropout(x, ratio)
+
 function ∇dropout!{T}(ratio::Float64, rx::Array{T}, gx::Array{T}, gy::Array{T})
     scale = T(1.0 / (1.0-ratio))
     @inbounds @simd for i = 1:length(gx)
         gx[i] += ifelse(rx[i] <= T(ratio), T(0), scale*gy[i])
     end
     gx
+end
+
+function ∇dropout!{T}(ratio::Float64, states, statessize, reserve, reservesize,
+    gx::CuArray{T}, gy::CuArray{T})
+
+    ∇dropout!(gy, ratio, states, statessize, reserve, reservesize, gx)
 end

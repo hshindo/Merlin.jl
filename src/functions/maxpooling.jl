@@ -59,8 +59,17 @@ function maxpooling{T}(x::Array{T,3}, p::Pooling)
     y, maxidxs
 end
 
+maxpooling(x::CuArray, p::Pooling) = pooling(x, p.windims, p.paddims, p.stride,
+    CUDNN_POOLING_MAX)
+
 function ∇maxpooling{T}(gx::Array{T}, gy::Array{T}, maxidxs::Vector{Cint}, p::Pooling)
     h = maxpooling_handle(T)[2]
     ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Cint), gx, gy, maxidxs, length(gy))
     gx
+end
+
+function ∇maxpooling{T}(gx::CuArray{T}, gy::CuArray{T}, x::CuArray, y::CuArray,
+    p::Pooling)
+
+    ∇pooling!(y, gy, x, p.windims, p.paddims, p.stride, CUDNN_POOLING_MAX, gx)
 end
