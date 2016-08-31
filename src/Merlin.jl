@@ -50,6 +50,7 @@ for name in [
     "linear",
     "log",
     "logsoftmax",
+    "lrn",
     "max",
     "maxpooling",
     "multiply",
