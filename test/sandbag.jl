@@ -3,6 +3,19 @@ using Merlin
 #using Merlin.Caffe
 #using JuCUDA
 using HDF5
+using JLD
+
+f = x -> 1
+code_lowered(f)
+
+Base.uncompressed_ast(f)
+uncompressed_ast()
+
+
+path = "C:/Users/hshindo/Desktop/hdf5.jld"
+save(path, "t", f)
+
+gru = GRU(Float32,100)
 
 T = Float32
 ls = [Linear(T,10,7), Linear(T,7,3)]

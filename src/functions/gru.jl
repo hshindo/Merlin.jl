@@ -21,8 +21,8 @@ function GRU(T::Type, xsize::Int)
     ws = [zerograd!(Var(rand(T,xsize,xsize))) for i=1:3]
     us = [zerograd!(Var(rand(T,xsize,xsize))) for i=1:3]
     @graph begin
-        x = :x
         h = :h
+        x = :x
         r = sigmoid(ws[1]*x + us[1]*h)
         z = sigmoid(ws[2]*x + us[2]*h)
         h_ = tanh(ws[3]*x + us[3]*(r.*h))
