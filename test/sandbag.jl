@@ -5,12 +5,9 @@ using Merlin
 using HDF5
 using JLD
 
-f = x -> 1
-code_lowered(f)
-
-Base.uncompressed_ast(f)
-uncompressed_ast()
-
+f = Cluster(Float32,100,100)
+x = Var(rand(Float32,100,10))
+y = f(x)
 
 path = "C:/Users/hshindo/Desktop/hdf5.jld"
 save(path, "t", f)

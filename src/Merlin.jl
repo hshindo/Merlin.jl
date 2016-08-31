@@ -63,7 +63,8 @@ for name in [
     "tanh",
     "transpose",
     "view",
-    "window"
+    "window",
+    "dev/cluster"
     ]
     include("functions/$(name).jl")
 end
