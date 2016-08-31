@@ -38,6 +38,7 @@ include("hdf5.jl")
 for name in [
     "add",
     "axsum",
+    "batchnorm",
     "concat",
     "conv",
     "crossentropy",
