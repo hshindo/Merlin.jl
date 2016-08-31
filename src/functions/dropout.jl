@@ -34,5 +34,8 @@ function ∇dropout!{T}(ratio::Float64, rx::Array{T}, gx::Array{T}, gy::Array{T}
     gx
 end
 
-∇dropout!{T}(ratio::Float64, states, statessize, reserve, reservesize, gx::CuArray{T},
-    gy::CuArray{T}) = ∇dropout!(gy, ratio, states, statessize, reserve, reservesize, gx)
+function ∇dropout!{T}(ratio::Float64, states, statessize, reserve, reservesize,
+    gx::CuArray{T}, gy::CuArray{T})
+    
+    ∇dropout!(gy, ratio, states, statessize, reserve, reservesize, gx)
+end
