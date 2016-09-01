@@ -70,13 +70,12 @@ using Merlin
 
 T = Float32
 ls = [Linear(T,10,7), Linear(T,7,3)]
-g = @graph begin
+f = @graph begin
     x = ls[1](:x)
     x = relu(x)
     x = ls[2](x)
     x
 end
-f = compile(g, :x) # create a function from graph
 x = Var(rand(Float32,10,5))
 y = f(x)
 ```
