@@ -4,6 +4,11 @@ type Cluster <: Functor
     c::Var
 end
 
+"""
+* T::Type
+* xsize: vector size
+* k: number of clusters
+"""
 function Cluster(T::Type, xsize::Int, k::Int)
     c = rand(T,xsize,k)
     Cluster(Var(c))
@@ -18,11 +23,12 @@ end
 function cluster{T}(x::Matrix{T}, c::Matrix{T})
     @assert size(x,1) == size(c,1)
     I, J = size(x,2), size(c,2)
+    diff = Array(Vector{T}, )
 
     q = Array(T, I, J)
     for j = 1:J
         for i = 1:I
-            q[i,j] = sqrt(1 + norm(x,i,c,j))
+            q[i,j] = sqrt(1 + distance(x,i,c,j))
         end
     end
     normalize2!(q)
@@ -46,7 +52,7 @@ function ∇cluster!{T}(p::Matrix{T}, q::Matrix, diffs::Matrix{Vector{T}}, gx::M
     end
 end
 
-function Base.norm{T}(x::Matrix{T}, xj::Int, y::Matrix{T}, yj::Int)
+function distance{T}(x::Matrix{T}, xj::Int, y::Matrix{T}, yj::Int)
     @assert size(x,1) == size(y,1)
     sum = T(0)
     for i = 1:size(x,1)
