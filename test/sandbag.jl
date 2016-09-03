@@ -5,9 +5,16 @@ using Merlin
 using HDF5
 using JLD
 
-f = Cluster(Float32,100,100)
-x = Var(rand(Float32,100,10))
+using Merlin
+
+x = constant(rand(Float32,10,5))
+f = Linear(Float32,10,7)
 y = f(x)
+y = relu(y)
+f = Linear(Float32,7,3)
+y = f(y)
+gradient!(y)
+println(x.grad)
 
 path = "C:/Users/hshindo/Desktop/hdf5.jld"
 save(path, "t", f)
