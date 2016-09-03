@@ -1,4 +1,4 @@
-export Var, zerograd!
+export Var, constant, zerograd!
 
 type Var
     data
@@ -9,11 +9,12 @@ type Var
 end
 
 Var(data, args, f, df) = Var(data, nothing, args, f, df)
-Var(data, grad=nothing) = Var(data, grad, Var[], nothing, nothing)
+Var(data, grad) = Var(data, grad, Var[], nothing, nothing)
+Var(data) = Var(data, zeros(data))
 
 hasgrad(v::Var) = v.grad != nothing
 
-zerograd(data) = Var(data, zeros(data))
+constant(data) = Var(data)
 
 function zerograd!(v::Var)
     v.grad = zeros(v.data)

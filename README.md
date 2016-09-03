@@ -44,19 +44,23 @@ if you have installed `g++` with mingw-x64, you can build `Merlin`.
 ## Quick Start
 Basically,
 
-1. Wrap your data with `Var`.
+1. Wrap your data with `Var` or `constant`.
 2. Apply functions to `Var`s. `Var` memorizes a history of functional applications for auto-differentiation.
-3. Compute gradient if necessary.
+3. Compute gradients if necessary.
 
 ```julia
 using Merlin
 
 x = Var(rand(Float32,10,5))
-zerograd!(x)
 f = Linear(Float32,10,7)
 y = f(x)
+y = relu(y)
+f = Linear(Float32,7,3)
+y = f(y)
 gradient!(y)
+println(x.grad)
 ```
+If you don't need gradients, use `constant` instead of `Var`.
 
 ### Example1: Feed-Forward Neural Network
 Static network can be constructed by `@graph` macro.
@@ -76,7 +80,7 @@ f = @graph begin
     x = ls[2](x)
     x
 end
-x = Var(rand(Float32,10,5))
+x = constant(rand(Float32,10,5))
 y = f(x)
 ```
 where `:x` is a place-holder for input argument.
@@ -94,23 +98,20 @@ f_h = @graph ... # function for hidden unit
 f_y = @graph ... # function for output unit
 
 h = Var(rand(T,50,1)) # initial hidden vector
-xs = [Var(rand(T,50,1)) for i=1:10] # input vars
-ys = Array(Var, length(xs)) # output vars
-
-for i = 1:length(xs)
-    x = xs[i]
+xs = [constant(rand(T,50,1)) for i=1:10] # input data
+ys = map(xs) do x
     c = concat(1, x, h) # concatanate x and h along the first dimension.
     h = f_h(c)
-    ys[i] = f_y(h)
+    f_y(h)
 end
 ```
 
 ### Training
 `Merlin` provides `fit` function to train your model.
 ```julia
-data_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
-data_y = [Var([1,2,3]) for i=1:100] # correct labels
-f = ...
+data_x = [constant(rand(Float32,10,5)) for i=1:100] # input data
+data_y = [constant([1,2,3]) for i=1:100] # correct labels
+f = @graoh ...
 
 opt = SGD(0.0001, momentum=0.9)
 for epoch = 1:10
