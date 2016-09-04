@@ -5,6 +5,11 @@ export concat
     concat(dim::Int, xs::Vector{Var})
 
 Concatenate arrays along the given dimension.
+```julia
+x1 = Var(rand(Float32,4,3))
+x2 = Var(rand(Float32,4,5))
+y = concat(2, x1, x2)
+```
 """
 function concat(dim::Int, xs::Vector{Var})
     cumdim = 0

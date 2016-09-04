@@ -5,7 +5,6 @@ import Base: +, -
     +(a::Number, x::Var)
     +(x::Var, a::Number)
 
-## 👉 Example
 ```julia
 y = Var([1.,2.,3.]) + Var([4.,5.,6.])
 y = 1.0 + Var([4.,5.,6.])
@@ -22,7 +21,7 @@ y = Var([1.,2.,3.]) + 4.0
     -(a::Number, x::Var)
     -(x::Var)
 
-See `+` function for examples.
+See `+` for examples.
 """
 -(x1::Var, x2::Var) = axsum([1.0,-1.0], [x1,x2])
 -(a::Number, x::Var) = Var(a) - x

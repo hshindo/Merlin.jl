@@ -4,10 +4,10 @@ export axsum
     axsum
 
 ```math
-y=\sum_{i}a\left[i\right]\cdot x\left[i\right]
+y = \sum_{i} a_{i} \cdot x_{i}
 ```
 
-where ``a[i]`` is a scalar and ``x`` is scholar or vector.
+where ``a_{i}`` is a scalar and ``x`` is scholar or vector.
 Every operation is broadcasted.
 """
 function axsum(as::Vector{Float64}, xs::Vector{Var})
