@@ -13,11 +13,14 @@ gru = GRU(Float32,100)
 T = Float32
 ls = [Linear(T,10,7), Linear(T,7,3)]
 g = @graph begin
-    x = ls[1](:x)
+    x = :x
+    h = :h
+    x = ls[1](x)
     x = relu(x)
     x = ls[2](x)
     x
 end
+g(constant(rand(T,10,3)), constant(rand(T,10,3)))
 h5save(path, g)
 
 path = "C:/Users/hshindo/Desktop/hdf5.h5"
