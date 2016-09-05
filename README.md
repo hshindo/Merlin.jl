@@ -45,7 +45,7 @@ if you have installed `g++` with mingw-x64, you can build `Merlin`.
 Basically,
 
 1. Wrap your data with `Var` or `constant`.
-2. Apply functions to `Var`s. `Var` memorizes a history of functional applications for auto-differentiation.
+2. Apply functions to `Var`. `Var` memorizes a history of functional applications for auto-differentiation.
 3. Compute gradients if necessary.
 
 ```julia
@@ -111,7 +111,7 @@ end
 ```julia
 data_x = [constant(rand(Float32,10,5)) for i=1:100] # input data
 data_y = [constant([1,2,3]) for i=1:100] # correct labels
-f = @graoh ...
+f = @graph ...
 
 opt = SGD(0.0001, momentum=0.9)
 for epoch = 1:10
