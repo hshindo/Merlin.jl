@@ -51,12 +51,12 @@ Basically,
 ```julia
 using Merlin
 
-x = Var(rand(Float32,10,5))
-f = Linear(Float32,10,7)
-y = f(x)
+T = Float32
+x = Var(rand(T,10,5))
+f1, f2 = Linear(T,10,7), Linear(T,7,3)
+y = f1(x)
 y = relu(y)
-f = Linear(Float32,7,3)
-y = f(y)
+y = f2(y)
 gradient!(y)
 println(x.grad)
 ```

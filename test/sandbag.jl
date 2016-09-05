@@ -5,18 +5,7 @@ using Merlin
 using HDF5
 using JLD
 
-using Merlin
-
-x = constant(rand(Float32,10,5))
-f = Linear(Float32,10,7)
-y = f(x)
-y = relu(y)
-f = Linear(Float32,7,3)
-y = f(y)
-gradient!(y)
-println(x.grad)
-
-path = "C:/Users/hshindo/Desktop/hdf5.jld"
+path = "C:/Users/shindo/Desktop/hdf5.h5"
 save(path, "t", f)
 
 gru = GRU(Float32,100)
@@ -29,7 +18,7 @@ g = @graph begin
     x = ls[2](x)
     x
 end
-g(Var(rand(T,10,10)))
+h5save(path, g)
 
 path = "C:/Users/hshindo/Desktop/hdf5.h5"
 h5save(path, g)

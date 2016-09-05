@@ -12,14 +12,14 @@ See: Chung et al. "Empirical Evaluation of Gated Recurrent Neural Networks on Se
 ## 👉 Example
 ```julia
 gru = GRU(Float32,100)
-x = Var(rand(Float32,100))
+x = constant(rand(Float32,100))
 h = Var(rand(Float32,100))
 y = gru(x, h)
 ```
 """
 function GRU(T::Type, xsize::Int)
-    ws = [zerograd!(Var(rand(T,xsize,xsize))) for i=1:3]
-    us = [zerograd!(Var(rand(T,xsize,xsize))) for i=1:3]
+    ws = [Var(rand(T,xsize,xsize)) for i=1:3]
+    us = [Var(rand(T,xsize,xsize)) for i=1:3]
     @graph begin
         h = :h
         x = :x
@@ -31,7 +31,7 @@ function GRU(T::Type, xsize::Int)
     end
 end
 
-GRU_training(x::CuArray, hx::CuArray, cx::CuArray, droprate) = 
+GRU_training(x::CuArray, hx::CuArray, cx::CuArray, droprate) =
     JuCUDNN.rnn_training(x, hx, cx, droprate, CUDNN_LINEAR_INPUT,
     CUDNN_UNIDIRECTIONAL, CUDNN_GRU)
 
