@@ -13,7 +13,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Merlin.jl",
     "category": "section",
-    "text": "Merlin is a deep learning framework written in Julia. It aims to provide a fast, flexible and compact deep learning library for machine learning.See README.md for basic usage.Basically,Wrap your data with Var type.\nApply functions to the Var.\nCompute gradient if necessary.x = Var(rand(Float32,10,5))\nzerograd!(x)\nf = Linear(Float32,10,3)\ny = f(x)\ngradient!(y)"
+    "text": "Merlin is a deep learning framework written in Julia. It aims to provide a fast, flexible and compact deep learning library for machine learning.See README.md for basic usage."
 },
 
 {
@@ -29,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.:+",
     "category": "Function",
-    "text": "+(x1::Var, x2::Var)\n+(a::Number, x::Var)\n+(x::Var, a::Number)\n\n\n\n"
+    "text": "+(x1::Var, x2::Var)\n+(a::Number, x::Var)\n+(x::Var, a::Number)\n\ny = Var([1.,2.,3.]) + Var([4.,5.,6.])\ny = 1.0 + Var([4.,5.,6.])\ny = Var([1.,2.,3.]) + 4.0\n\n\n\n"
 },
 
 {
@@ -37,7 +37,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.:-",
     "category": "Function",
-    "text": "-(x1::Var, x2::Var)\n-(a::Number, x::Var)\n-(a::Number, x::Var)\n-(x::Var)\n\n\n\n"
+    "text": "-(x1::Var, x2::Var)\n-(a::Number, x::Var)\n-(a::Number, x::Var)\n-(x::Var)\n\nSee + for examples.\n\n\n\n"
 },
 
 {
@@ -61,7 +61,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.axsum",
     "category": "Function",
-    "text": "axsum\n\ny=sum_ialeftiightcdot xleftiight\n\nwhere ai is a scalar and x is scholar or vector. Every operation is broadcasted.\n\n\n\n"
+    "text": "axsum\n\ny = sum_i a_i cdot x_i\n\nwhere a_i is a scalar and x is scholar or vector. Every operation is broadcasted.\n\n\n\n"
 },
 
 {
@@ -69,7 +69,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.concat",
     "category": "Function",
-    "text": "concat(dim::Int, xs::Var...)\nconcat(dim::Int, xs::Vector{Var})\n\nConcatenate arrays along the given dimension.\n\n\n\n"
+    "text": "concat(dim::Int, xs::Var...)\nconcat(dim::Int, xs::Vector{Var})\n\nConcatenate arrays along the given dimension.\n\nx1 = Var(rand(Float32,4,3))\nx2 = Var(rand(Float32,4,5))\ny = concat(2, x1, x2)\n\n\n\n"
 },
 
 {
@@ -77,7 +77,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.Conv",
     "category": "Type",
-    "text": "Conv(T, channel, filter, [stride, pad])\n\nN-dimensional convolution function.\n\nArguments\n\nT: Type\nfilterdims::NTuple{N,Int}: window size\nchanneldims::Tuple{Int,Int}: input channel, output channel\n[stride::NTuple{N,Int}]: stride size. Default: (1,1,...)\n[paddims::NTuple{N,Int}]: padding size. Default: (0,0,...)\n\n👉 Example\n\nx = Var(rand(Float32,5,4,3,2))\nf = Conv(Float32, (2,2), (3,4), stride=(1,1), paddims=(0,0))\ny = f(x)\n\n\n\n"
+    "text": "Conv(T, channel, filter, [stride, pad])\n\nN-dimensional convolution function.\n\nArguments\n\nT: Type\nfilterdims::NTuple{N,Int}: window size\nchanneldims::Tuple{Int,Int}: input channel, output channel\n[stride::NTuple{N,Int}]: stride size. Default: (1,1,...)\n[paddims::NTuple{N,Int}]: padding size. Default: (0,0,...)\n\n```julia x = Var(rand(Float32,5,4,3,2)) f = Conv(Float32, (2,2), (3,4), stride=(1,1), paddims=(0,0)) y = f(x)\n\n\n\n"
 },
 
 {
@@ -125,7 +125,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.GRU",
     "category": "Function",
-    "text": "GRU(::Type, xsize::Int)\n\nGated Recurrent Unit (GRU). See: Chung et al. \"Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling\", 2014\n\nArguments\n\nxsize: size of input vector (= size of hidden vector)\n\n👉 Example\n\ngru = GRU(Float32,100)\nx = Var(rand(Float32,100))\nh = Var(rand(Float32,100))\ny = gru(x, h)\n\n\n\n"
+    "text": "GRU(::Type, xsize::Int)\n\nGated Recurrent Unit (GRU). See: Chung et al. \"Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling\", 2014\n\nArgs\n\nxsize: size of input vector (= size of hidden vector)\n\ngru = GRU(Float32,100)\nx = constant(rand(Float32,100))\nh = Var(rand(Float32,100))\ny = gru(x, h)\n\n\n\n"
 },
 
 {
@@ -277,7 +277,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Optimizers",
     "title": "Optimizers",
     "category": "section",
-    "text": "AdaGrad\nAdam\nSGD"
+    "text": "A Optimizer provides functions for updating parameters.For example,x1 = Var(rand(Float32,5,4))\nx1.grad = rand(Float32,5,4)\nopt = SGD(0.001)\nopt(x1.data, x1.grad)AdaGrad\nAdam\nSGD"
 },
 
 {
