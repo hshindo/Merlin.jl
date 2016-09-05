@@ -15,30 +15,7 @@ type Graph
     f
 end
 
-function Graph(nodes::Vector{GraphNode})
-    dict = ObjectIdDict()
-    args = Symbol[]
-    for n in nodes
-        for a in n.args
-            if typeof(a) == Symbol && !haskey(dict, a)
-              dict[a] = length(dict)
-              push!(args, a)
-            end
-        end
-    end
-    @assert length(args) > 0
-    f = compile(nodes, args)
-    Graph(nodes, f)
-end
-
-(g::Graph)(x...) = g.f(x...)
-
-"""
-    compile(nodes, args::Vector{Symbol})
-
-Compile a computational graph and generate an anonymous function.
-"""
-function compile(nodes::Vector{GraphNode}, args::Vector{Symbol})
+function Graph(nodes::Vector{GraphNode}, args::Vector{Symbol})
     dict = ObjectIdDict()
     for node in nodes
         exprs = map(node.args) do n
@@ -47,22 +24,34 @@ function compile(nodes::Vector{GraphNode}, args::Vector{Symbol})
         dict[node] = Expr(:call, exprs...)
     end
     expr = Expr(:->, Expr(:tuple, args...), dict[nodes[end]]) # create anonymous function
-    eval(expr)
+    f = eval(expr)
+    Graph(nodes, f)
 end
+
+(g::Graph)(x...) = g.f(x...)
 
 Base.length(g::Graph) = length(g.nodes)
 Base.getindex(g::Graph, key::Int) = g.nodes[key]
 Base.setindex!(g::Graph, value::GraphNode, key::Int) = g.nodes[key] = value
 
 macro graph(expr)
+    local dict = ObjectIdDict()
+    local syms = Symbol[]
     bottomup(expr) do ex
         if ex.head == :call
             unshift!(ex.args, :(Merlin.GraphNode))
         end
+        if ex.head == :quote && length(ex.args) == 1
+            local s = ex.args[1]
+            if typeof(s) == Symbol && !haskey(dict, s)
+                dict[s] = s
+                push!(syms, s)
+            end
+        end
     end
     quote
         local top = $(esc(expr))
-        Graph(topsort(top))
+        Graph(topsort(top), $syms)
     end
 end
 

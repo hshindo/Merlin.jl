@@ -6,23 +6,22 @@ export GRU
 Gated Recurrent Unit (GRU).
 See: Chung et al. "Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling", 2014
 
-## Arguments
+## Args
 * xsize: size of input vector (= size of hidden vector)
 
-## 👉 Example
 ```julia
 gru = GRU(Float32,100)
-x = Var(rand(Float32,100))
+x = constant(rand(Float32,100))
 h = Var(rand(Float32,100))
 y = gru(x, h)
 ```
 """
 function GRU(T::Type, xsize::Int)
-    ws = [zerograd!(Var(rand(T,xsize,xsize))) for i=1:3]
-    us = [zerograd!(Var(rand(T,xsize,xsize))) for i=1:3]
+    ws = [Var(rand(T,xsize,xsize)) for i=1:3]
+    us = [Var(rand(T,xsize,xsize)) for i=1:3]
     @graph begin
-        h = :h
         x = :x
+        h = :h
         r = sigmoid(ws[1]*x + us[1]*h)
         z = sigmoid(ws[2]*x + us[2]*h)
         h_ = tanh(ws[3]*x + us[3]*(r.*h))
@@ -31,7 +30,7 @@ function GRU(T::Type, xsize::Int)
     end
 end
 
-GRU_training(x::CuArray, hx::CuArray, cx::CuArray, droprate) = 
+GRU_training(x::CuArray, hx::CuArray, cx::CuArray, droprate) =
     JuCUDNN.rnn_training(x, hx, cx, droprate, CUDNN_LINEAR_INPUT,
     CUDNN_UNIDIRECTIONAL, CUDNN_GRU)
 
