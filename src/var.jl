@@ -1,4 +1,4 @@
-export Var, constant, zerograd!
+export Var, constant, isconstant
 
 type Var
     data
@@ -15,11 +15,7 @@ Var(data) = Var(data, zeros(data))
 hasgrad(v::Var) = v.grad != nothing
 
 constant(data) = Var(data)
-
-function zerograd!(v::Var)
-    v.grad = zeros(v.data)
-    v
-end
+isconstant(v::Var) = v.grad == nothing
 
 h5convert(x::Var) = h5dict(Var, "data"=>h5convert(x.data))
 h5load!(::Type{Var}, data::Dict) = Var(data["data"])
