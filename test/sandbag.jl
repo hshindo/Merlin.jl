@@ -8,7 +8,7 @@ using HDF5
 using JLD
 
 T = Float32
-x = CuArray(T,5,4,3,2)
+x = CuArray(T,5,4)
 y = relu(x)
 
 path = "C:/Users/shindo/Desktop/hdf5.h5"

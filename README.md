@@ -125,10 +125,18 @@ end
 If you use CUDA GPU, the following is required.
 - [cuDNN](https://developer.nvidia.com/cudnn) v5 or later
 - [JuCUDA.jl](https://github.com/hshindo/JuCUDA.jl.git) (CUDA bindings for Julia)
-- [JuCUDNN.jl](https://github.com/hshindo/JuCUDNN.jl.git) (cuDNN wrapper for Julia)
 
 Install the following packages:
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/JuCUDA.jl.git")
-julia> Pkg.clone("https://github.com/hshindo/JuCUDNN.jl.git")
+```
+
+```julia
+ENV["USE_CUDA"] = ""
+using Merlin
+using JuCUDA
+
+T = Float32
+x = CuArray(T, 5, 4)
+y = relu(x)
 ```
