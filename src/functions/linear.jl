@@ -52,5 +52,5 @@ h5convert(f::Linear) = h5dict(Linear, "w"=>f.w.data, "b"=>f.b.data)
 
 function h5load!(::Type{Linear}, data)
     w, b = Var(data["w"]), Var(data["b"])
-    Linear(zerograd!(w),zerograd!(b))
+    Linear(w, b)
 end
