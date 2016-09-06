@@ -17,7 +17,7 @@ function relu{T}(x::Array{T})
     y
 end
 
-relu(x::CuArray) = activation!(CUDNN_ACTIVATION_RELU, x, similar(x))
+relu(x::CuArray) = CUDNN.activation!(CUDNN_ACTIVATION_RELU, x, similar(x))
 
 function ∇relu!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
     @inbounds @simd for i = 1:length(x)
@@ -26,5 +26,5 @@ function ∇relu!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
 end
 
 function ∇relu!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-    ∇activation!(CUDNN_ACTIVATION_RELU, y, gy, x, gx, beta=1.0)
+    CUDNN.∇activation!(CUDNN_ACTIVATION_RELU, y, gy, x, gx, beta=1.0)
 end

@@ -6,18 +6,17 @@ using HDF5
 abstract Functor
 
 if is_windows()
-    const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps","libmerlin.dll"))
+    const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.dll"))
 else
-    const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps","libmerlin.so"))
+    const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.so"))
 end
 
-export cuda_available
-cuda_available() = isdir(joinpath(Pkg.dir(),"JuCUDA")) && isdir(joinpath(Pkg.dir(),"JuCUDNN"))
-
-if cuda_available()
-    using JuCUDA, JuCUDNN
+if haskey(ENV, "USE_CUDA")
+    include("cuda/cudnn/CUDNN.jl")
+    using JuCUDA
+    using .CUDNN
 else
-    info("JuCUDA or JuCUDNN is not loaded.")
+    info("CUDA is not loaded.")
     type CuArray{T,N}; end
     typealias CuVector{T} CuArray{T,1}
     typealias CuMatrix{T} CuArray{T,2}

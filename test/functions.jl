@@ -68,7 +68,7 @@ x3 = Var(rand(T,10,5,3))
 
 x = Var(rand(T,10,5))
 f = Linear(T,10,7)
-f.b = Var(rand(T,size(f.b.data))) |> zerograd!
+f.b = Var(rand(T,size(f.b.data)))
 @test checkgrad(()->f(x), f.w, x, f.b)
 
 x1 = Var(rand(T,10,5))
@@ -100,13 +100,13 @@ for dim = 1:ndims(x.data)
     @test checkgrad(()->sum(x,dim), x)
 end
 
-x = Var(rand(T,100,1)) |> zerograd!
-h = Var(rand(T,100,1)) |> zerograd!
+x = Var(rand(T,100,1))
+h = Var(rand(T,100,1))
 f = GRU(T, 100)
 @test checkgrad(()->f(x,h), x, h)
 
-p = Var(rand(T,10,5)) |> zerograd!
-q = Var(rand(T,10,5)) |> zerograd!
+p = Var(rand(T,10,5))
+q = Var(rand(T,10,5))
 #@test checkgrad(()->kl_divergence(p,q), p, q)
 
 end

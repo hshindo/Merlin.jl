@@ -11,7 +11,7 @@ function Embedding(w::Matrix)
     n = size(w,1)
     ws = Array(Var, size(w,2))
     for i = 1:length(ws)
-        ws[i] = Var(w[(i-1)*n+1:i*n]) |> zerograd!
+        ws[i] = Var(w[(i-1)*n+1:i*n])
     end
     Embedding(ws)
 end
@@ -27,7 +27,7 @@ y = f(x)
 ```
 """
 function Embedding(T::Type, indim::Int, outdim::Int)
-    ws = Var[zerograd!(Var(rand(T,outdim))) for i=1:indim]
+    ws = Var[Var(rand(T,outdim)) for i=1:indim]
     Embedding(ws)
 end
 
@@ -43,7 +43,6 @@ function Embedding(path, T::Type)
         items = split(chomp(lines[i]), ' ')
         w = map(x -> parse(T,x), items)
         ws[i] = Var(w)
-        zerograd!(ws[i])
     end
     Embedding(ws)
 end
