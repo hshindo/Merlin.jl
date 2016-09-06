@@ -22,6 +22,7 @@ N-dimensional convolution function.
 x = Var(rand(Float32,5,4,3,2))
 f = Conv(Float32, (2,2), (3,4), stride=(1,1), paddims=(0,0))
 y = f(x)
+```
 """
 type Conv{N} <: Functor
     w::Var
@@ -40,7 +41,7 @@ function Conv(T::Type, filterdims, channeldims; stride=(), paddims=())
     w = Var(rand(T(-0.001), T(0.001), filterdims..., channeldims...))
     length(stride) == 0 && (stride = ntuple(_ -> 1, N))
     length(paddims) == 0 && (paddims = ntuple(_ -> 0, N))
-    Conv(zerograd!(w), filterdims, stride, paddims)
+    Conv(w, filterdims, stride, paddims)
 end
 
 function (f::Conv)(x::Var)
