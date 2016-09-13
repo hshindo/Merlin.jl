@@ -1,2 +1,2 @@
 # Graph
-`Graph` represents a computational graph.
+`Graph` is a type of computational graph.

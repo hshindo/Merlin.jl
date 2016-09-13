@@ -1,5 +1,10 @@
 # Overview
 
+## Var
+```@docs
+Var
+```
+
 ## Forward and Backward Computation
 ```julia
 x = param(rand(Float32,10,5))
@@ -14,8 +19,8 @@ Rather than call `gradient!` manually, Merlin provides `fit` function for traini
 ```julia
 using Merlin
 
-data_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
-data_y = [Var([1,2,3]) for i=1:100] # correct labels
+data_x = [constant(rand(Float32,10,5)) for i=1:100] # input data
+data_y = [constant([1,2,3]) for i=1:100] # correct labels
 
 opt = SGD(0.0001)
 for epoch = 1:10
@@ -24,4 +29,3 @@ for epoch = 1:10
   println("loss: $(loss)")
 end
 ```
-where `fit` tales five arguments: `decode`, `loss function`, `optimizer`, `data_x` and `data_y`.
