@@ -22,7 +22,7 @@ else
     typealias CuMatrix{T} CuArray{T,2}
 end
 
-typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
+typealias UniArray{T,N} Union{Array{T,N},SubArray{T,N},CuArray{T,N}}
 
 include("interop/c/carray.jl")
 
@@ -30,7 +30,7 @@ include("util.jl")
 include("var.jl")
 include("graph.jl")
 include("gradient.jl")
-include("training.jl")
+include("fit.jl")
 include("native.jl")
 include("hdf5.jl")
 
@@ -64,7 +64,6 @@ for name in [
     "tanh",
     "transpose",
     "view",
-    "window",
     "dev/cluster"
     ]
     include("functions/$(name).jl")

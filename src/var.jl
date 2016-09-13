@@ -1,5 +1,20 @@
 export Var, constant, isconstant
 
+"""
+    Var
+
+`Var` is a variable type. It contains the following members:
+
+* data
+* grad
+* args::Vector{Var}
+* f
+* df
+
+To create an instance of `Var`, use
+* Var(data)
+* Var(data, grad)
+"""
 type Var
     data
     grad
