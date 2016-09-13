@@ -1,11 +1,12 @@
 workspace()
+using JSON
 ENV["USE_CUDA"] = true
 using Merlin
-using JuCUDA
 #using Merlin.Caffe
 #using JuCUDA
 using HDF5
 using JLD
+using GZip
 
 T = Float32
 x = CuArray(T,5,4)
