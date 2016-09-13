@@ -6,5 +6,5 @@ julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 
 Then, run the script:
 ```
-> julia mnist.jl
+julia mnist.jl
 ```
