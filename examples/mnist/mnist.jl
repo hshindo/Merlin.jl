@@ -50,7 +50,7 @@ function main()
         println("Epoch: $(epoch)")
         loss = fit(xtrains, ytrains, nn, crossentropy, SGD(0.01))
         println("Loss: $(loss)")
-        # prediction
+        # predict
         zs = map(xtests) do x
             out = nn(x).data
             argmax(out, 1)
