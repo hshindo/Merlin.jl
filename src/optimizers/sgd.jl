@@ -19,7 +19,7 @@ function SGD(rate; momentum=0.0)
     SGD(rate, momentum, ObjectIdDict())
 end
 
-function (opt::SGD){T}(data::Array{T}, grad::Array{T})
+function (opt::SGD){T}(data::AbstractArray{T}, grad::AbstractArray{T})
     if opt.momentum != 0.0
         state = get!(opt.states, data, nothing)
         if state == nothing

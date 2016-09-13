@@ -62,6 +62,8 @@ println(x.grad)
 ```
 If you don't need gradients, use `constant` instead of `Var`.
 
+See `examples`.
+
 ### Example1: Feed-Forward Neural Network
 Static network can be constructed by `@graph` macro.
 
@@ -116,7 +118,7 @@ f = @graph ...
 opt = SGD(0.0001, momentum=0.9)
 for epoch = 1:10
   println("epoch: $(epoch)")
-  loss = fit(f, crossentropy, opt, data_x, data_y)
+  loss = fit(data_x, data_y, f, crossentropy, opt)
   println("loss: $(loss)")
 end
 ```
