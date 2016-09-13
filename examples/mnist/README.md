@@ -1,7 +1,7 @@
 # MNIST
 First, clone `MLDatasets`. This is required to download the dataset.
 ```julia
-julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
+julia> Pkg.clone("https://github.com/hshindo/MLDatasets.jl.git")
 ```
 
 Then, run the script:
