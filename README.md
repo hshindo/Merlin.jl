@@ -123,6 +123,9 @@ for epoch = 1:10
 end
 ```
 
+## Datasets
+Common datasets will be provided via [MLDatasets](https://github.com/hshindo/MLDatasets.jl).
+
 ## [Experimental] CUDA GPU
 If you use CUDA GPU, the following is required.
 - [cuDNN](https://developer.nvidia.com/cudnn) v5 or later
