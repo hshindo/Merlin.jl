@@ -1,12 +1,7 @@
-export argmax, splitdims
+export splitdims
 
 Base.zeros(x::Number) = zero(x)
 Base.ones(x::Number) = one(x)
-
-function argmax(x, dim::Int)
-    _, index = findmax(x, dim)
-    ind2sub(size(x), vec(index))[dim]
-end
 
 function pad(x::Array, N::Int)
     nd = ndims(x)
