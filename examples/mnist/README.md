@@ -1,12 +1,11 @@
 # MNIST
+This is an example of MNIST classification with neural networks.
 
-First, make sure you have installed `Merlin`.
-
-Then, clone `MLDatasets` as follows:
+First, make sure you have installed `Merlin`.  
+Then, clone [MLDatasets.jl](https://github.com/hshindo/MLDatasets.jl.git) as follows:
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/MLDatasets.jl.git")
 ```
- This is required to download the dataset.
 
 Finally, run the script:
 ```
