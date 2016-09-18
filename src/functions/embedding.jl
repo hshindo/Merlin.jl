@@ -59,12 +59,18 @@ function (f::Embedding)(x::Var)
 end
 
 function embedding(ws::Vector{Var}, x::Array{Int})
+    T = eltype(ws[1].data)
     n = length(ws[1].data)
     dims = [size(x)...]
     dims[1] *= n
     y = similar(ws[1].data, dims...)
     for i = 1:length(x)
-        copy!(y, (i-1)*n+1, ws[x[i]].data, 1, n)
+        yi = (i-1)*n+1
+        if x[i] <= 0
+            y[yi:yi+n] = T(0)
+        else
+            copy!(y, yi, ws[x[i]].data, 1, n)
+        end
     end
     y
 end
