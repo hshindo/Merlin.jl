@@ -57,7 +57,7 @@ function outsize(x::AbstractArray, dims, strides, pads)
     Int[(size(x,i)+2*pads[i]-dims[i]) ÷ strides[i] + 1 for i=1:length(dims)]
 end
 
-function ∇window!{T}(gx::Array{T}, gy::Array{T}, w, s, p)
+function ∇window1d!{T}(gx::Array{T}, gy::Array{T}, w, s, p)
     ccall(∇chandle(w,T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
         gx, gy, length(gx), w, s, p)
     gx
