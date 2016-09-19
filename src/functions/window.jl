@@ -14,27 +14,6 @@ window1d_handle(::Type{Int64}) = WINDOW1D_I64
 ∇window1d_handle(::Type{Float64}) = ∇WINDOW1D_F64
 ∇window1d_handle(::Type{Int64}) = ∇WINDOW1D_I64
 
-#=
-immutable Window{N}
-    dims::Tuple{Vararg{Int,N}}
-    strides::Tuple{Vararg{Int,N}}
-    pads::Tuple{Vararg{Int,N}}
-end
-
-function Window{N}(dims::Tuple{Vararg{Int,N}}, strides, pads)
-    typeof(strides) == Int && (strides = ntuple(_ -> strides, N))
-    typeof(pads) == Int && (pads = ntuple(_ -> pads, N))
-    Window(dims, strides, pads)
-end
-
-Base.size(w::Window) = w.dims
-Base.size(w::Window, i::Int) = w.dims[i]
-Base.strides(w::Window) = w.strides
-Base.stride(w::Window, i::Int) = w.strides[i]
-pads(w::Window) = w.pads
-pad(w::Window, i::Int) = w.pads[i]
-=#
-
 function window{N}(x::AbstractArray, dims::Tuple{Vararg{Int,N}}; strides=nothing, pads=nothing)
     strides == nothing && (strides = Int[1 for i=1:N])
     pads == nothing && (pads = Int[0 for i=1:N])
@@ -62,6 +41,27 @@ function ∇window1d!{T}(gx::Array{T}, gy::Array{T}, w, s, p)
         gx, gy, length(gx), w, s, p)
     gx
 end
+
+#=
+immutable Window{N}
+    dims::Tuple{Vararg{Int,N}}
+    strides::Tuple{Vararg{Int,N}}
+    pads::Tuple{Vararg{Int,N}}
+end
+
+function Window{N}(dims::Tuple{Vararg{Int,N}}, strides, pads)
+    typeof(strides) == Int && (strides = ntuple(_ -> strides, N))
+    typeof(pads) == Int && (pads = ntuple(_ -> pads, N))
+    Window(dims, strides, pads)
+end
+
+Base.size(w::Window) = w.dims
+Base.size(w::Window, i::Int) = w.dims[i]
+Base.strides(w::Window) = w.strides
+Base.stride(w::Window, i::Int) = w.strides[i]
+pads(w::Window) = w.pads
+pad(w::Window, i::Int) = w.pads[i]
+=#
 
 #=
 const WINDOW2D_F32 = Libdl.dlsym(libmerlin, :window2d_float)
