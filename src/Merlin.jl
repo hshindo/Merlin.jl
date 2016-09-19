@@ -36,6 +36,7 @@ include("hdf5.jl")
 
 for name in [
     "add",
+    "argmax",
     "axsum",
     "batchnorm",
     "concat",
@@ -64,7 +65,7 @@ for name in [
     "tanh",
     "transpose",
     "view",
-    "dev/cluster"
+    "window"
     ]
     include("functions/$(name).jl")
 end

@@ -11,7 +11,6 @@ const ∇WINDOW2D_F64 = Libdl.dlsym(libmerlin, :window2d_grad_double)
 
 N-dimensional convolution function.
 
-## Arguments
 * T: Type
 * filterdims::NTuple{N,Int}: window size
 * channeldims::Tuple{Int,Int}: input channel, output channel

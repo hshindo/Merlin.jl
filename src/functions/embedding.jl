@@ -52,19 +52,26 @@ function (f::Embedding)(x::Var)
     function df(gy)
         ∇embedding!(f.ws, x.data, gy)
         for id in x.data
-            push!(f.idset, id)
+            id > 0 && push!(f.idset, id)
         end
     end
     Var(y, [x], f, df)
 end
+(f::Embedding)(x::AbstractArray) = f(constant(x))
 
 function embedding(ws::Vector{Var}, x::Array{Int})
+    T = eltype(ws[1].data)
     n = length(ws[1].data)
     dims = [size(x)...]
     dims[1] *= n
     y = similar(ws[1].data, dims...)
     for i = 1:length(x)
-        copy!(y, (i-1)*n+1, ws[x[i]].data, 1, n)
+        yi = (i-1) * n + 1
+        if x[i] == 0
+            y[yi:yi+n-1] = T(0)
+        else
+            copy!(y, yi, ws[x[i]].data, 1, n)
+        end
     end
     y
 end
@@ -72,6 +79,7 @@ end
 function ∇embedding!{T}(ws::Vector{Var}, x::Array{Int}, gy::Array{T})
     n = length(ws[1].data)
     for i = 1:length(x)
+        x[i] == 0 && continue
         gw = ws[x[i]].grad
         BLAS.axpy!(n, T(1), pointer(gy,(i-1)*n+1), 1, pointer(gw), 1)
     end

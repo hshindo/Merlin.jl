@@ -1,5 +1,26 @@
 #include <algorithm>
 #include <stdio.h>
+#include <stdint.h>
+
+template <typename T>
+void window1d(T *x, T *y, int l, int w, int s, int p) {
+    for (int n = 0; n <= (l+2*p-w)/s; n++) {
+        for (int i = 0; i < w; i++) {
+            int k = -p + s * n + i;
+            y[w*n+i] = (k >= 0 && k < l) ? x[k] : 0;
+        }
+    }
+}
+
+template <typename T>
+void window1d_grad(T *gx, T *gy, int l, int w, int s, int p) {
+    for (int n = 0; n <= (l+2*p-w)/s; n++) {
+        for (int i = 0; i < w; i++) {
+            int k = -p + s * n + i;
+            if (k >= 0 && k < l) gx[k] += gy[w*n+i];
+        }
+    }
+}
 
 template <typename T>
 void window2d(T *x, T *y, int *size_x, int *winsize, int *stride, int *padsize) {
@@ -61,14 +82,25 @@ void window2d_grad(T *gx, T *gy, int *size_x, int *winsize, int *stride, int *pa
 #define WINDOW_CAPI(NAME,T) \
 void NAME ## _ ## T(T *x, T *y, int *size_x, \
     int *winsize, int *stride, int *padsize) { \
-        NAME(x, y, size_x, winsize, stride, padsize); \
-    } \
-    void NAME ## _ ## grad ## _ ## T(T *gx, T *gy, int *size_x, \
-        int *winsize, int *stride, int *padsize) { \
-            NAME ## _ ## grad(gx, gy, size_x, winsize, stride, padsize); \
-        }
+    NAME(x, y, size_x, winsize, stride, padsize); \
+} \
+void NAME ## _ ## grad ## _ ## T(T *gx, T *gy, int *size_x, \
+    int *winsize, int *stride, int *padsize) { \
+    NAME ## _ ## grad(gx, gy, size_x, winsize, stride, padsize); \
+}
 
-        extern "C" {
-            WINDOW_CAPI(window2d, float)
-            WINDOW_CAPI(window2d, double)
-        }
+#define WINDOW1D_CAPI(NAME, T) \
+void NAME(T *x, T *y, int l, int w, int s, int p) { \
+    window1d(x, y, l, w, s, p); \
+} \
+void NAME ## _ ## grad(T *gx, T *gy, int l, int w, int s, int p) { \
+    window1d(gx, gy, l, w, s, p); \
+}
+
+extern "C" {
+    WINDOW_CAPI(window2d, float)
+    WINDOW_CAPI(window2d, double)
+    WINDOW1D_CAPI(window1d_f32, float)
+    WINDOW1D_CAPI(window1d_f64, double)
+    WINDOW1D_CAPI(window1d_i64, int64_t)
+}

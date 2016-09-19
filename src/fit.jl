@@ -1,6 +1,9 @@
 export fit
 using ProgressMeter
 
+"""
+    fit(xs, ys, decode, lossfun, opt, [progress=true])
+"""
 function fit(xs::Vector, ys::Vector, decode, lossfun, opt; progress=true)
     progress && (prog = Progress(length(xs)))
     loss = 0.0
