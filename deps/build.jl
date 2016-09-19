@@ -1,7 +1,8 @@
 const sources = [
+    "im2col.cpp",
     "pooling.cpp",
     "softmax.cpp",
-    "window.cpp", "window2.cpp"]
+    "window.cpp"]
 
 const compiler = "g++"
 

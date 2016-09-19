@@ -1,10 +1,15 @@
 export Conv
 import Base.conv
 
-const WINDOW2D_F32 = Libdl.dlsym(libmerlin, :window2d_float)
-const WINDOW2D_F64 = Libdl.dlsym(libmerlin, :window2d_double)
-const ∇WINDOW2D_F32 = Libdl.dlsym(libmerlin, :window2d_grad_float)
-const ∇WINDOW2D_F64 = Libdl.dlsym(libmerlin, :window2d_grad_double)
+const IM2COL_F32 = Libdl.dlsym(libmerlin, :im2col_f32)
+const IM2COL_F64 = Libdl.dlsym(libmerlin, :im2col_f64)
+const ∇IM2COL_F32 = Libdl.dlsym(libmerlin, :im2col_f32_grad)
+const ∇IM2COL_F64 = Libdl.dlsym(libmerlin, :im2col_f64_grad)
+
+im2col_handle(::Type{Float32}) = IM2COL_F32
+im2col_handle(::Type{Float64}) = IM2COL_F64
+∇im2col_handle(::Type{Float32}) = ∇IM2COL_F32
+∇im2col_handle(::Type{Float64}) = ∇IM2COL_F64
 
 """
     Conv(T, channel, filter, [stride, pad])
@@ -30,11 +35,6 @@ type Conv{N} <: Functor
     paddims::NTuple{N,Int}
 end
 
-handle(::Type{Conv{2}}, ::Type{Float32}) = WINDOW2D_F32
-handle(::Type{Conv{2}}, ::Type{Float64}) = WINDOW2D_F64
-∇handle(::Type{Conv{2}}, ::Type{Float32}) = ∇WINDOW2D_F32
-∇handle(::Type{Conv{2}}, ::Type{Float64}) = ∇WINDOW2D_F64
-
 function Conv(T::Type, filterdims, channeldims; stride=(), paddims=())
     N = length(filterdims)
     w = Var(rand(T(-0.001), T(0.001), filterdims..., channeldims...))
@@ -56,7 +56,7 @@ function conv{T}(w::Array{T}, x::Array{T}, windims, stride, paddims)
     N = length(windims)
     outdims = outsize(x, windims, stride, paddims)
     work = Array(T, prod(outdims), prod(windims)*size(x,N+1), size(x,N+2))
-    window!(x, work, windims, stride, paddims)
+    im2col!(x, work, windims, stride, paddims)
 
     w = reshape(w, size(work,2), size(w,N+2))
     y = gemm(work, w)
@@ -66,9 +66,9 @@ end
 
 conv(w::CuArray, x::CuArray, windims, stride, paddims) = convolution(x, w, paddims, stride)
 
-function window!{T}(x::Array{T}, y::Array{T}, windims, stride, paddims)
+function im2col!{T}(x::Array{T}, y::Array{T}, windims, stride, paddims)
     N = length(windims)
-    h = handle(Conv{N}, T)
+    h = im2col_handle(T)
     xsize = Cint[size(x,i) for i=1:N+1]
     xsize[N+1] *= size(x, N+2)
     ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
@@ -91,7 +91,7 @@ function ∇conv!(w::Array, gw, x::Array, gx, work::Array, y::Array, gy::Array,
     y = reshape(y, size(y,1)*size(y,2), size(y,3), size(y,4))
     gy = reshape(gy, size(gy,1)*size(gy,2), size(gy,3), size(gy,4))
     ∇gemm!(work, gwork, w, gw, y, gy)
-    gx == nothing || ∇window!(gx, gwork, windims, stride, paddims)
+    gx == nothing || ∇im2col!(gx, gwork, windims, stride, paddims)
 end
 
 function ∇conv!(w::CuArray, gw::CuArray, x::CuArray, gx::CuArray,
@@ -101,9 +101,9 @@ function ∇conv!(w::CuArray, gw::CuArray, x::CuArray, gx::CuArray,
     isempty(gx) || ∇convolution_data!(x, w, gy, paddims, stride, gx)
 end
 
-function ∇window!{T}(gx::Array{T}, gy::Array{T}, windims, stride, paddims)
+function ∇im2col!{T}(gx::Array{T}, gy::Array{T}, windims, stride, paddims)
     N = length(windims)
-    h = ∇handle(Conv{N}, T)
+    h = ∇im2col_handle(T)
     xsize = Cint[size(gx,i) for i=1:N+1]
     xsize[N+1] *= size(gx, N+2)
     ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
