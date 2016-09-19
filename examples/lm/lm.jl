@@ -19,18 +19,6 @@ function model(nvocabs::Int)
     end
 end
 
-function forward(f, x::Vector{Int})
-    ids = Array(Int, 3, length(x))
-    for i = 1:length(x)
-        c = 1
-        for j = i-2:i
-            ids[c,i] = j <= 0 ? 1 : x[j]
-            c += 1
-        end
-    end
-    f(Var(ids))
-end
-
 function train()
     train_x, train_y = PTBLM.traindata()
     test_x, test_y = PTBLM.testdata()
