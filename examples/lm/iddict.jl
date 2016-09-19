@@ -44,4 +44,4 @@ function Base.push!{T}(d::IdDict{T}, key::T)
     id
 end
 
-Base.append!(d::IdDict, keys::Vector) = map(k -> push!(d,k), keys)
+Base.append!{T}(d::IdDict{T}, keys::Vector{T}) = map(k -> push!(d,k), keys)
