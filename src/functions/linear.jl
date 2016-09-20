@@ -34,14 +34,17 @@ function (f::Linear)(x::Var)
     y = w.data * x.data
     broadcast!(.+, y, y, b.data)
     function df{T}(gy::UniArray{T})
-        hasgrad(w) && BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
-        hasgrad(x) && BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
-        for offset = 1:length(b.data):length(gy)
-            BLAS.axpy!(length(b.data), T(1), pointer(gy,offset), 1, pointer(b.grad), 1)
+        isconstant(w) || BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
+        isconstant(x) || BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
+        if !isconstant(b)
+            for offset = 1:length(b.data):length(gy)
+                BLAS.axpy!(length(b.data), T(1), pointer(gy,offset), 1, pointer(b.grad), 1)
+            end
         end
     end
     Var(y, [x], f, df)
 end
+(f::Linear)(x::GraphNode) = GraphNode(f, x)
 
 function update!(f::Linear, opt)
     opt(f.w.data, f.w.grad)

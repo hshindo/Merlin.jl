@@ -1,4 +1,13 @@
-export @graph
+export @graph, GraphNode
+
+#=
+type GraphNode
+    f
+    args::Vector{GraphNode}
+end
+
+GraphNode() = GraphNode(nothing, GraphNode[])
+=#
 
 type GraphNode
     args::Vector
@@ -15,6 +24,21 @@ type Graph
     f
 end
 
+function Graph(top::GraphNode, args::Vector{Symbol})
+    nodes = topsort(top)
+    dict = ObjectIdDict()
+    for node in nodes
+        exprs = map(node.args) do n
+            typeof(n) == GraphNode ? dict[n] : n
+        end
+        dict[node] = Expr(:call, exprs...)
+    end
+    expr = Expr(:->, Expr(:tuple, args...), dict[nodes[end]]) # create anonymous function
+    f = eval(expr)
+    Graph(nodes, f)
+end
+
+#=
 function Graph(nodes::Vector{GraphNode}, args::Vector{Symbol})
     dict = ObjectIdDict()
     for node in nodes
@@ -27,6 +51,7 @@ function Graph(nodes::Vector{GraphNode}, args::Vector{Symbol})
     f = eval(expr)
     Graph(nodes, f)
 end
+=#
 
 (g::Graph)(x...) = g.f(x...)
 

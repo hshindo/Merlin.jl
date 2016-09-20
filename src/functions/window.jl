@@ -68,7 +68,6 @@ function window(x::AbstractArray, dims; strides=nothing, pads=nothing)
     w = Window(dims, strides, pads)
     window(w, x)
 end
-window(x::AbstractArray, dims, strides, pads) = window(x, dims, strides=strides, pads=pads)
 
 function window{T}(w::Window{1}, x::Array{T})
     y = similar(x, size(w,1), prod(outsize(w,x)))

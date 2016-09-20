@@ -5,9 +5,10 @@ export relu
 """
 function relu(x::Var)
     y = relu(x.data)
-    df(gy) = hasgrad(x) && ∇relu!(x.data, x.grad, y, gy)
+    df(gy) = isconstant(x) || ∇relu!(x.data, x.grad, y, gy)
     Var(y, [x], relu, df)
 end
+relu(x::GraphNode) = GraphNode(relu, x)
 
 function relu{T}(x::Array{T})
     y = similar(x)
