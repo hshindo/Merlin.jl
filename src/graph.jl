@@ -1,18 +1,9 @@
 export @graph, GraphNode
 
-#=
 type GraphNode
-    f
-    args::Vector{GraphNode}
-end
+    args::Tuple
 
-GraphNode() = GraphNode(nothing, GraphNode[])
-=#
-
-type GraphNode
-    args::Vector
-
-    GraphNode(args...) = new(Any[args...])
+    GraphNode(args...) = new(args)
 end
 
 Base.length(n::GraphNode) = length(n.args)
@@ -24,34 +15,24 @@ type Graph
     f
 end
 
-function Graph(top::GraphNode, args::Vector{Symbol})
+function Graph(top::GraphNode, args::Symbol...)
     nodes = topsort(top)
     dict = ObjectIdDict()
     for node in nodes
-        exprs = map(node.args) do n
-            typeof(n) == GraphNode ? dict[n] : n
+        if length(node.args) == 1
+            typeof(node[1]) == Symbol || throw("Leaf node must have a single symbol type.")
+            dict[node] = Expr(:call, identity, node[1])
+        else
+            exprs = map(node.args) do n
+                typeof(n) == GraphNode ? dict[n] : n
+            end
+            dict[node] = Expr(:call, exprs...)
         end
-        dict[node] = Expr(:call, exprs...)
     end
     expr = Expr(:->, Expr(:tuple, args...), dict[nodes[end]]) # create anonymous function
     f = eval(expr)
     Graph(nodes, f)
 end
-
-#=
-function Graph(nodes::Vector{GraphNode}, args::Vector{Symbol})
-    dict = ObjectIdDict()
-    for node in nodes
-        exprs = map(node.args) do n
-            typeof(n) == GraphNode ? dict[n] : n
-        end
-        dict[node] = Expr(:call, exprs...)
-    end
-    expr = Expr(:->, Expr(:tuple, args...), dict[nodes[end]]) # create anonymous function
-    f = eval(expr)
-    Graph(nodes, f)
-end
-=#
 
 (g::Graph)(x...) = g.f(x...)
 

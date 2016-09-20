@@ -64,6 +64,8 @@ function window(x::Var, dims; strides=nothing, pads=nothing)
     Var(y, [x], w, df)
 end
 
+window(x, dims; strides=nothing, pads=nothing) = window(Window(dims,strides,pads), x)
+
 function window(x::AbstractArray, dims; strides=nothing, pads=nothing)
     w = Window(dims, strides, pads)
     window(w, x)
