@@ -34,9 +34,9 @@ function (f::Linear)(x::Var)
     y = w.data * x.data
     broadcast!(.+, y, y, b.data)
     function df{T}(gy::UniArray{T})
-        isconstant(w) || BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
-        isconstant(x) || BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
-        if !isconstant(b)
+        isconst(w) || BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
+        isconst(x) || BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
+        if !isconst(b)
             for offset = 1:length(b.data):length(gy)
                 BLAS.axpy!(length(b.data), T(1), pointer(gy,offset), 1, pointer(b.grad), 1)
             end

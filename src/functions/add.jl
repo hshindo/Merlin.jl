@@ -24,6 +24,6 @@ y = Var([1.,2.,3.]) + 4.0
 See `+` for examples.
 """
 -(x1::Var, x2::Var) = axsum([1.0,-1.0], [x1,x2])
--(a::Number, x::Var) = Var(a) - x
--(x::Var, a::Number) = x - Var(a)
+-(a::Number, x::Var) = constant(a) - x
+-(x::Var, a::Number) = x - constant(a)
 -(x::Var) = axsum([-1.0], [x])

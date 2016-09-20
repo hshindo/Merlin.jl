@@ -14,6 +14,7 @@ end
 
 Base.size(w::Window) = w.dims
 Base.size(w::Window, i::Int) = w.dims[i]
+Base.size(x::AbstractArray, w::Window, i::Int) = (size(x,i) + 2*pad(w,i) - size(w,i)) ÷ stride(w,i) + 1
 Base.strides(w::Window) = w.strides
 Base.stride(w::Window, i::Int) = w.strides[i]
 pads(w::Window) = w.pads
@@ -57,35 +58,26 @@ x = Var(rand(Float32,10,5))
 y = window(x, (10,))
 ```
 """
-function window(x::Var, dims; strides=nothing, pads=nothing)
-    w = Window(dims, strides, pads)
-    y = window(w, x.data)
-    df(gy) = isconstant(x) || ∇window!(w, x.grad, gy)
+window(x, dims; strides=nothing, pads=nothing) = window(x, Window(dims,strides,pads))
+
+function window(x::Var, w::Window)
+    y = window(x.data, w)
+    df(gy) = isconst(x) || ∇window!(x.grad, gy, w)
     Var(y, [x], w, df)
 end
+window(x::GraphNode, w::Window) = GraphNode(window, x, w)
 
-window(x, dims; strides=nothing, pads=nothing) = window(Window(dims,strides,pads), x)
-
-function window(x::AbstractArray, dims; strides=nothing, pads=nothing)
-    w = Window(dims, strides, pads)
-    window(w, x)
-end
-
-function window{T}(w::Window{1}, x::Array{T})
-    y = similar(x, size(w,1), prod(outsize(w,x)))
+function window{T}(x::Array{T}, w::Window{1})
+    y = similar(x, size(w,1), size(x,w,1))
     h = chandle(w, T)
     ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
         x, y, length(x), size(w,1), stride(w,1), pad(w,1))
     y
 end
 
-function ∇window!{T}(w::Window{1}, gx::Array{T}, gy::Array{T})
+function ∇window!{T}(gx::Array{T}, gy::Array{T}, w::Window{1})
     h = ∇chandle(w, T)
     ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
         gx, gy, length(gx), w, s, p)
     gx
-end
-
-function outsize{N}(w::Window{N}, x::AbstractArray)
-    Int[(size(x,i)+2*pad(w,i)-size(w,i)) ÷ stride(w,i) + 1 for i=1:N]
 end

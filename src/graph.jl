@@ -1,4 +1,4 @@
-export @graph, GraphNode
+export @graph, Graph, GraphNode
 
 type GraphNode
     args::Tuple
