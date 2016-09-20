@@ -43,6 +43,20 @@ chandle(w::Window{2}, ::Type{Int64}) = WINDOW2D_I64
 ∇chandle(w::Window{2}, ::Type{Float64}) = ∇WINDOW2D_F64
 ∇chandle(w::Window{2}, ::Type{Int64}) = ∇WINDOW2D_I64
 
+"""
+    window(x::Var, dims, [strides, pads])
+
+* x::Var: input var
+* dims::Tuple: window size
+* strides::Tuple: stride size
+* pads:Tuple: padding size
+
+## 👉 Example
+```julia
+x = Var(rand(Float32,10,5))
+y = window(x, (10,))
+```
+"""
 function window(x::Var, dims; strides=nothing, pads=nothing)
     w = Window(dims, strides, pads)
     y = window(w, x.data)
@@ -54,6 +68,7 @@ function window(x::AbstractArray, dims; strides=nothing, pads=nothing)
     w = Window(dims, strides, pads)
     window(w, x)
 end
+window(x::AbstractArray, dims, strides, pads) = window(x, dims, strides=strides, pads=pads)
 
 function window{T}(w::Window{1}, x::Array{T})
     y = similar(x, size(w,1), prod(outsize(w,x)))
@@ -73,77 +88,3 @@ end
 function outsize{N}(w::Window{N}, x::AbstractArray)
     Int[(size(x,i)+2*pad(w,i)-size(w,i)) ÷ stride(w,i) + 1 for i=1:N]
 end
-
-#=
-const WINDOW2D_F32 = Libdl.dlsym(libmerlin, :window2d_float)
-const WINDOW2D_F64 = Libdl.dlsym(libmerlin, :window2d_double)
-const ∇WINDOW2D_F32 = Libdl.dlsym(libmerlin, :window2d_grad_float)
-const ∇WINDOW2D_F64 = Libdl.dlsym(libmerlin, :window2d_grad_double)
-
-"""
-    window(x::Var, dims, [stride, padding])
-
-* x::Var: input var
-* dims::Tuple: window size
-* stride::Union{Int,Tuple}: stride size
-* padding:Union{Int,Tuple}: padding size
-
-## 👉 Example
-```julia
-x = Var(rand(Float32,10,5))
-y = window(x, (10,2), stride=1, padding=0)
-```
-"""
-window(x::Var, dims; stride=1, padding=0) = Window(dims,stride,padding)(x)
-
-type Window{N}
-    dims::Tuple{Vararg{Int,N}}
-    stride::Tuple{Vararg{Int,N}}
-    padding::Tuple{Vararg{Int,N}}
-end
-
-handle(::Window{2}, ::Type{Float32}) = WINDOW2D_F32
-handle(::Window{2}, ::Type{Float64}) = WINDOW2D_F64
-∇handle(::Window{2}, ::Type{Float32}) = ∇WINDOW2D_F32
-∇handle(::Window{2}, ::Type{Float64}) = ∇WINDOW2D_F64
-
-function Window(dims::Tuple, stride=1, padding=0)
-    N = length(dims)
-    typeof(stride) == Int && (stride = ntuple(_ -> stride, N))
-    typeof(padding) == Int && (padding = ntuple(_ -> padding, N))
-    Window(dims, stride, padding)
-end
-
-function (w::Window{N}){N}(x::Var)
-    y = w(x.data)
-    df(gy) = hasgrad(x) && ∇window!(w, x.grad, gy)
-    Var(y, [x], w, df)
-end
-
-function (w::Window{N}){T,N}(x::Array{T})
-    h = handle(w, T)
-    outdims = outsize(w, x)
-    y = Array(T, prod(w.dims)*size(x,N+1), prod(outdims))
-    xsize = Cint[size(x)...]
-    ndims(x) == N && push!(xsize, Cint(1))
-    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
-    x, y, xsize, Cint[w.dims...], Cint[w.stride...], Cint[w.padding...])
-    y
-end
-
-function outsize{N}(w::Window{N}, x::UniArray)
-    dims = Array(Int, N)
-    for i = 1:N
-        dims[i] = (size(x,i) + 2*w.padding[i] - w.dims[i]) ÷ w.stride[i] + 1
-    end
-    dims
-end
-
-function ∇window!{T,N}(w::Window{N}, gx::Array{T}, gy::Array{T})
-    h = handle(w, T)
-    xsize = Cint[size(gx)...]
-    ndims(gx) == N && push!(xsize, Cint(1))
-    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
-    gx, gy, xsize, Cint[w.dims...], Cint[w.stride...], Cint[w.padding...])
-end
-=#
