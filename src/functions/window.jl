@@ -6,9 +6,9 @@ immutable Window{N}
     pads::Tuple{Vararg{Int,N}}
 end
 
-function Window{N}(dims::Tuple{Vararg{Int,N}}, strides, pads)
-    strides == nothing && (strides = ntuple(_ -> 1, N))
-    pads == nothing && (pads = ntuple(_ -> 0, N))
+function Window{N}(dims::Tuple{Vararg{Int,N}}, stride, pad)
+    strides = typeof(stride) == Int ? ntuple(_ -> stride, N) : stride
+    pads = typeof(pad) == Int ? ntuple(_ -> pad, N) : pad
     Window(dims, strides, pads)
 end
 
@@ -58,7 +58,7 @@ x = Var(rand(Float32,10,5))
 y = window(x, (10,))
 ```
 """
-window(x, dims; strides=nothing, pads=nothing) = window(x, Window(dims,strides,pads))
+window(x, dims; stride=1, pad=0) = window(x, Window(dims,stride,pad))
 
 function window(x::Var, w::Window)
     y = window(x.data, w)
