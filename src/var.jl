@@ -27,6 +27,7 @@ Var(data, args, f, df) = Var(data, nothing, args, f, df)
 Var(data, grad) = Var(data, grad, Var[], nothing, nothing)
 Var(data) = Var(data, zeros(data))
 
+tails(v::Var) = v.args
 hasgrad(v::Var) = v.grad != nothing
 
 constant(data) = Var(data, nothing)

@@ -49,9 +49,7 @@ function topsort{T}(top::T)
     function visit(node::T)
         haskey(dict,node) && return
         dict[node] = node
-        for a in node.args
-            typeof(a) == T && visit(a)
-        end
+        foreach(visit, tails(node))
         push!(sorted, node)
     end
     visit(top)
