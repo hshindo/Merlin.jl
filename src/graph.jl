@@ -1,4 +1,4 @@
-export @graph, Graph, GraphNode
+export GraphNode, Graph
 
 type GraphNode
     args::Tuple
@@ -60,7 +60,7 @@ Base.length(g::Graph) = length(g.nodes)
 Base.getindex(g::Graph, key::Int) = g.nodes[key]
 Base.setindex!(g::Graph, value::GraphNode, key::Int) = g.nodes[key] = value
 
-macro graph(expr)
+macro graph2(expr)
     local dict = ObjectIdDict()
     local syms = Symbol[]
     bottomup(expr) do ex

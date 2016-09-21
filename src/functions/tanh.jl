@@ -8,6 +8,7 @@ function tanh(x::Var)
     df(gy) = hasgrad(x) && ∇tanh!(x.data, x.grad, y, gy)
     Var(y, [x], tanh, df)
 end
+tanh(x::GraphNode) = GraphNode(tanh, x)
 
 tanh(x::CuArray) = CUDNN.activation!(CUDNN_ACTIVATION_TANH, x, similar(x))
 

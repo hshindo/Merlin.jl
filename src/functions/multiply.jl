@@ -13,8 +13,12 @@ function *(x1::Var, x2::Var)
     end
     Var(y, [x1,x2], *, df)
 end
+*(x1::GraphNode, x2::Var) = GraphNode(*, x1, x2)
+*(x1::Var, x2::GraphNode) = GraphNode(*, x1, x2)
+*(x1::GraphNode, x2::GraphNode) = GraphNode(*, x1, x2)
 *(a::Number, x::Var) = axsum([a], [x])
-*(x::Var, a::Number) = a * x
+*(a::Number, x::GraphNode) = GraphNode(*, a, x)
+*(x::Union{Var,GraphNode}, a::Number) = a * x
 
 """
     \.\*(x1::Var, x2::Var)
@@ -27,6 +31,9 @@ function .*(x1::Var, x2::Var)
     end
     Var(y, [x1,x2], .*, df)
 end
+.*(x1::GraphNode, x2::Var) = GraphNode(.*, x1, x2)
+.*(x1::Var, x2::GraphNode) = GraphNode(.*, x1, x2)
+.*(x1::GraphNode, x2::GraphNode) = GraphNode(.*, x1, x2)
 
 function ∇elemtimes!{T}(x2::UniArray{T}, gx1::UniArray{T}, gy::UniArray{T})
     if length(gx1) < length(gy)
