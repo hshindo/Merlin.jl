@@ -68,7 +68,7 @@ end
 window(x::GraphNode, w::Window) = GraphNode(window, x, w)
 
 function window{T}(x::Array{T}, w::Window{1})
-    y = similar(x, size(w,1), size(x,w,1))
+    y = similar(x, size(w,1), size(vec(x),w,1))
     h = chandle(w, T)
     ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
         x, y, length(x), size(w,1), stride(w,1), pad(w,1))

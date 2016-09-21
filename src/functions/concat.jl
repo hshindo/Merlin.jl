@@ -31,7 +31,7 @@ function concat(dim::Int, xs::Vector{Var})
     df(gy) = ∇concat!(dim, xs, gy)
     Var(y, xs, concat, df)
 end
-concat(dim::Int, xs::Var...) = concat(dim, Var[xs...])
+concat(dim::Int, xs...) = concat(dim, [xs...])
 concat(dim::Int, xs::Vector{GraphNode}) = GraphNode(concat, dim, xs)
 
 function ∇concat!(dim::Int, xs::Vector{Var}, gy::UniArray)
