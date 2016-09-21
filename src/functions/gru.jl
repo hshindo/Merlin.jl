@@ -25,7 +25,7 @@ function GRU(T::Type, xsize::Int)
     z = sigmoid(ws[2]*x + us[2]*h)
     h_ = tanh(ws[3]*x + us[3]*(r.*h))
     h_next = (1 - z) .* h + z .* h_
-    Graph(h_next)
+    compile(h_next)
 
     #=
     @graph begin

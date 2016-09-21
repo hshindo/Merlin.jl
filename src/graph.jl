@@ -1,4 +1,4 @@
-export GraphNode, Graph
+export GraphNode, compile
 
 type GraphNode
     args::Tuple
@@ -28,7 +28,7 @@ type Graph
     f
 end
 
-function Graph(top::GraphNode)
+function compile(top::GraphNode)
     nodes = topsort(top)
     block = Expr(:block)
     leaf = Expr(:tuple)
