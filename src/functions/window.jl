@@ -78,6 +78,6 @@ end
 function ∇window!{T}(gx::Array{T}, gy::Array{T}, w::Window{1})
     h = ∇chandle(w, T)
     ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
-        gx, gy, length(gx), w, s, p)
+        gx, gy, length(gx), size(w,1), stride(w,1), pad(w,1))
     gx
 end

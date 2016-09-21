@@ -38,13 +38,7 @@ function compile(top::GraphNode)
             continue
         end
         args = map(node.args) do arg
-            if typeof(arg) == GraphNode
-                arg.name
-            elseif typeof(arg) == Vector{GraphNode}
-                map(a -> a.name, arg)
-            else
-                arg
-            end
+            typeof(arg) == GraphNode ? arg.name : arg
         end
         ex = Expr(:(=), node.name, Expr(:call, args...)) # name = f(args...)
         push!(block.args, ex)
