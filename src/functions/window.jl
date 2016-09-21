@@ -6,7 +6,7 @@ immutable Window{N}
     pads::Tuple{Vararg{Int,N}}
 end
 
-function Window{N}(dims::Tuple{Vararg{Int,N}}, strides=nothing, pads=nothing)
+function Window{N}(dims::Tuple{Vararg{Int,N}}, strides, pads)
     strides == nothing && (strides = ntuple(_ -> 1, N))
     pads == nothing && (pads = ntuple(_ -> 0, N))
     Window(dims, strides, pads)
