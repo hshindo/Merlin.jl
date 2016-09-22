@@ -1,13 +1,13 @@
-const handles = Dict{Int,Ptr{Void}}()
+const handles = Ptr{Void}[]
 
-for i = 0:1
-    p = Ptr{Void}[0]
-    cudnnCreate(p)
-    handles[i] = p[1]
+function handle(x::CuArray)
+    dev = device(x) + 1
+    while dev > length(handles)
+        p = Ptr{Void}[0]
+        cudnnCreate(p)
+        push!(handles, p[1])
+    end
+    handles[dev]
 end
 
-atexit(() -> begin
-    for h in handles
-        cudnnDestroy(h)
-    end
-end)
+atexit(() -> foreach(cudnnDestroy, handles))
