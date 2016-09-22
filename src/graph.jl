@@ -1,50 +1,31 @@
-export GraphNode, compile
+export @graph
 
 type GraphNode
-    args::Tuple
-    name::Symbol
+    args::Vector{Any}
 
-    GraphNode(args...) = new(args, gensym())
-end
-
-function tails(n::GraphNode)
-    t = GraphNode[]
-    for a in n.args
-        if typeof(a) == GraphNode
-            push!(t, a)
-        elseif typeof(a) == Vector{GraphNode}
-            append!(t, a)
-        end
-    end
-    t
+    GraphNode(args...) = new(Any[args...])
 end
 
 Base.length(n::GraphNode) = length(n.args)
 Base.getindex(n::GraphNode, key::Int) = n.args[key]
 Base.setindex!(n::GraphNode, value, key::Int) = n.args[key] = value
+tails(n::GraphNode) = filter(a -> typeof(a) == GraphNode, n.args)
 
 type Graph
     nodes::Vector{GraphNode} # sorted in bottom-up order
     f
 end
 
-function compile(top::GraphNode)
-    nodes = topsort(top)
-    block = Expr(:block)
-    leaf = Expr(:tuple)
+function Graph(nodes::Vector{GraphNode}, args::Symbol...)
+    dict = ObjectIdDict()
     for node in nodes
-        if length(node.args) == 0
-            push!(leaf.args, node.name)
-            continue
+        exprs = map(node.args) do n
+            typeof(n) == GraphNode ? dict[n] : n
         end
-        args = map(node.args) do arg
-            typeof(arg) == GraphNode ? arg.name : arg
-        end
-        ex = Expr(:(=), node.name, Expr(:call, args...)) # name = f(args...)
-        push!(block.args, ex)
+        dict[node] = Expr(:call, exprs...)
     end
-    sort!(leaf.args)
-    f = eval(Expr(:->, leaf, block))
+    expr = Expr(:->, Expr(:tuple, args...), dict[nodes[end]]) # create anonymous function
+    f = eval(expr)
     Graph(nodes, f)
 end
 
@@ -54,24 +35,15 @@ Base.length(g::Graph) = length(g.nodes)
 Base.getindex(g::Graph, key::Int) = g.nodes[key]
 Base.setindex!(g::Graph, value::GraphNode, key::Int) = g.nodes[key] = value
 
-macro graph2(expr)
-    local dict = ObjectIdDict()
-    local syms = Symbol[]
+macro graph(args, expr)
     bottomup(expr) do ex
         if ex.head == :call
             unshift!(ex.args, :(Merlin.GraphNode))
         end
-        if ex.head == :quote && length(ex.args) == 1
-            local s = ex.args[1]
-            if typeof(s) == Symbol && !haskey(dict, s)
-                dict[s] = s
-                push!(syms, s)
-            end
-        end
     end
     quote
         local top = $(esc(expr))
-        Graph(topsort(top), $syms)
+        Graph(topsort(top), $args...)
     end
 end
 

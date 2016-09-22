@@ -10,7 +10,6 @@ function max(x::Var, dim::Int)
     df(gy) = hasgrad(x) && ∇max!(idx, x.grad, gy)
     Var(y, [x], max, df)
 end
-max(x::GraphNode, dim::Int) = GraphNode(max, x, dim)
 
 function ∇max!{T}(idx::Array{Int}, gx::Array{T}, gy::Array{T})
     @inbounds @simd for i = 1:length(idx)

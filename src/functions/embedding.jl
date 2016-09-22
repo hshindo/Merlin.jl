@@ -57,7 +57,6 @@ function (f::Embedding)(x::Var)
     end
     Var(y, [x], f, df)
 end
-(f::Embedding)(x::GraphNode) = GraphNode(f, x)
 
 function embedding(ws::Vector{Var}, x::Array{Int})
     T = eltype(ws[1].data)

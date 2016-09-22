@@ -12,11 +12,8 @@ y = Var([1.,2.,3.]) + 4.0
 ```
 """
 +(x1::Var, x2::Var) = axsum([1.0,1.0], [x1,x2])
-+(x1::GraphNode, x2::Var) = GraphNode(+, x1, x2)
-+(x1::Var, x2::GraphNode) = GraphNode(+, x1, x2)
-+(x1::GraphNode, x2::GraphNode) = GraphNode(+, x1, x2)
-+(a::Number, x::Union{GraphNode,Var}) = constant(a) + x
-+(x::Union{Var,GraphNode}, a::Number) = x + constant(a)
++(a::Number, x::Var) = constant(a) + x
++(x::Var, a::Number) = x + constant(a)
 
 """
     -(x1::Var, x2::Var)
@@ -27,10 +24,6 @@ y = Var([1.,2.,3.]) + 4.0
 See `+` for examples.
 """
 -(x1::Var, x2::Var) = axsum([1.0,-1.0], [x1,x2])
--(x1::GraphNode, x2::Var) = GraphNode(-, x1, x2)
--(x1::Var, x2::GraphNode) = GraphNode(-, x1, x2)
--(x1::GraphNode, x2::GraphNode) = GraphNode(-, x1, x2)
--(a::Number, x::Union{Var,GraphNode}) = constant(a) - x
--(x::Union{Var,GraphNode}, a::Number) = x - constant(a)
+-(a::Number, x::Var) = constant(a) - x
+-(x::Var, a::Number) = x - constant(a)
 -(x::Var) = axsum([-1.0], [x])
--(x::GraphNode) = GraphNode(-, x)

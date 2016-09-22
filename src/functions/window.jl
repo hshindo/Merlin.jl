@@ -58,14 +58,13 @@ x = Var(rand(Float32,10,5))
 y = window(x, (10,))
 ```
 """
-window(x, dims; stride=1, pad=0) = window(x, Window(dims,stride,pad))
+window(x, dims, stride=1, pad=0) = window(x, Window(dims,stride,pad))
 
 function window(x::Var, w::Window)
     y = window(x.data, w)
     df(gy) = isconst(x) || ∇window!(x.grad, gy, w)
     Var(y, [x], w, df)
 end
-window(x::GraphNode, w::Window) = GraphNode(window, x, w)
 
 function window{T}(x::Array{T}, w::Window{1})
     y = similar(x, size(w,1), size(vec(x),w,1))

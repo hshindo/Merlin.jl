@@ -44,7 +44,6 @@ function (f::Linear)(x::Var)
     end
     Var(y, [x], f, df)
 end
-(f::Linear)(x::GraphNode) = GraphNode(f, x)
 
 function update!(f::Linear, opt)
     opt(f.w.data, f.w.grad)

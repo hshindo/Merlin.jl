@@ -8,7 +8,6 @@ function sigmoid(x::Var)
     df(gy) = hasgrad(x) && ∇sigmoid!(x.data, x.grad, y, gy)
     Var(y, [x], sigmoid, df)
 end
-sigmoid(x::GraphNode) = GraphNode(sigmoid, x)
 
 function sigmoid{T}(x::Array{T})
     y = similar(x)

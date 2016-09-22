@@ -31,7 +31,6 @@ function axsum(as::Vector{Float64}, xs::Vector{Var})
     end
     Var(y, xs, axsum, df)
 end
-axsum(as::Vector{Float64}, xs::Vector{GraphNode}) = GraphNode(axsum, as, xs)
 
 function axpy!{T}(a::Float64, x::UniArray{T}, y::UniArray{T})
     n = length(x)

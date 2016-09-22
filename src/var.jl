@@ -1,4 +1,4 @@
-export Var, constant, isconstant
+export Var, constant, isconst
 
 """
     Var
