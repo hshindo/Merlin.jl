@@ -29,7 +29,7 @@ function Linear(T::Type, indim::Int, outdim::Int)
     Linear(Var(w), Var(b))
 end
 
-function (f::Linear)(x::Var)
+@graph function (f::Linear)(x::Var)
     w, b = f.w, f.b
     y = w.data * x.data
     broadcast!(.+, y, y, b.data)

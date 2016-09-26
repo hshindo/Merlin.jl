@@ -43,19 +43,6 @@ function Base.randn{T<:AbstractFloat,N}(low::T, high::T, dims::NTuple{N,Int})
 end
 Base.randn{T<:AbstractFloat}(low::T, high::T, dims::Int...) = randn(low, high, dims)
 
-function topsort{T}(top::T)
-    sorted = T[]
-    dict = ObjectIdDict()
-    function visit(node::T)
-        haskey(dict,node) && return
-        dict[node] = node
-        foreach(visit, tails(node))
-        push!(sorted, node)
-    end
-    visit(top)
-    sorted
-end
-
 # Workaround a lack of optimization in gcc
 #const exp_cst1 = 2139095040.f0
 #const exp_cst2 = 0.f0

@@ -1,3 +1,9 @@
+function h5save(data)
+    h5 = h5convert(data)
+    if typeof(h5) <: Dict
+    end
+end
+
 export h5save, h5writedict, h5load, h5dict, h5convert
 
 """

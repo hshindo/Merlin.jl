@@ -1,6 +1,7 @@
 module Merlin
 
 using Base.LinAlg.BLAS
+using JLD
 using HDF5
 
 abstract Functor
