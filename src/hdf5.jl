@@ -1,28 +1,62 @@
-function h5save(data)
-    h5 = h5convert(data)
-    if typeof(h5) <: Dict
-    end
+export save_hdf5
+
+type HDF5Dict
+    data::Dict
+    T::Type
 end
 
-export h5save, h5writedict, h5load, h5dict, h5convert
+#Base.getindex(d::HDF5Dict, key::String) = d.data[key]
+#Base.setindex!(d::HDF5Dict, value, key::String) = d.data[key] = value
 
-"""
-    h5save(filename::String, data)
+h5dict(T::Type, x::Pair...) = Dict{Any,Any}("JULIA_TYPE" => T, x...)
 
-Save objects as a HDF5 format.
-Note that the objects are required to implement `h5convert` and `h5load!` functions.
-"""
-function h5save(filename::String, data)
+to_hdf5(x::Number) = x
+to_hdf5{T<:Number}(x::Array{T}) = x
+to_hdf5(x::String) = x
+to_hdf5(x::Symbol) = h5dict(Symbol, "s"=>string(x))
+to_hdf5(x::Function) = h5dict(Function, "f"=>string(x))
+to_hdf5(x::DataType) = h5dict(DataType, "t"=>string(x))
+to_hdf5(x) = h5dict(typeof(x), "t"=>string(x))
+
+function to_hdf5(x::Vector{Any})
+    dict = h5dict(Vector{Any})
+    for i = 1:length(x)
+        dict[i] = to_hdf5(x[i])
+    end
+    dict
+end
+
+function to_hdf5(x::Dict)
+    dict = Dict{String,Any}()
+    for (k,v) in x
+        dict[string(k)] = h5convert(v)
+    end
+    dict
+end
+
+function save_hdf5(filename::String, key::String, obj)
+    function write(g::HDF5Group, obj)
+        attrs(g)["JULIA_TYPE"] = string(typeof(obj))
+        dict = to_hdf5(obj)
+        for (k,v) in dict
+            if isnative(v)
+                g[k] = v
+            else
+                write(g_create(g,string(k)), v)
+            end
+        end
+    end
+
+    dict = to_hdf5(obj)
     h5open(filename, "w") do h
-        h["version"] = string(VERSION)
-        g = g_create(h, "Merlin")
-        h5writedict(g, h5convert(data))
+        g = g_create(h, key)
+        write(g, dict)
     end
 end
 
-"""
-    h5writedict(g, data)
-"""
+function h5write()
+end
+
 function h5writedict(g, data::Dict)
     for (k,v) in data
         if typeof(v) <: Dict
@@ -32,79 +66,4 @@ function h5writedict(g, data::Dict)
             g[string(k)] = v
         end
     end
-end
-
-"""
-    h5load(filename::String)
-
-Load a HDF5 file.
-"""
-h5load(filename::String) = h5load!(h5read(filename,"Merlin"))
-
-"""
-    h5dict(T::Type, x::Pair...)
-
-Create a hdf5 dictionary with type information.
-"""
-function h5dict(T::Type, x::Pair...)
-    dict = Dict{String,Any}("#TYPE"=>string(T))
-    for (k,v) in x
-        dict[string(k)] = h5convert(v)
-    end
-    dict
-end
-
-h5convert(x::Number) = x
-h5convert{T<:Number}(x::Array{T}) = x
-h5convert(x::String) = x
-h5convert(x::Symbol) = h5dict(Symbol, "s"=>string(x))
-h5convert(x::Function) = h5dict(Function, "f"=>string(x))
-h5convert(x::DataType) = h5dict(DataType, "t"=>string(x))
-
-function h5convert(x::Vector{Any})
-    dict = h5dict(Vector{Any})
-    for i = 1:length(x)
-        dict[string(i)] = h5convert(x[i])
-    end
-    dict
-end
-
-function h5convert(x::Dict)
-    dict = Dict{String,Any}()
-    for (k,v) in x
-        dict[string(k)] = h5convert(v)
-    end
-    dict
-end
-
-function h5load!(data::Dict)
-    if haskey(data, "#TYPE")
-        T = eval(parse(data["#TYPE"]))
-        delete!(data, "#TYPE")
-        h5load!(T, data)
-    else
-        for (k,v) in data
-            typeof(v) <: Dict && (data[k] = h5load!(v))
-        end
-        data
-    end
-end
-
-h5load!(::Type{Function}, data) = eval(parse(data["f"]))
-h5load!(::Type{Symbol}, data) = parse(data["s"])
-h5load!(::Type{DataType}, data) = eval(parse(data["t"]))
-h5load!(x::Number) = x
-h5load!{T<:Number}(x::Array{T}) = x
-h5load!(x::String) = x
-
-function h5load!(::Type{Vector{Any}}, data::Dict)
-    vec = []
-    for (k,v) in data
-        i = parse(Int, k)
-        while i > length(vec)
-            push!(vec, nothing)
-        end
-        vec[i] = h5load!(v)
-    end
-    vec
 end

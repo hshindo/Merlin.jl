@@ -1,20 +1,28 @@
 export @graph, compile
 
+"""
+    @graph
+"""
 macro graph(expr)
     (expr.head == :function || expr.head == :(=)) || throw("Invalid @graph.")
 
-    argsyms = Expr(:vect)
-    varsyms = Expr(:vect) # symbols typed as `::Var`
-    for farg in expr.args[1].args
-        typeof(farg) == Expr && farg.args[2] == :Var && push!(varsyms.args, farg.args[1])
-        s = typeof(farg) == Expr ? farg.args[1] : farg
-        push!(argsyms.args, s)
+    args = Expr(:vect)
+    vars = Expr(:vect) # function arguments typed as `::Var`
+    for arg in expr.args[1].args
+        if typeof(arg) == Expr
+            argname, argtype = arg.args[1], arg.args[2]
+            argtype == :Var && push!(vars.args, argname)
+            push!(args.args, argname)
+        else
+            push!(args.args, arg)
+        end
     end
-    length(varsyms.args) == 0 && throw("No arguments typed `Var`.")
+    length(vars.args) == 0 && throw("The @graph function must contain at least one argument typed as `::Var`.")
 
+    # Add function body to
     body = expr.args[2].args # function body
-    for s in varsyms.args
-        unshift!(body, :($s.data == nothing && return Var(nothing,$varsyms,$argsyms,nothing)))
+    for v in vars.args
+        unshift!(body, :($v.data == nothing && return Var(nothing,$vars,$args,nothing)))
     end
     :($expr)
 end
@@ -29,16 +37,17 @@ end
 
 (g::Graph)(x...) = g.f(x...)
 
-function compile(top::Var, inputs::Var...)
+function compile(top::Var)
     nodes = topsort(top)
+    srcs = filter(n -> isempty(n.args), nodes)
     dict = ObjectIdDict()
-    syms = map(inputs) do x
+    syms = map(srcs) do x
         s = gensym()
         dict[x] = s
         s
     end
     for node in nodes
-        length(node.args) == 0 && continue
+        isempty(node.args) && continue
         args = map(node.f) do arg
             typeof(arg) == Var ? dict[arg] : arg
         end
@@ -49,6 +58,39 @@ function compile(top::Var, inputs::Var...)
     Graph(nodes, f)
 end
 
-function tojson(g::Graph)
-    map(g.nodes)
+function to_hdf5(g::Graph)
+    map(g.nodes) do v
+
+    end
+end
+
+function to_hdf5(g::Graph)
+    dict = h5dict(Graph)
+    for i = 1:length(g.nodes)
+        v = g.nodes[i]
+        if typeof(v.f) <: Vector
+
+        end
+        dict[i] = string(v.f)
+    end
+    dict
+end
+
+function h5convert(g::Graph)
+    dict = h5dict(Graph)
+    argdict = ObjectIdDict()
+    for i = 1:length(x)
+        d = Dict{String,Any}()
+        dict[string(i)] = d
+        for j = 1:length(x[i])
+            n = x[i][j]
+            if typeof(n) == GraphNode
+                d[string(j)] = Dict("#NODE"=>argdict[n])
+            else
+                d[string(j)] = h5convert(n)
+            end
+        end
+        argdict[x[i]] = i
+    end
+    dict
 end
