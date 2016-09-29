@@ -59,19 +59,10 @@ function compile(top::Var)
 end
 
 function to_hdf5(g::Graph)
-    map(g.nodes) do v
-
-    end
-end
-
-function to_hdf5(g::Graph)
-    dict = h5dict(Graph)
+    dict = Dict()
     for i = 1:length(g.nodes)
         v = g.nodes[i]
-        if typeof(v.f) <: Vector
-
-        end
-        dict[i] = string(v.f)
+        dict[i] = v.f
     end
     dict
 end
