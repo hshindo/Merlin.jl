@@ -49,12 +49,5 @@ function topsort(top::Var)
     sorted
 end
 
-function to_msgpack(v::Var)
-    Dict(
-        "data" => [v.data, typeof(data)],
-        "f" => [v.f, typeof()]
-    )
-end
-
-h5convert(x::Var) = h5convert(x.data)
-h5load!(::Type{Var}, data::Dict) = Var(data["data"])
+to_hdf5(x::Var) = to_hdf5(x.data)
+from_hdf5(::Type{Var}, x) = Var(x, x)

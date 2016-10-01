@@ -1,4 +1,4 @@
-export @graph, compile
+export @graph, Graph
 
 """
     @graph
@@ -27,6 +27,13 @@ macro graph(expr)
     :($expr)
 end
 
+type GraphNodeId
+    id::Int
+end
+
+to_hdf5(x::GraphNodeId) = x.id
+from_hdf5(::Type{GraphNodeId}, x) = GraphNodeId(x)
+
 """
     Graph
 """
@@ -37,23 +44,27 @@ end
 
 (g::Graph)(x...) = g.f(x...)
 
-function compile(top::Var)
+function Graph(top::Var)
     nodes = topsort(top)
-    srcs = filter(n -> isempty(n.args), nodes)
-    dict = ObjectIdDict()
-    syms = map(srcs) do x
-        s = gensym()
-        dict[x] = s
-        s
-    end
+    node2id = Dict(nodes[i]=>i for i=1:length(nodes))
+    calls = []
+
     for node in nodes
-        isempty(node.args) && continue
-        args = map(node.f) do arg
-            typeof(arg) == Var ? dict[arg] : arg
+        if isempty(node.args)
+            push!(calls, gensym())
+        else
+            for i = 1:length(node.f)
+                x = node.f[i]
+                typeof(x) == Var && (node.f[i] = GraphNodeId(node2id[x]))
+            end
+            args = map(node.f) do arg
+                typeof(arg) == GraphNodeId ? calls[arg.id] : arg
+            end
+            push!(calls, Expr(:call, args...))
         end
-        dict[node] = Expr(:call, args...)
     end
-    expr = Expr(:->, Expr(:tuple, syms...), dict[nodes[end]]) # create anonymous function
+    syms = filter(x -> typeof(x) == Symbol, calls)
+    expr = Expr(:->, Expr(:tuple, syms...), calls[end]) # create anonymous function
     f = eval(expr)
     Graph(nodes, f)
 end
@@ -67,21 +78,12 @@ function to_hdf5(g::Graph)
     dict
 end
 
-function h5convert(g::Graph)
-    dict = h5dict(Graph)
-    argdict = ObjectIdDict()
-    for i = 1:length(x)
-        d = Dict{String,Any}()
-        dict[string(i)] = d
-        for j = 1:length(x[i])
-            n = x[i][j]
-            if typeof(n) == GraphNode
-                d[string(j)] = Dict("#NODE"=>argdict[n])
-            else
-                d[string(j)] = h5convert(n)
-            end
-        end
-        argdict[x[i]] = i
+function from_HDF5(::Type{Graph}, x::Dict)
+    nodes = Array(Var, length(x))
+    for (k,v) in x
+        var = Var()
+        var.f = v
+        nodes[parse(Int,k)] = var
     end
-    dict
+    Graph(nodes, nothing)
 end
