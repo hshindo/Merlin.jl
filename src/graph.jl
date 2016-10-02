@@ -44,8 +44,7 @@ end
 
 (g::Graph)(x...) = g.f(x...)
 
-function Graph(top::Var)
-    nodes = topsort(top)
+function Graph(nodes::Vector{Var})
     node2id = Dict(nodes[i]=>i for i=1:length(nodes))
     calls = []
 
@@ -68,22 +67,26 @@ function Graph(top::Var)
     f = eval(expr)
     Graph(nodes, f)
 end
+Graph(top::Var) = Graph(topsort(top))
 
 function to_hdf5(g::Graph)
     dict = Dict()
     for i = 1:length(g.nodes)
         v = g.nodes[i]
+        if v.f != nothing && typeof(v.f[1]) <: Function
+            v.f[1] = Symbol(v.f[1])
+        end
         dict[i] = v.f
     end
     dict
 end
 
-function from_HDF5(::Type{Graph}, x::Dict)
+function from_hdf5(::Type{Graph}, x::Dict)
     nodes = Array(Var, length(x))
     for (k,v) in x
         var = Var()
         var.f = v
         nodes[parse(Int,k)] = var
     end
-    Graph(nodes, nothing)
+    Graph(nodes)
 end

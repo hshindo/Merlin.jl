@@ -2,6 +2,7 @@ to_hdf5(x::Vector{Any}) = Dict(i => x[i] for i=1:length(x))
 function from_hdf5(::Type{Vector{Any}}, obj)
     x = Array(Any, length(obj))
     for (k,v) in obj
+        println(k)
         x[parse(Int,k)] = v
     end
     x
@@ -13,8 +14,8 @@ from_hdf5{T<:Dict}(::Type{T}, x) = x
 to_hdf5(x::Symbol) = string(x)
 from_hdf5(::Type{Symbol}, x) = Symbol(x)
 
-to_hdf5(x::Function) = string(typeof(x).name.mt.name)
-from_hdf5{T<:Function}(::Type{T}, x) = eval(parse(x))
+#to_hdf5(x::Function) = string(x)
+#from_hdf5{T<:Function}(::Type{T}, x) = eval(parse(x))
 
 to_hdf5(x::DataType) = string(x)
 from_hdf5(::Type{DataType}, x::String) = eval(parse(x))
@@ -36,11 +37,11 @@ function write_hdf5{T}(group, key::String, obj::T)
             end
         else
             group[key] = h5obj
-            t =
             attrs(group[key])["JULIA_TYPE"] = string(T)
         end
     end
 end
+write_hdf5(g, key, obj::Function) = g[key] = string(obj)
 
 function load(filename::String, key::String)
     h5open(filename, "r") do h
@@ -50,10 +51,11 @@ end
 
 function read_hdf5(group::HDF5Group)
     dict = Dict()
-    for g in group
-        dict[name(g)] = read_hdf5(g)
+    for name in names(group)
+        dict[name] = read_hdf5(group[name])
     end
-    T = from_hdf5(DataType, attrs(group)["JULIA_TYPE"])
+    attr = read(attrs(group), "JULIA_TYPE")
+    T = from_hdf5(DataType, attr)
     from_hdf5(T, dict)
 end
 
@@ -61,7 +63,6 @@ function read_hdf5(dataset::HDF5Dataset)
     data = read(dataset)
     if exists(attrs(dataset), "JULIA_TYPE")
         attr = read(attrs(dataset),"JULIA_TYPE")
-        println(attr)
         T = from_hdf5(DataType, attr)
         from_hdf5(T, data)
     else
