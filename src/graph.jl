@@ -49,6 +49,9 @@ function Graph(top::Var)
             args = map(node.args) do arg
                 typeof(arg) == Var ? calls[arg.data] : arg
             end
+            node.args = map(node.args) do arg
+                #typeof(arg) == Var ?
+            end
             push!(calls, Expr(:call, args...))
         end
     end
@@ -57,13 +60,20 @@ function Graph(top::Var)
     Graph(nodes, eval(expr))
 end
 
+function h5convert(g::Graph)
+    dict = Dict()
+    for i = 1:length(g.nodes)
+        dict[i] = i
+    end
+    Graph, dict
+end
+
 function to_hdf5(g::Graph)
     dict = Dict()
     for i = 1:length(g.nodes)
         v = g.nodes[i]
-        args = map(a -> typeof(a) == Var ? , v.args)
-        Var(v.data, v.grad, v.args, nothing, nothing)
-        dict[i] = v
+        args = map(a -> typeof(a) == Var ? constant(a.data) : a, v.args)
+        dict[i] = Var(v.data, v.grad, args, nothing, nothing)
     end
     dict
 end

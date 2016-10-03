@@ -1,78 +1,47 @@
-to_hdf5(x::Vector{Any}) = Dict(i => x[i] for i=1:length(x))
-function from_hdf5(::Type{Vector{Any}}, obj)
-    x = Array(Any, length(obj))
-    for (k,v) in obj
-        println(k)
-        x[parse(Int,k)] = v
-    end
-    x
-end
+export h5convert
 
-to_hdf5(x::Dict) = x
-from_hdf5{T<:Dict}(::Type{T}, x) = x
-
-to_hdf5(x::Symbol) = string(x)
-from_hdf5(::Type{Symbol}, x) = Symbol(x)
-
-#to_hdf5(x::Function) = string(x)
-#from_hdf5{T<:Function}(::Type{T}, x) = eval(parse(x))
-
-to_hdf5(x::DataType) = string(x)
-from_hdf5(::Type{DataType}, x::String) = eval(parse(x))
-
-to_hdf5(x::Void) = string(x)
-from_hdf5(::Type{Void}, x) = nothing
-
-function write_hdf5{T}(group, key::String, obj::T)
-    if T <: HDF5.BitsKindOrString ||
-        (T <: Array && eltype(obj) <: HDF5.BitsKindOrString)
-        group[key] = obj
-    else
-        h5obj = to_hdf5(obj)
-        if typeof(h5obj) <: Dict
-            g = g_create(group, key)
-            attrs(g)["JULIA_TYPE"] = string(T)
-            for (k,v) in h5obj
-                write_hdf5(g, string(k), v)
-            end
-        else
-            group[key] = h5obj
-            attrs(group[key])["JULIA_TYPE"] = string(T)
-        end
-    end
-end
-write_hdf5(g, key, obj::Function) = g[key] = string(obj)
-
-function load(filename::String, key::String)
-    h5open(filename, "r") do h
-        read_hdf5(h[key])
-    end
-end
-
-function read_hdf5(group::HDF5Group)
-    dict = Dict()
-    for name in names(group)
-        dict[name] = read_hdf5(group[name])
-    end
-    attr = read(attrs(group), "JULIA_TYPE")
-    T = from_hdf5(DataType, attr)
-    from_hdf5(T, dict)
-end
-
-function read_hdf5(dataset::HDF5Dataset)
-    data = read(dataset)
-    if exists(attrs(dataset), "JULIA_TYPE")
-        attr = read(attrs(dataset),"JULIA_TYPE")
-        T = from_hdf5(DataType, attr)
-        from_hdf5(T, data)
-    else
-        data
-    end
-end
-
-function save(filename::String, key::String, obj)
-    h5open(filename, "w") do h
+function save(path, key::String, obj::Tuple)
+    h5open(path, "w") do h
         write_hdf5(h, key, obj)
     end
     nothing
+end
+
+function write_hdf5(group, key::String, obj)
+    if typeof(obj) <: Dict
+        for (k,v) in obj
+            write_hdf5(group, string(k), v)
+        end
+    elseif typeof(obj) <: Tuple
+        write_hdf5(group, key, obj[2])
+        println(group[key])
+        attrs(group[key])["#JULIA_TYPE"] = string(obj[1])
+    else
+        group[key] = obj
+    end
+end
+
+function load()
+end
+
+function h5dict(T::Type, data...)
+    dict = Dict(k=>v for (k,v) in data)
+    dict["#JULIA_TYPE"] = string(T)
+    dict
+end
+
+h5convert(x::Number) = x
+h5convert{T<:Number}(x::Array{T}) = x
+h5convert(x::Void) = Void, string(x)
+h5convert(x::String) = x
+h5convert(x::Tuple) = Tuple, h5convert([x...])
+h5convert(x::Dict) = Dict, Dict(k=>h5convert(v) for (k,v) in x)
+h5convert(x::Symbol) = Symbol, string(x)
+function h5convert(x::Vector{Any})
+    d = Dict()
+    for i = 1:length(x)
+        d[i] = h5convert(x[i])
+    end
+    typeof(x), d
+    #Dict(i=>h5convert(x[i]) for i=1:length(x))
 end
