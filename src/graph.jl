@@ -5,34 +5,26 @@ export @graph, Graph
 """
 macro graph(expr)
     (expr.head == :function || expr.head == :(=)) || throw("Invalid @graph.")
-
-    args = Expr(:vect)
-    vars = Expr(:vect) # function arguments typed as `::Var`
+    args, vars = [], []
     for arg in expr.args[1].args
         if typeof(arg) == Expr
-            argname, argtype = arg.args[1], arg.args[2]
-            argtype == :Var && push!(vars.args, argname)
-            push!(args.args, argname)
+            aname, atype = arg.args[1], arg.args[2]
+            atype == :Var && push!(vars, aname)
+            push!(args, aname)
         else
-            push!(args.args, arg)
+            push!(args, arg)
         end
     end
-    length(vars.args) == 0 && throw("The @graph function must contain at least one argument typed as `::Var`.")
+    length(vars) == 0 && throw("The @graph function must contain at least one argument typed as `::Var`.")
 
-    # Add function body to
-    body = expr.args[2].args # function body
-    for v in vars.args
-        unshift!(body, :($v.data == nothing && return Var(nothing,$vars,$args,nothing)))
+    args[1] = QuoteNode(args[1])
+    args = Expr(:vect, args...)
+    body = expr.args[2].args
+    for v in vars
+        unshift!(body, :($v.data == nothing && return Var(nothing,$args,nothing,nothing)))
     end
     :($expr)
 end
-
-type GraphNodeId
-    id::Int
-end
-
-to_hdf5(x::GraphNodeId) = x.id
-from_hdf5(::Type{GraphNodeId}, x) = GraphNodeId(x)
 
 """
     Graph
@@ -44,39 +36,34 @@ end
 
 (g::Graph)(x...) = g.f(x...)
 
-function Graph(nodes::Vector{Var})
-    node2id = Dict(nodes[i]=>i for i=1:length(nodes))
-    calls = []
+function Graph(top::Var)
+    @assert top.data == nothing
+    nodes = topsort(top)
+    foreach(i -> nodes[i].data = i, 1:length(nodes))
 
+    calls = []
     for node in nodes
         if isempty(node.args)
             push!(calls, gensym())
         else
-            for i = 1:length(node.f)
-                x = node.f[i]
-                typeof(x) == Var && (node.f[i] = GraphNodeId(node2id[x]))
-            end
-            args = map(node.f) do arg
-                typeof(arg) == GraphNodeId ? calls[arg.id] : arg
+            args = map(node.args) do arg
+                typeof(arg) == Var ? calls[arg.data] : arg
             end
             push!(calls, Expr(:call, args...))
         end
     end
     syms = filter(x -> typeof(x) == Symbol, calls)
     expr = Expr(:->, Expr(:tuple, syms...), calls[end]) # create anonymous function
-    f = eval(expr)
-    Graph(nodes, f)
+    Graph(nodes, eval(expr))
 end
-Graph(top::Var) = Graph(topsort(top))
 
 function to_hdf5(g::Graph)
     dict = Dict()
     for i = 1:length(g.nodes)
         v = g.nodes[i]
-        if v.f != nothing && typeof(v.f[1]) <: Function
-            v.f[1] = Symbol(v.f[1])
-        end
-        dict[i] = v.f
+        args = map(a -> typeof(a) == Var ? , v.args)
+        Var(v.data, v.grad, v.args, nothing, nothing)
+        dict[i] = v
     end
     dict
 end

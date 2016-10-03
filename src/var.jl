@@ -18,19 +18,21 @@ To create an instance of `Var`, use
 type Var
     data
     grad
-    args::Vector{Var}
+    args::Vector
     f
     df
 end
 
 Var(data, args, f, df) = Var(data, nothing, args, f, df)
 Var(data, grad) = Var(data, grad, Var[], nothing, nothing)
-Var(data) = Var(data, zeros(data))
+Var(data::Vector) = Var(data, zeros(data))
+Var(data::Number) = Var(data, zero(data))
 Var() = Var(nothing, nothing)
+
+constant(data) = Var(data, nothing)
 
 hasgrad(v::Var) = v.grad != nothing
 
-constant(data) = Var(data, nothing)
 Base.isconst(v::Var) = v.grad == nothing
 dataof(v::Var) = v.data
 
@@ -42,12 +44,14 @@ function topsort(top::Var)
     function visit(var::Var)
         haskey(dict, var) && return
         dict[var] = var
-        foreach(visit, var.args)
+        for arg in var.args
+            typeof(arg) == Var && visit(arg)
+        end
         push!(sorted, var)
     end
     visit(top)
     sorted
 end
 
-to_hdf5(x::Var) = to_hdf5(x.data)
+to_hdf5(x::Var) = Dict("data"=>x.data, "args"=>x.args)
 from_hdf5(::Type{Var}, x) = Var(x, x)
