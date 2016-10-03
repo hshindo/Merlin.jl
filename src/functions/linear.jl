@@ -49,10 +49,3 @@ function update!(f::Linear, opt)
     opt(f.w.data, f.w.grad)
     opt(f.b.data, f.b.grad)
 end
-
-h5convert(f::Linear) = h5dict(Linear, "w"=>f.w.data, "b"=>f.b.data)
-
-function h5load!(::Type{Linear}, data)
-    w, b = Var(data["w"]), Var(data["b"])
-    Linear(w, b)
-end

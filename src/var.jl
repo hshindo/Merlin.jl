@@ -25,7 +25,7 @@ end
 
 Var(data, args, f, df) = Var(data, nothing, args, f, df)
 Var(data, grad) = Var(data, grad, Var[], nothing, nothing)
-Var(data::Vector) = Var(data, zeros(data))
+Var(data::Array) = Var(data, zeros(data))
 Var(data::Number) = Var(data, zero(data))
 Var() = Var(nothing, nothing)
 
@@ -53,5 +53,5 @@ function topsort(top::Var)
     sorted
 end
 
-to_hdf5(x::Var) = Dict("data"=>x.data, "args"=>x.args)
-from_hdf5(::Type{Var}, x) = Var(x, x)
+h5object(x::Var) = Dict("data"=>x.data, "args"=>x.args)
+h5load(::Type{Var}, x::Dict) = Var(x["data"], x["args"], nothing, nothing)

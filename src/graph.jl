@@ -17,7 +17,6 @@ macro graph(expr)
     end
     length(vars) == 0 && throw("The @graph function must contain at least one argument typed as `::Var`.")
 
-    args[1] = QuoteNode(args[1])
     args = Expr(:vect, args...)
     body = expr.args[2].args
     for v in vars
@@ -34,13 +33,23 @@ type Graph
     f
 end
 
+Graph(nodes::Vector{Var}) = Graph(nodes, compile(nodes))
+
 (g::Graph)(x...) = g.f(x...)
 
 function Graph(top::Var)
     @assert top.data == nothing
     nodes = topsort(top)
-    foreach(i -> nodes[i].data = i, 1:length(nodes))
+    node2id = Dict(nodes[i]=>i for i=1:length(nodes))
+    for node in nodes
+        node.args = map(node.args) do arg
+            typeof(arg) == Var ? Var(node2id[arg],nothing) : arg
+        end
+    end
+    Graph(nodes)
+end
 
+function compile(nodes::Vector{Var})
     calls = []
     for node in nodes
         if isempty(node.args)
@@ -49,41 +58,13 @@ function Graph(top::Var)
             args = map(node.args) do arg
                 typeof(arg) == Var ? calls[arg.data] : arg
             end
-            node.args = map(node.args) do arg
-                #typeof(arg) == Var ?
-            end
             push!(calls, Expr(:call, args...))
         end
     end
     syms = filter(x -> typeof(x) == Symbol, calls)
-    expr = Expr(:->, Expr(:tuple, syms...), calls[end]) # create anonymous function
-    Graph(nodes, eval(expr))
+    expr = Expr(:->, Expr(:tuple, syms...), calls[end])
+    eval(expr)
 end
 
-function h5convert(g::Graph)
-    dict = Dict()
-    for i = 1:length(g.nodes)
-        dict[i] = i
-    end
-    Graph, dict
-end
-
-function to_hdf5(g::Graph)
-    dict = Dict()
-    for i = 1:length(g.nodes)
-        v = g.nodes[i]
-        args = map(a -> typeof(a) == Var ? constant(a.data) : a, v.args)
-        dict[i] = Var(v.data, v.grad, args, nothing, nothing)
-    end
-    dict
-end
-
-function from_hdf5(::Type{Graph}, x::Dict)
-    nodes = Array(Var, length(x))
-    for (k,v) in x
-        var = Var()
-        var.f = v
-        nodes[parse(Int,k)] = var
-    end
-    Graph(nodes)
-end
+h5object(g::Graph) = h5object(g.nodes)
+h5load(::Type{Graph}, x) = Graph(h5load(Vector{Var},x))
