@@ -42,7 +42,7 @@ end
             end
         end
     end
-    Var(y, [x], f, df)
+    Var(y, [x], df)
 end
 
 function update!(f::Linear, opt)

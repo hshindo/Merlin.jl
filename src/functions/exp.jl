@@ -3,10 +3,10 @@ import Base.exp
 """
     exp
 """
-function exp(x::Var)
+@graph function exp(x::Var)
     y = exp(x.data)
-    df(gy) = hasgrad(x) && (x.grad = ∇exp!(x.grad, y, gy))
-    Var(y, [x], exp, df)
+    df(gy) = isconst(x) || (x.grad = ∇exp!(x.grad, y, gy))
+    Var(y, [x], df)
 end
 
 function ∇exp!{T}(gx::Array{T}, y::Array{T}, gy::Array{T})

@@ -3,10 +3,10 @@ import Base.log
 """
     log
 """
-function log(x::Var)
+@graph function log(x::Var)
     y = log(x.data)
-    df(gy) = hasgrad(x) && (x.grad = ∇log!(x.data, x.grad, gy))
-    Var(y, [x], log, df)
+    df(gy) = isconst(x) || (x.grad = ∇log!(x.data, x.grad, gy))
+    Var(y, [x], df)
 end
 
 function ∇log!{T}(x::Array{T}, gx::Array{T}, gy::Array{T})

@@ -19,17 +19,13 @@ y = gru(x, h)
 function GRU(T::Type, xsize::Int)
     ws = [Var(rand(T,xsize,xsize)) for i=1:3]
     us = [Var(rand(T,xsize,xsize)) for i=1:3]
-    #=
-    @graph begin
-        x = :x
-        h = :h
-        r = sigmoid(ws[1]*x + us[1]*h)
-        z = sigmoid(ws[2]*x + us[2]*h)
-        h_ = tanh(ws[3]*x + us[3]*(r.*h))
-        h_next = (1 - z) .* h + z .* h_
-        h_next
-    end
-    =#
+    x = Var()
+    h = Var()
+    r = sigmoid(ws[1]*x + us[1]*h)
+    z = sigmoid(ws[2]*x + us[2]*h)
+    h_ = tanh(ws[3]*x + us[3]*(r.*h))
+    h_next = (1 - z) .* h + z .* h_
+    h_next
 end
 
 GRU_training(x::CuArray, hx::CuArray, cx::CuArray, droprate) =

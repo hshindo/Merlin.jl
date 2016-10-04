@@ -5,8 +5,8 @@ import Base.tanh
 """
 @graph function tanh(x::Var)
     y = tanh(x.data)
-    df(gy) = hasgrad(x) && ∇tanh!(x.data, x.grad, y, gy)
-    Var(y, [x], tanh, df)
+    df(gy) = isconst(x) || ∇tanh!(x.data, x.grad, y, gy)
+    Var(y, [x], df)
 end
 
 tanh(x::CuArray) = CUDNN.activation!(CUDNN_ACTIVATION_TANH, x, similar(x))

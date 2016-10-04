@@ -10,8 +10,9 @@ y = x[1:3]
 y = x[2]
 ```
 """
-function getindex(x::Var, inds...)
+@graph function getindex(x::Var, inds::Tuple)
     y = x.data[inds...]
-    df(gy) = hasgrad(x) && (x.grad[inds...] .+= gy)
-    Var(y, [x], getindex, df)
+    df(gy) = isconst(x) || (x.grad[inds...] .+= gy)
+    Var(y, [x], df)
 end
+getindex(x::Var, inds...) = getindex(x, inds)
