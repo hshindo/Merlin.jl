@@ -6,7 +6,7 @@ export sigmoid
 @graph function sigmoid(x::Var)
     y = sigmoid(x.data)
     df(gy) = isconst(x) || ∇sigmoid!(x.data, x.grad, y, gy)
-    Var(y, [x], df)
+    Var(y, [x], sigmoid, df)
 end
 
 function sigmoid{T}(x::Array{T})

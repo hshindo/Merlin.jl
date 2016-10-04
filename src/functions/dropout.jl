@@ -12,7 +12,7 @@ export dropout
     else
         throw("Not implemented yet.")
     end
-    Var(y, [x], df)
+    Var(y, [x], dropout, df)
 end
 
 function dropout{T}(x::Array{T}, ratio::Float64, rx::Array{T})

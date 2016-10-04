@@ -17,7 +17,7 @@ C = alpha * tA(A) * tB(B)
     function df(gC)
         ∇gemm!(tA, tB, alpha, A.data, A.grad, B.data, B.grad, C, gC)
     end
-    Var(C, [A,B], df)
+    Var(C, [A,B], gemm, df)
 end
 gemm(A, B; tA='N', tB='N', alpha=1.0) = gemm(tA, tB, alpha, A, B)
 

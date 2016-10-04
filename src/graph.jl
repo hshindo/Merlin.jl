@@ -28,14 +28,19 @@ end
 """
     Graph
 """
-type Graph
+type Graph <: Functor
     nodes::Vector{Var}
     f
 end
 
 Graph(nodes::Vector{Var}) = Graph(nodes, compile(nodes))
 
-(g::Graph)(x...) = g.f(x...)
+function (g::Graph)(xs::Var...)
+    for x in xs
+        x.data == nothing && return Var(nothing, [g, xs...], nothing)
+    end
+    g.f(xs...)
+end
 
 function Graph(top::Var)
     @assert top.data == nothing
@@ -53,7 +58,8 @@ function compile(nodes::Vector{Var})
     calls = []
     for node in nodes
         if isempty(node.args)
-            push!(calls, gensym())
+            x = node.data == nothing ? gensym() : node
+            push!(calls, x)
         else
             args = map(node.args) do arg
                 typeof(arg) == Var ? calls[arg.data] : arg

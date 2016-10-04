@@ -6,7 +6,7 @@ import Base.log
 @graph function log(x::Var)
     y = log(x.data)
     df(gy) = isconst(x) || (x.grad = ∇log!(x.data, x.grad, gy))
-    Var(y, [x], df)
+    Var(y, [x], log, df)
 end
 
 function ∇log!{T}(x::Array{T}, gx::Array{T}, gy::Array{T})

@@ -29,7 +29,7 @@ function axsum(as::Vector{Float64}, xs::Vector{Var})
             isconst(x) || (x.grad = ∇axpy!(a,x.grad,gy))
         end
     end
-    Var(y, xs, df)
+    Var(y, xs, axsum, df)
 end
 
 function axpy!{T}(a::Float64, x::UniArray{T}, y::UniArray{T})

@@ -6,7 +6,7 @@ export relu
 @graph function relu(x::Var)
     y = relu(x.data)
     df(gy) = isconst(x) || ∇relu!(x.data, x.grad, y, gy)
-    Var(y, [x], df)
+    Var(y, [x], relu, df)
 end
 
 function relu{T}(x::Array{T})

@@ -8,7 +8,7 @@ Compute the maximum value along the given dimensions.
 @graph function max(x::Var, dim::Int)
     y, idx = findmax(x.data, dim)
     df(gy) = isconst(x) || ∇max!(idx, x.grad, gy)
-    Var(y, [x], df)
+    Var(y, [x], max, df)
 end
 
 function ∇max!{T}(idx::Array{Int}, gx::Array{T}, gy::Array{T})

@@ -7,6 +7,7 @@ export Var, constant, isconst
 
 * data
 * args::Vector
+* f
 * df
 * grad
 
@@ -16,13 +17,14 @@ To create an instance of `Var`, use
 """
 type Var
     data
-    args::Vector
-    df
     grad
+    args::Vector
+    f
+    df
 end
 
-Var(data, args, df) = Var(data, args, df, nothing)
-Var(data, grad) = Var(data, Var[], nothing, grad)
+Var(data, args, f, df) = Var(data, nothing, args, f, df)
+Var(data, grad) = Var(data, grad, [], nothing, nothing)
 Var(data::Array) = Var(data, zeros(data))
 Var(data::Number) = Var(data, zero(data))
 Var(data) = Var(data, nothing)

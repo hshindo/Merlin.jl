@@ -39,7 +39,6 @@ for name in [
     "add",
     "argmax",
     "axsum",
-    "batchnorm",
     "concat",
     "conv",
     "crossentropy",

@@ -18,7 +18,7 @@ y = crossentropy(p,x)
     logx = logsoftmax(x.data, 1)
     y = crossentropy(p, logx)
     df(gy) = isconst(x) || ∇crossentropy!(p, logx, x.grad, gy)
-    Var(y, [x], df)
+    Var(y, [x], crossentropy, df)
 end
 
 function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})

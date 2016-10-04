@@ -14,7 +14,7 @@ softmax_handle(::Type{Float64}) = SOFTMAX_F64, ∇SOFTMAX_F64
 @graph function softmax(x::Var, dim::Int)
     y = softmax(x.data, dim)
     df(gy) = isconst(x) || ∇softmax!(x.grad, y, gy, dim)
-    Var(y, [x], df)
+    Var(y, [x], softmax, df)
 end
 
 function softmax{T}(x::Array{T}, dim::Int)

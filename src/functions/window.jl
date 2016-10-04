@@ -63,7 +63,7 @@ window(x, dims, stride=1, pad=0) = window(x, Window(dims,stride,pad))
 @graph function window(x::Var, w::Window)
     y = window(x.data, w)
     df(gy) = isconst(x) || ∇window!(x.grad, gy, w)
-    Var(y, [x], df)
+    Var(y, [x], window, df)
 end
 
 function window{T}(x::Array{T}, w::Window{1})

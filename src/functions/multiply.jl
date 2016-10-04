@@ -11,7 +11,7 @@ import Base: *, .*
         isconst(x1) || BLAS.gemm!('N', 'T', T(1), gy, x2.data, T(1), x1.grad)
         isconst(x2) || BLAS.gemm!('T', 'N', T(1), x1.data, gy, T(1), x2.grad)
     end
-    Var(y, [x1,x2], df)
+    Var(y, [x1,x2], *, df)
 end
 @graph *(a::Number, x::Var) = axsum([a], [x])
 *(x::Var, a::Number) = a * x
@@ -25,7 +25,7 @@ end
         isconst(x1) || ∇elemtimes!(x2.data, x1.grad, gy)
         isconst(x2) || ∇elemtimes!(x1.data, x2.grad, gy)
     end
-    Var(y, [x1,x2], df)
+    Var(y, [x1,x2], .*, df)
 end
 
 function ∇elemtimes!{T}(x2::UniArray{T}, gx1::UniArray{T}, gy::UniArray{T})
