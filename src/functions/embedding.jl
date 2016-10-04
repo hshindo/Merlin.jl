@@ -52,7 +52,7 @@ end
             id > 0 && push!(f.idset, id)
         end
     end
-    Var(y, [], f, df)
+    Var(y, [x], f, df)
 end
 
 function embedding(ws::Vector{Var}, x::Array{Int})

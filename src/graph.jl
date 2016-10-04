@@ -41,6 +41,7 @@ function (g::Graph)(xs::Var...)
     end
     g.f(xs...)
 end
+(g::Graph)(xs...) = g(map(constant,xs)...)
 
 function Graph(top::Var)
     @assert top.data == nothing

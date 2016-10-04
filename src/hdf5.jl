@@ -22,7 +22,13 @@ function h5load(T, x)
 end
 
 function save(path::String, key::String, obj)
-    h5open(path, "w") do h
+    mkpath(dirname(path))
+    # Since HDF5 doesn't support 'a' option, emulate it.
+    if !isfile(path)
+        h5open(path, "w") do h end
+    end
+
+    h5open(path, "r+") do h
         h5save(h, key, obj)
     end
     nothing

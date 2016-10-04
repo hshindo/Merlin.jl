@@ -58,7 +58,7 @@ x = Var(rand(Float32,10,5))
 y = window(x, (10,))
 ```
 """
-window(x, dims, stride=1, pad=0) = window(x, Window(dims,stride,pad))
+window(x, dims; stride=1, pad=0) = window(x, Window(dims,stride,pad))
 
 @graph function window(x::Var, w::Window)
     y = window(x.data, w)
