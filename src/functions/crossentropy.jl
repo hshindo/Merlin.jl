@@ -14,11 +14,11 @@ x = Var(rand(Float32,10,5))
 y = crossentropy(p,x)
 ```
 """
-function crossentropy(p, x::Var)
+@graph function crossentropy(p, x::Var)
     logx = logsoftmax(x.data, 1)
     y = crossentropy(p, logx)
     df(gy) = isconst(x) || ∇crossentropy!(p, logx, x.grad, gy)
-    Var(y, [x], crossentropy, df)
+    Var(y, [x], df)
 end
 
 function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})

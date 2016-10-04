@@ -3,16 +3,16 @@ export dropout
 """
     dropout(x::Var, ratio::Float64, istrain::Bool)
 """
-function dropout(x::Var, ratio::Float64, istrain::Bool)
+@graph function dropout(x::Var, ratio::Float64, istrain::Bool)
     istrain || return x
     if typeof(x.data) <: Array
         rx = rand(eltype(x.data), length(x.data))
         y = dropout(x.data, ratio, rx)
-        df(gy) = hasgrad(x) && ∇dropout!(ratio, rx, x.grad, gy)
+        df(gy) = isconst(x) || ∇dropout!(ratio, rx, x.grad, gy)
     else
         throw("Not implemented yet.")
     end
-    Var(y, [x], dropout, df)
+    Var(y, [x], df)
 end
 
 function dropout{T}(x::Array{T}, ratio::Float64, rx::Array{T})

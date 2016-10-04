@@ -26,10 +26,10 @@ function axsum(as::Vector{Float64}, xs::Vector{Var})
     function df(gy)
         for i = 1:length(xs)
             a, x = as[i], xs[i]
-            hasgrad(x) && (x.grad = ∇axpy!(a,x.grad,gy))
+            isconst(x) || (x.grad = ∇axpy!(a,x.grad,gy))
         end
     end
-    Var(y, xs, axsum, df)
+    Var(y, xs, df)
 end
 
 function axpy!{T}(a::Float64, x::UniArray{T}, y::UniArray{T})

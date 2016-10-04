@@ -1,5 +1,3 @@
-export h5object
-
 h5object(x::Symbol) = string(x)
 h5object(x::Void) = string(x)
 h5object(x::DataType) = string(x)

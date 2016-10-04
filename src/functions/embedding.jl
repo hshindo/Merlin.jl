@@ -47,7 +47,7 @@ function Embedding(path, T::Type)
     Embedding(ws)
 end
 
-function (f::Embedding)(x::Var)
+@graph function (f::Embedding)(x::Var)
     y = embedding(f.ws, x.data)
     function df(gy)
         ∇embedding!(f.ws, x.data, gy)
@@ -55,7 +55,7 @@ function (f::Embedding)(x::Var)
             id > 0 && push!(f.idset, id)
         end
     end
-    Var(y, [x], f, df)
+    Var(y, [], df)
 end
 
 function embedding(ws::Vector{Var}, x::Array{Int})
