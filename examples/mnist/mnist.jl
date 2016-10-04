@@ -4,16 +4,16 @@ using MLDatasets
 function create_model()
     T = Float32
     h = 1000 # hidden vector size
-    ls = [Linear(T,784,h), Linear(T,h,h), Linear(T,h,10)]
-    @graph begin
-        x = :x
-        x = ls[1](x)
+    g = begin
+        x = Var()
+        x = Linear(T,784,h)(x)
         x = relu(x)
-        x = ls[2](x)
+        x = Linear(T,h,h)(x)
         x = relu(x)
-        x = ls[3](x)
-        x
+        x = Linear(T,h,10)(x)
+        Graph(x)
     end
+    g
 end
 
 function flatten(xs::Vector{Vector{Int}})
