@@ -297,14 +297,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "save_load.html#Merlin.h5save",
-    "page": "Save and Load",
-    "title": "Merlin.h5save",
-    "category": "Function",
-    "text": "h5save(filename::String, data)\n\nSave objects as a HDF5 format. Note that the objects are required to implement h5convert and h5load! functions.\n\n\n\n"
-},
-
-{
     "location": "save_load.html#Save-1",
     "page": "Save and Load",
     "title": "Save",
@@ -313,27 +305,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "save_load.html#Merlin.h5load",
-    "page": "Save and Load",
-    "title": "Merlin.h5load",
-    "category": "Function",
-    "text": "h5load(filename::String)\n\nLoad a HDF5 file.\n\n\n\n"
-},
-
-{
     "location": "save_load.html#Load-1",
     "page": "Save and Load",
     "title": "Load",
     "category": "section",
     "text": "h5load"
-},
-
-{
-    "location": "save_load.html#Merlin.h5dict",
-    "page": "Save and Load",
-    "title": "Merlin.h5dict",
-    "category": "Function",
-    "text": "h5dict(T::Type, x::Pair...)\n\nCreate a hdf5 dictionary with type information.\n\n\n\n"
 },
 
 {
