@@ -64,7 +64,7 @@ y = f2(y)
 gradient!(y)
 println(x.grad)
 ```
-If you don't need gradients, use `constant` instead of `Var`.
+If you don't need gradients, use `constant(rand(T,10,5))` instead of `Var`.
 
 When you apply `Var()` to a function, it's lazily evaluated.
 ```julia
