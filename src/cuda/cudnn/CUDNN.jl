@@ -27,13 +27,14 @@ datatype(::Type{Float16}) = CUDNN_DATA_HALF
 include("handle.jl")
 include("tensor.jl")
 include("activation.jl")
+include("batchnorm.jl")
+
 #include("convolution.jl")
 #include("dropout.jl")
 #include("filter.jl")
 #include("lrn.jl")
 #include("pooling.jl")
 #include("softmax.jl")
-#include("batchnorm.jl")
 #include("rnn.jl")
 
 end

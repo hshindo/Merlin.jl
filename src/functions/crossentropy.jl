@@ -14,10 +14,10 @@ x = Var(rand(Float32,10,5))
 y = crossentropy(p,x)
 ```
 """
-function crossentropy(p, x::Var)
+@graph function crossentropy(p, x::Var)
     logx = logsoftmax(x.data, 1)
     y = crossentropy(p, logx)
-    df(gy) = isconstant(x) || ∇crossentropy!(p, logx, x.grad, gy)
+    df(gy) = isconst(x) || ∇crossentropy!(p, logx, x.grad, gy)
     Var(y, [x], crossentropy, df)
 end
 

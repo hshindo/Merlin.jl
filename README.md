@@ -24,12 +24,11 @@ Our primary goal is to develop a natural language processing toolkit based on `M
 - g++ (for OSX or Linux)
 
 ## Installation
-First, install [Julia](http://julialang.org/). Currently, version 0.5 is recommended.
+First, install [Julia](http://julialang.org/). Currently, version 0.5 is supported.
 
 Then, clone the package.
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
-julia> Pkg.update()
 ```
 
 For OSX and Linux, build `Merlin` as follows:
@@ -48,25 +47,6 @@ Basically,
 2. Apply functions to `Var`. `Var` memorizes a history of functional applications for auto-differentiation.
 3. Compute gradients if necessary.
 
-```julia
-using Merlin
-
-T = Float32
-x = Var(rand(T,10,5))
-f1, f2 = Linear(T,10,7), Linear(T,7,3)
-y = f1(x)
-y = relu(y)
-y = f2(y)
-gradient!(y)
-println(x.grad)
-```
-If you don't need gradients, use `constant` instead of `Var`.
-
-See `examples`.
-
-### Example1: Feed-Forward Neural Network
-Static network can be constructed by `@graph` macro.
-
 Here is an example of three-layer network:
 
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/feedforward.png" width="120"></p>
@@ -75,18 +55,34 @@ Here is an example of three-layer network:
 using Merlin
 
 T = Float32
-ls = [Linear(T,10,7), Linear(T,7,3)]
-f = @graph begin
-    x = ls[1](:x)
-    x = relu(x)
-    x = ls[2](x)
-    x
-end
-x = constant(rand(Float32,10,5))
+x = Var(rand(T,10,5))
+f1 = Linear(T,10,7)
+f2 = Linear(T,7,3)
+y = f1(x)
+y = relu(y)
+y = f2(y)
+gradient!(y)
+println(x.grad)
+```
+If you don't need gradients, use `constant` instead of `Var`.
+
+When you apply `Var()` to a function, it's lazily evaluated.
+```julia
+T = Float32
+# lazy evaluation
+x = Var()
+y = Linear(T,10,7)(x)
+y = relu(y)
+y = Linear(T,7,3)(y)
+@assert y.data == nothing
+
+f = Graph(y) # compile the network structure
+x = constant(rand(T,10,10))
 y = f(x)
 ```
-where `:x` is a place-holder for input argument.
+More examples can be found in the [`examples`](examples/).
 
+<!---
 ### Example2: Recurrent Neural Network (RNN)
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="270"></p>
 
@@ -107,24 +103,33 @@ ys = map(xs) do x
     f_y(h)
 end
 ```
+-->
 
 ### Training
-`Merlin` provides `fit` function to train your model.
+Merlin provides a `fit` function to train your model.
 ```julia
-data_x = [constant(rand(Float32,10,5)) for i=1:100] # input data
-data_y = [constant([1,2,3]) for i=1:100] # correct labels
-f = @graph ...
+train_x = [constant(rand(Float32,10,5)) for i=1:100] # input data
+train_y = [constant([1,2,3]) for i=1:100] # correct labels
 
-opt = SGD(0.0001, momentum=0.9)
+f = begin
+    T = Float32
+    x = Var()
+    y = Linear(T,10,7)(x)
+    y = relu(y)
+    y = Linear(T,7,3)(y)
+    Graph(y)
+end
+
+opt = SGD(0.0001)
 for epoch = 1:10
   println("epoch: $(epoch)")
-  loss = fit(data_x, data_y, f, crossentropy, opt)
+  loss = fit(train_x, train_y, f, crossentropy, opt)
   println("loss: $(loss)")
 end
 ```
 
 ## Datasets
-Common datasets will be provided via [MLDatasets](https://github.com/hshindo/MLDatasets.jl).
+Common datasets are available via [MLDatasets.jl](https://github.com/JuliaML/MLDatasets.jl).
 
 ## [Experimental] CUDA GPU
 If you use CUDA GPU, the following is required.

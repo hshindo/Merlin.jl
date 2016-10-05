@@ -3,9 +3,9 @@ import Base.tanh
 """
     tanh(x::Var)
 """
-function tanh(x::Var)
+@graph function tanh(x::Var)
     y = tanh(x.data)
-    df(gy) = hasgrad(x) && ∇tanh!(x.data, x.grad, y, gy)
+    df(gy) = isconst(x) || ∇tanh!(x.data, x.grad, y, gy)
     Var(y, [x], tanh, df)
 end
 

@@ -1,104 +1,83 @@
-export h5save, h5writedict, h5load, h5dict, h5convert
+h5object(x::Symbol) = string(x)
+h5object(x::Void) = string(x)
+h5object(x::DataType) = string(x)
+h5object(x::Vector) = Dict(i=>x[i] for i=1:length(x))
+h5object(x::Tuple) = h5object([x...])
+h5object(x) = Dict(name=>getfield(x, name) for name in fieldnames(x))
 
-"""
-    h5save(filename::String, data)
-
-Save objects as a HDF5 format.
-Note that the objects are required to implement `h5convert` and `h5load!` functions.
-"""
-function h5save(filename::String, data)
-    h5open(filename, "w") do h
-        h["version"] = string(VERSION)
-        g = g_create(h, "Merlin")
-        h5writedict(g, h5convert(data))
-    end
-end
-
-"""
-    h5writedict(g, data)
-"""
-function h5writedict(g, data::Dict)
-    for (k,v) in data
-        if typeof(v) <: Dict
-            c = g_create(g, string(k))
-            h5writedict(c, v)
-        else
-            g[string(k)] = v
-        end
-    end
-end
-
-"""
-    h5load(filename::String)
-
-Load a HDF5 file.
-"""
-h5load(filename::String) = h5load!(h5read(filename,"Merlin"))
-
-"""
-    h5dict(T::Type, x::Pair...)
-
-Create a hdf5 dictionary with type information.
-"""
-function h5dict(T::Type, x::Pair...)
-    dict = Dict{String,Any}("#TYPE"=>string(T))
+h5load(::Type{Symbol}, x) = parse(x)
+h5load(::Type{Void}, x) = nothing
+h5load(::Type{DataType}, x) = eval(parse(x))
+h5load{T<:Tuple}(::Type{T}, x) = tuple(h5load(Vector,x)...)
+function h5load{T<:Vector}(::Type{T}, x::Dict)
+    vec = Array(eltype(T), length(x))
     for (k,v) in x
-        dict[string(k)] = h5convert(v)
-    end
-    dict
-end
-
-h5convert(x::Number) = x
-h5convert{T<:Number}(x::Array{T}) = x
-h5convert(x::String) = x
-h5convert(x::Symbol) = h5dict(Symbol, "s"=>string(x))
-h5convert(x::Function) = h5dict(Function, "f"=>string(x))
-h5convert(x::DataType) = h5dict(DataType, "t"=>string(x))
-
-function h5convert(x::Vector{Any})
-    dict = h5dict(Vector{Any})
-    for i = 1:length(x)
-        dict[string(i)] = h5convert(x[i])
-    end
-    dict
-end
-
-function h5convert(x::Dict)
-    dict = Dict{String,Any}()
-    for (k,v) in x
-        dict[string(k)] = h5convert(v)
-    end
-    dict
-end
-
-function h5load!(data::Dict)
-    if haskey(data, "#TYPE")
-        T = eval(parse(data["#TYPE"]))
-        delete!(data, "#TYPE")
-        h5load!(T, data)
-    else
-        for (k,v) in data
-            typeof(v) <: Dict && (data[k] = h5load!(v))
-        end
-        data
-    end
-end
-
-h5load!(::Type{Function}, data) = eval(parse(data["f"]))
-h5load!(::Type{Symbol}, data) = parse(data["s"])
-h5load!(::Type{DataType}, data) = eval(parse(data["t"]))
-h5load!(x::Number) = x
-h5load!{T<:Number}(x::Array{T}) = x
-h5load!(x::String) = x
-
-function h5load!(::Type{Vector{Any}}, data::Dict)
-    vec = []
-    for (k,v) in data
-        i = parse(Int, k)
-        while i > length(vec)
-            push!(vec, nothing)
-        end
-        vec[i] = h5load!(v)
+        vec[parse(Int,k)] = v
     end
     vec
+end
+function h5load(T, x)
+    values = map(name -> x[string(name)], fieldnames(T))
+    T(values...)
+end
+
+function save(path::String, key::String, obj)
+    mkpath(dirname(path))
+    # Since HDF5 doesn't support 'a' option, emulate it.
+    if !isfile(path)
+        h5open(path, "w") do h end
+    end
+
+    h5open(path, "r+") do h
+        h5save(h, key, obj)
+    end
+    nothing
+end
+
+function h5save{T}(group, key::String, obj::T)
+    if T <: HDF5.BitsKindOrString ||
+        (T <: Array && eltype(obj) <: HDF5.BitsKindOrString)
+        group[key] = obj
+    elseif T <: Function
+        h5save(group, key, Symbol(obj))
+    else
+        h5obj = h5object(obj)
+        if typeof(h5obj) <: Dict
+            g = g_create(group, key)
+            attrs(g)["#JULIA_TYPE"] = string(T)
+            for (k,v) in h5obj
+                h5save(g, string(k), v)
+            end
+        else
+            group[key] = h5obj
+            attrs(group[key])["#JULIA_TYPE"] = string(T)
+        end
+    end
+end
+
+function load(path::String, key::String)
+    h5open(path, "r") do h
+        h5load(h[key])
+    end
+end
+
+function h5load(group::HDF5Group)
+    dict = Dict()
+    for name in names(group)
+        dict[name] = h5load(group[name])
+    end
+    attr = read(attrs(group), "#JULIA_TYPE")
+    T = eval(parse(attr))
+    h5load(T, dict)
+end
+
+function h5load(dataset::HDF5Dataset)
+    data = read(dataset)
+    if exists(attrs(dataset), "#JULIA_TYPE")
+        attr = read(attrs(dataset), "#JULIA_TYPE")
+        T = eval(parse(attr))
+        h5load(T, data)
+    else
+        data
+    end
 end

@@ -5,9 +5,9 @@ import Base.max
 
 Compute the maximum value along the given dimensions.
 """
-function max(x::Var, dim::Int)
+@graph function max(x::Var, dim::Int)
     y, idx = findmax(x.data, dim)
-    df(gy) = hasgrad(x) && ∇max!(idx, x.grad, gy)
+    df(gy) = isconst(x) || ∇max!(idx, x.grad, gy)
     Var(y, [x], max, df)
 end
 

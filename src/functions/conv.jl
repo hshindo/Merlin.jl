@@ -49,7 +49,7 @@ function (f::Conv)(x::Var)
         ∇conv!(f.w.data, f.w.grad, x.data, x.grad, work, y, gy,
         f.filterdims, f.stride, f.paddims)
     end
-    Var(y, [x], f, df)
+    Var(y, [x], conv, df)
 end
 
 function conv{T}(w::Array{T}, x::Array{T}, windims, stride, paddims)

@@ -7,7 +7,7 @@ inline int getindex(int i, int j, int k, const int *dims) {
 
 template<typename T>
 void softmax(T *x, T *y, const int *dims) {
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int i = 0; i < dims[0]; i++) {
         for (int j = 0; j < dims[2]; j++) {
 
@@ -35,7 +35,7 @@ void softmax(T *x, T *y, const int *dims) {
 
 template<typename T>
 void softmax_grad(T *gx, T *y, T *gy, const int *dims) {
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int i = 0; i < dims[0]; i++) {
         for (int j = 0; j < dims[2]; j++) {
 
@@ -55,7 +55,7 @@ void softmax_grad(T *gx, T *y, T *gy, const int *dims) {
 
 template<typename T>
 void logsoftmax(T *x, T *y, const int *dims) {
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int i = 0; i < dims[0]; i++) {
         for (int j = 0; j < dims[2]; j++) {
 
@@ -82,7 +82,7 @@ void logsoftmax(T *x, T *y, const int *dims) {
 
 template<typename T>
 void logsoftmax_grad(T *gx, T *y, T *gy, const int *dims) {
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int i = 0; i < dims[0]; i++) {
         for (int j = 0; j < dims[2]; j++) {
 

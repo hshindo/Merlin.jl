@@ -11,17 +11,17 @@ end
 
 """
 reluNanOpt: whether propagates NaN or not
-reluCeiling: floating point number to specify the clipping threashod
+reluCeiling: floating point number to specify the clipping threshold
 when the activation mode is set to CUDNN_ACTIVATION_CLIPPED_RELU.
 """
-function activation!{T}(mode, x::CuArray{T}, y::CuArray{T};
-    relu_nanopt=CUDNN_NOT_PROPAGATE_NAN, relu_ceiling=1.0, alpha=1.0, beta=0.0)
-
-    h = handles[device(x)]
+function activation(mode, x; relu_nanopt=CUDNN_NOT_PROPAGATE_NAN, relu_ceiling=1.0)
+    T = eltype(x)
+    h = handle(x)
+    y = similar(x)
     adesc = activation_desc(mode, relu_nanopt, relu_ceiling)
     xdesc = tensor_desc(x)
     ydesc = tensor_desc(y)
-    cudnnActivationForward(h, adesc, T[alpha], xdesc, x, T[beta], ydesc, y)
+    cudnnActivationForward(h, adesc, T[1], xdesc, x, T[0], ydesc, y)
 
     cudnnDestroyActivationDescriptor(adesc)
     cudnnDestroyTensorDescriptor(xdesc)
@@ -29,17 +29,16 @@ function activation!{T}(mode, x::CuArray{T}, y::CuArray{T};
     y
 end
 
-function ∇activation!{T}(mode, y::CuArray{T}, dy::CuArray{T}, x::CuArray{T}, dx::CuArray{T};
-    relu_nanopt=CUDNN_NOT_PROPAGATE_NAN, relu_ceiling=1.0, alpha=1.0, beta=0.0)
-
-    h = handles[device(x)]
+function ∇activation!(mode, y, dy, x, dx; relu_nanopt=CUDNN_NOT_PROPAGATE_NAN, relu_ceiling=1.0)
+    T = eltype(y)
+    h = handle(x)
     adesc = activation_desc(mode, relu_nanopt, relu_ceiling)
     ydesc = tensor_desc(y)
     dydesc = tensor_desc(y)
     xdesc = tensor_desc(x)
     dxdesc = tensor_desc(dx)
-    cudnnActivationBackward(h, adesc, T[alpha], ydesc, y, dydesc, dy, xdesc, x,
-    T[beta], dxdesc, dx)
+    cudnnActivationBackward(h, adesc, T[1], ydesc, y, dydesc, dy,
+    xdesc, x, T[0], dxdesc, dx)
 
     cudnnDestroyActivationDescriptor(adesc)
     cudnnDestroyTensorDescriptor(ydesc)

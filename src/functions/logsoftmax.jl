@@ -11,9 +11,9 @@ logsoftmax_handle(::Type{Float64}) = LOGSOFTMAX_F64, ∇LOGSOFTMAX_F64
 """
     logsoftmax(x::Var, dim::Int)
 """
-function logsoftmax(x::Var, dim)
+@graph function logsoftmax(x::Var, dim::Int)
     y = logsoftmax(x.data, dim)
-    df(gy) = ∇logsoftmax!(x.grad, y, gy, dim)
+    df(gy) = isconst(x) || ∇logsoftmax!(x.grad, y, gy, dim)
     Var(y, [x], logsoftmax, df)
 end
 

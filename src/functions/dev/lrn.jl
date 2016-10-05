@@ -13,8 +13,8 @@ Local Response Normalization (LRN).
 """
 function lrn(x::Var, n::Int, k::Float64, alpha::Float64, beta::Float64)
     y = lrn(x.data, n, k, alpha, beta)
-    df(gy) = hasgrad(x) && ∇lrn!(x.data, x.grad, y.data, y.grad)
-    Var(y, [x], lrn, df)
+    df(gy) = isconst(x) || ∇lrn!(x.data, x.grad, y.data, y.grad)
+    Var(y, [x], df)
 end
 
 function lrn{T}(x::Array{T,4}, n::Int, k::Float64, alpha::Float64, beta::Float64)

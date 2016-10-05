@@ -1,103 +1,77 @@
-export @graph
+export @graph, Graph
 
-type GraphNode
-    args::Vector
+"""
+    @graph
+"""
+macro graph(expr)
+    (expr.head == :function || expr.head == :(=)) || throw("Invalid @graph.")
+    args, vars = [], []
+    for arg in expr.args[1].args
+        if typeof(arg) == Expr
+            aname, atype = arg.args[1], arg.args[2]
+            atype == :Var && push!(vars, aname)
+            push!(args, aname)
+        else
+            push!(args, arg)
+        end
+    end
+    length(vars) == 0 && throw("The @graph function must contain at least one argument typed as `::Var`.")
 
-    GraphNode(args...) = new(Any[args...])
+    args = Expr(:vect, args...)
+    body = expr.args[2].args
+    for v in vars
+        unshift!(body, :($v.data == nothing && return Var(nothing,$args,nothing,nothing)))
+    end
+    :($expr)
 end
 
-Base.length(n::GraphNode) = length(n.args)
-Base.getindex(n::GraphNode, key::Int) = n.args[key]
-Base.setindex!(n::GraphNode, value, key::Int) = n.args[key] = value
-
-type Graph
-    nodes::Vector{GraphNode} # sorted in bottom-up order
+"""
+    Graph
+"""
+type Graph <: Functor
+    nodes::Vector{Var}
     f
 end
 
-function Graph(nodes::Vector{GraphNode}, args::Vector{Symbol})
-    dict = ObjectIdDict()
+Graph(nodes::Vector{Var}) = Graph(nodes, compile(nodes))
+
+function (g::Graph)(xs::Var...)
+    for x in xs
+        x.data == nothing && return Var(nothing, [g, xs...], nothing)
+    end
+    g.f(xs...)
+end
+(g::Graph)(xs...) = g(map(constant,xs)...)
+
+function Graph(top::Var)
+    @assert top.data == nothing
+    nodes = topsort(top)
+    node2id = Dict(nodes[i]=>i for i=1:length(nodes))
     for node in nodes
-        exprs = map(node.args) do n
-            typeof(n) == GraphNode ? dict[n] : n
-        end
-        dict[node] = Expr(:call, exprs...)
-    end
-    expr = Expr(:->, Expr(:tuple, args...), dict[nodes[end]]) # create anonymous function
-    f = eval(expr)
-    Graph(nodes, f)
-end
-
-(g::Graph)(x...) = g.f(x...)
-
-Base.length(g::Graph) = length(g.nodes)
-Base.getindex(g::Graph, key::Int) = g.nodes[key]
-Base.setindex!(g::Graph, value::GraphNode, key::Int) = g.nodes[key] = value
-
-macro graph(expr)
-    local dict = ObjectIdDict()
-    local syms = Symbol[]
-    bottomup(expr) do ex
-        if ex.head == :call
-            unshift!(ex.args, :(Merlin.GraphNode))
-        end
-        if ex.head == :quote && length(ex.args) == 1
-            local s = ex.args[1]
-            if typeof(s) == Symbol && !haskey(dict, s)
-                dict[s] = s
-                push!(syms, s)
-            end
-        end
-    end
-    quote
-        local top = $(esc(expr))
-        Graph(topsort(top), $syms)
-    end
-end
-
-function bottomup{T}(f, node::T)
-    for arg in node.args
-        typeof(arg) == T && bottomup(f, arg)
-    end
-    f(node)
-end
-
-function h5convert(x::Graph)
-    dict = h5dict(Graph)
-    argdict = ObjectIdDict()
-    for i = 1:length(x)
-        d = Dict{String,Any}()
-        dict[string(i)] = d
-        for j = 1:length(x[i])
-            n = x[i][j]
-            if typeof(n) == GraphNode
-                d[string(j)] = Dict("#NODE"=>argdict[n])
-            else
-                d[string(j)] = h5convert(n)
-            end
-        end
-        argdict[x[i]] = i
-    end
-    dict
-end
-
-function h5load!(::Type{Graph}, data::Dict)
-    nodes = GraphNode[]
-    for (k,v) in data
-        args = h5load!(Vector{Any}, v)
-        id = parse(Int, k)
-        while id > length(nodes)
-            push!(nodes, GraphNode())
-        end
-        nodes[id] = GraphNode(args...)
-    end
-    for node in nodes
-        for i = 1:length(node)
-            typeof(node[i]) <: Dict || continue
-            haskey(node[i], "#NODE") || continue
-            id = node[i]["#NODE"]
-            node[i] = nodes[id]
+        node.args = map(node.args) do arg
+            typeof(arg) == Var ? Var(node2id[arg],nothing) : arg
         end
     end
     Graph(nodes)
 end
+
+function compile(nodes::Vector{Var})
+    calls = []
+    for node in nodes
+        if isempty(node.args)
+            x = node.data == nothing ? gensym() : node
+            push!(calls, x)
+        else
+            args = map(node.args) do arg
+                typeof(arg) == Var ? calls[arg.data] : arg
+            end
+            push!(calls, Expr(:call, args...))
+        end
+    end
+    syms = filter(x -> typeof(x) == Symbol, calls)
+    expr = Expr(:->, Expr(:tuple, syms...), calls[end])
+    eval(expr)
+end
+
+h5object(g::Graph) = h5object(g.nodes)
+h5load(::Type{Graph}, x) = Graph(h5load(Vector{Var},x))

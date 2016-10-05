@@ -3,9 +3,9 @@ export relu
 """
     relu(x::Var)
 """
-function relu(x::Var)
+@graph function relu(x::Var)
     y = relu(x.data)
-    df(gy) = hasgrad(x) && ∇relu!(x.data, x.grad, y, gy)
+    df(gy) = isconst(x) || ∇relu!(x.data, x.grad, y, gy)
     Var(y, [x], relu, df)
 end
 
@@ -18,6 +18,8 @@ function relu{T}(x::Array{T})
 end
 
 relu(x::CuArray) = CUDNN.activation!(CUDNN_ACTIVATION_RELU, x, similar(x))
+
+∇relu!(y::Var) = ∇relu!(y[1].data, y[1].grad, y.data, y.grad)
 
 function ∇relu!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
     @inbounds @simd for i = 1:length(x)

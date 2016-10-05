@@ -1,19 +1,16 @@
 using Merlin
 using MLDatasets
 
-function create_model()
+function model()
     T = Float32
     h = 1000 # hidden vector size
-    ls = [Linear(T,784,h), Linear(T,h,h), Linear(T,h,10)]
-    @graph begin
-        x = :x
-        x = ls[1](x)
-        x = relu(x)
-        x = ls[2](x)
-        x = relu(x)
-        x = ls[3](x)
-        x
-    end
+    x = Var()
+    x = Linear(T,784,h)(x)
+    x = relu(x)
+    x = Linear(T,h,h)(x)
+    x = relu(x)
+    x = Linear(T,h,10)(x)
+    Graph(x)
 end
 
 function flatten(xs::Vector{Vector{Int}})
@@ -45,10 +42,12 @@ function main()
     xtests = [constant(Matrix{Float32}(xtest[:,(i-1)*100+1:i*100])) for i=1:100]
     ytests = [ytest[(i-1)*100+1:i*100] for i = 1:100]
 
-    nn = create_model()
+    nn = model()
+    # nn = Merlin.load("mnist.h5", "3")
+    opt = SGD(0.01)
     for epoch = 1:20
         println("Epoch: $(epoch)")
-        loss = fit(xtrains, ytrains, nn, crossentropy, SGD(0.01))
+        loss = fit(xtrains, ytrains, nn, crossentropy, opt)
         println("Loss: $(loss)")
         # predict
         zs = map(xtests) do x
@@ -57,6 +56,7 @@ function main()
         end
         acc = accuracy(ytests, zs)
         println("Test accuracy: $(acc)")
+        Merlin.save("mnist.h5", string(epoch), nn)
     end
 end
 

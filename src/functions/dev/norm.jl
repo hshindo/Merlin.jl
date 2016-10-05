@@ -1,9 +1,9 @@
 import Base.vecnorm
 
-function vecnorm(x::Var, p=1)
+@graph function vecnorm(x::Var, p=1)
     y = vecnorm(x.data, p)
-    df(gy) = hasgrad(x) && ∇vecnorm!(x, p, x.grad, gy)
-    Var(y, [x], vecnorm, df)
+    df(gy) = isconst(x) || ∇vecnorm!(x, p, x.grad, gy)
+    Var(y, [x], df)
 end
 
 function vecnorm{T}(x::Array{T}, p)

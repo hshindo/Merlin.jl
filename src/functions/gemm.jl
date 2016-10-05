@@ -12,7 +12,7 @@ C = alpha * tA(A) * tB(B)
 * tA: transpose ('T') or not ('N'). default: 'N'
 * tB: the same as tA
 """
-function gemm(tA, tB, alpha, A::Var, B::Var)
+@graph function gemm(tA, tB, alpha, A::Var, B::Var)
     C = gemm(tA, tB, alpha, A.data, B.data)
     function df(gC)
         ∇gemm!(tA, tB, alpha, A.data, A.grad, B.data, B.grad, C, gC)

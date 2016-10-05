@@ -1,6 +1,7 @@
 module Merlin
 
 using Base.LinAlg.BLAS
+using JLD
 using HDF5
 
 abstract Functor
@@ -38,7 +39,6 @@ for name in [
     "add",
     "argmax",
     "axsum",
-    "batchnorm",
     "concat",
     "conv",
     "crossentropy",
@@ -48,15 +48,12 @@ for name in [
     "gemm",
     "getindex",
     "gru",
-    "kl_divergence",
     "linear",
     "log",
     "logsoftmax",
-    "lrn",
     "max",
     "maxpooling",
     "multiply",
-    #"norm",
     "relu",
     "reshape",
     "sigmoid",

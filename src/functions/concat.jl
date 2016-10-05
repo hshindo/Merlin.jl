@@ -31,12 +31,14 @@ function concat(dim::Int, xs::Vector{Var})
     df(gy) = ∇concat!(dim, xs, gy)
     Var(y, xs, concat, df)
 end
-concat(dim::Int, xs::Var...) = concat(dim, Var[xs...])
+@graph concat(dim::Int, x1::Var, x2::Var) = concat(dim, [x1,x2])
+@graph concat(dim::Int, x1::Var, x2::Var, x3::Var) = concat(dim, [x1,x2,x3])
 
 function ∇concat!(dim::Int, xs::Vector{Var}, gy::UniArray)
     range = [1:size(gy,i) for i=1:ndims(gy)]
     offset = 1
     for x in xs
+        isconst(x) && continue
         s = size(x.data, dim)
         range[dim] = offset:(offset+s-1)
         x.grad += view(gy, range...)

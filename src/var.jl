@@ -1,4 +1,4 @@
-export Var, constant, isconstant
+export Var, constant, isconst
 
 """
     Var
@@ -6,10 +6,10 @@ export Var, constant, isconstant
 `Var` is a variable type. It contains the following members:
 
 * data
-* grad
-* args::Vector{Var}
+* args::Vector
 * f
 * df
+* grad
 
 To create an instance of `Var`, use
 * Var(data)
@@ -18,19 +18,37 @@ To create an instance of `Var`, use
 type Var
     data
     grad
-    args::Vector{Var}
+    args::Vector
     f
     df
 end
 
 Var(data, args, f, df) = Var(data, nothing, args, f, df)
-Var(data, grad) = Var(data, grad, Var[], nothing, nothing)
-Var(data) = Var(data, zeros(data))
+Var(data, grad) = Var(data, grad, [], nothing, nothing)
+Var{T<:Real}(data::Array{T}) = Var(data, zeros(data))
+Var(data::Real) = Var(data, zero(data))
+Var(data) = Var(data, nothing)
+Var() = Var(nothing)
+constant(data) = Var(data, nothing)
 
-hasgrad(v::Var) = v.grad != nothing
+Base.isconst(v::Var) = v.grad == nothing
+Base.getindex(v::Var, key::Int) = v.args[key]
+Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
 
-constant(data) = Var(data)
-isconstant(v::Var) = v.grad == nothing
+function topsort(top::Var)
+    sorted = Var[]
+    dict = ObjectIdDict()
+    function visit(var::Var)
+        haskey(dict, var) && return
+        dict[var] = var
+        for arg in var.args
+            typeof(arg) == Var && visit(arg)
+        end
+        push!(sorted, var)
+    end
+    visit(top)
+    sorted
+end
 
-h5convert(x::Var) = h5dict(Var, "data"=>h5convert(x.data))
-h5load!(::Type{Var}, data::Dict) = Var(data["data"])
+#h5object(x::Var) = Dict("data"=>x.data, "grad"=>x.grad, "args"=>x.args)
+#h5load(::Type{Var}, x::Dict) = Var(x["data"], x["args"], nothing, nothing)

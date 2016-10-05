@@ -3,9 +3,9 @@ export sigmoid
 """
     sigmoid(x::Var)
 """
-function sigmoid(x::Var)
+@graph function sigmoid(x::Var)
     y = sigmoid(x.data)
-    df(gy) = hasgrad(x) && ∇sigmoid!(x.data, x.grad, y, gy)
+    df(gy) = isconst(x) || ∇sigmoid!(x.data, x.grad, y, gy)
     Var(y, [x], sigmoid, df)
 end
 

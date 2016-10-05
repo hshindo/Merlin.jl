@@ -7,13 +7,10 @@ end
 
 Embedding(ws::Vector{Var}) = Embedding(ws, IntSet())
 
-function Embedding(w::Matrix)
-    n = size(w,1)
-    ws = Array(Var, size(w,2))
-    for i = 1:length(ws)
-        ws[i] = Var(w[(i-1)*n+1:i*n])
-    end
-    Embedding(ws)
+function Embedding{T}(ws::Vector{Vector{T}})
+    n = length(ws[1])
+    @assert all(w -> length(w) == n, ws)
+    Embedding(map(w -> Var(w), ws), IntSet())
 end
 
 """
@@ -47,7 +44,7 @@ function Embedding(path, T::Type)
     Embedding(ws)
 end
 
-function (f::Embedding)(x::Var)
+@graph function (f::Embedding)(x::Var)
     y = embedding(f.ws, x.data)
     function df(gy)
         ∇embedding!(f.ws, x.data, gy)
@@ -57,7 +54,6 @@ function (f::Embedding)(x::Var)
     end
     Var(y, [x], f, df)
 end
-(f::Embedding)(x::AbstractArray) = f(constant(x))
 
 function embedding(ws::Vector{Var}, x::Array{Int})
     T = eltype(ws[1].data)
@@ -94,15 +90,21 @@ function update!(f::Embedding, opt)
 end
 
 function h5convert(f::Embedding)
-    n = length(f.ws[1].data)
-    w = similar(f.ws[1].data, length(f.ws[1].data), length(f.ws))
-    for i = 1:length(f.ws)
-        copy!(w, (i-1)*n+1, f.ws[i].data, 1, n)
-    end
-    h5dict(Embedding, "w"=>w)
+    ws = map(w -> w.data, f.ws)
+    w = concat(2, data)
+    Dict("w" => w)
 end
 
-h5load!(::Type{Embedding}, data) = Embedding(data["w"])
+function h5load(::Type{Embedding}, x)
+    w = x["w"]
+    ws = Array(eltype(w), size(w,2))
+    n = size(w, 1)
+    for i = 1:length(ws)
+        s = (i-1) * n + 1
+        ws[i] = w[s:s+n-1]
+    end
+    Embedding(ws)
+end
 
 export quantize!
 function quantize!(f::Embedding)
