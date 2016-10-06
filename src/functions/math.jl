@@ -24,9 +24,9 @@ y = Var([1.,2.,3.]) + 4.0
 See `+` for examples.
 """
 @graph -(x1::Var, x2::Var) = sum([1.0,-1.0], [x1,x2])
+@graph -(x::Var) = sum([-1.0], [x])
 -(a::Number, x::Var) = constant(a) - x
 -(x::Var, a::Number) = x - constant(a)
-@graph -(x::Var) = sum([-1.0], [x])
 
 """
     \*(x1::Var, x2::Var)
