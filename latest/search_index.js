@@ -57,14 +57,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Merlin.axsum",
-    "page": "Functions",
-    "title": "Merlin.axsum",
-    "category": "Function",
-    "text": "axsum\n\ny = sum_i a_i cdot x_i\n\nwhere a_i is a scalar and x is scholar or vector. Every operation is broadcasted.\n\n\n\n"
-},
-
-{
     "location": "functions.html#Merlin.concat",
     "page": "Functions",
     "title": "Merlin.concat",
@@ -205,7 +197,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.sum",
     "category": "Function",
-    "text": "sum(x, dim::Int)\n\nCompute the sum along the given dimensions.\n\n\n\n"
+    "text": "sum(x::Var, dim::Int)\n\nCompute the sum along the given dimension.\n\n\n\nsum(as::Vector{Float64}, xs::Vector{Var})\n\ny=sum_ia_ix_i\n\nwhere a_i is a scalar and x is a scholar or n-dimensional array. The size of each x might be different. In such a case, the add operation is broadcasted.\n\n👉 Example\n\nas = rand(10)\nxs = [Var(rand(Float32,4,3)) for i=1:10]\ny = sum(as, xs)\n\n\n\n"
 },
 
 {
@@ -237,7 +229,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Functions",
     "category": "section",
-    "text": "+\n-\n*\n.*\naxsum\nconcat\nConv\ncrossentropy\ndropout\nexp\ngemm\ngetindex\nGRU\nLinear\nlog\nlogsoftmax\nmax\nmaxpooling\nrelu\nreshape\nsigmoid\nsoftmax\nsum\ntanh\ntranspose\nview"
+    "text": "+\n-\n*\n.*\nconcat\nConv\ncrossentropy\ndropout\nexp\ngemm\ngetindex\nGRU\nLinear\nlog\nlogsoftmax\nmax\nmaxpooling\nrelu\nreshape\nsigmoid\nsoftmax\nsum\ntanh\ntranspose\nview"
 },
 
 {
