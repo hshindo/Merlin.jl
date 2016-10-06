@@ -59,6 +59,7 @@ x = Var(rand(T,10,5))
 y = Linear(T,10,7)(x)
 y = relu(y)
 y = Linear(T,7,3)(y)
+
 gradient!(y)
 println(x.grad)
 ```
