@@ -4,8 +4,8 @@
 * For other complex objects, it is recommended to use `JLD.save` and `JLD.load` functions provided by [JLD.jl](https://github.com/JuliaIO/JLD.jl).
 
 ```@docs
-save
-load
+Merlin.save
+Merlin.load
 ```
 
 For example,

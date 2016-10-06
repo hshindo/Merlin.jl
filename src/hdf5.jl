@@ -17,9 +17,9 @@ end
 
 Load an object from Merlin HDF5 format.
 """
-function load(path::String, key::String)
+function load(path::String, name::String)
     h5open(path, "r") do h
-        h5load(h[key])
+        h5load(h[name])
     end
 end
 
