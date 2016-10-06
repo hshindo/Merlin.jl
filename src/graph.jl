@@ -28,12 +28,13 @@ end
 """
     Graph
 """
-type Graph <: Functor
+type Graph
     nodes::Vector{Var}
+    inputs::Vector{Int}
     f
 end
 
-Graph(nodes::Vector{Var}) = Graph(nodes, compile(nodes))
+Graph(nodes, inputs) = Graph(nodes, inputs, compile(nodes))
 
 function (g::Graph)(xs::Var...)
     for x in xs
@@ -43,16 +44,18 @@ function (g::Graph)(xs::Var...)
 end
 (g::Graph)(xs...) = g(map(constant,xs)...)
 
-function Graph(top::Var)
+function Graph(top::Var, inputs::Var...)
     @assert top.data == nothing
     nodes = topsort(top)
     node2id = Dict(nodes[i]=>i for i=1:length(nodes))
     for node in nodes
+        # convert var arg to Var(id)
         node.args = map(node.args) do arg
             typeof(arg) == Var ? Var(node2id[arg],nothing) : arg
         end
     end
-    Graph(nodes)
+    inputs = Int[node2id[inputs[i]] for i=1:length(inputs)]
+    Graph(nodes, inputs)
 end
 
 function compile(nodes::Vector{Var})
@@ -73,5 +76,5 @@ function compile(nodes::Vector{Var})
     eval(expr)
 end
 
-h5object(g::Graph) = h5object(g.nodes)
-h5load(::Type{Graph}, x) = Graph(h5load(Vector{Var},x))
+h5convert(g::Graph) = Dict("nodes"=>g.nodes, "inputs"=>g.inputs)
+h5convert(::Type{Graph}, x) = Graph(x["nodes"], x["inputs"])

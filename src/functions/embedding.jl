@@ -95,7 +95,7 @@ function h5convert(f::Embedding)
     Dict("w" => w)
 end
 
-function h5load(::Type{Embedding}, x)
+function h5convert(::Type{Embedding}, x)
     w = x["w"]
     ws = Array(eltype(w), size(w,2))
     n = size(w, 1)

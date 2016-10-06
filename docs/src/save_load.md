@@ -1,41 +1,34 @@
 # Save and Load
 `Merlin` supports saving and loading objects in HDF5 format.
+* For saving objects provided by Merlin, use `Merlin.save` and `Merlin.load` functions.
+* For other complex objects, it is recommended to use `JLD.save` and `JLD.load` functions provided by [JLD.jl](https://github.com/JuliaIO/JLD.jl).
 
-## Save
 ```@docs
-h5save
+Merlin.save
+Merlin.load
 ```
 
 For example,
 ```julia
 x = Embeddings(Float32,10000,100)
-h5save("<filename>.h5", x)
+Merlin.save("embedding.h5", "w", "x", x)
 ```
 
 A graph structure can be saved as well:
 ```julia
 T = Float32
-ls = [Linear(T,10,7), Linear(T,7,3)]
-g = @graph begin
-    x = ls[1](:x)
-    x = relu(x)
-    x = ls[2](x)
-    x
-end
-h5save("<filename>.h5", g)
+x = Var()
+y = Linear(T,10,7)(x)
+y = relu(y)
+y = Linear(T,7,3)(y)
+g = Graph(y, x)
+Merlin.save("graph.h5", "g", g)
 ```
 
 The saved HDF5 file is as follows:
-<p><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/sample.h5.png"></p>
 
-## Load
-```@docs
-h5load
-```
+![graph.h5](https://raw.githubusercontent.com/hshindo/Merlin.jl/master/docs/src/assets/graph.h5.png)
 
-## Saving Your Own Objects
-It requires to implement `h5convert` and `h5load!` functions.
-
-```@docs
-h5dict
-```
+## Custom Serialization
+It requires to implement `h5convert` function for custom serialization/deserialization.
+See Merlin sources for details.

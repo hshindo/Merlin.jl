@@ -76,11 +76,14 @@ y = relu(y)
 y = Linear(T,7,3)(y)
 @assert y.data == nothing
 
-f = Graph(y) # compile the network structure
+f = Graph(y, x) # compile the network structure
 x = constant(rand(T,10,10))
 y = f(x)
 ```
-More examples can be found in the [`examples`](examples/).
+where `Graph(y, x)` compiles the output variable: `y` and input variable: `x`, and create a `Graph` object.
+When the network structure is *static*, it is recommended to use this style.
+
+More examples can be found in [`examples`](examples/).
 
 <!---
 ### Example2: Recurrent Neural Network (RNN)
@@ -117,7 +120,7 @@ f = begin
     y = Linear(T,10,7)(x)
     y = relu(y)
     y = Linear(T,7,3)(y)
-    Graph(y)
+    Graph(y, x)
 end
 
 opt = SGD(0.0001)
