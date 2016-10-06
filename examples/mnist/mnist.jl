@@ -5,12 +5,12 @@ function model()
     T = Float32
     h = 1000 # hidden vector size
     x = Var()
-    x = Linear(T,784,h)(x)
-    x = relu(x)
-    x = Linear(T,h,h)(x)
-    x = relu(x)
-    x = Linear(T,h,10)(x)
-    Graph(x)
+    y = Linear(T,784,h)(x)
+    y = relu(y)
+    y = Linear(T,h,h)(y)
+    y = relu(y)
+    y = Linear(T,h,10)(y)
+    Graph(y, x)
 end
 
 function flatten(xs::Vector{Vector{Int}})
@@ -43,8 +43,8 @@ function main()
     ytests = [ytest[(i-1)*100+1:i*100] for i = 1:100]
 
     nn = model()
-    # nn = Merlin.load("mnist.h5", "3")
-    opt = SGD(0.01)
+    #nn = Merlin.load("mnist.h5", "3")
+    opt = SGD(0.005)
     for epoch = 1:20
         println("Epoch: $(epoch)")
         loss = fit(xtrains, ytrains, nn, crossentropy, opt)
@@ -56,7 +56,7 @@ function main()
         end
         acc = accuracy(ytests, zs)
         println("Test accuracy: $(acc)")
-        Merlin.save("mnist.h5", string(epoch), nn)
+        Merlin.save("mnist.h5", epoch==1 ? "w" : "r+", string(epoch), nn)
     end
 end
 

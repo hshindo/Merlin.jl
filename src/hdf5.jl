@@ -1,37 +1,55 @@
-h5object(x::Symbol) = string(x)
-h5object(x::Void) = string(x)
-h5object(x::DataType) = string(x)
-h5object(x::Vector) = Dict(i=>x[i] for i=1:length(x))
-h5object(x::Tuple) = h5object([x...])
-h5object(x) = Dict(name=>getfield(x, name) for name in fieldnames(x))
+"""
+    save(path::String, mode::String, name::String, obj)
 
-h5load(::Type{Symbol}, x) = parse(x)
-h5load(::Type{Void}, x) = nothing
-h5load(::Type{DataType}, x) = eval(parse(x))
-h5load{T<:Tuple}(::Type{T}, x) = tuple(h5load(Vector,x)...)
-function h5load{T<:Vector}(::Type{T}, x::Dict)
+Save an object in Merlin HDF5 format.
+* mode: "w" (overrite) or "r+" (append)
+"""
+function save(path::String, mode::String, name::String, obj)
+    mkpath(dirname(path))
+    h5open(path, mode) do h
+        h5save(h, name, obj)
+    end
+    nothing
+end
+
+"""
+    load(path::String, name::String)
+
+Load an object from Merlin HDF5 format.
+"""
+function load(path::String, key::String)
+    h5open(path, "r") do h
+        h5load(h[key])
+    end
+end
+
+h5convert(x::Symbol) = string(x)
+h5convert(::Type{Symbol}, x) = parse(x)
+
+h5convert(x::Void) = string(x)
+h5convert(::Type{Void}, x) = nothing
+
+h5convert(x::DataType) = string(x)
+h5convert(::Type{DataType}, x) = eval(parse(x))
+
+h5convert(x::Vector) = Dict(i=>x[i] for i=1:length(x))
+function h5convert{T<:Vector}(::Type{T}, x::Dict)
     vec = Array(eltype(T), length(x))
     for (k,v) in x
         vec[parse(Int,k)] = v
     end
     vec
 end
-function h5load(T, x)
+
+h5convert(x::Tuple) = h5convert([x...])
+h5convert{T<:Tuple}(::Type{T}, x) = tuple(h5load(Vector,x)...)
+
+h5convert(x::Function) = throw("Saving a function object is not supported. Override `h5convert`.")
+
+h5convert(x) = Dict(name=>getfield(x, name) for name in fieldnames(x))
+function h5convert(T, x)
     values = map(name -> x[string(name)], fieldnames(T))
     T(values...)
-end
-
-function save(path::String, key::String, obj)
-    mkpath(dirname(path))
-    # Since HDF5 doesn't support 'a' option, emulate it.
-    if !isfile(path)
-        h5open(path, "w") do h end
-    end
-
-    h5open(path, "r+") do h
-        h5save(h, key, obj)
-    end
-    nothing
 end
 
 function h5save{T}(group, key::String, obj::T)
@@ -41,7 +59,7 @@ function h5save{T}(group, key::String, obj::T)
     elseif T <: Function
         h5save(group, key, Symbol(obj))
     else
-        h5obj = h5object(obj)
+        h5obj = h5convert(obj)
         if typeof(h5obj) <: Dict
             g = g_create(group, key)
             attrs(g)["#JULIA_TYPE"] = string(T)
@@ -55,12 +73,6 @@ function h5save{T}(group, key::String, obj::T)
     end
 end
 
-function load(path::String, key::String)
-    h5open(path, "r") do h
-        h5load(h[key])
-    end
-end
-
 function h5load(group::HDF5Group)
     dict = Dict()
     for name in names(group)
@@ -68,7 +80,7 @@ function h5load(group::HDF5Group)
     end
     attr = read(attrs(group), "#JULIA_TYPE")
     T = eval(parse(attr))
-    h5load(T, dict)
+    h5convert(T, dict)
 end
 
 function h5load(dataset::HDF5Dataset)
@@ -76,7 +88,7 @@ function h5load(dataset::HDF5Dataset)
     if exists(attrs(dataset), "#JULIA_TYPE")
         attr = read(attrs(dataset), "#JULIA_TYPE")
         T = eval(parse(attr))
-        h5load(T, data)
+        h5convert(T, data)
     else
         data
     end

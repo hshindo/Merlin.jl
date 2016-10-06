@@ -76,7 +76,7 @@ y = relu(y)
 y = Linear(T,7,3)(y)
 @assert y.data == nothing
 
-f = Graph(y) # compile the network structure
+f = Graph(y, x) # compile the network structure
 x = constant(rand(T,10,10))
 y = f(x)
 ```
@@ -117,7 +117,7 @@ f = begin
     y = Linear(T,10,7)(x)
     y = relu(y)
     y = Linear(T,7,3)(y)
-    Graph(y)
+    Graph(y, x)
 end
 
 opt = SGD(0.0001)

@@ -49,6 +49,3 @@ function topsort(top::Var)
     visit(top)
     sorted
 end
-
-#h5object(x::Var) = Dict("data"=>x.data, "grad"=>x.grad, "args"=>x.args)
-#h5load(::Type{Var}, x::Dict) = Var(x["data"], x["args"], nothing, nothing)
