@@ -36,6 +36,9 @@ end
 
 Graph(nodes, inputs) = Graph(nodes, inputs, compile(nodes))
 
+Base.getindex(g::Graph, key::Int) = g.nodes[key]
+Base.setindex!(g::Graph, value::Var, key::Int) = g.nodes[key] = value
+
 function (g::Graph)(xs::Var...)
     for x in xs
         x.data == nothing && return Var(nothing, [g, xs...], nothing)

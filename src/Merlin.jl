@@ -35,9 +35,7 @@ include("native.jl")
 include("hdf5.jl")
 
 for name in [
-    "add",
     "argmax",
-    "axsum",
     "concat",
     "conv",
     "crossentropy",
@@ -50,9 +48,9 @@ for name in [
     "linear",
     "log",
     "logsoftmax",
+    "math",
     "max",
     "maxpooling",
-    "multiply",
     "relu",
     "reshape",
     "sigmoid",

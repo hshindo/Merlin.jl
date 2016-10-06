@@ -56,11 +56,10 @@ using Merlin
 
 T = Float32
 x = Var(rand(T,10,5))
-f1 = Linear(T,10,7)
-f2 = Linear(T,7,3)
-y = f1(x)
+y = Linear(T,10,7)(x)
 y = relu(y)
-y = f2(y)
+y = Linear(T,7,3)(y)
+
 gradient!(y)
 println(x.grad)
 ```

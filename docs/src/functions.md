@@ -5,7 +5,6 @@
 -
 *
 .*
-axsum
 concat
 Conv
 crossentropy
