@@ -293,31 +293,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Save and Load",
     "title": "Save and Load",
     "category": "section",
-    "text": "Merlin supports saving and loading objects in HDF5 format."
+    "text": "Merlin supports saving and loading objects in HDF5 format.For saving objects provided by Merlin, use Merlin.save and Merlin.load functions.\nFor other complex objects, it is recommended to use JLD.save and JLD.load functions provided by JLD.jl.save\nloadFor example,x = Embeddings(Float32,10000,100)\nMerlin.save(\"embedding.h5\", \"w\", \"x\", x)A graph structure can be saved as well:T = Float32\nx = Var()\ny = Linear(T,10,7)(x)\ny = relu(y)\ny = Linear(T,7,3)(y)\ng = Graph(y, x)\nMerlin.save(\"graph.h5\", \"g\", g)The saved HDF5 file is as follows: <p><img src=\"https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/graph.h5.png\"></p>"
 },
 
 {
-    "location": "save_load.html#Save-1",
+    "location": "save_load.html#Custom-Serialization-1",
     "page": "Save and Load",
-    "title": "Save",
+    "title": "Custom Serialization",
     "category": "section",
-    "text": "h5saveFor example,x = Embeddings(Float32,10000,100)\nh5save(\"<filename>.h5\", x)A graph structure can be saved as well:T = Float32\nls = [Linear(T,10,7), Linear(T,7,3)]\ng = @graph begin\n    x = ls[1](:x)\n    x = relu(x)\n    x = ls[2](x)\n    x\nend\nh5save(\"<filename>.h5\", g)The saved HDF5 file is as follows: <p><img src=\"https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/sample.h5.png\"></p>"
-},
-
-{
-    "location": "save_load.html#Load-1",
-    "page": "Save and Load",
-    "title": "Load",
-    "category": "section",
-    "text": "h5load"
-},
-
-{
-    "location": "save_load.html#Saving-Your-Own-Objects-1",
-    "page": "Save and Load",
-    "title": "Saving Your Own Objects",
-    "category": "section",
-    "text": "It requires to implement h5convert and h5load! functions.h5dict"
+    "text": "It requires to implement h5convert function for custom serialization/deserialization. See Merlin sources for details."
 },
 
 ]}
