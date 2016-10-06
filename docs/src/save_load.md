@@ -26,7 +26,8 @@ Merlin.save("graph.h5", "g", g)
 ```
 
 The saved HDF5 file is as follows:
-<p><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/graph.h5.png"></p>
+
+<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/graph.h5.png"></p>
 
 ## Custom Serialization
 It requires to implement `h5convert` function for custom serialization/deserialization.
