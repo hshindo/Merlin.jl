@@ -6,11 +6,11 @@ include("iddict.jl")
 function model(nvocabs::Int)
     T = Float32
     x = Var()
-    x = Embedding(T,nvocabs,100)(x)
-    x = Linear(T,300,100)(x)
-    x = relu(x)
-    x = Linear(T,100,nvocabs)(x)
-    Graph(x)
+    y = Embedding(T,nvocabs,100)(x)
+    y = Linear(T,300,100)(y)
+    y = relu(y)
+    y = Linear(T,100,nvocabs)(y)
+    Graph(y, x)
 end
 
 function train()
