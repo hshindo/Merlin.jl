@@ -37,7 +37,6 @@ include("hdf5.jl")
 for name in [
     "add",
     "argmax",
-    "axsum",
     "concat",
     "conv",
     "crossentropy",
