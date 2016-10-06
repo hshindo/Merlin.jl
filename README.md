@@ -80,7 +80,10 @@ f = Graph(y, x) # compile the network structure
 x = constant(rand(T,10,10))
 y = f(x)
 ```
-More examples can be found in the [`examples`](examples/).
+where `Graph(y, x)` compiles the output variable: `y` and input variable: `x`, and create a `Graph` object.
+When the network structure is *static*, it is recommended to use this style.
+
+More examples can be found in [`examples`](examples/).
 
 <!---
 ### Example2: Recurrent Neural Network (RNN)
