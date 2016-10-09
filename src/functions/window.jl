@@ -6,12 +6,6 @@ immutable Window{N}
     pads::Tuple{Vararg{Int,N}}
 end
 
-function Window{N}(dims::Tuple{Vararg{Int,N}}, stride, pad)
-    strides = typeof(stride) == Int ? ntuple(_ -> stride, N) : stride
-    pads = typeof(pad) == Int ? ntuple(_ -> pad, N) : pad
-    Window(dims, strides, pads)
-end
-
 Base.size(w::Window) = w.dims
 Base.size(w::Window, i::Int) = w.dims[i]
 Base.size(x::AbstractArray, w::Window, i::Int) = (size(x,i) + 2*pad(w,i) - size(w,i)) ÷ stride(w,i) + 1
@@ -55,10 +49,12 @@ chandle(w::Window{2}, ::Type{Int64}) = WINDOW2D_I64
 ## 👉 Example
 ```julia
 x = Var(rand(Float32,10,5))
-y = window(x, (10,))
+y = window(x, (10,), strides=(1,), pads=(0,))
 ```
 """
-window(x, dims; stride=1, pad=0) = window(x, Window(dims,stride,pad))
+window(x, dims::Tuple{Int}; strides=(1,), pads=(0,)) = window(x, Window(dims,strides,pads))
+window(x, dims::Tuple{Int,Int}; strides=(1,1), pads=(0,0)) = window(x, Window(dims,strides,pads))
+window(x, dims::Tuple{Int,Int,Int}; strides=(1,1,1), pads=(0,0,0)) = window(x, Window(dims,strides,pads))
 
 @graph function window(x::Var, w::Window)
     y = window(x.data, w)
