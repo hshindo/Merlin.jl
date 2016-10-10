@@ -7,7 +7,7 @@ Stochastic Gradient Descent.
 
 ## Arguments
 * rate: learning rate
-* momentum: momentum coefficient
+* [momentum]: momentum coefficient
 """
 type SGD
     rate::Float64
@@ -32,6 +32,7 @@ function (opt::SGD){T}(data::AbstractArray{T}, grad::AbstractArray{T})
         BLAS.axpy!(T(opt.rate), grad, v)
         broadcast!(-, data, data, v)
     else
+        
         BLAS.axpy!(-T(opt.rate), grad, data)
     end
     fill!(grad, T(0))

@@ -5,7 +5,7 @@
 template <typename T>
 void window1d(T *x, T *y, int l, int w, int s, int p) {
     int yi = 0;
-    for (int i = -p; i <= l+p-w; i+= s) {
+    for (int i = -p; i <= l+p-w; i += s) {
         for (int j = i; j < i+w; j++) {
             int xi = j;
             y[yi] = (j >= 0 && j < l) ? x[xi] : 0;
@@ -33,10 +33,12 @@ void window2d(T *x, T *y, int l1, int l2, int w1, int w2, int s1, int s2, int p1
 
 template <typename T>
 void window1d_grad(T *gx, T *gy, int l, int w, int s, int p) {
-    for (int n = 0; n <= (l+2*p-w)/s; n++) {
-        for (int i = 0; i < w; i++) {
-            int k = -p + s * n + i;
-            if (k >= 0 && k < l) gx[k] += gy[w*n+i];
+    int yi = 0;
+    for (int i = -p; i <= l+p-w; i += s) {
+        for (int j = i; j < i+w; j++) {
+            int xi = j;
+            if (j >= 0 && j < l) gx[xi] += gy[yi];
+            yi++;
         }
     }
 }
