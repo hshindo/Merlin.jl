@@ -24,6 +24,7 @@ end
 
 function Linear(T::Type, indim::Int, outdim::Int)
     r = T(sqrt(6 / (indim+outdim)))
+    #r = T(0.01)
     w = rand(-r, r, outdim, indim)
     b = fill(T(0), outdim, 1)
     Linear(Var(w), Var(b))

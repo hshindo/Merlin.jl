@@ -27,6 +27,7 @@ y = f(x)
 """
 function Embedding(T::Type, indim::Int, outdim::Int)
     ws = Var[Var(rand(T,outdim)) for i=1:indim]
+    #ws = Var[Var(rand(T(-0.01),T(0.01),outdim)) for i=1:indim]
     Embedding(ws)
 end
 

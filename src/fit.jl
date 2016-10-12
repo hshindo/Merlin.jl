@@ -7,14 +7,19 @@ using ProgressMeter
 function fit(xs::Vector, ys::Vector, decode, lossfun, opt; progress=true)
     progress && (prog = Progress(length(xs)))
     loss = 0.0
+    fdict = ObjectIdDict()
     for i in randperm(length(xs))
+        empty!(fdict)
         x, y = xs[i], ys[i]
         z = decode(x)
         l = lossfun(y, z)
         loss += sum(l.data)
         vars = gradient!(l)
         for v in vars
-            typeof(v.f) <: Functor && update!(v.f, opt)
+            typeof(v.f) <: Functor || continue
+            haskey(fdict, v.f) && continue
+            fdict[v.f] = nothing
+            update!(v.f, opt)
         end
         progress && next!(prog)
     end

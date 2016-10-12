@@ -109,4 +109,7 @@ p = Var(rand(T,10,5))
 q = Var(rand(T,10,5))
 #@test checkgrad(()->kl_divergence(p,q), p, q)
 
+x = Var(rand(T,100))
+@test checkgrad(()->window(x,(30,),strides=(10,),pads=(10,)))
+
 end

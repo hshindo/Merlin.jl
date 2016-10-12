@@ -32,7 +32,7 @@ function (opt::SGD){T}(data::AbstractArray{T}, grad::AbstractArray{T})
         BLAS.axpy!(T(opt.rate), grad, v)
         broadcast!(-, data, data, v)
     else
-        
+        #println("$(size(grad)) $(sum(data)) $(sum(grad))")
         BLAS.axpy!(-T(opt.rate), grad, data)
     end
     fill!(grad, T(0))
