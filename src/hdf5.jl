@@ -42,7 +42,7 @@ function h5convert{T<:Vector}(::Type{T}, x::Dict)
 end
 
 h5convert(x::Tuple) = h5convert([x...])
-h5convert{T<:Tuple}(::Type{T}, x) = tuple(h5load(Vector,x)...)
+h5convert{T<:Tuple}(::Type{T}, x) = tuple(h5convert(Vector,x)...)
 
 h5convert(x::Function) = throw("Saving a function object is not supported. Override `h5convert`.")
 
@@ -79,7 +79,7 @@ function h5load(group::HDF5Group)
         dict[name] = h5load(group[name])
     end
     attr = read(attrs(group), "#JULIA_TYPE")
-    T = eval(parse(attr))
+    T = eval(current_module(), parse(attr))
     h5convert(T, dict)
 end
 
@@ -87,7 +87,7 @@ function h5load(dataset::HDF5Dataset)
     data = read(dataset)
     if exists(attrs(dataset), "#JULIA_TYPE")
         attr = read(attrs(dataset), "#JULIA_TYPE")
-        T = eval(parse(attr))
+        T = eval(current_module(), parse(attr))
         h5convert(T, data)
     else
         data
