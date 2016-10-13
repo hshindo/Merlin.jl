@@ -27,7 +27,6 @@ y = f(x)
 """
 function Embedding(T::Type, indim::Int, outdim::Int)
     ws = Var[Var(rand(T,outdim)) for i=1:indim]
-    #ws = Var[Var(rand(T(-0.01),T(0.01),outdim)) for i=1:indim]
     Embedding(ws)
 end
 
@@ -93,8 +92,8 @@ function update!(f::Embedding, opt)
 end
 
 function h5convert(f::Embedding)
-    ws = map(w -> w.data, f.ws)
-    concat(2, data)
+    data = map(w -> w.data, f.ws)
+    hcat(data...)
 end
 
 h5convert(::Type{Embedding}, w) = Embedding(w)
