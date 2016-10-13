@@ -6,10 +6,9 @@ function main()
     words = h5read(h5file, "s")
     wordembeds = Embedding(h5read(h5file,"v"))
     charembeds = Embedding(Float32,100,10)
-    charembeds.ws[1].data = zeros(charembeds.ws[1].data) # UNKNOWN char
 
     worddict = IntDict(words)
-    chardict = IntDict(["UNKNOWN"])
+    chardict = IntDict{String}()
     tagdict = IntDict{String}()
 
     traindata = CoNLL.read(".data/wsj_00-18.conll", 2, 5)
@@ -47,7 +46,6 @@ predict(model, data) = argmax(model(data).data, 1)
 function encode(data::Vector, worddict, chardict, tagdict, append::Bool)
     data_x, data_y = Vector{Token}[], Vector{Int}[]
     unkword = worddict["UNKNOWN"]
-    unkchar = chardict["UNKNOWN"]
     for sent in data
         push!(data_x, Token[])
         push!(data_y, Int[])
@@ -60,7 +58,7 @@ function encode(data::Vector, worddict, chardict, tagdict, append::Bool)
             if append
                 charids = map(c -> push!(chardict,string(c)), chars)
             else
-                charids = map(c -> get(chardict,string(c),unkchar), chars)
+                charids = map(c -> get(chardict,string(c),0), chars)
             end
             tagid = push!(tagdict, tag)
             token = Token(wordid, charids)
