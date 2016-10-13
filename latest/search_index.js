@@ -261,7 +261,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Optimizers",
     "title": "Merlin.SGD",
     "category": "Type",
-    "text": "SGD\n\nStochastic Gradient Descent.\n\nArguments\n\nrate: learning rate\nmomentum: momentum coefficient\n\n\n\n"
+    "text": "SGD\n\nStochastic Gradient Descent.\n\nArguments\n\nrate: learning rate\n[momentum]: momentum coefficient\n\n\n\n"
 },
 
 {
