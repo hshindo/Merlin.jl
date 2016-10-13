@@ -7,7 +7,7 @@ Stochastic Gradient Descent.
 
 ## Arguments
 * rate: learning rate
-* momentum: momentum coefficient
+* [momentum]: momentum coefficient
 """
 type SGD
     rate::Float64
@@ -15,7 +15,7 @@ type SGD
     states::ObjectIdDict
 end
 
-function SGD(rate; momentum=0.0)
+function SGD(rate=0.0; momentum=0.0)
     SGD(rate, momentum, ObjectIdDict())
 end
 

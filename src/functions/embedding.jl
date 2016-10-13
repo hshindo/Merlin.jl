@@ -7,10 +7,12 @@ end
 
 Embedding(ws::Vector{Var}) = Embedding(ws, IntSet())
 
-function Embedding{T}(ws::Vector{Vector{T}})
-    n = length(ws[1])
-    @assert all(w -> length(w) == n, ws)
-    Embedding(map(w -> Var(w), ws), IntSet())
+function Embedding{T}(w::Matrix{T})
+    ws = Array(Var, size(w,2))
+    for i = 1:length(ws)
+        ws[i] = Var(w[:,i])
+    end
+    Embedding(ws)
 end
 
 """
@@ -90,21 +92,11 @@ function update!(f::Embedding, opt)
 end
 
 function h5convert(f::Embedding)
-    ws = map(w -> w.data, f.ws)
-    w = concat(2, data)
-    Dict("w" => w)
+    data = map(w -> w.data, f.ws)
+    hcat(data...)
 end
 
-function h5convert(::Type{Embedding}, x)
-    w = x["w"]
-    ws = Array(eltype(w), size(w,2))
-    n = size(w, 1)
-    for i = 1:length(ws)
-        s = (i-1) * n + 1
-        ws[i] = w[s:s+n-1]
-    end
-    Embedding(ws)
-end
+h5convert(::Type{Embedding}, w) = Embedding(w)
 
 export quantize!
 function quantize!(f::Embedding)
