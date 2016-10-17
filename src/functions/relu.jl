@@ -12,7 +12,7 @@ end
 function relu{T}(x::Array{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
-        y[i] = max(x[i], T(0))
+        y[i] = min(max(x[i],T(0)), T(20)) # clipping
     end
     y
 end
@@ -23,7 +23,7 @@ relu(x::CuArray) = CUDNN.activation!(CUDNN_ACTIVATION_RELU, x, similar(x))
 
 function ∇relu!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
     @inbounds @simd for i = 1:length(x)
-        gx[i] += ifelse(x[i] > T(0), gy[i], T(0))
+        gx[i] += ifelse(T(0)<x[i]<T(20), gy[i], T(0))
     end
 end
 
