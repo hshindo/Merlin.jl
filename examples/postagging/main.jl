@@ -1,4 +1,5 @@
 using Merlin
+using MLDatasets
 using HDF5
 
 function main()
@@ -11,15 +12,20 @@ function main()
     chardict = IntDict{String}()
     tagdict = IntDict{String}()
 
-    traindata = CoNLL.read(".data/wsj_00-18.conll", 2, 5)
-    testdata = CoNLL.read(".data/wsj_22-24.conll", 2, 5)
+    traindata = UD_English.traindata(col=(2,5))
+    testdata = UD_English.testdata(col=(2,5))
+    #traindata = CoNLL.read(".data/wsj_00-18.conll", (2,5))
+    #testdata = CoNLL.read(".data/wsj_22-24.conll", (2,5))
+    info("# sentences of train data: $(length(traindata))")
+    info("# sentences of test data: $(length(testdata))")
+
     train_x, train_y = encode(traindata, worddict, chardict, tagdict, true)
     test_x, test_y = encode(testdata, worddict, chardict, tagdict, false)
     info("# words: $(length(worddict))")
     info("# chars: $(length(chardict))")
     info("# tags: $(length(tagdict))")
 
-    model = Model(wordembeds, charembeds)
+    model = Model(wordembeds, charembeds, length(tagdict))
     # model = Merlin.load("postagger.h5", "model")
     train(5, model, train_x, train_y, test_x, test_y)
 
@@ -84,7 +90,6 @@ function accuracy(golds::Vector{Vector{Int}}, preds::Vector{Vector{Int}})
 end
 
 include("intdict.jl")
-include("io.jl")
 include("token.jl")
 include("model.jl")
 
