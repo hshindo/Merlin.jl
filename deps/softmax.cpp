@@ -64,6 +64,7 @@ void logsoftmax(T *x, T *y, const int *dims) {
                 int idx = getindex(i, j, k, dims);
                 if (x[idx] > maxv) maxv = x[idx];
             }
+            if (maxv < 20.0) maxv = 0.0;
 
             T z = static_cast<T>(0);
             for (int k = 0; k < dims[1]; k++) {

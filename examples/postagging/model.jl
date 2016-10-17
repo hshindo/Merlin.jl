@@ -4,7 +4,7 @@ type Model
     sentfun
 end
 
-function Model(wordembeds, charembeds)
+function Model(wordembeds, charembeds, ntags::Int)
     T = Float32
 
     x = Var()
@@ -20,7 +20,7 @@ function Model(wordembeds, charembeds)
     y = window(y, (750,), strides=(150,), pads=(300,))
     y = Linear(T,750,300)(y)
     y = relu(y)
-    y = Linear(T,300,45)(y)
+    y = Linear(T,300,ntags)(y)
     sentfun = Graph(y, w, c)
 
     Model(wordembeds, charfun, sentfun)
