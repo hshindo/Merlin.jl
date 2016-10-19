@@ -1,44 +1,36 @@
 using Merlin
-using MLDatasets
 
-export CoNLL
-module CoNLL
-
-function read(f, path::String)
-    doc = []
-    sent = []
-    lines = open(readlines, path)
-    for line in lines
-        line = chomp(line)
-        if length(line) == 0
-            length(sent) > 0 && push!(doc, sent)
-            sent = []
-        else
-            items = Vector{String}(split(line,'\t'))
-            push!(sent, f(items))
-        end
-    end
-    length(sent) > 0 && push!(doc, sent)
-    T = typeof(doc[1][1])
-    Vector{Vector{T}}(doc)
-end
-read(path::String) = read(identity, path)
-
+type Token
+    form::Int
+    cat::Int
+    head::Int
 end
 
 function main()
-    traindata = CoNLL.read(x -> Token(x[2],x[5],), ".data/wsj_02-21.conll")
-    testdata = CoNLL.read(".data/wsj_23.conll")
-    train_x = map(s -> map(x -> x[2], s), traindata)
-    train_y = map(s -> map(x -> x[5], s), traindata)
-    test_x = map(s -> map(x -> x[2], s), testdata)
-    test_y = map(s -> map(x -> x[5], s), testdata)
-
     worddict = IntDict{String}()
     catdict = IntDict{String}()
+    #unkform = worddict["UNKNOWN"]
+    function encode(items::Vector{String})
+        form0 = replace(items[2], r"[0-9]", '0')
+        #formid = get(worddict, lowercase(form0), unkform)
+        formid = push!(worddict, lowercase(form0))
+        catid = push!(catdict, items[5])
+        head = parse(Int, items[7])
+        Token(formid, catid, head)
+    end
+    train_x = CoNLL.read(encode, ".data/wsj_02-21.conll")
+    test_x = CoNLL.read(encode, ".data/wsj_23.conll")
+
+    train_x = map(State, train_x)
+    test_x = map(State, test_x)
+    for s in train_x
+        beamsearch(s, 10, x->0.0)
+    end
 end
 
-#include("beamsearch.jl")
+include("intdict.jl")
+include("io.jl")
+include("beamsearch.jl")
 include("state.jl")
 
 main()

@@ -3,8 +3,12 @@ immutable Node{T}
     score::Float64
     prev::Node{T}
 
-    Node(state) = new(state, 0.0)
+    Node(state::T) = new(state, 0.0)
+    Node(state::T, score, prev) = new(state, score, prev)
 end
+
+Node{T}(state::T) = Node{T}(state)
+Node{T}(state::T, score, prev) = Node{T}(state, score, prev)
 
 lessthan{T}(x::Node{T}, y::Node{T}) = x.score > y.score
 
@@ -23,7 +27,7 @@ end
 """
     beamsearch
 """
-function beamsearch{T}(beamsize::Int, initstate::T, getscore)
+function beamsearch{T}(initstate::T, beamsize::Int, getscore)
     chart = Vector{Node{T}}[]
     push!(chart, [Node(initstate)])
 
@@ -32,12 +36,12 @@ function beamsearch{T}(beamsize::Int, initstate::T, getscore)
         nodes = chart[k]
         length(nodes) > beamsize && sort!(nodes, lt=lessthan)
         for i = 1:min(beamsize,length(nodes))
-            for state::T in next(nodes[i])
-                while state.step > length(chart)
+            for s::T in next(nodes[i].state)
+                while s.step > length(chart)
                     push!(chart, Node{T}[])
                 end
-                score = getscore(state) + nodes[i].score
-                push!(chart[state.step], Node(state,score,nodes[i]))
+                score = getscore(s) + nodes[i].score
+                push!(chart[s.step], Node(s,score,nodes[i]))
             end
         end
         k += 1
