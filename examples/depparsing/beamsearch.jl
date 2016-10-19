@@ -12,15 +12,14 @@ Node{T}(state::T, score, prev) = Node{T}(state, score, prev)
 
 lessthan{T}(x::Node{T}, y::Node{T}) = x.score > y.score
 
-function getseq{T}(node::Node{T})
+function sequence{T}(node::Node{T})::Vector{Node{T}}
     seq = Node{T}[]
     n = node
-    while true
+    while isdefined(n,:prev)
         unshift!(seq, n)
-        isdefined(s,:prev) || break
-        s = s.prev
+        n = n.prev
     end
-    unshift!(seq, s)
+    unshift!(seq, n)
     seq
 end
 
