@@ -1,22 +1,75 @@
-const Shift = 1
-const ReduceL = 2
-const ReduceR = 3
+module Actions
+    const shift = 1
+    const left = 2
+    const right = 3
+end
+
+type Token
+    form::Int
+    cat::Int
+    head::Int
+end
 
 type State
     tokens::Vector{Token}
     step::Int
     top::Int
-    right::Int
     left::State
-    lc::State
-    rc::State
+    right::Int
+    lch::State # left-most child
+    rch::State
 
-    State(tokens) = new(tokens, 1, 1, 2)
+    State() = new(Token[], 0)
 end
 
-Base.done(s::State) = isdefined(s,:left) && s.right == length(s.tokens)+1
+State(tokens::Vector{Token}) = State(tokens, 1, 1, State(), 2, State(), State())
+
+function State(s::State, act::Int)
+    top, left, right, lch, rch = begin
+        if act == Actions.shift
+            s.right, s, s.right+1, State(), State()
+        elseif act == Actions.left
+            s.top, s.left.left, s.right, s.left, s.right
+        elseif act == Actions.right
+            s.left.top, s.left.left, s.right, s.left.lch, s
+        else
+            throw("Invalid action: $(act)")
+        end
+    end
+    State(s.tokens, s.step+1, top, left, right, lch, rch)
+end
+
+Base.done(s::State) = s.step == 2 * (length(s.tokens)-1) + 1
+isnull(s::State) = s.step == 0
+
+function Base.next(state::State)::Vector{State}
+    done(state) && return State[]
+    if true
+        if isnull(s.left)
+            act = Actions.shift
+        else
+            tokens = state.tokens
+            s0, s1 = tokens[state.top], tokens[state.left.top]
+            if s1.head == state.top
+                act = Actions.left
+            elseif s0.head == state.left.top
+                reducable = all(i -> tokens[i].head != state.top, state.right:length(tokens))
+                act = reducable ? Actions.right : Actions.shift
+            elseif state.right <= length(tokens)
+                act = Actions.shift
+            else
+                throw("Invalid data.")
+            end
+        end
+        [State(state,)]
+    else
+        throw("error")
+    end
+end
 
 function Base.next(s::State, acts::Vector{Int})
+    s.step == 2 * (length(s.tokens)-1) + 1 && return []
+
     scores = s.scorefun(s, acts)
     states = State[]
     for i = 1:length(acts)
