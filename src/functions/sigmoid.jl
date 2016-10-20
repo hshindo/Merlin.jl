@@ -17,7 +17,7 @@ function sigmoid{T}(x::Array{T})
     y
 end
 
-sigmoid(x::CuArray) = CUDNN.activation!(CUDNN_ACTIVATION_SIGMOID, x, similar(x))
+sigmoid(x::CuArray) = CUDNN.activation(CUDNN_ACTIVATION_SIGMOID, x)
 
 function ∇sigmoid!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
     @inbounds @simd for i = 1:length(gx)
@@ -26,5 +26,5 @@ function ∇sigmoid!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
 end
 
 function ∇sigmoid!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-    CUDNN.∇activation!(CUDNN_ACTIVATION_SIGMOID, y, gy, x, gx, beta=1.0)
+    CUDNN.∇activation!(CUDNN_ACTIVATION_SIGMOID, y, gy, x, gx)
 end

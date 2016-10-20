@@ -1,6 +1,7 @@
+ENV["USE_CUDA"] = true
 using Base.Test
 using Merlin
-import Merlin.CuArray
+using JuCUDA
 
 include("check.jl")
 

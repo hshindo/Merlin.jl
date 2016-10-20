@@ -38,7 +38,7 @@ function ∇activation!(mode, y, dy, x, dx; relu_nanopt=CUDNN_NOT_PROPAGATE_NAN,
     xdesc = tensor_desc(x)
     dxdesc = tensor_desc(dx)
     cudnnActivationBackward(h, adesc, T[1], ydesc, y, dydesc, dy,
-        xdesc, x, T[0], dxdesc, dx)
+        xdesc, x, T[1], dxdesc, dx)
 
     cudnnDestroyActivationDescriptor(adesc)
     cudnnDestroyTensorDescriptor(ydesc)

@@ -9,7 +9,7 @@ import Base.tanh
     Var(y, [x], tanh, df)
 end
 
-tanh(x::CuArray) = CUDNN.activation!(CUDNN_ACTIVATION_TANH, x, similar(x))
+tanh(x::CuArray) = CUDNN.activation(CUDNN_ACTIVATION_TANH, x)
 
 function ∇tanh!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
     @inbounds @simd for i = 1:length(gx)
@@ -18,5 +18,5 @@ function ∇tanh!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
 end
 
 function ∇tanh!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-    CUDNN.∇activation!(CUDNN_ACTIVATION_TANH, y, gy, x, gx, beta=1.0)
+    CUDNN.∇activation!(CUDNN_ACTIVATION_TANH, y, gy, x, gx)
 end

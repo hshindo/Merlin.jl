@@ -1,4 +1,4 @@
-export Var, constant, isconst, gradient!
+export Var, constant, isconst, zerograd!, gradient!
 
 """
     Var
@@ -27,12 +27,14 @@ end
 Var(data, args, f, df) = Var(data, nothing, args, f, df)
 Var(data, grad) = Var(data, grad, [], nothing, nothing)
 Var{T<:Real}(data::Array{T}) = Var(data, zeros(data))
+Var{T<:Real}(data::CuArray{T}) = Var(data, zeros(data))
+
 Var(data::Real) = Var(data, zero(data))
 Var(data) = Var(data, nothing)
 Var() = Var(nothing)
 constant(data) = Var(data, nothing)
 
-zerograd!(v::Var) = 
+zerograd!(v::Var) = fill!(v.grad, 0)
 
 Base.isconst(v::Var) = v.grad == nothing
 Base.getindex(v::Var, key::Int) = v.args[key]

@@ -5,7 +5,7 @@ const T = Float32
 x = Var(rand(T,5,4))
 for f in [sigmoid, tanh]
     @test checkgrad(f, x)
-    #@test checkcuda(()->f(x), x)
+    @test checkcuda(f, x)
 end
 
 #=
