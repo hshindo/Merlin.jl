@@ -1,10 +1,12 @@
 export concat
 
 """
-    concat(dim::Int, xs::Var...)
+    concat(dim::Int, x1::Var, x2::Var)
+    concat(dim::Int, x1::Var, x2::Var, x3::Var)
     concat(dim::Int, xs::Vector{Var})
 
 Concatenate arrays along the given dimension.
+
 ```julia
 x1 = Var(rand(Float32,4,3))
 x2 = Var(rand(Float32,4,5))
