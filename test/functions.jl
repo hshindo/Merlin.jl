@@ -8,30 +8,32 @@ for f in [sigmoid, tanh]
     @test checkcuda(f, x)
 end
 
-#=
-x = Var(rand(T,5,4))
-for f in [sigmoid, tanh]
-    @test checkgrad(()->f(x), x)
-    #@test checkcuda(()->f(x), x)
-end
-
 x1 = Var(rand(T,10,5,2))
 x2 = Var(rand(T,10,5,2))
 x3 = Var(rand(T,10,5,2))
 for dim = 1:3
-    @test checkgrad(()->concat(dim,x1,x2,x3), x1,x2,x3)
+    @test checkgrad(concat, dim, x1, x2, x3)
 end
 
-x = Var(rand(T,5,4,3,2))
-f = Conv(T, (2,2), (3,4), stride=(1,1), paddims=(0,0))
-@test checkgrad(()->f(x), f.w, x)
-
-p = [1:5;]
-x = Var(rand(Float32,10,5))
-for dim = 1:1
-    @test checkgrad(()->crossentropy(p,x), x)
+for size in [(5,4),(7,5,4),(10,5,3,4)]
+    x = Var(rand(T,size...))
+    @test checkgrad(softmax, x)
+    @test checkgrad(logsoftmax, x)
+    @test checkcuda(softmax, x)
+    @test checkcuda(logsoftmax, x)
 end
 
+#x = Var(rand(T,5,4,3,2))
+#f = Conv(T, (2,2), (3,4), stride=(1,1), paddims=(0,0))
+#@test checkgrad(()->f(x), f.w, x)
+
+#p = [1:5;]
+#x = Var(rand(T,10,5))
+#for dim = 1:1
+#    @test checkgrad(()->crossentropy(p,x), x)
+#end
+
+#=
 x1 = Var(rand(T,10,5,3))
 x2 = Var(rand(T,5,10,3))
 x3 = Var(rand(T,10,5,3))

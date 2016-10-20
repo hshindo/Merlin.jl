@@ -1,3 +1,5 @@
+export checkgrad, checkcuda
+
 function checkgrad(f, args...; eps=1e-2)
     xs = filter(a -> typeof(a) == Var && !isconst(a), args)
     foreach(zerograd!, xs)
@@ -18,11 +20,12 @@ function checkgrad(f, args...; eps=1e-2)
         end
         gx
     end
-    foreach(i -> checkdiff(gxs1[i], gxs2[i], eps), 1:length(gxs1))
+    foreach(i -> checkdiff(gxs1[i],gxs2[i],eps), 1:length(gxs1))
     true
 end
 
 function checkcuda(f, args...; eps=1e-2)
+    USE_CUDA || return true
     xs = filter(a -> typeof(a) == Var && !isconst(a), args)
     foreach(zerograd!, xs)
     y = f(args...)
@@ -37,7 +40,7 @@ function checkcuda(f, args...; eps=1e-2)
     gradient!(cuy)
     cugxs = map(x -> Array(x.grad), xs)
     checkdiff(y.data, Array(cuy.data), eps)
-    foreach(i -> checkdiff(gxs[i], cugxs[i], eps), 1:length(gxs))
+    foreach(i -> checkdiff(gxs[i],cugxs[i],eps), 1:length(gxs))
 
     for x in xs
         x.data = Array(x.data)

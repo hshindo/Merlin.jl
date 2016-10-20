@@ -1,9 +1,5 @@
-ENV["USE_CUDA"] = true
 using Base.Test
 using Merlin
-using JuCUDA
-
-include("check.jl")
 
 tests = ["functions"]
 

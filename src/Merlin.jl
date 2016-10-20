@@ -11,15 +11,17 @@ else
     const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.so"))
 end
 
-if haskey(ENV, "USE_CUDA")
-    include("cuda/cudnn/CUDNN.jl")
+const USE_CUDA = try
     using JuCUDA
+    include("cuda/cudnn/CUDNN.jl")
     using .CUDNN
-else
-    info("CUDA is not loaded.")
+    true
+catch e
+    info(e)
     type CuArray{T,N}; end
     typealias CuVector{T} CuArray{T,1}
     typealias CuMatrix{T} CuArray{T,2}
+    false
 end
 
 typealias UniArray{T,N} Union{Array{T,N},SubArray{T,N},CuArray{T,N}}
@@ -32,6 +34,7 @@ include("graph.jl")
 include("fit.jl")
 include("native.jl")
 include("hdf5.jl")
+include("check.jl")
 
 for name in [
     "argmax",

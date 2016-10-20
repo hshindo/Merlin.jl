@@ -55,10 +55,10 @@ softmax(x::CuArray) = CUDNN.softmax(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_C
 
 logsoftmax(x::CuArray) = CUDNN.softmax(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, x)
 
-function ∇softmax!{T}(gx::Array{T}, y::Array{T}, gy::Array{T}, dim::Int)
+function ∇softmax!{T}(gx::Array{T}, y::Array{T}, gy::Array{T})
     h = ∇softmax_handle(T)
     dims = dim3d(y, ndims(y)-1)
-    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Ptr{Cint}), gx, y, gy, dims[1], dims[2], dims[3])
+    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), gx, y, gy, dims[1], dims[2], dims[3])
     y
 end
 

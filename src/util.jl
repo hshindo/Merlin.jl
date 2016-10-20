@@ -19,20 +19,6 @@ function pad(x::Array, N::Int)
     end
 end
 
-# Split the dimension of a ndarray into 3 parts.
-#=
-function splitdims(x::Array, dim::Int)
-    dims = Cint[1, size(x,dim), 1]
-    for i = 1:dim-1
-        dims[1] *= size(x, i)
-    end
-    for i = dim+1:ndims(x)
-        dims[3] *= size(x, i)
-    end
-    dims
-end
-=#
-
 function Base.rand{T<:AbstractFloat,N}(low::T, high::T, dims::NTuple{N,Int})
     Array{T,N}(rand(T,dims) * (high-low) + low)
 end
