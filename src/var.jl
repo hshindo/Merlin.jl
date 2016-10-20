@@ -1,15 +1,16 @@
-export Var, constant, isconst
+export Var, constant, isconst, gradient!
 
 """
     Var
 
-`Var` is a variable type. It contains the following members:
+`Var` is a type of variable. `Var` holds forward/backward information.
+It contains the following members:
 
-* data
-* args::Vector
-* f
-* df
-* grad
+* data: data value
+* grad: gradient value
+* args::Vector: arguments
+* f: function
+* df: diff function
 
 To create an instance of `Var`, use
 * Var(data)
@@ -47,5 +48,20 @@ function topsort(top::Var)
         push!(sorted, var)
     end
     visit(top)
+    sorted
+end
+
+function gradient!(top::Var)
+    sorted = topsort(top)
+    isconst(top) && (top.grad = ones(top.data))
+    for i = 1:length(sorted)-1 # excludes top
+        v = sorted[i]
+        (!isconst(v) || isempty(v.args)) && continue
+        v.grad = zeros(v.data)
+    end
+    for i = length(sorted):-1:1
+        v = sorted[i]
+        v.df == nothing || v.df(v.grad)
+    end
     sorted
 end

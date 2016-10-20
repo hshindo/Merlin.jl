@@ -15,7 +15,7 @@ y = crossentropy(p,x)
 ```
 """
 @graph function crossentropy(p, x::Var)
-    logx = logsoftmax(x.data, 1)
+    logx = logsoftmax(x.data)
     y = crossentropy(p, logx)
     df(gy) = isconst(x) || ∇crossentropy!(p, logx, x.grad, gy)
     Var(y, [x], crossentropy, df)

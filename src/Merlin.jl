@@ -29,7 +29,6 @@ include("interop/c/carray.jl")
 include("util.jl")
 include("var.jl")
 include("graph.jl")
-include("gradient.jl")
 include("fit.jl")
 include("native.jl")
 include("hdf5.jl")
@@ -47,7 +46,6 @@ for name in [
     "gru",
     "linear",
     "log",
-    "logsoftmax",
     "math",
     "max",
     "maxpooling",

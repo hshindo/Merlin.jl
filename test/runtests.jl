@@ -1,7 +1,8 @@
-using Merlin
 using Base.Test
-
+using Merlin
 import Merlin.CuArray
+
+include("check.jl")
 
 tests = ["functions"]
 

@@ -1,21 +1,8 @@
 export
-    CUDNN_SOFTMAX_FAST, CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_LOG, # algorithm
     CUDNN_SOFTMAX_MODE_INSTANCE, CUDNN_SOFTMAX_MODE_CHANNEL # mode
+    CUDNN_SOFTMAX_FAST, CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_LOG, # algorithm
 
-function softmax!{T}(x::CuArray{T}, mode, y::CuArray{T};
-  algo=CUDNN_SOFTMAX_ACCURATE, alpha=1.0, beta=0.0)
-
-  h = gethandle(device(x))
-  xdesc = tensor_desc(x)
-  ydesc = tensor_desc(y)
-  cudnnSoftmaxForward(h, algo, mode, T[alpha], xdesc, x, T[beta], ydesc, y)
-
-  cudnnDestroyTensorDescriptor(xdesc)
-  cudnnDestroyTensorDescriptor(ydesc)
-  y
-end
-
-function softmax(x, mode; algo=CUDNN_SOFTMAX_ACCURATE, alpha=1.0, beta=0.0)
+function softmax(algo, mode, x, alpha=1.0, beta=0.0)
     T = eltype(x)
     h = handle(x)
     y = similar(x)
@@ -28,7 +15,7 @@ function softmax(x, mode; algo=CUDNN_SOFTMAX_ACCURATE, alpha=1.0, beta=0.0)
     y
 end
 
-function ∇softmax!(mode, y, dy, dx; algo=CUDNN_SOFTMAX_ACCURATE, alpha=1.0, beta=0.0)
+function ∇softmax!(algo, mode, y, dy, dx, alpha=1.0, beta=0.0)
     T = eltype(y)
     h = handle(y)
     ydesc = tensor_desc(y)

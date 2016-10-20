@@ -1,37 +1,4 @@
-const T = Float64
-
-function checkcuda(f, xs::Var...)
-    eps = 1e-2
-    for x in xs
-        x.grad = zeros(x.data)
-    end
-    out = f()
-    y = copy(out.data)
-    gxs = map(v -> v.grad, gradient!(out))
-
-    for x in xs
-        x.data = CuArray(x.data)
-        x.grad = zeros(x.data)
-    end
-
-    out = f()
-    cuy = Array(out.data)
-    cugxs = map(v -> Array(v.grad), gradient!(out))
-
-    b = true
-    for i = 1:length(gxs)
-        diff = gxs[i] - cugxs[i]
-        if any(d -> abs(d) >= eps, diff)
-            println(diff)
-            b = false
-        end
-    end
-    for x in xs
-        x.data = Array(x.data)
-        x.grad = zeros(x.data)
-    end
-    b
-end
+const T = Float32
 
 @testset "functions" for i = 1:5
 
