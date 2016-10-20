@@ -18,5 +18,5 @@ function ∇tanh!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
 end
 
 function ∇tanh!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-    CUDNN.∇activation!(CUDNN_ACTIVATION_TANH, y, gy, x, gx)
+    CUDNN.∇activation!(CUDNN_ACTIVATION_TANH, y, gy, x, gx, beta=1.0)
 end

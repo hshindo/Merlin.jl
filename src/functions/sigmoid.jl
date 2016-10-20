@@ -26,5 +26,5 @@ function ∇sigmoid!{T}(x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
 end
 
 function ∇sigmoid!(x::CuArray, gx::CuArray, y::CuArray, gy::CuArray)
-    CUDNN.∇activation!(CUDNN_ACTIVATION_SIGMOID, y, gy, x, gx)
+    CUDNN.∇activation!(CUDNN_ACTIVATION_SIGMOID, y, gy, x, gx, beta=1.0)
 end
