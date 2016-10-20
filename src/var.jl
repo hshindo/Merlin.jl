@@ -32,6 +32,8 @@ Var(data) = Var(data, nothing)
 Var() = Var(nothing)
 constant(data) = Var(data, nothing)
 
+zerograd!(v::Var) = 
+
 Base.isconst(v::Var) = v.grad == nothing
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
