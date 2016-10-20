@@ -12,12 +12,15 @@ type State
     right::Int
     lch::State # left-most child
     rch::State
+    score::Float64
+    prev::State
 
     State() = new(Token[], 0)
-    State(tokens, step, top, left, right, lch, rch) = new(tokens, step, top, left, right, lch, rch)
+    State(tokens) = new(tokens, 1, 1, State(), 2, State(), State(), 0.0)
+    State(tokens, step, top, left, right, lch, rch) = new(tokens, step, top, left, right, lch, rch, 0.0, left)
 end
 
-State(tokens::Vector{Token}) = State(tokens, 1, 1, State(), 2, State(), State())
+#State(tokens::Vector{Token}) = State(tokens, 1, 1, State(), 2, State(), State())
 
 function State(s::State, act::Int)
     top, left, right, lch, rch = begin
@@ -36,34 +39,35 @@ end
 
 Base.done(s::State) = s.step == 2 * (length(s.tokens)-1) + 1
 
-isnull(s::State) = s.step == 0
+Base.isnull(s::State) = s.step == 0
 
-function Base.next(s::State)::Vector{State}
+function nextpred(s::State)::Vector{State}
     done(s) && return State[]
-    if false
-        if isnull(s.left)
+    states = State[]
+    isnull(s.left) || push!(states, State(s,Actions.left), State(s,Actions.right))
+    s.right <= length(s.tokens) && push!(states, State(s,Actions.shift))
+    states
+end
+
+function nextgold(s::State)::Vector{State}
+    done(s) && return State[]
+    if isnull(s.left)
+        act = Actions.shift
+    else
+        tokens = s.tokens
+        s0, s1 = tokens[s.top], tokens[s.left.top]
+        if s1.head == s.top
+            act = Actions.left
+        elseif s0.head == s.left.top
+            reducable = all(i -> tokens[i].head != s.top, s.right:length(tokens))
+            act = reducable ? Actions.right : Actions.shift
+        elseif s.right <= length(tokens)
             act = Actions.shift
         else
-            tokens = s.tokens
-            s0, s1 = tokens[s.top], tokens[s.left.top]
-            if s1.head == s.top
-                act = Actions.left
-            elseif s0.head == s.left.top
-                reducable = all(i -> tokens[i].head != s.top, s.right:length(tokens))
-                act = reducable ? Actions.right : Actions.shift
-            elseif s.right <= length(tokens)
-                act = Actions.shift
-            else
-                throw("Invalid data.")
-            end
+            throw("Invalid data.")
         end
-        [State(s,act)]
-    else
-        states = State[]
-        isnull(s.left) || push!(states, State(s,Actions.left), State(s,Actions.right))
-        s.right <= length(s.tokens) && push!(states, State(s,Actions.shift))
-        states
     end
+    [State(s,act)]
 end
 
 function toheads(s::State)

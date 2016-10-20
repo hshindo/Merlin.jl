@@ -1,4 +1,14 @@
-function model()
+type Model
+    ws::Vector
+end
+
+function (m::Model)(s::State)
+    tokens = s.tokens
+    s0 = tokens[s.top]
+    s1 = isnull(s.left) ? tokens[s.left.top] : nulltoken
+    b0 = s.right <= length(tokens) ? tokens[s.right] : nulltoken
+    sl = isnull(s.lch) ? tokens[s.lch.top] : nulltoken
+    sr = isnull(s.rch) ? tokens[s.rch.top] : nulltoken
     
 end
 

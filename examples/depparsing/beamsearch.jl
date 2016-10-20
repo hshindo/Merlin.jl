@@ -1,21 +1,7 @@
-immutable Node{T}
-    state::T
-    score::Float64
-    prev::Node{T}
-
-    Node(state::T) = new(state, 0.0)
-    Node(state::T, score, prev) = new(state, score, prev)
-end
-
-Node{T}(state::T) = Node{T}(state)
-Node{T}(state::T, score, prev) = Node{T}(state, score, prev)
-
-lessthan{T}(x::Node{T}, y::Node{T}) = x.score > y.score
-
-function sequence{T}(node::Node{T})::Vector{Node{T}}
-    seq = Node{T}[]
-    n = node
-    while isdefined(n,:prev)
+function sequence{T}(state::T)::Vector{T}
+    seq = T[]
+    s = state
+    while s.step != 1
         unshift!(seq, n)
         n = n.prev
     end
@@ -25,8 +11,35 @@ end
 
 """
     beamsearch
+
+* step::Int
+* score::Float64
+* prev::T
 """
-function beamsearch{T}(initstate::T, beamsize::Int, getscore)
+function beamsearch{T}(initstate::T, beamsize::Int, next::Function)
+    lessthan{T}(x::T, y::T) = x.score > y.score
+    chart = Vector{T}[]
+    push!(chart, [initstate])
+
+    k = 1
+    while k <= length(chart)
+        prevs = chart[k]
+        length(prevs) > beamsize && sort!(prevs, lt=lessthan)
+        for i = 1:min(beamsize,length(prevs))
+            for s::T in next(prevs[i])
+                while s.step > length(chart)
+                    push!(chart, T[])
+                end
+                push!(chart[s.step], s)
+            end
+        end
+        k += 1
+    end
+    sort!(chart[end], lt=lessthan)
+    chart[end][1]
+end
+
+function beamsearch2{T}(initstate::T, beamsize::Int, next::Function, getscore::Function)
     chart = Vector{Node{T}}[]
     push!(chart, [Node(initstate)])
 
