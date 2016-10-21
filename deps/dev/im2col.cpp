@@ -1,76 +1,73 @@
 #include <algorithm>
+#include <stdio.h>
+#include <stdint.h>
 
 template <typename T>
-void im2col(const T *img, T *col, int width, int height, int channels,
-    int kernel_w, int kernel_h, int pad_w, int pad_h, int stride_w, int stride_h) {
-
-  int height_col = (height + 2 * pad_h - kernel_h) / stride_h + 1;
-  int width_col = (width + 2 * pad_w - kernel_w) / stride_w + 1;
-  int channels_col = channels * kernel_h * kernel_w;
-
-  for (int c = 0; c < channels_col; ++c) {
-    int w_offset = c % kernel_w;
-    int h_offset = (c / kernel_w) % kernel_h;
-    int c_im = c / (kernel_h * kernel_w);
-
-    for (int h = 0; h < height_col; ++h) {
-      for (int w = 0; w < width_col; ++w) {
-        int h_pad = h*stride_h - pad_h + h_offset;
-        int w_pad = w*stride_w - pad_w + w_offset;
-        if (h_pad >= 0 && h_pad < height && w_pad >= 0 && w_pad < width) {
-          col[(c*height_col+h) * width_col + w] =
-            img[(c_im * height + h_pad) * width + w_pad];
-        } else {
-          col[(c*height_col+h) * width_col + w] = 0;
+void im2col(T *x, T *y, int *size_x, int *winsize, int *stride, int *padsize) {
+    int x1 = size_x[0], x2 = size_x[1], x3 = size_x[2];
+    int w1 = winsize[0], w2 = winsize[1];
+    int s1 = stride[0], s2 = stride[1];
+    int p1 = padsize[0], p2 = padsize[1];
+    int n1 = (x1 + 2 * p1 - w1) / s1 + 1;
+    int n2 = (x2 + 2 * p2 - w2) / s2 + 1;
+    int o = 0;
+    for (int d3 = 0; d3 < x3; d3++) {
+        for (int d2 = 0; d2 < w2; d2++) {
+            for (int d1 = 0; d1 < w1; d1++) {
+                for (int k2 = 0; k2 < n2; k2++) {
+                    for (int k1 = 0; k1 < n1; k1++) {
+                        int i1 = k1 * s1 - p1 + d1;
+                        int i2 = k2 * s2 - p2 + d2;
+                        if (i1 >= 0 && i1 < x1 && i2 >= 0 && i2 < x2) {
+                            int i = i1 + x1*(i2 + x2*d3);
+                            y[o] = x[i];
+                        }
+                        else y[o] = 0;
+                        o++;
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }
 
 template <typename T>
-void col2im(const T *col, T *img, int width, int height, int channels,
-    int kernel_w, int kernel_h, int pad_w, int pad_h, int stride_w, int stride_h) {
-
-  int height_col = (height + 2 * pad_h - kernel_h) / stride_h + 1;
-  int width_col = (width + 2 * pad_w - kernel_w) / stride_w + 1;
-  int channels_col = channels * kernel_h * kernel_w;
-
-  std::fill(img, img + width*height*channels, 0);
-  for (int c = 0; c < channels_col; ++c) {
-    int w_offset = c % kernel_w;
-    int h_offset = (c / kernel_w) % kernel_h;
-    int c_im = c / (kernel_h * kernel_w);
-
-    for (int h = 0; h < height_col; ++h) {
-      for (int w = 0; w < width_col; ++w) {
-        int h_pad = h*stride_h - pad_h + h_offset;
-        int w_pad = w*stride_w - pad_w + w_offset;
-        if (h_pad >= 0 && h_pad < height && w_pad >= 0 && w_pad < width) {
-          img[(c_im * height + h_pad) * width + w_pad] +=
-            col[(c * height_col + h) * width_col + w];
+void im2col_grad(T *gx, T *gy, int *size_x, int *winsize, int *stride, int *padsize) {
+    int x1 = size_x[0], x2 = size_x[1], x3 = size_x[2];
+    int w1 = winsize[0], w2 = winsize[1];
+    int s1 = stride[0], s2 = stride[1];
+    int p1 = padsize[0], p2 = padsize[1];
+    int n1 = (x1 + 2 * p1 - w1) / s1 + 1;
+    int n2 = (x2 + 2 * p2 - w2) / s2 + 1;
+    int o = 0;
+    for (int d3 = 0; d3 < x3; d3++) {
+        for (int d2 = 0; d2 < w2; d2++) {
+            for (int d1 = 0; d1 < w1; d1++) {
+                for (int k2 = 0; k2 < n2; k2++) {
+                    for (int k1 = 0; k1 < n1; k1++) {
+                        int i1 = k1*s1 - p1 + d1;
+                        int i2 = k2*s2 - p2 + d2;
+                        if (i1 >= 0 && i1 < x1 && i2 >= 0 && i2 < x2) {
+                            int i = i1 + x1*(i2 + x2*d3);
+                            gx[i] += gy[o];
+                        }
+                        o++;
+                    }
+                }
+            }
         }
-      }
     }
-  }
+}
+
+#define IM2COL_CAPI(NAME, T) \
+void NAME(T *x, T *y, int *size_x, int *winsize, int *stride, int *padsize) { \
+    im2col(x, y, size_x, winsize, stride, padsize); \
+} \
+void NAME ## _ ## grad(T *gx, T *gy, int *size_x, int *winsize, int *stride, int *padsize) { \
+    im2col_grad(gx, gy, size_x, winsize, stride, padsize); \
 }
 
 extern "C" {
-  void im2col_float(const float *img, float *col, int width, int height, int channels,
-      int kernel_w, int kernel_h, int pad_w, int pad_h, int stride_w, int stride_h) {
-    im2col(img, col, width, height, channels, kernel_w, kernel_h, pad_w, pad_h, stride_w, stride_h);
-  }
-  void im2col_double(const double *img, double *col, int width, int height, int channels,
-      int kernel_w, int kernel_h, int pad_w, int pad_h, int stride_w, int stride_h) {
-    im2col(img, col, width, height, channels, kernel_w, kernel_h, pad_w, pad_h, stride_w, stride_h);
-  }
-
-  void col2im_float(const float *col, float *img, int width, int height, int channels,
-      int kernel_w, int kernel_h, int pad_w, int pad_h, int stride_w, int stride_h) {
-    col2im(col, img, width, height, channels, kernel_w, kernel_h, pad_w, pad_h, stride_w, stride_h);
-  }
-  void col2im_double(const double *col, double *img, int width, int height, int channels,
-      int kernel_w, int kernel_h, int pad_w, int pad_h, int stride_w, int stride_h) {
-    col2im(col, img, width, height, channels, kernel_w, kernel_h, pad_w, pad_h, stride_w, stride_h);
-  }
+    IM2COL_CAPI(im2col_f32, float)
+    IM2COL_CAPI(im2col_f64, double)
 }
