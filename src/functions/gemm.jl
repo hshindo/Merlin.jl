@@ -1,4 +1,4 @@
-export gemm
+export gemm, gemm_batch
 
 """
     gemm(tA::Char, tB::Char, alpha::Float64, A::Var, B::Var)
@@ -40,6 +40,23 @@ function gemm{T}(tA, tB, alpha, A::Array{T}, B::Array{T})
     end
     C
 end
+
+function gemm_batch{M<:AbstractMatrix}(transA::Char, transB::Char, alpha, As::Vector{M}, Bs::Vector{M})
+    @assert length(As) == length(Bs)
+    rowC = transA == 'N' ? size(As[1],1) : size(As[1],2)
+    colC = transB == 'N' ? size(Bs[1],2) : size(Bs[1],1)
+    C = Array(eltype(As[1]), rowC, colC, length(As))
+    for i = 1:length(As)
+        BLAS.gemm!(transA, transB, T(alpha), As[i], Bs[i], T(0), view(C,:,:,i))
+    end
+    C
+end
+function gemm_batch{T}(transA, transB, alpha, As::UniArray{T}, Bs::UniArray{T})
+    ndims(As) == 3 && (As = [view(As[i],:,:,i) for i=1:size(As,3)])
+    ndims(Bs) == 3 && (Bs = [view(Bs[i],:,:,i) for i=1:size(Bs,3)])
+    gemm_batch(transA, transB, alpha, As, Bs)
+end
+gemm_batch(A, B; transA='N', transB='N', alpha=1.0) = gemm(transA, transB, alpha, A, B)
 
 function ∇gemm!{T}(tA, tB, alpha, A::Array{T}, gA, B::Array{T}, gB,
     C::Array{T}, gC::Array{T})

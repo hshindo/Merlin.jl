@@ -39,7 +39,7 @@ include("check.jl")
 for name in [
     "argmax",
     "concat",
-    "conv",
+    "convolution",
     "crossentropy",
     "dropout",
     "embedding",
