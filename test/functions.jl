@@ -8,6 +8,11 @@ for f in [sigmoid, tanh]
     @test checkcuda(f, x)
 end
 
+x = Var(rand(T,5,4,3,2))
+f = Convolution(T, (2,2), (3,4), (0,0), (1,1))
+@test checkgrad(f, x)
+#@test checkcuda(softmax, x)
+
 x1 = Var(rand(T,10,5,2))
 x2 = Var(rand(T,10,5,2))
 x3 = Var(rand(T,10,5,2))

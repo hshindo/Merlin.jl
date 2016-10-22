@@ -55,12 +55,12 @@ function ∇convolution_bias!(dy, db; mode=CUDNN_CROSS_CORRELATION, alpha=1.0, b
     db
 end
 
-function ∇convolution_filter!(x, dy, padding, stride, dw; mode=CUDNN_CROSS_CORRELATION, alpha=1.0, beta=0.0)
+function ∇convolution_filter!(x, dy, convdesc, dw; mode=CUDNN_CROSS_CORRELATION, alpha=1.0, beta=0.0)
     T = eltype(dy)
     h = handle(dy)
     xdesc = tensor_desc(x)
     dydesc = tensor_desc(dy)
-    convdesc = convolution_desc(T, padding, stride, mode)
+    #convdesc = convolution_desc(T, padding, stride, mode)
     dwdesc = filter_desc(dw)
 
     algo_p = cudnnConvolutionBwdFilterAlgo_t[0]
@@ -78,17 +78,17 @@ function ∇convolution_filter!(x, dy, padding, stride, dw; mode=CUDNN_CROSS_COR
 
     cudnnDestroyTensorDescriptor(xdesc)
     cudnnDestroyTensorDescriptor(dydesc)
-    cudnnDestroyConvolutionDescriptor(convdesc)
+    #cudnnDestroyConvolutionDescriptor(convdesc)
     cudnnDestroyFilterDescriptor(dwdesc)
     dw
 end
 
-function ∇convolution_data!(w, dy, padding, stride, dx; mode=CUDNN_CROSS_CORRELATION, alpha=1.0, beta=0.0)
+function ∇convolution_data!(w, dy, convdesc, dx; mode=CUDNN_CROSS_CORRELATION, alpha=1.0, beta=0.0)
     T = eltype(dy)
     h = handle(dy)
     wdesc = filter_desc(w)
     dydesc = tensor_desc(dy)
-    convdesc = convolution_desc(T, padding, stride, mode)
+    #convdesc = convolution_desc(T, padding, stride, mode)
     dxdesc = tensor_desc(dx)
 
     algo_p = cudnnConvolutionBwdDataAlgo_t[0]
@@ -107,7 +107,7 @@ function ∇convolution_data!(w, dy, padding, stride, dx; mode=CUDNN_CROSS_CORRE
 
     cudnnDestroyFilterDescriptor(wdesc)
     cudnnDestroyTensorDescriptor(dydesc)
-    cudnnDestroyConvolutionDescriptor(convdesc)
+    #cudnnDestroyConvolutionDescriptor(convdesc)
     cudnnDestroyTensorDescriptor(dxdesc)
     dx
 end
