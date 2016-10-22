@@ -24,7 +24,12 @@ type Var
     df
 end
 
-Var(data, args, f, df) = Var(data, nothing, args, f, df)
+function Var(data, args, f, df)
+    v = Var(data, nothing, args, f, df)
+    v.grad = zeros(Float32, 0)
+    v.grad = nothing
+    v
+end
 Var(data, grad) = Var(data, grad, [], nothing, nothing)
 Var{T<:Real}(data::Array{T}) = Var(data, zeros(data))
 Var{T<:Real}(data::CuArray{T}) = Var(data, zeros(data))

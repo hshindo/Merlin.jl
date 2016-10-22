@@ -18,9 +18,9 @@ const USE_CUDA = try
     true
 catch e
     info(e)
-    type CuArray{T,N}; end
-    typealias CuVector{T} CuArray{T,1}
-    typealias CuMatrix{T} CuArray{T,2}
+    #type CuArray{T,N}; end
+    #typealias CuVector{T} CuArray{T,1}
+    #typealias CuMatrix{T} CuArray{T,2}
     false
 end
 
@@ -51,7 +51,7 @@ for name in [
     "log",
     "math",
     "max",
-    "maxpooling",
+    #"maxpooling",
     "relu",
     "reshape",
     "sigmoid",

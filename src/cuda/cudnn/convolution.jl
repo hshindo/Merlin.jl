@@ -12,8 +12,9 @@ function convolution_desc(T::Type, padding, stride, mode)
 end
 
 function convolution(x, w, padding, stride; mode=CUDNN_CROSS_CORRELATION, alpha=1.0, beta=0.0)
+    T = eltype(x)
     N = length(padding)
-    outdims = Int[(size(x,i)+2padding[i]-size(w,i)) ÷ stride[i] + 1]
+    outdims = Int[(size(x,i)+2padding[i]-size(w,i)) ÷ stride[i] + 1 for i=1:N]
     y = similar(x, outdims..., size(w,N+2), size(x,N+2))
 
     h = handle(x)
@@ -43,7 +44,8 @@ function convolution(x, w, padding, stride; mode=CUDNN_CROSS_CORRELATION, alpha=
 end
 
 function ∇convolution_bias!(dy, db; mode=CUDNN_CROSS_CORRELATION, alpha=1.0, beta=0.0)
-    h = handle(x)
+    T = eltype(dy)
+    h = handle(dy)
     dydesc = tensor_desc(dy)
     dbdesc = tensor_desc(db)
     cudnnConvolutionBackwardBias(h, T[alpha], dydesc, dy, T[beta], dbdesc, db)
@@ -54,7 +56,8 @@ function ∇convolution_bias!(dy, db; mode=CUDNN_CROSS_CORRELATION, alpha=1.0, b
 end
 
 function ∇convolution_filter!(x, dy, padding, stride, dw; mode=CUDNN_CROSS_CORRELATION, alpha=1.0, beta=0.0)
-    h = handle(x)
+    T = eltype(dy)
+    h = handle(dy)
     xdesc = tensor_desc(x)
     dydesc = tensor_desc(dy)
     convdesc = convolution_desc(T, padding, stride, mode)
@@ -81,7 +84,8 @@ function ∇convolution_filter!(x, dy, padding, stride, dw; mode=CUDNN_CROSS_COR
 end
 
 function ∇convolution_data!(w, dy, padding, stride, dx; mode=CUDNN_CROSS_CORRELATION, alpha=1.0, beta=0.0)
-    h = handle(x)
+    T = eltype(dy)
+    h = handle(dy)
     wdesc = filter_desc(w)
     dydesc = tensor_desc(dy)
     convdesc = convolution_desc(T, padding, stride, mode)
