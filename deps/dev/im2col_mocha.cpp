@@ -56,20 +56,11 @@ void col2im(const T *col, T *img, int width, int height, int channels,
 }
 
 extern "C" {
-  void im2col_float(const float *img, float *col, int width, int height, int channels,
+  void im2col_f32(const float *img, float *col, int width, int height, int channels,
       int kernel_w, int kernel_h, int pad_w, int pad_h, int stride_w, int stride_h) {
     im2col(img, col, width, height, channels, kernel_w, kernel_h, pad_w, pad_h, stride_w, stride_h);
   }
-  void im2col_double(const double *img, double *col, int width, int height, int channels,
-      int kernel_w, int kernel_h, int pad_w, int pad_h, int stride_w, int stride_h) {
-    im2col(img, col, width, height, channels, kernel_w, kernel_h, pad_w, pad_h, stride_w, stride_h);
-  }
-
-  void col2im_float(const float *col, float *img, int width, int height, int channels,
-      int kernel_w, int kernel_h, int pad_w, int pad_h, int stride_w, int stride_h) {
-    col2im(col, img, width, height, channels, kernel_w, kernel_h, pad_w, pad_h, stride_w, stride_h);
-  }
-  void col2im_double(const double *col, double *img, int width, int height, int channels,
+  void im2col_f32_grad(const float *col, float *img, int width, int height, int channels,
       int kernel_w, int kernel_h, int pad_w, int pad_h, int stride_w, int stride_h) {
     col2im(col, img, width, height, channels, kernel_w, kernel_h, pad_w, pad_h, stride_w, stride_h);
   }

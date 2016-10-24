@@ -51,7 +51,7 @@ for name in [
     "log",
     "math",
     "max",
-    #"maxpooling",
+    "pooling",
     "relu",
     "reshape",
     "sigmoid",

@@ -1,6 +1,6 @@
 const sources = [
     "im2col.cpp",
-    #"pooling.cpp",
+    "pooling.cpp",
     "softmax.cpp",
     "window.cpp"]
 
@@ -19,7 +19,7 @@ elseif is_apple()
     println("Running $cmd")
     run(cmd)
 elseif is_linux()
-    flags    = ["-fopenmp", "-fPIC", "-Wall", "-O3", "-shared", "-march=native"]
+    flags    = ["-fPIC", "-Wall", "-O3", "-shared", "-march=native"]
     libname = "libmerlin.so"
     cmd = `$compiler $flags -o $libname $sources`
     println("Running $cmd")
