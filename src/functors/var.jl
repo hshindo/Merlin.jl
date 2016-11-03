@@ -1,45 +1,46 @@
-export Var
+export ArrayVar
 
-type Var
-    data::Array
-    grad::Array
-    capacity::Int
-    f::Functor
-    args::Vector
-end
+abstract Var
 
-Var(data::Array) = Var(data, zeros(data))
-Var(data::Array, grad::Array) = Var(data, grad, length(data), NullFunctor(), Var[])
-
-constant(data::Array) = Var(data, typeof(data)())
-
-Base.getindex(v::Var, key::Int) = v.args[key]
-Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
+Base.eltype(v::Var) = eltype(v.data)
 Base.size(v::Var) = size(v.data)
 Base.size(v::Var, d::Int) = size(v.data, d)
+Base.getindex(v::Var, key::Int) = v.args[key]
+Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
 
-Base.isconst(v::Var) = isempty(v.grad)
-
-function forward(f::Functor, v::Var)
-    data = typeof(v.data)()
-    grad = typeof(v.data)()
-    o = Var(data, grad, length(data), f, [v])
-    forward!(f, o)
-    o
+type Identity <: Functor
 end
-#forward(f::Functor, args::Var...) = forward(f, [args...])
 
-function Base.resize!(v::Var, dims::Tuple{Vararg{Int}})
-    len = prod(dims)
-    @assert len > 0
-    if len < v.capacity
+type ArrayVar{T,N} <: Var
+    data::Array{T,N}
+    grad::Array{T,N}
+    capacity::Int
+    f::Functor
+    args::Vector{Var}
+end
+
+ArrayVar(data, grad) = ArrayVar(data, grad, length(data), Identity(), Var[])
+ArrayVar(data) = ArrayVar(data, zeros(data))
+constvar(data) = ArrayVar(data, typeof(data)())
+
+function ArrayVar(data, f::Functor, args::Vector{Var})
+    v = ArrayVar(data, typeof(data)(), length(data), f, args)
+    forward!(f, v)
+    v
+end
+ArrayVar(f::Functor, args::Var...) = ArrayVar(f, Var[args...])
+
+function Base.resize!(v::ArrayVar, dims::Tuple{Vararg{Int}})
+    count = prod(dims)
+    @assert count > 0
+    if count < v.capacity
         v.data = unsafe_wrap(Array, pointer(v.data), dims)
         v.grad = unsafe_wrap(Array, pointer(v.grad), dims)
-    elseif len > v.capacity
+    elseif count > v.capacity
         v.data = similar(v.data, dims)
         v.grad = similar(v.grad, dims)
+        v.capacity = count
     end
-    v.capacity = len
     v
 end
 

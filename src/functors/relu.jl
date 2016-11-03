@@ -1,12 +1,13 @@
 export relu
 
-type ReLU <: Functor; end
+type ReLU <: Functor
+end
 
-relu(v::Var) = forward(ReLU(), v)
+relu(x::ArrayVar) = ArrayVar(similar(x.data), ReLU(), x)
 
-function forward!(f::ReLU, v::Var)
-    resize!(v, size(v[1]))
-    relu!(v.data, v[1].data)
+function forward!(f::ReLU, y::ArrayVar)
+    resize!(y, size(y[1]))
+    relu!(y.data, y[1].data)
 end
 
 backward!(f::ReLU, v::Var) = ∇relu!(v.grad, v[1].data, v[1].grad)
