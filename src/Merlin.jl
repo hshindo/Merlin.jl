@@ -4,13 +4,22 @@ using Base.LinAlg.BLAS
 using HDF5
 
 abstract Functor
+type NullFunctor <: Functor; end
 
 if is_windows()
     const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.dll"))
-else
+elseif is_linux() || is_apple()
     const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.so"))
+else
+    throw("Unsupported OS.")
 end
 
+include("functors/var.jl")
+
+include("functors/graph.jl")
+include("functors/relu.jl")
+
+#=
 const USE_CUDA = try
     using JuCUDA
     include("cuda/cudnn/CUDNN.jl")
@@ -37,30 +46,30 @@ include("hdf5.jl")
 include("check.jl")
 
 for name in [
-    "argmax",
-    "concat",
-    "convolution",
-    "crossentropy",
-    "dropout",
-    "embedding",
-    "exp",
-    "gemm",
-    "getindex",
-    "gru",
-    "linear",
-    "log",
-    "math",
-    "max",
-    "pooling",
+    #"argmax",
+    #"concat",
+    #"convolution",
+    #"crossentropy",
+    #"dropout",
+    #"embedding",
+    #"exp",
+    #"gemm",
+    #"getindex",
+    #"gru",
+    #"linear",
+    #"log",
+    #"math",
+    #"max",
+    #"pooling",
     "relu",
-    "reshape",
-    "sigmoid",
-    "softmax",
-    "sum",
-    "tanh",
-    "transpose",
-    "view",
-    "window"
+    #"reshape",
+    #"sigmoid",
+    #"softmax",
+    #"sum",
+    #"tanh",
+    #"transpose",
+    #"view",
+    #"window"
     ]
     include("functions/$(name).jl")
 end
@@ -74,5 +83,6 @@ for name in [
 end
 
 #include("caffe/Caffe.jl")
+=#
 
 end

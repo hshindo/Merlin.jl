@@ -1,22 +1,5 @@
 export Linear
 
-"""
-    Linear(w::Var, x::Var, [b::Var])
-
-Compute linear function (a.k.a. affine transformation).
-
-```math
-f(x) = W^{T}x + b
-```
-where ``W`` is a weight matrix and ``b`` is a bias vector.
-
-### 👉 Example
-```julia
-x = Var(rand(Float32,10,5))
-f = Linear(Float32,10,7)
-y = f(x)
-```
-"""
 type Linear <: Functor
     w::Var
     b::Var
@@ -24,26 +7,19 @@ end
 
 function Linear(T::Type, indim::Int, outdim::Int)
     r = T(sqrt(6 / (indim+outdim)))
-    #r = T(0.01)
     w = rand(-r, r, outdim, indim)
     b = fill(T(0), outdim, 1)
     Linear(Var(w), Var(b))
 end
 
-@graph function (f::Linear)(x::Var)
-    w, b = f.w, f.b
-    y = w.data * x.data
-    broadcast!(.+, y, y, b.data)
-    function df{T}(gy::UniArray{T})
-        isconst(w) || BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
-        isconst(x) || BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
-        if !isconst(b)
-            for offset = 1:length(b.data):length(gy)
-                BLAS.axpy!(length(b.data), T(1), pointer(gy,offset), 1, pointer(b.grad), 1)
-            end
-        end
+function linear(w::Var, x::Var, b::Var)
+    y = w.value * x.value
+    broadcast!(.+, y, y, b.value)
+    function df{T}(gy::Array{T})
+        BLAS.gemm!('N', 'T', T(1), gy, x.value, T(1), w.grad)
+        BLAS.gemm!('T', 'N', T(1), w.value, gy, T(1), x.grad)
     end
-    Var(y, [x], f, df)
+    Var(y, [w,x,b], df)
 end
 
 function update!(f::Linear, opt)

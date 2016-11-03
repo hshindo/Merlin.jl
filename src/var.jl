@@ -1,4 +1,4 @@
-export Var, constant, isconst, zerograd!, gradient!
+export Var, constant, isconst, topsort, gradient!
 
 """
     Var
@@ -9,39 +9,28 @@ It contains the following members:
 * data: data value
 * grad: gradient value
 * args::Vector: arguments
-* f: function
 * df: diff function
 
 To create an instance of `Var`, use
 * Var(data)
 * Var(data, grad)
 """
-type Var
-    data
-    grad
+type Var{T}
+    data::T
+    grad::T
     args::Vector
-    f
-    df
+    df::Function
+
+    Var(data::T, grad::T) = new(data, grad, Var[])
+    Var(data::T, grad::T, args::Vector, df::Function) = new(data, grad, args, df)
 end
 
-function Var(data, args, f, df)
-    v = Var(data, nothing, args, f, df)
-    v.grad = zeros(Float32, 0)
-    v.grad = nothing
-    v
-end
-Var(data, grad) = Var(data, grad, [], nothing, nothing)
-Var{T<:Real}(data::Array{T}) = Var(data, zeros(data))
-Var{T<:Real}(data::CuArray{T}) = Var(data, zeros(data))
+Var{T}(data::T) = Var{T}(data, zeros(data))
+Var{T}(data::T, args, df) = Var{T}(data, zeros(T), args, df)
 
-Var(data::Real) = Var(data, zero(data))
-Var(data) = Var(data, nothing)
-Var() = Var(nothing)
-constant(data) = Var(data, nothing)
+constant{T}(data::T) = Var(data, T())
 
-zerograd!(v::Var) = fill!(v.grad, 0)
-
-Base.isconst(v::Var) = v.grad == nothing
+Base.isconst(v::Var) = isempty(v.grad)
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
 
@@ -70,7 +59,8 @@ function gradient!(top::Var)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
-        v.df == nothing || v.df(v.grad)
+        isdefined(v, :df) && v.df(v.grad)
+        #v.df == nothing || v.df(v.grad)
     end
     sorted
 end

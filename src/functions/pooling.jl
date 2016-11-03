@@ -30,6 +30,21 @@ function maxpooling(x::Var, windims, padding, stride)
     Var(y, [x], maxpooling, df)
 end
 
+function forward(f, args...)
+    y = Var(f, args)
+    f(y, args...)
+    y
+end
+
+maxpooling(x::Var) = forward(maxpooling!, x)
+
+function maxpooling!(y::Var{Array}, x::Var{Array})
+    y.data = ()
+    y.df = ()
+end
+
+
+
 #=
 export maxpooling, avgpooling
 
