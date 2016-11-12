@@ -3,9 +3,6 @@ module Merlin
 using Base.LinAlg.BLAS
 using HDF5
 
-abstract Functor
-type NullFunctor <: Functor; end
-
 if is_windows()
     const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.dll"))
 elseif is_linux() || is_apple()
@@ -14,10 +11,14 @@ else
     throw("Unsupported OS.")
 end
 
-include("functors/var.jl")
+include("layers/memorypool.jl")
+#include("layers/linear.jl")
+#include("layers/relu.jl")
+#include("layers/graph.jl")
 
-include("functors/graph.jl")
-include("functors/relu.jl")
+#include("functors/graph.jl")
+#include("functors/linear.jl")
+#include("functors/relu.jl")
 
 #=
 const USE_CUDA = try

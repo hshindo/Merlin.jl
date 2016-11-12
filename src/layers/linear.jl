@@ -1,8 +1,8 @@
 export Linear
 
 type Linear <: Functor
-    w::Var
-    b::Var
+    w::Array
+    b::Array
 end
 
 function Linear(T::Type, indim::Int, outdim::Int)
@@ -11,18 +11,18 @@ function Linear(T::Type, indim::Int, outdim::Int)
     w .*= 2r
     w .-= r
     b = fill(T(0), outdim, 1)
-    Linear(Var(w), Var(b))
+    Linear(w, b)
 end
 
-(f::Linear){T}(x::MatrixVar{T}) = ArrayVar(T, (size(f.w,1),size(x,2)), f, Var[x])
-
-function forward!{T}(f::Linear, y::MatrixVar{T})
-    resize!(y, size(f.w,1), size(y[1],2))
-    BLAS.gemm!('N', 'N', T(1), f.w.data, y[1].data, T(1), y.data)
+function forward!(f::Linear, l::Layer)
+    #l.data = similar(f.w, size(f.w,1), size(l[1].data,2))
+    T = eltype(l.data)
+    #resize!(y, size(f.w,1), size(y[1],2))
+    BLAS.gemm!('N', 'N', T(1), f.w, l[1].data, T(0), l.data)
     #broadcast!(.+, y, y, f.b.data)
 end
 
-function backward!{T}(f::Linear, y::MatrixVar{T})
+function backward!(f::Linear, y)
     BLAS.gemm!('N', 'T', T(1), y.grad, y[1].data, T(1), f.w.grad)
     BLAS.gemm!('T', 'N', T(1), f.w.data, y.grad, T(1), y[1].grad)
     # bias

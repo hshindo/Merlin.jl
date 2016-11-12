@@ -10,9 +10,10 @@ end
 Base.getindex(g::Graph, key::Int) = g.nodes[key]
 Base.setindex!(g::Graph, value, key::Int) = g.nodes[key] = value
 
-(g::Graph)(x::Var) = forward(g, x)
+(g::Graph)(xs::Vector{Var}) = similar(g[end], g, xs)
+(g::Graph)(xs::Var...) = g(Var[xs...])
 
-function forward!(g::Graph, v::Var)::Void
+function forward!(g::Graph, v::Var)
     g[1].args = v.args
     for n in g.nodes
         forward!(n.f, n)

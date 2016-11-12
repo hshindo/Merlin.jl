@@ -17,12 +17,13 @@ To create an instance of `Var`, use
 """
 type Var{T}
     data::T
-    grad::T
+    grad
+    f
     args::Vector
-    df::Function
+    df
 
-    Var(data::T, grad::T) = new(data, grad, Var[])
-    Var(data::T, grad::T, args::Vector, df::Function) = new(data, grad, args, df)
+    Var(data::T, grad) = new(data, grad, Var[])
+    Var(data::T, grad, args::Vector, df::Function) = new(data, grad, args, df)
 end
 
 Var{T}(data::T) = Var{T}(data, zeros(data))
