@@ -3,21 +3,21 @@ export relu
 """
     relu(x::Var)
 """
-function relu(vx::Var)
-    y = relu(vx.data)
-    Var(y, [vx], ∇relu!)
+function relu(x::Var)
+    y = Var(eltype(x), size(x), (x,))
+    relu!(x.data, y.data)
+    y.df = () -> ∇relu!(y.data, y.grad, x.data, x.grad)
+    y
 end
 
-function relu{T}(x::Array{T})
-    y = similar(x)
+function relu!{T}(x::Array{T}, y::Array{T})
     @inbounds @simd for i = 1:length(x)
         y[i] = max(x[i], T(0))
     end
     y
 end
 
-function clipped_relu{T}(x::Array{T})
-    y = similar(x)
+function clipped_relu!{T}(x::Array{T}, y::Array{T})
     @inbounds @simd for i = 1:length(x)
         y[i] = min(max(x[i],T(0)), T(20))
     end
@@ -26,9 +26,7 @@ end
 
 relu(x::CuArray) = CUDNN.activation!(CUDNN_ACTIVATION_RELU, x)
 
-function ∇relu!{T,N}(vy::Var{Array{T,N}})
-    y = vy.data
-    x, gx = vx.data, vx.grad
+function ∇relu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
     @inbounds @simd for i = 1:length(x)
         gx[i] += ifelse(x[i] > T(0), gy[i], T(0))
     end

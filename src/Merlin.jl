@@ -11,7 +11,15 @@ else
     throw("Unsupported OS.")
 end
 
-include("layers/memorypool.jl")
+abstract Functor
+type CuArray{T,N}
+end
+
+include("memorypool.jl")
+include("session.jl")
+include("var.jl")
+include("functions/relu.jl")
+include("functions/linear.jl")
 #include("layers/linear.jl")
 #include("layers/relu.jl")
 #include("layers/graph.jl")

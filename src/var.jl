@@ -15,25 +15,30 @@ To create an instance of `Var`, use
 * Var(data)
 * Var(data, grad)
 """
-type Var{T}
-    data::T
+type Var
+    data
     grad
-    f
-    args::Vector
+    args
     df
-
-    Var(data::T, grad) = new(data, grad, Var[])
-    Var(data::T, grad, args::Vector, df::Function) = new(data, grad, args, df)
+    sess
 end
 
-Var{T}(data::T) = Var{T}(data, zeros(data))
-Var{T}(data::T, args, df) = Var{T}(data, zeros(T), args, df)
+Var(data) = Var(data, zeros(data))
+constant(data) = constant(data, nothing)
+Var(data, grad) = Var(data, grad, (), nothing, nothing)
 
-constant{T}(data::T) = Var(data, T())
+function Var(T::Type, dims::Tuple, args::Tuple)
+    sess = args[1].sess
+    data = alloc!(sess.mp, T, dims)
+    Var(data, nothing, args, nothing, sess)
+end
 
-Base.isconst(v::Var) = isempty(v.grad)
+Base.isconst(v::Var) = v.grad == nothing
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
+Base.eltype(v::Var) = eltype(v.data)
+Base.size(v::Var) = size(v.data)
+Base.size(v::Var, dim::Int) = size(v.data, dim)
 
 function topsort(top::Var)
     sorted = Var[]
