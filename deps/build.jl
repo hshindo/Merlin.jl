@@ -4,8 +4,6 @@ const sources = [
     "softmax.cpp",
     "window.cpp"]
 
-const compiler = "g++"
-
 if is_windows()
     builddir = dirname(Base.source_path())
     println("Build directory is $(builddir)")
@@ -26,20 +24,12 @@ if is_windows()
 
     run(`$gpp --version`)
     cmd = `$gpp -Wall -shared -O3 -I $incdir -o libmerlin.dll $sources`
-    println(cmd)
-    run(cmd)
 elseif is_apple()
-    flags    = ["-fPIC", "-Wall", "-O3", "-shared"]
-    libname = "libmerlin.so"
-    cmd = `$compiler $flags -o $libname $sources`
-    println("Running $cmd")
-    run(cmd)
+    cmd = `g++ -fPIC -Wall -O3 -shared -o libmerlin.so $sources`
 elseif is_linux()
-    flags    = ["-fPIC", "-Wall", "-O3", "-shared", "-march=native"]
-    libname = "libmerlin.so"
-    cmd = `$compiler $flags -o $libname $sources`
-    println("Running $cmd")
-    run(cmd)
+    cmd = `g++ -fPIC -Wall -O3 -shared -o libmerlin.so $sources`
 else
     throw("Unknown OS.")
 end
+println(cmd)
+run(cmd)
