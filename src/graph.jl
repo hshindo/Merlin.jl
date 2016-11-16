@@ -9,10 +9,11 @@ GraphNode(f, args...) = GraphNode(f, args)
 
 type Graph
     nodes::Vector{GraphNode}
+    inputs::Vector{Int}
 end
 
-function compile(top::GraphNode)
-    nodes = topsort(top)
+function compile(output::GraphNode, inputs::GraphNode...)
+    nodes = topsort(output)
     dict = ObjectIdDict()
     nodes = map(nodes) do n
         args = map(n.args) do arg
@@ -20,11 +21,12 @@ function compile(top::GraphNode)
         end
         GraphNode(n.f, args)
     end
-    Graph(nodes)
+    inputs = map(x -> dict[x], inputs)
+    Graph(nodes, inputs)
 end
 
 function (g::Graph)(x::Var)
-    
+
 end
 
 function topsort(top::GraphNode)

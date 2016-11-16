@@ -20,18 +20,12 @@ type Var
     grad
     args
     df
-    sess
 end
 
 Var(data) = Var(data, zeros(data))
 constant(data) = constant(data, nothing)
 Var(data, grad) = Var(data, grad, (), nothing, nothing)
-
-function Var(T::Type, dims::Tuple, args::Tuple)
-    sess = args[1].sess
-    data = alloc!(sess.mp, T, dims)
-    Var(data, nothing, args, nothing, sess)
-end
+Var(T::Type, dims::Tuple) = Var(alloc(T,dims), nothing)
 
 Base.isconst(v::Var) = v.grad == nothing
 Base.getindex(v::Var, key::Int) = v.args[key]
@@ -65,8 +59,7 @@ function gradient!(top::Var)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
-        isdefined(v, :df) && v.df(v.grad)
-        #v.df == nothing || v.df(v.grad)
+        v.df == nothing || v.df(v.grad)
     end
     sorted
 end

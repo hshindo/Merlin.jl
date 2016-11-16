@@ -3,12 +3,14 @@ type MemoryPool
     index::Int
 end
 
-function MemoryPool()
-    array = Array(Bool, 16)
-    MemoryPool(array, 1)
-end
+MemoryPool() = MemoryPool(Array{Bool}(1), 1)
 
-function alloc!(mp::MemoryPool, T::Type, dims::Tuple)
+const mempools = MemoryPool[MemoryPool()]
+
+function alloc(T::Type, dims::Tuple)
+    #USE_MEMPOOL || return Array{T}(dims)
+
+    mp = mempools[1]
     len = prod(dims) * sizeof(T)
     @assert len > 0
 

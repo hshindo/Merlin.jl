@@ -16,7 +16,6 @@ type CuArray{T,N}
 end
 
 include("memorypool.jl")
-include("session.jl")
 include("var.jl")
 include("functions/relu.jl")
 include("functions/linear.jl")

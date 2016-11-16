@@ -22,6 +22,7 @@ function (f::Linear)(x::Var)
     broadcast!(.+, y.data, y.data, b.data)
     y
 end
+#(f::Linear)(x::GraphNode) = GraphNode(f, x)
 
 function linear(w::Var, x::Var, b::Var)
     y = w.value * x.value
