@@ -31,6 +31,7 @@ function zerograd!(v::Var)
     v.grad = v.grad == nothing ? zeros(v.data) : fill!(v.grad, 0)
     v
 end
+zerograd(x) = zerograd!(Var(x))
 
 function topsort(top::Var)
     sorted = Var[]
