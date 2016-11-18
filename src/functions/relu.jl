@@ -4,13 +4,12 @@ export relu
     relu(x::Var)
 """
 function relu(x::Var)
-    data = alloc(eltype(x), size(x))
+    x.data == nothing && return Var(nothing, (relu,x))
     y = Var(eltype(x), size(x), (x,))
     relu!(x.data, y.data)
     y.df = () -> ∇relu!(y.data, y.grad, x.data, x.grad)
     y
 end
-#relu(x::GraphNode) = GraphNode(relu, x)
 
 function relu!{T}(x::Array{T}, y::Array{T})
     @inbounds @simd for i = 1:length(x)

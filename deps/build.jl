@@ -32,4 +32,5 @@ else
     throw("Unknown OS.")
 end
 println(cmd)
+println("Build success.")
 run(cmd)

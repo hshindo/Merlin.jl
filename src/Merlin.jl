@@ -17,6 +17,7 @@ end
 
 include("memorypool.jl")
 include("var.jl")
+include("graph.jl")
 include("functions/relu.jl")
 include("functions/linear.jl")
 #include("layers/linear.jl")

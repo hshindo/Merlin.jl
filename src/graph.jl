@@ -1,45 +1,71 @@
 export compile
 
-type GraphNode
-    f
-    args::Tuple
-end
-
-GraphNode(f, args...) = GraphNode(f, args)
-
 type Graph
-    nodes::Vector{GraphNode}
-    inputs::Vector{Int}
+    nodes::Vector{Var}
+    args::Vector{Int}
+    f
 end
 
-function compile(output::GraphNode, inputs::GraphNode...)
+Base.getindex(g::Graph, key::Int) = g.nodes[key]
+Base.setindex!(g::Graph, value::Var, key::Int) = g.nodes[key] = value
+
+function compile(output::Var, inputs::Var...)
+    @assert output.data == nothing
+    all(v -> isempty(v.args) && v.data == nothing, inputs) || throw("Invalid inputs.")
     nodes = topsort(output)
-    dict = ObjectIdDict()
-    nodes = map(nodes) do n
-        args = map(n.args) do arg
-            typeof(arg) == GraphNode ? dict[arg] : arg
+    count(n -> isempty(n.args), nodes) == length(inputs) || throw("Wrong number of inputs.")
+    node2id = Dict(nodes[i]=>i for i=1:length(nodes))
+
+    calls = Array{Any}(length(nodes))
+    for i = 1:length(nodes)
+        node = nodes[i]
+        if isempty(node.args)
+            calls[i] = node.data == nothing ? gensym() : node
+        else
+            args = map(node.args) do arg
+                typeof(arg) == Var ? Var(node2id[arg]) : arg
+            end
+            nodes[i] = Var(nothing, args)
+
+            args = map(node.args) do arg
+                typeof(arg) == Var ? calls[node2id[arg]] : arg
+            end
+            calls[i] = Expr(:call, args...)
         end
-        GraphNode(n.f, args)
     end
-    inputs = map(x -> dict[x], inputs)
-    Graph(nodes, inputs)
+
+    args = map(v -> node2id[v], inputs)
+    syms = map(a -> calls[a], args)
+    expr = Expr(:->, Expr(:tuple, syms...), calls[end])
+    f = eval(expr)
+    Graph(nodes, [args...], f)
 end
 
-function (g::Graph)(x::Var)
+(g::Graph)(xs::Var...) = g.f(xs...)
 
-end
+h5convert(g::Graph) = Dict("nodes"=>g.nodes, "inputs"=>g.inputs)
+h5convert(::Type{Graph}, x) = Graph(x["nodes"], x["inputs"])
 
-function topsort(top::GraphNode)
-    sorted = GraphNode[]
-    dict = ObjectIdDict()
-    function visit(node::GraphNode)
-        haskey(dict, node) && return
-        dict[node] = node
-        for arg in node.args
-            typeof(arg) == GraphNode && visit(arg)
+#=
+macro graph(expr)
+    (expr.head == :function || expr.head == :(=)) || throw("Invalid @graph.")
+    args, vars = [], []
+    for arg in expr.args[1].args
+        if typeof(arg) == Expr
+            aname, atype = arg.args[1], arg.args[2]
+            atype == :Var && push!(vars, aname)
+            push!(args, aname)
+        else
+            push!(args, arg)
         end
-        push!(sorted, node)
     end
-    visit(top)
-    sorted
+    length(vars) == 0 && throw("The @graph function must contain at least one argument typed as `::Var`.")
+
+    args = Expr(:vect, args...)
+    body = expr.args[2].args
+    for v in vars
+        unshift!(body, :($v.data == nothing && return Var(nothing,$args,nothing,nothing)))
+    end
+    :($expr)
 end
+=#

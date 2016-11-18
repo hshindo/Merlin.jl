@@ -1,31 +1,24 @@
-export Var, constant, isconst, topsort, gradient!
+export Var, constant, isconst, topsort, gradient!, zerograd!
 
 """
     Var
 
-`Var` is a type of variable. `Var` holds forward/backward information.
-It contains the following members:
+`Var` is a type of variable.
 
-* data: data value
-* grad: gradient value
-* args::Vector: arguments
-* df: diff function
-
-To create an instance of `Var`, use
-* Var(data)
-* Var(data, grad)
+```julia
+Var(data, [args=()])
+```
 """
 type Var
     data
-    grad
     args
+    grad
     df
 end
 
-Var(data) = Var(data, zeros(data))
-constant(data) = constant(data, nothing)
-Var(data, grad) = Var(data, grad, (), nothing, nothing)
-Var(T::Type, dims::Tuple) = Var(alloc(T,dims), nothing)
+Var(data, args=()) = Var(data, args, nothing, nothing)
+Var(T::Type, dims::Tuple, args=()) = Var(alloc(T,dims), args, nothing, nothing)
+Var() = Var(nothing)
 
 Base.isconst(v::Var) = v.grad == nothing
 Base.getindex(v::Var, key::Int) = v.args[key]
@@ -33,6 +26,11 @@ Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
 Base.eltype(v::Var) = eltype(v.data)
 Base.size(v::Var) = size(v.data)
 Base.size(v::Var, dim::Int) = size(v.data, dim)
+
+function zerograd!(v::Var)
+    v.grad = v.grad == nothing ? zeros(v.data) : fill!(v.grad, 0)
+    v
+end
 
 function topsort(top::Var)
     sorted = Var[]
@@ -54,12 +52,11 @@ function gradient!(top::Var)
     isconst(top) && (top.grad = ones(top.data))
     for i = 1:length(sorted)-1 # excludes top
         v = sorted[i]
-        (!isconst(v) || isempty(v.args)) && continue
-        v.grad = zeros(v.data)
+        isconst(v) && !isempty(v.args) && zerograd!(v)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
-        v.df == nothing || v.df(v.grad)
+        v.df == nothing || v.df()
     end
     sorted
 end

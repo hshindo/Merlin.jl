@@ -11,18 +11,27 @@ function Linear(T::Type, indim::Int, outdim::Int)
     w .*= 2r
     w .-= r
     b = fill(T(0), outdim, 1)
-    Linear(Var(w), Var(b))
+    Linear(zerograd!(Var(w)), zerograd!(Var(b)))
 end
 
 function (f::Linear)(x::Var)
+    x.data == nothing && return Var(nothing, (f,x))
     w, b = f.w, f.b
     T = eltype(x)
     y = Var(T, (size(w,1),size(x,2)), (x,))
     BLAS.gemm!('N', 'N', T(1), w.data, x.data, T(0), y.data)
     broadcast!(.+, y.data, y.data, b.data)
+    y.df = () -> begin
+        BLAS.gemm!('N', 'T', T(1), y.grad, x.data, T(1), w.grad)
+        BLAS.gemm!('T', 'N', T(1), w.data, y.grad, T(1), x.grad)
+        if !isconst(b)
+            for offset = 1:length(b.data):length(y.grad)
+                BLAS.axpy!(length(b.data), T(1), pointer(y.grad,offset), 1, pointer(b.grad), 1)
+            end
+        end
+    end
     y
 end
-#(f::Linear)(x::GraphNode) = GraphNode(f, x)
 
 function linear(w::Var, x::Var, b::Var)
     y = w.value * x.value
@@ -32,6 +41,12 @@ function linear(w::Var, x::Var, b::Var)
         BLAS.gemm!('T', 'N', T(1), w.value, gy, T(1), x.grad)
     end
     Var(y, [w,x,b], df)
+end
+
+function ∇linear!(y, gy, x, gx)
+    T = eltype(y)
+    BLAS.gemm!('N', 'T', T(1), gy, x, T(1), w.grad)
+    BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
 end
 
 function update!(f::Linear, opt)

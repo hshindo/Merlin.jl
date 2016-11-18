@@ -5,10 +5,10 @@ end
 
 MemoryPool() = MemoryPool(Array{Bool}(1), 1)
 
-const mempools = MemoryPool[MemoryPool()]
+const mempools = [MemoryPool()]
 
 function alloc(T::Type, dims::Tuple)
-    #USE_MEMPOOL || return Array{T}(dims)
+    return Array{T}(dims)
 
     mp = mempools[1]
     len = prod(dims) * sizeof(T)
