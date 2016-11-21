@@ -5,10 +5,13 @@ import Base.sum
 
 Compute the sum along the given dimension.
 """
-@graph function sum(x::Var, dim::Int)
-    y = sum(x.data,dim)
-    df(gy) = isconst(x) || broadcast!(.+, x.grad, x.grad, gy)
-    Var(y, [x], sum, df)
+function sum(x::Var, dim::Int)
+    x.data == nothing && return Var(nothing, (sum,x,dim))
+    dims = ntuple(i -> i==dim ? 1 : size(x,i), ndims(x))
+    y = Var(eltype(x), dims, (x,))
+    Base.mapreducedim!(identity, +, y.data, x.data)
+    y.df = () -> isconst(x) || (x.grad .+= y.grad)
+    y
 end
 
 """
@@ -50,20 +53,20 @@ function sum(as::Vector{Float64}, xs::Vector{Var})
     Var(y, xs, sum, df)
 end
 
-function axpy!{T}(a::Float64, x::UniArray{T}, y::UniArray{T})
+function axpy!{T}(a::Float64, x::Array{T}, y::Array{T})
     n = length(x)
     for k = 1:n:length(y)
         BLAS.axpy!(n, T(a), pointer(x), 1, pointer(y,k), 1)
     end
     y
 end
-function axpy!(a::Float64, x::Number, y::UniArray)
+function axpy!(a::Float64, x::Number, y::Array)
     y .+= a * x
     y
 end
 axpy!(a::Float64, x::Number, y::Number) = a * x + y
 
-function ∇axpy!{T}(a::Float64, gx::UniArray{T}, gy::UniArray{T})
+function ∇axpy!{T}(a::Float64, gx::Array{T}, gy::Array{T})
     n = length(gx)
     for k = 1:n:length(gy)
         BLAS.axpy!(n, T(a), pointer(gy,k), 1, pointer(gx), 1)

@@ -18,6 +18,13 @@ f = Linear(T, 10, 7)
 f.b = zerograd(rand(T,size(f.b)))
 @test checkgrad(linear, f.w, x, f.b)
 
+@testset "reduce" begin
+    x = zerograd(rand(T,10,5))
+    @test checkgrad(sum, x, 1)
+    @test checkgrad(sum, x, 2)
+end
+
+
 x = zerograd(rand(T,5,4))
 for f in [sigmoid, tanh]
     @test checkgrad(f, x)
@@ -28,19 +35,14 @@ x = zerograd(rand(T,10,5,3,4))
 @test checkgrad(softmax, x)
 @test checkgrad(logsoftmax, x)
 
+x = zerograd(rand(T,100))
+@test checkgrad(window, x, Merlin.Window((30,),(10,),(10,)))
+
 #=
 x = Var(rand(T,5,4,3,2))
 f = Convolution(T, (2,2), (3,4), (0,0), (1,1))
 @test checkgrad(f, x)
-#@test checkcuda(softmax, x)
 
-for size in [(5,4),(7,5,4),(10,5,3,4)]
-    x = Var(rand(T,size...))
-    @test checkgrad(softmax, x)
-    @test checkgrad(logsoftmax, x)
-    @test checkcuda(softmax, x)
-    @test checkcuda(logsoftmax, x)
-end
 =#
 
 #x = Var(rand(T,5,4,3,2))
@@ -84,12 +86,6 @@ h = Var(rand(T,100,1))
 f = GRU(T, 100)
 @test checkgrad(()->f(x,h), x, h)
 
-p = Var(rand(T,10,5))
-q = Var(rand(T,10,5))
-#@test checkgrad(()->kl_divergence(p,q), p, q)
-
-x = Var(rand(T,100))
-@test checkgrad(()->window(x,(30,),strides=(10,),pads=(10,)))
 =#
 
 end
