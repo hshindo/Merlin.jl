@@ -18,10 +18,12 @@ Computes a softmax along the `ndims(x)-1`-th dimension.
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
-@graph function softmax(x::Var)
-    y = softmax(x.data)
-    df(gy) = isconst(x) || ∇softmax!(x.grad, y, gy)
-    Var(y, [x], softmax, df)
+function softmax(x::Var)
+    x.data == nothing && return Var(nothing, (softmax,x))
+    y = Var(eltype(x), size(x), (x,))
+    softmax!(x.data, y.data)
+    y.df = () -> isconst(x) || ∇softmax!(y.data, y.grad, x.grad)
+    y
 end
 
 """
@@ -29,44 +31,40 @@ end
 
 Computes a logarithm of softmax function.
 """
-@graph function logsoftmax(x::Var)
-    y = logsoftmax(x.data)
-    df(gy) = isconst(x) || ∇logsoftmax!(x.grad, y, gy)
-    Var(y, [x], logsoftmax, df)
+function logsoftmax(x::Var)
+    x.data == nothing && return Var(nothing, (logsoftmax,x))
+    y = Var(eltype(x), size(x), (x,))
+    logsoftmax!(x.data, y.data)
+    y.df = () -> isconst(x) || ∇logsoftmax!(y.data, y.grad, x.grad)
+    y
 end
 
-function softmax{T}(x::Array{T})
+function softmax!{T}(x::Array{T}, y::Array{T})
     h = softmax_handle(T)
     dims = dim3d(x, ndims(x)-1)
-    y = similar(x)
     ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint), x, y, dims[1], dims[2], dims[3])
-    y
 end
 
-function logsoftmax{T}(x::Array{T})
+function logsoftmax!{T}(x::Array{T}, y::Array{T})
     h = logsoftmax_handle(T)
     dims = dim3d(x, ndims(x)-1)
-    y = similar(x)
     ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint), x, y, dims[1], dims[2], dims[3])
-    y
 end
 
 softmax(x::CuArray) = CUDNN.softmax(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x)
 
 logsoftmax(x::CuArray) = CUDNN.softmax(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, x)
 
-function ∇softmax!{T}(gx::Array{T}, y::Array{T}, gy::Array{T})
+function ∇softmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     h = ∇softmax_handle(T)
     dims = dim3d(y, ndims(y)-1)
     ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), gx, y, gy, dims[1], dims[2], dims[3])
-    y
 end
 
-function ∇logsoftmax!{T}(gx::Array{T}, y::Array{T}, gy::Array{T})
+function ∇logsoftmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     h = ∇logsoftmax_handle(T)
     dims = dim3d(y, ndims(y)-1)
     ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), gx, y, gy, dims[1], dims[2], dims[3])
-    y
 end
 
 function ∇softmax!(gx::CuArray, y::CuArray, gy::CuArray)

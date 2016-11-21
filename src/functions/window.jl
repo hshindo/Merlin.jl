@@ -7,10 +7,11 @@ immutable Window{N}
 end
 
 Base.size(w::Window) = w.dims
-Base.size(w::Window, i::Int) = w.dims[i]
+Base.size(w::Window, d::Int) = w.dims[d]
 Base.size(x::AbstractArray, w::Window, i::Int) = (size(x,i) + 2*pad(w,i) - size(w,i)) ÷ stride(w,i) + 1
 Base.strides(w::Window) = w.strides
 Base.stride(w::Window, i::Int) = w.strides[i]
+
 pads(w::Window) = w.pads
 pad(w::Window, i::Int) = w.pads[i]
 
@@ -56,7 +57,8 @@ window(x, dims::Tuple{Int}; strides=(1,), pads=(0,)) = window(x, Window(dims,str
 window(x, dims::Tuple{Int,Int}; strides=(1,1), pads=(0,0)) = window(x, Window(dims,strides,pads))
 window(x, dims::Tuple{Int,Int,Int}; strides=(1,1,1), pads=(0,0,0)) = window(x, Window(dims,strides,pads))
 
-@graph function window(x::Var, w::Window)
+function window(x::Var, w::Window)
+    x.data == nothing && return Var(nothing, (window,x,w))
     y = window(x.data, w)
     df(gy) = isconst(x) || ∇window!(x.grad, gy, w)
     Var(y, [x], window, df)

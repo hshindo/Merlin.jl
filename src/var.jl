@@ -1,4 +1,4 @@
-export Var, constant, isconst, topsort, gradient!, zerograd!
+export Var, constant, isconst, topsort, gradient!, zerograd, zerograd!
 
 """
     Var
@@ -17,7 +17,7 @@ type Var
 end
 
 Var(data, args=()) = Var(data, args, nothing, nothing)
-Var(T::Type, dims::Tuple, args=()) = Var(alloc(T,dims), args, nothing, nothing)
+Var(T::Type, dims::Tuple, args=()) = Var(alloc(T,dims), args)
 Var() = Var(nothing)
 
 Base.isconst(v::Var) = v.grad == nothing
@@ -26,6 +26,8 @@ Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
 Base.eltype(v::Var) = eltype(v.data)
 Base.size(v::Var) = size(v.data)
 Base.size(v::Var, dim::Int) = size(v.data, dim)
+Base.length(v::Var) = length(v.data)
+Base.ndims(v::Var) = ndims(v.data)
 
 function zerograd!(v::Var)
     v.grad = v.grad == nothing ? zeros(v.data) : fill!(v.grad, 0)

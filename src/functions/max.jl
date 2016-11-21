@@ -5,13 +5,16 @@ import Base.max
 
 Compute the maximum value along the given dimensions.
 """
-@graph function max(x::Var, dim::Int)
-    y, idx = findmax(x.data, dim)
-    df(gy) = isconst(x) || ∇max!(idx, x.grad, gy)
-    Var(y, [x], max, df)
+function max(x::Var, dim::Int)
+    x.data == nothing && return Var(nothing, (max,x,dim))
+    # TODO: in-place findmax
+    data, idx = findmax(x.data, dim)
+    y = Var(data, (x,))
+    y.df = () -> isconst(x) || ∇max!(y.grad, idx, x.grad)
+    y
 end
 
-function ∇max!{T}(idx::Array{Int}, gx::Array{T}, gy::Array{T})
+function ∇max!{T}(gy::Array{T}, idx::Array{Int}, gx::Array{T})
     @inbounds @simd for i = 1:length(idx)
         gx[idx[i]] += gy[i]
     end

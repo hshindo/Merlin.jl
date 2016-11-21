@@ -14,11 +14,19 @@ x = Var(rand(Float32,10,5))
 y = crossentropy(p,x)
 ```
 """
-@graph function crossentropy(p, x::Var)
-    logx = logsoftmax(x.data)
-    y = crossentropy(p, logx)
-    df(gy) = isconst(x) || ∇crossentropy!(p, logx, x.grad, gy)
-    Var(y, [x], crossentropy, df)
+function crossentropy(p::Vector{Int}, x::Var)
+    x.data == nothing && return Var(nothing, (crossentropy,p,x))
+    logx = alloc(eltype(x), size(x))
+    logsoftmax!(x.data, logx)
+    y = Var(eltype(x), (1,length(p)), (x,))
+    crossentropy!(p, logx, y.data)
+    y.df = () -> isconst(x) || ∇crossentropy!(y.grad, p, logx, x.grad)
+    y
+
+    #logx = logsoftmax(x.data)
+    #y = crossentropy(p, logx)
+    #df(gy) = isconst(x) || ∇crossentropy!(p, logx, x.grad, gy)
+    #Var(y, [x], crossentropy, df)
 end
 
 function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
@@ -33,12 +41,10 @@ function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
     y
 end
 
-function crossentropy{T}(p::Vector{Int}, logx::Matrix{T})
-    y = Array(T, 1, length(p))
+function crossentropy!{T}(p::Vector{Int}, logx::Matrix{T}, y::Matrix{T})
     @inbounds @simd for j = 1:length(p)
         y[j] = -logx[p[j],j]
     end
-    y
 end
 
 function ∇crossentropy!{T}(p::Matrix{T}, logx::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
@@ -50,7 +56,7 @@ function ∇crossentropy!{T}(p::Matrix{T}, logx::Matrix{T}, gx::Matrix{T}, gy::M
     end
 end
 
-function ∇crossentropy!{T}(p::Vector{Int}, logx::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
+function ∇crossentropy!{T}(gy::Matrix{T}, p::Vector{Int}, logx::Matrix{T}, gx::Matrix{T})
     for j = 1:length(p)
         g = gy[j]
         @inbounds @simd for i = 1:size(logx,1)

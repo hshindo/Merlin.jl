@@ -3,25 +3,28 @@ type MemoryPool
     index::Int
 end
 
-MemoryPool() = MemoryPool(Array{Bool}(1), 1)
+MemoryPool() = MemoryPool(Array{Bool}(2^25), 1)
 
-const mempools = [MemoryPool()]
+const mempools = MemoryPool[MemoryPool()]
 
-function alloc(T::Type, dims::Tuple)
-    return Array{T}(dims)
+function alloc(T::Type, dims::Tuple{Vararg{Int}})
+    isempty(mempools) && return Array{T}(dims)
 
     mp = mempools[1]
     len = prod(dims) * sizeof(T)
     @assert len > 0
+    @assert len <= length(mp.array)
 
     count = length(mp.array) - mp.index + 1
     if count < len
-        l = length(mp.array)
-        while l < mp.index+len-1
-            l *= 2
-        end
-        mp.array = Array(Bool, l)
+        mp.array = similar(mp.array)
         mp.index = 1
+        #l = length(mp.array)
+        #while l < mp.index+len-1
+        #    l *= 2
+        #end
+        #mp.array = Array(Bool, l)
+        #mp.index = 1
     end
 
     p = pointer(mp.array, mp.index)

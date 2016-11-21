@@ -1,6 +1,23 @@
-export Linear
+export Linear, linear
 
-type Linear <: Functor
+"""
+    Linear(w::Var, x::Var, [b::Var])
+
+Compute linear function (a.k.a. affine transformation).
+
+```math
+f(x) = W^{T}x + b
+```
+where ``W`` is a weight matrix and ``b`` is a bias vector.
+
+### 👉 Example
+```julia
+x = Var(rand(Float32,10,5))
+f = Linear(Float32,10,7)
+y = f(x)
+```
+"""
+type Linear
     w::Var
     b::Var
 end
@@ -11,42 +28,30 @@ function Linear(T::Type, indim::Int, outdim::Int)
     w .*= 2r
     w .-= r
     b = fill(T(0), outdim, 1)
-    Linear(zerograd!(Var(w)), zerograd!(Var(b)))
+    Linear(zerograd(w), zerograd(b))
 end
 
-function (f::Linear)(x::Var)
-    x.data == nothing && return Var(nothing, (f,x))
-    w, b = f.w, f.b
+(f::Linear)(x::Var) = linear(f.w, x, f.b)
+
+function linear(w::Var, x::Var, b::Var)
+    x.data == nothing && return Var(nothing, (linear,w,x,b))
     T = eltype(x)
-    y = Var(T, (size(w,1),size(x,2)), (x,))
+    y = Var(T, (size(w,1),size(x,2)), (w,x,b))
     BLAS.gemm!('N', 'N', T(1), w.data, x.data, T(0), y.data)
     broadcast!(.+, y.data, y.data, b.data)
-    y.df = () -> begin
-        BLAS.gemm!('N', 'T', T(1), y.grad, x.data, T(1), w.grad)
-        BLAS.gemm!('T', 'N', T(1), w.data, y.grad, T(1), x.grad)
-        if !isconst(b)
-            for offset = 1:length(b.data):length(y.grad)
-                BLAS.axpy!(length(b.data), T(1), pointer(y.grad,offset), 1, pointer(b.grad), 1)
-            end
-        end
-    end
+    y.df = () -> isconst(x) || ∇linear!(y, w, x, b)
     y
 end
 
-function linear(w::Var, x::Var, b::Var)
-    y = w.value * x.value
-    broadcast!(.+, y, y, b.value)
-    function df{T}(gy::Array{T})
-        BLAS.gemm!('N', 'T', T(1), gy, x.value, T(1), w.grad)
-        BLAS.gemm!('T', 'N', T(1), w.value, gy, T(1), x.grad)
-    end
-    Var(y, [w,x,b], df)
-end
-
-function ∇linear!(y, gy, x, gx)
+function ∇linear!(y::Var, w::Var, x::Var, b::Var)
     T = eltype(y)
-    BLAS.gemm!('N', 'T', T(1), gy, x, T(1), w.grad)
-    BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
+    isconst(w) || BLAS.gemm!('N', 'T', T(1), y.grad, x.data, T(1), w.grad)
+    isconst(x) || BLAS.gemm!('T', 'N', T(1), w.data, y.grad, T(1), x.grad)
+    if !isconst(b)
+        for offset = 1:length(b.data):length(y.grad)
+            BLAS.axpy!(length(b.data), T(1), pointer(y.grad,offset), 1, pointer(b.grad), 1)
+        end
+    end
 end
 
 function update!(f::Linear, opt)

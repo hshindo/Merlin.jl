@@ -12,23 +12,7 @@ else
 end
 
 abstract Functor
-type CuArray{T,N}
-end
 
-include("memorypool.jl")
-include("var.jl")
-include("graph.jl")
-include("functions/relu.jl")
-include("functions/linear.jl")
-#include("layers/linear.jl")
-#include("layers/relu.jl")
-#include("layers/graph.jl")
-
-#include("functors/graph.jl")
-#include("functors/linear.jl")
-#include("functors/relu.jl")
-
-#=
 const USE_CUDA = try
     using JuCUDA
     include("cuda/cudnn/CUDNN.jl")
@@ -36,49 +20,49 @@ const USE_CUDA = try
     true
 catch e
     info(e)
-    #type CuArray{T,N}; end
-    #typealias CuVector{T} CuArray{T,1}
-    #typealias CuMatrix{T} CuArray{T,2}
+    type CuArray{T,N}; end
+    typealias CuVector{T} CuArray{T,1}
+    typealias CuMatrix{T} CuArray{T,2}
     false
 end
 
-typealias UniArray{T,N} Union{Array{T,N},SubArray{T,N},CuArray{T,N}}
+#typealias UniArray{T,N} Union{Array{T,N},SubArray{T,N},CuArray{T,N}}
 
-include("interop/c/carray.jl")
+#include("interop/c/carray.jl")
 
-include("util.jl")
+include("memorypool.jl")
 include("var.jl")
 include("graph.jl")
-include("fit.jl")
-include("native.jl")
-include("hdf5.jl")
+#include("fit.jl")
+#include("native.jl")
+#include("hdf5.jl")
 include("check.jl")
 
 for name in [
     #"argmax",
-    #"concat",
+    "concat",
     #"convolution",
-    #"crossentropy",
+    "crossentropy",
     #"dropout",
-    #"embedding",
     #"exp",
     #"gemm",
     #"getindex",
     #"gru",
-    #"linear",
+    "linear",
+    "lookup",
     #"log",
     #"math",
-    #"max",
+    "max",
     #"pooling",
     "relu",
     #"reshape",
-    #"sigmoid",
-    #"softmax",
+    "sigmoid",
+    "softmax",
     #"sum",
-    #"tanh",
+    "tanh",
     #"transpose",
     #"view",
-    #"window"
+    "window"
     ]
     include("functions/$(name).jl")
 end
@@ -92,6 +76,5 @@ for name in [
 end
 
 #include("caffe/Caffe.jl")
-=#
 
 end
