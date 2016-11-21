@@ -18,6 +18,20 @@ f = Linear(T, 10, 7)
 f.b = zerograd(rand(T,size(f.b)))
 @test checkgrad(linear, f.w, x, f.b)
 
+@testset "math" begin
+    x1 = zerograd(rand(T,10,5))
+    x2 = zerograd(rand(T,10,5))
+    x3 = zerograd(rand(T,10,5))
+    #for op in [+,-,.*]
+    for op in (+,)
+        @test checkgrad(op, x1, x2)
+        @test checkgrad(op, x1, x3)
+        @test checkgrad(op, x3, x1)
+    end
+    x4 = zerograd(rand(T,5,7))
+    #@test checkgrad(*, x1, x4)
+end
+
 @testset "reduce" begin
     x = zerograd(rand(T,10,5))
     @test checkgrad(sum, x, 1)
@@ -57,17 +71,6 @@ x3 = Var(rand(T,10,5,3))
 @test checkgrad(()->gemm('N','T',0.3,x1,x3), x1, x3)
 @test checkgrad(()->gemm('T','N',0.4,x1,x3), x1, x3)
 @test checkgrad(()->gemm('T','T',0.5,x1,x2), x1, x2)
-
-x1 = Var(rand(T,10,5))
-x2 = Var(rand(T,10,5))
-x3 = Var(rand(T,10,1))
-for op in [+,-,.*]
-    @test checkgrad(()->op(x1,x2), x1, x2)
-    @test checkgrad(()->op(x1,x3), x1, x3)
-    @test checkgrad(()->op(x3,x1), x3, x1)
-end
-x4 = Var(rand(T,5,7))
-@test checkgrad(()->*(x1,x4), x1, x4)
 
 xx = Var(rand(T,1)[1])
 @test checkgrad(()->exp(x1), x1)

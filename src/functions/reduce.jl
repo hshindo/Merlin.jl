@@ -14,6 +14,7 @@ function sum(x::Var, dim::Int)
     y
 end
 
+#=
 """
     sum(as::Vector{Float64}, xs::Vector{Var})
 
@@ -75,3 +76,4 @@ function ∇axpy!{T}(a::Float64, gx::Array{T}, gy::Array{T})
 end
 ∇axpy!(a::Float64, gx::Number, gy::Array) = gx + a * sum(gy)
 ∇axpy!(a::Float64, gx::Number, gy::Number) = gx + a * gy
+=#

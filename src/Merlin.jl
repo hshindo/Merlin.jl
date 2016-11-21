@@ -12,7 +12,9 @@ else
 end
 
 abstract Functor
+type CuArray{T,N}; end
 
+#=
 const USE_CUDA = try
     using JuCUDA
     include("cuda/cudnn/CUDNN.jl")
@@ -25,6 +27,7 @@ catch e
     typealias CuMatrix{T} CuArray{T,2}
     false
 end
+=#
 
 #typealias UniArray{T,N} Union{Array{T,N},SubArray{T,N},CuArray{T,N}}
 
@@ -33,13 +36,13 @@ end
 include("memorypool.jl")
 include("var.jl")
 include("graph.jl")
-#include("fit.jl")
-#include("native.jl")
-#include("hdf5.jl")
+include("fit.jl")
+include("native.jl")
+include("hdf5.jl")
 include("check.jl")
 
 for name in [
-    #"argmax",
+    "argmax",
     "concat",
     #"convolution",
     "crossentropy",
@@ -62,7 +65,7 @@ for name in [
     "tanh",
     #"transpose",
     #"view",
-    "window"
+    "window",
     ]
     include("functions/$(name).jl")
 end

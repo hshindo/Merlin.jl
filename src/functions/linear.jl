@@ -17,7 +17,7 @@ f = Linear(Float32,10,7)
 y = f(x)
 ```
 """
-type Linear
+type Linear <: Functor
     w::Var
     b::Var
 end

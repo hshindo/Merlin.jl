@@ -30,7 +30,8 @@ Base.length(v::Var) = length(v.data)
 Base.ndims(v::Var) = ndims(v.data)
 
 function zerograd!(v::Var)
-    v.grad = v.grad == nothing ? zeros(v.data) : fill!(v.grad, 0)
+    v.grad == nothing && (v.grad = alloc(eltype(v),size(v)))
+    fill!(v.grad, 0)
     v
 end
 zerograd(x) = zerograd!(Var(x))

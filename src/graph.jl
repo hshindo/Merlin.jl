@@ -13,7 +13,7 @@ function compile(output::Var, inputs::Var...)
     @assert output.data == nothing
     all(v -> isempty(v.args) && v.data == nothing, inputs) || throw("Invalid inputs.")
     nodes = topsort(output)
-    count(n -> isempty(n.args), nodes) == length(inputs) || throw("Wrong number of inputs.")
+    #count(n -> isempty(n.args), nodes) == length(inputs) || throw("Wrong number of inputs.")
     node2id = Dict(nodes[i]=>i for i=1:length(nodes))
 
     calls = Array{Any}(length(nodes))

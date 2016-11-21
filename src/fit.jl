@@ -5,6 +5,7 @@ using ProgressMeter
     fit(xs, ys, decode, lossfun, opt, [progress=true])
 """
 function fit(xs::Vector, ys::Vector, decode, lossfun, opt; progress=true)
+    @assert length(xs) == length(ys)
     progress && (prog = Progress(length(xs)))
     loss = 0.0
     fdict = ObjectIdDict()
@@ -16,8 +17,9 @@ function fit(xs::Vector, ys::Vector, decode, lossfun, opt; progress=true)
         loss += sum(l.data)
         vars = gradient!(l)
         for v in vars
-            typeof(v.f) <: Functor || continue
-            haskey(fdict, v.f) && continue
+            
+            #typeof(v.f) <: Functor || continue
+            #haskey(fdict, v.f) && continue
             fdict[v.f] = nothing
             update!(v.f, opt)
         end
