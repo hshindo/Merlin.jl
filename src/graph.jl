@@ -43,8 +43,8 @@ end
 
 (g::Graph)(xs::Var...) = g.f(xs...)
 
-h5convert(g::Graph) = Dict("nodes"=>g.nodes, "inputs"=>g.inputs)
-h5convert(::Type{Graph}, x) = Graph(x["nodes"], x["inputs"])
+h5convert(g::Graph) = Dict("nodes"=>g.nodes, "args"=>g.args)
+h5convert(::Type{Graph}, x) = Graph(x["nodes"], x["args"])
 
 #=
 macro graph(expr)

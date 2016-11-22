@@ -17,13 +17,14 @@ function fit(xs::Vector, ys::Vector, decode, lossfun, opt; progress=true)
         loss += sum(l.data)
         vars = gradient!(l)
         for v in vars
-            
-            #typeof(v.f) <: Functor || continue
-            #haskey(fdict, v.f) && continue
-            fdict[v.f] = nothing
-            update!(v.f, opt)
+            isempty(v.args) || continue
+            isconst(v) && continue
+            haskey(fdict, v) && continue
+            fdict[v] = v
+            opt(v.data, v.grad)
         end
         progress && next!(prog)
     end
+
     loss
 end

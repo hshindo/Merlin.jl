@@ -53,10 +53,10 @@ end
 
 function window!{T}(x::Array{T}, w::Window{1}, y::Array{T})
     ccall(chandle(w,T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
-        x, y, length(x), size(w,1), stride(w,1), pad(w,1))
+        x, y, length(x), size(w,1), pad(w,1), stride(w,1))
 end
 
 function ∇window!{T}(gy::Array{T}, gx::Array{T}, w::Window{1})
     ccall(∇chandle(w,T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
-        gx, gy, length(gx), size(w,1), stride(w,1), pad(w,1))
+        gx, gy, length(gx), size(w,1), pad(w,1), stride(w,1))
 end

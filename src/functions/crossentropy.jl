@@ -47,7 +47,7 @@ function crossentropy!{T}(p::Vector{Int}, logx::Matrix{T}, y::Matrix{T})
     end
 end
 
-function ∇crossentropy!{T}(p::Matrix{T}, logx::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
+function ∇crossentropy2!{T}(p::Matrix{T}, logx::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
     for j = 1:size(p,2)
         g = gy[j]
         @inbounds @simd for i = 1:size(p,1)

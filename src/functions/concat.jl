@@ -39,8 +39,6 @@ function concat(dim::Int, xs::Var...)
     end
     concat(dim, [xs...])
 end
-concat(dim::Int, x1::Var, x2::Var) = concat(dim, [x1,x2])
-concat(dim::Int, x1::Var, x2::Var, x3::Var) = concat(dim, [x1,x2,x3])
 
 function ∇concat!(dim::Int, xs::Vector{Var}, gy::Array)
     range = [1:size(gy,i) for i=1:ndims(gy)]

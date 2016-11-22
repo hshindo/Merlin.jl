@@ -41,7 +41,7 @@ function Lookup(path::String, T::Type)
     for i = 1:length(lines)
         items = split(chomp(lines[i]), ' ')
         w = map(x -> parse(T,x), items)
-        ws[i] = Var(w)
+        ws[i] = zerograd(w)
     end
     Lookup(ws)
 end
@@ -51,14 +51,13 @@ function (f::Lookup)(x::Var)
     w1 = f.ws[1]
     T = eltype(w1)
     dims = ntuple(d -> d==1 ? size(x,d)*length(w1) : size(x,d), ndims(x))
+    #args = Var[]
+    #for id in x.data
+    #    id > 0 && push!(args, f.ws[id])
+    #end
     y = Var(T, dims)
     lookup!(f.ws, x.data, y.data)
-    y.df = () -> begin
-        ∇lookup!(y.grad, f.ws, x.data)
-        for id in x.data
-            id > 0 && push!(f.idset, id)
-        end
-    end
+    #y.df = () -> ∇lookup!(y.grad, f.ws, x.data)
     y
 end
 

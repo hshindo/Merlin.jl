@@ -1,6 +1,6 @@
 export checkgrad, checkcuda
 
-function checkgrad(f, args...; eps=1e-2)
+function checkgrad(f, args...; eps=1e-3)
     xs = filter(a -> typeof(a) == Var && !isconst(a), args)
     foreach(zerograd!, xs)
     y = f(args...)

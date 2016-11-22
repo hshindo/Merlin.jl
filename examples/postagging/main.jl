@@ -5,8 +5,8 @@ using HDF5
 function main()
     h5file = "wordembeds_nyt100.h5"
     words = h5read(h5file, "s")
-    wordembeds = Embedding(h5read(h5file,"v"))
-    charembeds = Embedding(Float32,100,10)
+    wordembeds = Lookup(h5read(h5file,"v"))
+    charembeds = Lookup(Float32,100,10)
 
     worddict = IntDict(words)
     chardict = IntDict{String}()
@@ -27,9 +27,9 @@ function main()
 
     model = Model(wordembeds, charembeds, length(tagdict))
     # model = Merlin.load("postagger.h5", "model")
-    train(5, model, train_x, train_y, test_x, test_y)
+    train(10, model, train_x, train_y, test_x, test_y)
 
-    Merlin.save("postagger.h5", "w", "model", model)
+    #Merlin.save("postagger.h5", "w", "model", model)
 end
 
 function train(nepochs::Int, model, train_x, train_y, test_x, test_y)

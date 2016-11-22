@@ -8,7 +8,8 @@ MemoryPool() = MemoryPool(Array{Bool}(2^25), 1)
 const mempools = MemoryPool[MemoryPool()]
 
 function alloc(T::Type, dims::Tuple{Vararg{Int}})
-    isempty(mempools) && return Array{T}(dims)
+    #isempty(mempools) && return Array{T}(dims)
+    return Array{T}(dims)
 
     mp = mempools[1]
     len = prod(dims) * sizeof(T)

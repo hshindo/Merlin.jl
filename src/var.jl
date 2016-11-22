@@ -28,6 +28,7 @@ Base.size(v::Var) = size(v.data)
 Base.size(v::Var, dim::Int) = size(v.data, dim)
 Base.length(v::Var) = length(v.data)
 Base.ndims(v::Var) = ndims(v.data)
+Base.similar(v::Var, args=()) = Var(eltype(v), size(v), args)
 
 function zerograd!(v::Var)
     v.grad == nothing && (v.grad = alloc(eltype(v),size(v)))
@@ -54,7 +55,7 @@ end
 function gradient!(top::Var)
     sorted = topsort(top)
     isconst(top) && (top.grad = ones(top.data))
-    for i = 1:length(sorted)-1 # excludes top
+    for i = 1:length(sorted)
         v = sorted[i]
         isconst(v) && !isempty(v.args) && zerograd!(v)
     end
