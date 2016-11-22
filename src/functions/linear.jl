@@ -45,8 +45,8 @@ end
 
 function ∇linear!(y::Var, w::Var, x::Var, b::Var)
     T = eltype(y)
-    BLAS.gemm!('N', 'T', T(1), y.grad, x.data, T(1), w.grad)
-    BLAS.gemm!('T', 'N', T(1), w.data, y.grad, T(1), x.grad)
+    isconst(w) || BLAS.gemm!('N', 'T', T(1), y.grad, x.data, T(1), w.grad)
+    isconst(x) || BLAS.gemm!('T', 'N', T(1), w.data, y.grad, T(1), x.grad)
     if !isconst(b)
         for offset = 1:length(b.data):length(y.grad)
             BLAS.axpy!(length(b.data), T(1), pointer(y.grad,offset), 1, pointer(b.grad), 1)

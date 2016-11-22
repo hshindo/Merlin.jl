@@ -45,7 +45,7 @@ function main()
     nn = model()
     #nn = Merlin.load("mnist.h5", "3")
     opt = SGD(0.005)
-    for epoch = 1:20
+    for epoch = 1:10
         println("Epoch: $(epoch)")
         loss = fit(xtrains, ytrains, nn, crossentropy, opt)
         println("Loss: $(loss)")
