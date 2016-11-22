@@ -1,4 +1,4 @@
-#include <math.h>
+#include "math.h"
 
 inline int getindex(int i, int j, int k, int dim1, int dim2) {
     return i + dim1 * (k + dim2*j);
@@ -17,7 +17,7 @@ void softmax(T *x, T *y, int dim1, int dim2, int dim3) {
             T z = 0;
             for (int k = 0; k < dim2; k++) {
                 int idx = getindex(i, j, k, dim1, dim2);
-                y[idx] = exp(x[idx] - maxv);
+                y[idx] = exp_approx(x[idx] - maxv);
                 z += y[idx];
             }
 
@@ -61,10 +61,10 @@ void logsoftmax(T *x, T *y, int dim1, int dim2, int dim3) {
             T z = 0;
             for (int k = 0; k < dim2; k++) {
                 int idx = getindex(i, j, k, dim1, dim2);
-                z += exp(x[idx] - maxv);
+                z += exp_approx(x[idx] - maxv);
             }
 
-            T logz = log(z);
+            T logz = log_approx(z);
             for (int k = 0; k < dim2; k++) {
                 int idx = getindex(i, j, k, dim1, dim2);
                 y[idx] = x[idx] - maxv - logz;
@@ -85,7 +85,7 @@ void logsoftmax_grad(T *gx, T *y, T *gy, int dim1, int dim2, int dim3) {
 
             for (int k = 0; k < dim2; k++) {
                 int idx = getindex(i, j, k, dim1, dim2);
-                gx[idx] += gy[idx] - exp(y[idx]) * sum;
+                gx[idx] += gy[idx] - exp_approx(y[idx]) * sum;
             }
         }
     }

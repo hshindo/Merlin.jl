@@ -27,7 +27,7 @@ function main()
 
     model = Model(wordembeds, charembeds, length(tagdict))
     # model = Merlin.load("postagger.h5", "model")
-    train(10, model, train_x, train_y, test_x, test_y)
+    train(1, model, train_x, train_y, test_x, test_y)
 
     #Merlin.save("postagger.h5", "w", "model", model)
 end

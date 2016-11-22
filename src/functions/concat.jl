@@ -20,7 +20,8 @@ function concat(dim::Int, xs::Vector{Var})
     outsize = [size(xs[1])...]
     outsize[dim] = cumdim
 
-    y = Var(eltype(xs[1]), tuple(outsize...), xs)
+    dims = ntuple(i -> outsize[i], ndims(xs[1]))
+    y = Var(eltype(xs[1]), dims, xs)
     range = map(s -> 1:s, outsize)
     offset = 1
     for x in xs

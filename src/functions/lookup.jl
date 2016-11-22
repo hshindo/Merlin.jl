@@ -50,7 +50,8 @@ function (f::Lookup)(x::Var)
     x.data == nothing && return Var(nothing, (f,x))
     w1 = f.ws[1]
     T = eltype(w1)
-    dims = ntuple(d -> d==1 ? size(x,d)*length(w1) : size(x,d), ndims(x))
+    dims = (size(x,1)*length(w1), size(x,2))
+    #dims = ntuple(d -> d==1 ? size(x,d)*length(w1) : size(x,d), ndims(x))
     #args = Var[]
     #for id in x.data
     #    id > 0 && push!(args, f.ws[id])
