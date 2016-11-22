@@ -32,8 +32,9 @@ function (m::Model)(tokens::Vector{Token})
     wordmat = m.wordfun(Var(wordvec))
 
     charvecs = map(tokens) do t
-        charvec = reshape(t.chars, 1, length(t.chars))
-        m.charfun(Var(charvec))
+        Var(zeros(Float32,50,1))
+        #charvec = reshape(t.chars, 1, length(t.chars))
+        #m.charfun(Var(charvec))
     end
     charmat = concat(2, charvecs)
     m.sentfun(wordmat, charmat)
