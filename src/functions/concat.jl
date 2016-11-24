@@ -5,6 +5,7 @@ export concat
     concat(dim::Int, xs::Vector{Var})
 
 Concatenate arrays along the given dimension.
+
 ```julia
 x1 = Var(rand(Float32,4,3))
 x2 = Var(rand(Float32,4,5))
@@ -28,13 +29,18 @@ function concat(dim::Int, xs::Vector{Var})
         offset += s
     end
 
-    df(gy) = ∇concat!(dim, xs, gy)
-    Var(y, xs, concat, df)
+    df(gy) = ∇concat!(gy, dim, xs)
+    Var(y, concat, xs, df)
 end
-@graph concat(dim::Int, x1::Var, x2::Var) = concat(dim, [x1,x2])
-@graph concat(dim::Int, x1::Var, x2::Var, x3::Var) = concat(dim, [x1,x2,x3])
 
-function ∇concat!(dim::Int, xs::Vector{Var}, gy::UniArray)
+function concat(dim::Int, xs::Var...)
+    for x in xs
+        x.data == nothing && return Var(nothing, concat, [dim,xs...])
+    end
+    concat(dim, [xs...])
+end
+
+function ∇concat!(gy::Array, dim::Int, xs::Vector{Var})
     range = [1:size(gy,i) for i=1:ndims(gy)]
     offset = 1
     for x in xs

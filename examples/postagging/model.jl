@@ -12,7 +12,7 @@ function Model(wordembeds, charembeds, ntags::Int)
     y = window(y, (50,), strides=(10,), pads=(20,))
     y = Linear(T,50,50)(y)
     y = max(y, 2)
-    charfun = Graph(y, x)
+    charfun = compile(y, x)
 
     w = Var() # word vector
     c = Var() # chars vector
@@ -21,7 +21,7 @@ function Model(wordembeds, charembeds, ntags::Int)
     y = Linear(T,750,300)(y)
     y = relu(y)
     y = Linear(T,300,ntags)(y)
-    sentfun = Graph(y, w, c)
+    sentfun = compile(y, w, c)
 
     Model(wordembeds, charfun, sentfun)
 end
@@ -29,11 +29,12 @@ end
 function (m::Model)(tokens::Vector{Token})
     wordvec = map(t -> t.word, tokens)
     wordvec = reshape(wordvec, 1, length(wordvec))
-    wordmat = m.wordfun(constant(wordvec))
+    wordmat = m.wordfun(Var(wordvec))
 
     charvecs = map(tokens) do t
+        #Var(zeros(Float32,50,1))
         charvec = reshape(t.chars, 1, length(t.chars))
-        m.charfun(constant(charvec))
+        m.charfun(Var(charvec))
     end
     charmat = concat(2, charvecs)
     m.sentfun(wordmat, charmat)

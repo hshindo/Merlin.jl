@@ -1,7 +1,5 @@
-using Merlin
 using Base.Test
-
-import Merlin.CuArray
+using Merlin
 
 tests = ["functions"]
 

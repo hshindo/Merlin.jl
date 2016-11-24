@@ -1,29 +1,39 @@
 const sources = [
     "im2col.cpp",
-    "pooling.cpp",
+    "maxpool.cpp",
     "softmax.cpp",
     "window.cpp"]
 
-const compiler = "g++"
-
 if is_windows()
-    flags    = ["-Wall", "-O3", "-shared", "-march=native"]
-    libname = "libmerlin.dll"
-    cmd = `$compiler $flags -o $libname $sources`
-    println("Running $cmd")
-    run(cmd)
+    builddir = dirname(Base.source_path())
+    println("Build directory is $(builddir)")
+
+    import WinRPM
+
+    println("Installing gcc-c++.")
+    WinRPM.install("gcc-c++"; yes=true)
+    WinRPM.install("gcc"; yes=true)
+    WinRPM.install("headers"; yes=true)
+
+    gpp = Pkg.dir("WinRPM","deps","usr","x86_64-w64-mingw32","sys-root","mingw","bin","g++")
+    RPMbindir = Pkg.dir("WinRPM","deps","usr","x86_64-w64-mingw32","sys-root","mingw","bin")
+    incdir = Pkg.dir("WinRPM","deps","usr","x86_64-w64-mingw32","sys-root","mingw","include")
+
+    push!(Base.Libdl.DL_LOAD_PATH,RPMbindir)
+    ENV["PATH"] = ENV["PATH"] * ";" * RPMbindir
+
+    run(`$gpp --version`)
+    cmd = `$gpp -Wall -shared -O3 -I $incdir -o libmerlin.dll $sources`
 elseif is_apple()
-    flags    = ["-fPIC", "-Wall", "-O3", "-shared"]
-    libname = "libmerlin.so"
-    cmd = `$compiler $flags -o $libname $sources`
-    println("Running $cmd")
-    run(cmd)
+    cmd = `g++ -fPIC -Wall -O3 -shared -o libmerlin.so $sources`
 elseif is_linux()
-    flags    = ["-fopenmp", "-fPIC", "-Wall", "-O3", "-shared", "-march=native"]
-    libname = "libmerlin.so"
-    cmd = `$compiler $flags -o $libname $sources`
-    println("Running $cmd")
-    run(cmd)
+    cmd = `g++ -fPIC -Wall -O3 -shared -o libmerlin.so $sources`
 else
     throw("Unknown OS.")
 end
+println("Running...")
+println(cmd)
+run(cmd)
+
+println()
+println("Build success.")

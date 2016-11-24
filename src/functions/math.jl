@@ -5,34 +5,52 @@ import Base: +, -, *, .*
     +(a::Number, x::Var)
     +(x::Var, a::Number)
 
+    -(x1::Var, x2::Var)
+    -(a::Number, x::Var)
+    -(a::Number, x::Var)
+    -(x::Var)
+
+    \*(x1::Var, x2::Var)
+    \*(a::Number, x::Var)
+    \*(x::Var, a::Number)
+
+    \.\*(x1::Var, x2::Var)
+
 ```julia
 y = Var([1.,2.,3.]) + Var([4.,5.,6.])
 y = 1.0 + Var([4.,5.,6.])
 y = Var([1.,2.,3.]) + 4.0
 ```
 """
-@graph +(x1::Var, x2::Var) = sum([1.0,1.0], [x1,x2])
-+(a::Number, x::Var) = constant(a) + x
-+(x::Var, a::Number) = x + constant(a)
+function +(x1::Var, x2::Var)
+    (x1.data == nothing || x2.data == nothing) && return Var(nothing, (+,x1,x2))
+    dims = length(x1.data) >= length(x2.data) ? size(x1) : size(x2)
+    y = Var(eltype(x1), dims, (x1,x2))
+    broadcast!(+, y.data, x1.data, x2.data)
+    y.df = () -> begin
+        isconst(y) && zerograd!(y)
+        x1.grad .+= y.grad
+        x2.grad .+= y.grad
+    end
+    y
+end
++(a::Number, x::Var) = Var(a) + x
++(x::Var, a::Number) = x + Var(a)
 
-"""
-    -(x1::Var, x2::Var)
-    -(a::Number, x::Var)
-    -(a::Number, x::Var)
-    -(x::Var)
+function ∇axpy2!{T}(a::Float64, gx::Array{T}, gy::Array{T})
+    n = length(gx)
+    for k = 1:n:length(gy)
+        BLAS.axpy!(n, T(a), pointer(gy,k), 1, pointer(gx), 1)
+    end
+    gx
+end
 
-See `+` for examples.
-"""
+#=
 @graph -(x1::Var, x2::Var) = sum([1.0,-1.0], [x1,x2])
 @graph -(x::Var) = sum([-1.0], [x])
 -(a::Number, x::Var) = constant(a) - x
 -(x::Var, a::Number) = x - constant(a)
 
-"""
-    \*(x1::Var, x2::Var)
-    \*(a::Number, x::Var)
-    \*(x::Var, a::Number)
-"""
 @graph function *(x1::Var, x2::Var)
     y = x1.data * x2.data
     function df{T}(gy::UniArray{T})
@@ -44,9 +62,6 @@ end
 @graph *(a::Number, x::Var) = axsum([a], [x])
 *(x::Var, a::Number) = a * x
 
-"""
-    \.\*(x1::Var, x2::Var)
-"""
 @graph function .*(x1::Var, x2::Var)
     y = x1.data .* x2.data
     function df(gy)
@@ -71,3 +86,4 @@ function ∇elemtimes!{T}(x2::UniArray{T}, gx1::UniArray{T}, gy::UniArray{T})
         end
     end
 end
+=#

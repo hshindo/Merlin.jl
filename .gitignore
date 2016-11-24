@@ -3,5 +3,7 @@ docs/site/
 /dataset
 /dev
 sandbox.jl
-*.h5
 .data
+*.h5
+*.so
+*.dll

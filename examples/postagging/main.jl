@@ -5,17 +5,17 @@ using HDF5
 function main()
     h5file = "wordembeds_nyt100.h5"
     words = h5read(h5file, "s")
-    wordembeds = Embedding(h5read(h5file,"v"))
-    charembeds = Embedding(Float32,100,10)
+    wordembeds = Lookup(h5read(h5file,"v"))
+    charembeds = Lookup(Float32,100,10)
 
     worddict = IntDict(words)
     chardict = IntDict{String}()
     tagdict = IntDict{String}()
 
-    traindata = UD_English.traindata(col=(2,5))
-    testdata = UD_English.testdata(col=(2,5))
-    #traindata = CoNLL.read(".data/wsj_00-18.conll", (2,5))
-    #testdata = CoNLL.read(".data/wsj_22-24.conll", (2,5))
+    traindata = UD_English.traindata()
+    testdata = UD_English.testdata()
+    #traindata = CoNLL.read(".data/wsj_00-18.conll")
+    #testdata = CoNLL.read(".data/wsj_22-24.conll")
     info("# sentences of train data: $(length(traindata))")
     info("# sentences of test data: $(length(testdata))")
 
@@ -29,7 +29,7 @@ function main()
     # model = Merlin.load("postagger.h5", "model")
     train(5, model, train_x, train_y, test_x, test_y)
 
-    Merlin.save("postagger.h5", "w", "model", model)
+    #Merlin.save("postagger.h5", "w", "model", model)
 end
 
 function train(nepochs::Int, model, train_x, train_y, test_x, test_y)
@@ -56,7 +56,7 @@ function encode(data::Vector, worddict, chardict, tagdict, append::Bool)
         push!(data_x, Token[])
         push!(data_y, Int[])
         for items in sent
-            word, tag = items[1], items[2]
+            word, tag = items[2], items[5]
             word0 = replace(word, r"[0-9]", '0')
             wordid = get(worddict, lowercase(word0), unkword)
 

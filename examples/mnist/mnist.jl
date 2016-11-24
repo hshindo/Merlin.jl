@@ -10,7 +10,7 @@ function model()
     y = Linear(T,h,h)(y)
     y = relu(y)
     y = Linear(T,h,10)(y)
-    Graph(y, x)
+    compile(y, x)
 end
 
 function flatten(xs::Vector{Vector{Int}})
@@ -37,15 +37,15 @@ function main()
     ytest = ytest + 1
 
     # Create mini-batch
-    xtrains = [constant(Matrix{Float32}(xtrain[:,(i-1)*100+1:i*100])) for i=1:600]
+    xtrains = [Var(Matrix{Float32}(xtrain[:,(i-1)*100+1:i*100])) for i=1:600]
     ytrains = [ytrain[(i-1)*100+1:i*100] for i = 1:600]
-    xtests = [constant(Matrix{Float32}(xtest[:,(i-1)*100+1:i*100])) for i=1:100]
+    xtests = [Var(Matrix{Float32}(xtest[:,(i-1)*100+1:i*100])) for i=1:100]
     ytests = [ytest[(i-1)*100+1:i*100] for i = 1:100]
 
     nn = model()
     #nn = Merlin.load("mnist.h5", "3")
     opt = SGD(0.005)
-    for epoch = 1:20
+    for epoch = 1:10
         println("Epoch: $(epoch)")
         loss = fit(xtrains, ytrains, nn, crossentropy, opt)
         println("Loss: $(loss)")
@@ -56,7 +56,7 @@ function main()
         end
         acc = accuracy(ytests, zs)
         println("Test accuracy: $(acc)")
-        Merlin.save("mnist.h5", epoch==1 ? "w" : "r+", string(epoch), nn)
+        #Merlin.save("mnist.h5", epoch==1 ? "w" : "r+", string(epoch), nn)
     end
 end
 

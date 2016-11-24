@@ -1,8 +1,52 @@
-export @graph, Graph
+export compile
 
-"""
-    @graph
-"""
+type Graph
+    nodes::Vector{Var}
+    args::Vector{Int}
+    f
+end
+
+Base.getindex(g::Graph, key::Int) = g.nodes[key]
+Base.setindex!(g::Graph, value::Var, key::Int) = g.nodes[key] = value
+
+function compile(output::Var, inputs::Var...)
+    @assert output.data == nothing
+    all(v -> isempty(v.args) && v.data == nothing, inputs) || throw("Invalid inputs.")
+    nodes = topsort(output)
+    #count(n -> isempty(n.args), nodes) == length(inputs) || throw("Wrong number of inputs.")
+    node2id = Dict(nodes[i]=>i for i=1:length(nodes))
+
+    calls = Array{Any}(length(nodes))
+    for i = 1:length(nodes)
+        node = nodes[i]
+        if isempty(node.args)
+            calls[i] = node.data == nothing ? gensym() : node
+        else
+            args = map(node.args) do arg
+                typeof(arg) == Var ? Var(node2id[arg]) : arg
+            end
+            nodes[i] = Var(nothing, node.f, args)
+
+            args = map(node.args) do arg
+                typeof(arg) == Var ? calls[node2id[arg]] : arg
+            end
+            calls[i] = Expr(:call, node.f, args...)
+        end
+    end
+
+    args = map(v -> node2id[v], inputs)
+    syms = map(a -> calls[a], args)
+    expr = Expr(:->, Expr(:tuple, syms...), calls[end])
+    f = eval(expr)
+    Graph(nodes, [args...], f)
+end
+
+(g::Graph)(xs::Var...) = g.f(xs...)
+
+h5convert(g::Graph) = Dict("nodes"=>g.nodes, "args"=>g.args)
+h5convert(::Type{Graph}, x) = Graph(x["nodes"], x["args"])
+
+#=
 macro graph(expr)
     (expr.head == :function || expr.head == :(=)) || throw("Invalid @graph.")
     args, vars = [], []
@@ -24,60 +68,4 @@ macro graph(expr)
     end
     :($expr)
 end
-
-"""
-    Graph
-"""
-type Graph
-    nodes::Vector{Var}
-    inputs::Vector{Int}
-    f
-end
-
-Graph(nodes, inputs) = Graph(nodes, inputs, compile(nodes))
-
-Base.getindex(g::Graph, key::Int) = g.nodes[key]
-Base.setindex!(g::Graph, value::Var, key::Int) = g.nodes[key] = value
-
-function (g::Graph)(xs::Var...)
-    for x in xs
-        x.data == nothing && return Var(nothing, [g, xs...], nothing)
-    end
-    g.f(xs...)
-end
-(g::Graph)(xs...) = g(map(constant,xs)...)
-
-function Graph(top::Var, inputs::Var...)
-    @assert top.data == nothing
-    nodes = topsort(top)
-    node2id = Dict(nodes[i]=>i for i=1:length(nodes))
-    for node in nodes
-        # convert var arg to Var(id)
-        node.args = map(node.args) do arg
-            typeof(arg) == Var ? Var(node2id[arg],nothing) : arg
-        end
-    end
-    inputs = Int[node2id[inputs[i]] for i=1:length(inputs)]
-    Graph(nodes, inputs)
-end
-
-function compile(nodes::Vector{Var})
-    calls = []
-    for node in nodes
-        if isempty(node.args)
-            x = node.data == nothing ? gensym() : node
-            push!(calls, x)
-        else
-            args = map(node.args) do arg
-                typeof(arg) == Var ? calls[arg.data] : arg
-            end
-            push!(calls, Expr(:call, args...))
-        end
-    end
-    syms = filter(x -> typeof(x) == Symbol, calls)
-    expr = Expr(:->, Expr(:tuple, syms...), calls[end])
-    eval(expr)
-end
-
-h5convert(g::Graph) = Dict("nodes"=>g.nodes, "inputs"=>g.inputs)
-h5convert(::Type{Graph}, x) = Graph(x["nodes"], x["inputs"])
+=#

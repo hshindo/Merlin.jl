@@ -1,42 +1,91 @@
-export softmax
+export softmax, logsoftmax
 
-const SOFTMAX_F32 = Libdl.dlsym(libmerlin, :softmax_float)
-const SOFTMAX_F64 = Libdl.dlsym(libmerlin, :softmax_double)
-const ∇SOFTMAX_F32 = Libdl.dlsym(libmerlin, :softmax_grad_float)
-const ∇SOFTMAX_F64 = Libdl.dlsym(libmerlin, :softmax_grad_double)
+const SOFTMAX_F32 = Libdl.dlsym(libmerlin, :softmax_f32)
+const LOGSOFTMAX_F32 = Libdl.dlsym(libmerlin, :logsoftmax_f32)
+const ∇SOFTMAX_F32 = Libdl.dlsym(libmerlin, :softmax_f32_grad)
+const ∇LOGSOFTMAX_F32 = Libdl.dlsym(libmerlin, :logsoftmax_f32_grad)
 
-softmax_handle(::Type{Float32}) = SOFTMAX_F32, ∇SOFTMAX_F32
-softmax_handle(::Type{Float64}) = SOFTMAX_F64, ∇SOFTMAX_F64
+softmax_handle(::Type{Float32}) = SOFTMAX_F32
+logsoftmax_handle(::Type{Float32}) = LOGSOFTMAX_F32
+∇softmax_handle(::Type{Float32}) = ∇SOFTMAX_F32
+∇logsoftmax_handle(::Type{Float32}) = ∇LOGSOFTMAX_F32
 
 """
-    softmax(x::Var, dim::Int)
+    softmax(x::Var)
+
+Computes a softmax along the `ndims(x)-1`-th dimension.
+```math
+f(x) = \exp(x) \over \sum \exp(x)
+```
 """
-@graph function softmax(x::Var, dim::Int)
-    y = softmax(x.data, dim)
-    df(gy) = isconst(x) || ∇softmax!(x.grad, y, gy, dim)
-    Var(y, [x], softmax, df)
+function softmax(x::Var)
+    x.data == nothing && return Var(nothing, softmax, (x,))
+    y = softmax(x.data)
+    df(gy) = isconst(x) || ∇softmax!(y, gy, x.grad)
+    Var(y, softmax, (x,), df)
 end
 
-function softmax{T}(x::Array{T}, dim::Int)
-    @assert 0 < dim <= ndims(x)
-    h = softmax_handle(T)[1]
+"""
+    logsoftmax(x::Var)
+
+Computes a logarithm of softmax function.
+"""
+function logsoftmax(x::Var)
+    x.data == nothing && return Var(nothing, logsoftmax, (x,))
+    y = logsoftmax(x.data)
+    df(gy) = isconst(x) || ∇logsoftmax!(y, gy, x.grad)
+    Var(y, logsoftmax, (x,), df)
+end
+
+function softmax{T}(x::Array{T})
     y = similar(x)
-    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint}), x, y, splitdims(x,dim))
+    h = softmax_handle(T)
+    dims = dim3d(x, ndims(x)-1)
+    ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint), x, y, dims[1], dims[2], dims[3])
     y
 end
 
-function softmax(x::CuArray)
-    softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x, similar(x))
+function logsoftmax{T}(x::Array{T})
+    y = similar(x)
+    h = logsoftmax_handle(T)
+    dims = dim3d(x, ndims(x)-1)
+    ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint), x, y, dims[1], dims[2], dims[3])
+    y
 end
 
-function ∇softmax!{T}(gx::Array{T}, y::Array{T}, gy::Array{T}, dim::Int)
-    h = softmax_handle(T)[2]
-    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Ptr{Cint}), gx, y, gy, splitdims(gx,dim))
-    y
+softmax(x::CuArray) = CUDNN.softmax(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x)
+
+logsoftmax(x::CuArray) = CUDNN.softmax(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, x)
+
+function ∇softmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
+    h = ∇softmax_handle(T)
+    dims = dim3d(y, ndims(y)-1)
+    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), gx, y, gy, dims[1], dims[2], dims[3])
+end
+
+function ∇logsoftmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
+    h = ∇logsoftmax_handle(T)
+    dims = dim3d(y, ndims(y)-1)
+    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), gx, y, gy, dims[1], dims[2], dims[3])
 end
 
 function ∇softmax!(gx::CuArray, y::CuArray, gy::CuArray)
-    ∇softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
+    CUDNN.∇softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
+end
+
+function ∇logsoftmax!(gx::CuArray, y::CuArray, gy::CuArray)
+    CUDNN.∇softmax!(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
+end
+
+function dim3d(x::Array, dim::Int)
+    dim1, dim2, dim3 = 1, size(x,dim), 1
+    for i = 1:dim-1
+        dim1 *= size(x, i)
+    end
+    for i = dim+1:ndims(x)
+        dim3 *= size(x, i)
+    end
+    (dim1, dim2, dim3)
 end
 
 function softmax_jl{T}(x::Matrix{T})
@@ -72,4 +121,20 @@ function ∇softmax_jl!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
             end
         end
     end
+end
+
+function logsoftmax_jl{T}(x::Matrix{T})
+    y = similar(x)
+    max = maximum(x, 1)
+    for j = 1:size(x,2)
+        sum = T(0)
+        @inbounds @simd for i = 1:size(x,1)
+            sum += exp(x[i,j] - max[j])
+        end
+        logz = log(sum)
+        @inbounds @simd for i = 1:size(x,1)
+            y[i,j] = x[i,j] - max[j] - logz
+        end
+    end
+    y
 end
