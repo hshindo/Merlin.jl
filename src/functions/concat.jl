@@ -17,31 +17,30 @@ function concat(dim::Int, xs::Vector{Var})
     for x in xs
         cumdim += size(x.data, dim)
     end
-    outsize = [size(xs[1])...]
+    outsize = [size(xs[1].data)...]
     outsize[dim] = cumdim
-
-    dims = ntuple(i -> outsize[i], ndims(xs[1]))
-    y = Var(eltype(xs[1]), dims, xs)
+    y = similar(xs[1].data, outsize...)
     range = map(s -> 1:s, outsize)
     offset = 1
     for x in xs
-        s = size(x, dim)
+        s = size(x.data, dim)
         range[dim] = offset:(offset+s-1)
-        y.data[range...] = x.data
+        y[range...] = x.data
         offset += s
     end
-    y.df = () -> ∇concat!(dim, xs, y.grad)
-    y
+
+    df(gy) = ∇concat!(gy, dim, xs)
+    Var(y, concat, xs, df)
 end
 
 function concat(dim::Int, xs::Var...)
     for x in xs
-        x.data == nothing && return Var(nothing, (concat,dim,xs...))
+        x.data == nothing && return Var(nothing, concat, [dim,xs...])
     end
     concat(dim, [xs...])
 end
 
-function ∇concat!(dim::Int, xs::Vector{Var}, gy::Array)
+function ∇concat!(gy::Array, dim::Int, xs::Vector{Var})
     range = [1:size(gy,i) for i=1:ndims(gy)]
     offset = 1
     for x in xs

@@ -19,11 +19,10 @@ f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
 function softmax(x::Var)
-    x.data == nothing && return Var(nothing, (softmax,x))
-    y = Var(eltype(x), size(x), (x,))
-    softmax!(x.data, y.data)
-    y.df = () -> isconst(x) || ∇softmax!(y.data, y.grad, x.grad)
-    y
+    x.data == nothing && return Var(nothing, softmax, (x,))
+    y = softmax(x.data)
+    df(gy) = isconst(x) || ∇softmax!(y, gy, x.grad)
+    Var(y, softmax, (x,), df)
 end
 
 """
@@ -32,23 +31,26 @@ end
 Computes a logarithm of softmax function.
 """
 function logsoftmax(x::Var)
-    x.data == nothing && return Var(nothing, (logsoftmax,x))
-    y = Var(eltype(x), size(x), (x,))
-    logsoftmax!(x.data, y.data)
-    y.df = () -> isconst(x) || ∇logsoftmax!(y.data, y.grad, x.grad)
-    y
+    x.data == nothing && return Var(nothing, logsoftmax, (x,))
+    y = logsoftmax(x.data)
+    df(gy) = isconst(x) || ∇logsoftmax!(y, gy, x.grad)
+    Var(y, logsoftmax, (x,), df)
 end
 
-function softmax!{T}(x::Array{T}, y::Array{T})
+function softmax{T}(x::Array{T})
+    y = similar(x)
     h = softmax_handle(T)
     dims = dim3d(x, ndims(x)-1)
     ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint), x, y, dims[1], dims[2], dims[3])
+    y
 end
 
-function logsoftmax!{T}(x::Array{T}, y::Array{T})
+function logsoftmax{T}(x::Array{T})
+    y = similar(x)
     h = logsoftmax_handle(T)
     dims = dim3d(x, ndims(x)-1)
     ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint), x, y, dims[1], dims[2], dims[3])
+    y
 end
 
 softmax(x::CuArray) = CUDNN.softmax(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x)

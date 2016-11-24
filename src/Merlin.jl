@@ -33,7 +33,6 @@ end
 
 #include("interop/c/carray.jl")
 
-include("memorypool.jl")
 include("var.jl")
 include("graph.jl")
 include("fit.jl")
@@ -43,6 +42,7 @@ include("check.jl")
 
 for name in [
     "argmax",
+    "activation",
     "concat",
     #"convolution",
     "crossentropy",
@@ -54,15 +54,12 @@ for name in [
     "linear",
     "lookup",
     #"log",
-    "math",
+    #"math",
     "max",
     #"pooling",
-    "reduce",
-    "relu",
+    #"reduce",
     #"reshape",
-    "sigmoid",
     "softmax",
-    "tanh",
     #"transpose",
     #"view",
     "window",

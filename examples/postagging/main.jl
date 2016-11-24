@@ -12,10 +12,10 @@ function main()
     chardict = IntDict{String}()
     tagdict = IntDict{String}()
 
-    #traindata = UD_English.traindata(col=(2,5))
-    #testdata = UD_English.testdata(col=(2,5))
-    traindata = CoNLL.read(".data/wsj_00-18.conll")
-    testdata = CoNLL.read(".data/wsj_22-24.conll")
+    traindata = UD_English.traindata()
+    testdata = UD_English.testdata()
+    #traindata = CoNLL.read(".data/wsj_00-18.conll")
+    #testdata = CoNLL.read(".data/wsj_22-24.conll")
     info("# sentences of train data: $(length(traindata))")
     info("# sentences of test data: $(length(testdata))")
 
@@ -27,7 +27,7 @@ function main()
 
     model = Model(wordembeds, charembeds, length(tagdict))
     # model = Merlin.load("postagger.h5", "model")
-    train(1, model, train_x, train_y, test_x, test_y)
+    train(5, model, train_x, train_y, test_x, test_y)
 
     #Merlin.save("postagger.h5", "w", "model", model)
 end

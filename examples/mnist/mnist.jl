@@ -56,7 +56,7 @@ function main()
         end
         acc = accuracy(ytests, zs)
         println("Test accuracy: $(acc)")
-        Merlin.save("mnist.h5", epoch==1 ? "w" : "r+", string(epoch), nn)
+        #Merlin.save("mnist.h5", epoch==1 ? "w" : "r+", string(epoch), nn)
     end
 end
 

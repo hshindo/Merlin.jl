@@ -1,6 +1,6 @@
 const sources = [
     "im2col.cpp",
-    "pooling.cpp",
+    "maxpool.cpp",
     "softmax.cpp",
     "window.cpp"]
 
@@ -31,6 +31,9 @@ elseif is_linux()
 else
     throw("Unknown OS.")
 end
+println("Running...")
 println(cmd)
-println("Build success.")
 run(cmd)
+
+println()
+println("Build success.")

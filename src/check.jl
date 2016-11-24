@@ -24,8 +24,8 @@ function checkgrad(f, args...; eps=1e-3)
     true
 end
 
-function checkcuda(f, args...; eps=1e-2)
-    USE_CUDA || return true
+function checkcuda(f, args...; eps=1e-3)
+    #USE_CUDA || return true
     xs = filter(a -> typeof(a) == Var && !isconst(a), args)
     foreach(zerograd!, xs)
     y = f(args...)
@@ -33,7 +33,7 @@ function checkcuda(f, args...; eps=1e-2)
     gxs = map(x -> x.grad, xs)
 
     for x in xs
-        x.data = CuArray(x.data)
+        x.data = CudaArray(x.data)
         x.grad = zeros(x.data)
     end
     cuy = f(args...)

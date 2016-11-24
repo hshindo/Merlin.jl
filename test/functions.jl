@@ -2,6 +2,14 @@ const T = Float32
 
 @testset "functions" for i = 1:5
 
+# activation
+x = zerograd(rand(T,5,4))
+for f in (sigmoid, tanh)
+    @test checkgrad(f, x)
+    #@test checkcuda(f, x)
+end
+
+# concat
 x1 = zerograd(rand(T,10,5,2))
 x2 = zerograd(rand(T,10,5,2))
 x3 = zerograd(rand(T,10,5,2))
@@ -9,15 +17,27 @@ for dim = 1:3
     @test checkgrad(concat, dim, x1, x2, x3)
 end
 
-p = [1:5;]
+# crossentropy
+p = Var([1:5;])
 x = zerograd(rand(T,10,5))
 @test checkgrad(crossentropy, p, x)
 
+# linear
 x = zerograd(rand(T,10,5))
 f = Linear(T, 10, 7)
 f.b = zerograd(rand(T,size(f.b)))
 @test checkgrad(linear, f.w, x, f.b)
 
+# softmax
+x = zerograd(rand(T,10,5,3,4))
+@test checkgrad(softmax, x)
+@test checkgrad(logsoftmax, x)
+
+# window
+x = zerograd(rand(T,100))
+@test checkgrad(window, x, Merlin.Window((30,),(10,),(10,)))
+
+#=
 @testset "math" begin
     x1 = zerograd(rand(T,10,5))
     x2 = zerograd(rand(T,10,5))
@@ -38,19 +58,7 @@ end
     #@test checkgrad(sum, x, 2)
 end
 
-
-x = zerograd(rand(T,5,4))
-for f in [sigmoid, tanh]
-    @test checkgrad(f, x)
-    #@test checkcuda(f, x)
-end
-
-x = zerograd(rand(T,10,5,3,4))
-@test checkgrad(softmax, x)
-@test checkgrad(logsoftmax, x)
-
-x = zerograd(rand(T,100))
-@test checkgrad(window, x, Merlin.Window((30,),(10,),(10,)))
+=#
 
 #=
 x = Var(rand(T,5,4,3,2))

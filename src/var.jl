@@ -1,4 +1,7 @@
-export Var, constant, isconst, topsort, gradient!, zerograd, zerograd!
+export
+    Var,
+    zerograd, zerograd!,
+    topsort, gradient!
 
 """
     Var
@@ -11,14 +14,16 @@ Var(data, [args=()])
 """
 type Var
     data
+    f
     args
-    grad
     df
+    grad
 end
 
-Var(data, args=()) = Var(data, args, nothing, nothing)
-Var(T::Type, dims::Tuple, args=()) = Var(alloc(T,dims), args)
 Var() = Var(nothing)
+Var(data) = Var(data, nothing, ())
+Var(data, f, args) = Var(data, f, args, nothing, nothing)
+Var(data, args, f, df) = Var(data, args, f, df, nothing)
 
 Base.isconst(v::Var) = v.grad == nothing
 Base.getindex(v::Var, key::Int) = v.args[key]
@@ -28,11 +33,13 @@ Base.size(v::Var) = size(v.data)
 Base.size(v::Var, dim::Int) = size(v.data, dim)
 Base.length(v::Var) = length(v.data)
 Base.ndims(v::Var) = ndims(v.data)
-Base.similar(v::Var, args=()) = Var(eltype(v), size(v), args)
 
 function zerograd!(v::Var)
-    v.grad == nothing && (v.grad = alloc(eltype(v),size(v)))
-    fill!(v.grad, 0)
+    if v.grad == nothing
+        v.grad = zeros(v.data)
+    else
+        fill!(v.grad, 0)
+    end
     v
 end
 zerograd(x) = zerograd!(Var(x))
@@ -61,7 +68,7 @@ function gradient!(top::Var)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
-        v.df == nothing || v.df()
+        v.df == nothing || v.df(v.grad)
     end
     sorted
 end

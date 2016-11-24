@@ -30,7 +30,7 @@ void im2col(T *x, T *y, int xsize1, int xsize2, int xsize3, int winsize1, int wi
 }
 
 template <typename T>
-void im2col_grad(T *gx, T *gy, int xsize1, int xsize2, int xsize3, int winsize1, int winsize2,
+void im2col_grad(T *gy, T *gx, int xsize1, int xsize2, int xsize3, int winsize1, int winsize2,
     int pad1, int pad2, int stride1, int stride2) {
 
     int n1 = (xsize1 + 2 * pad1 - winsize1) / stride1 + 1;
@@ -60,9 +60,9 @@ void NAME(T *x, T *y, int xsize1, int xsize2, int xsize3, int winsize1, int wins
     int pad1, int pad2, int stride1, int stride2) { \
     im2col(x, y, xsize1, xsize2, xsize3, winsize1, winsize2, pad1, pad2, stride1, stride2); \
 } \
-void NAME ## _ ## grad(T *gx, T *gy, int xsize1, int xsize2, int xsize3, int winsize1, int winsize2, \
+void NAME ## _ ## grad(T *gy, T *gx, int xsize1, int xsize2, int xsize3, int winsize1, int winsize2, \
     int pad1, int pad2, int stride1, int stride2) { \
-    im2col_grad(gx, gy, xsize1, xsize2, xsize3, winsize1, winsize2, pad1, pad2, stride1, stride2); \
+    im2col_grad(gy, gx, xsize1, xsize2, xsize3, winsize1, winsize2, pad1, pad2, stride1, stride2); \
 }
 
 extern "C" {

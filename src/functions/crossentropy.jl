@@ -1,33 +1,30 @@
 export crossentropy
 
 """
-    crossentropy(p,x)
+    crossentropy(p::Var, x::Var; normalize=true)
 
-Computes cross-entropy between p and x. x is assumed to be unnormalized.
+Computes cross-entropy between p and x.
+* p: Var of Vector{Int} or Matrix{Float}
 
-* p: Vector{Int} or Matrix{Float}
+If normalize=true, x is normalized.
 
 ## 👉 Example
 ```julia
-p = [1:5;]
+p = Var([1:5;])
 x = Var(rand(Float32,10,5))
-y = crossentropy(p,x)
+y = crossentropy(p, x)
 ```
 """
-function crossentropy(p::Vector{Int}, x::Var)
-    x.data == nothing && return Var(nothing, (crossentropy,p,x))
-    logx = alloc(eltype(x), size(x))
-    logsoftmax!(x.data, logx)
-    y = Var(eltype(x), (1,length(p)), (x,))
-    crossentropy!(p, logx, y.data)
-    y.df = () -> isconst(x) || ∇crossentropy!(y.grad, p, logx, x.grad)
-    y
+function crossentropy(p::Var, x::Var; normalize=true)
+    normalize == false && throw("Not implemented yet.")
 
-    #logx = logsoftmax(x.data)
-    #y = crossentropy(p, logx)
-    #df(gy) = isconst(x) || ∇crossentropy!(p, logx, x.grad, gy)
-    #Var(y, [x], crossentropy, df)
+    x.data == nothing && return Var(nothing, crossentropy, (p,x))
+    logpx = logsoftmax(x.data)
+    y = crossentropy(p.data, logpx)
+    df(gy) = isconst(x) || ∇crossentropy!(gy, p.data, logpx, x.grad)
+    Var(y, crossentropy, (p,x), df)
 end
+crossentropy(p, x::Var; normalize=true) = crossentropy(Var(p), x, normalize=normalize)
 
 function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
     y = Array(T, 1, size(p,2))
@@ -41,13 +38,15 @@ function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
     y
 end
 
-function crossentropy!{T}(p::Vector{Int}, logx::Matrix{T}, y::Matrix{T})
+function crossentropy{T}(p::Vector{Int}, logx::Matrix{T})
+    y = Array(T, 1, length(p))
     @inbounds @simd for j = 1:length(p)
         y[j] = -logx[p[j],j]
     end
+    y
 end
 
-function ∇crossentropy2!{T}(p::Matrix{T}, logx::Matrix{T}, gx::Matrix{T}, gy::Matrix{T})
+function ∇crossentropy!{T}(gy::Matrix{T}, p::Matrix{T}, logx::Matrix{T}, gx::Matrix{T})
     for j = 1:size(p,2)
         g = gy[j]
         @inbounds @simd for i = 1:size(p,1)

@@ -25,12 +25,12 @@ function compile(output::Var, inputs::Var...)
             args = map(node.args) do arg
                 typeof(arg) == Var ? Var(node2id[arg]) : arg
             end
-            nodes[i] = Var(nothing, args)
+            nodes[i] = Var(nothing, node.f, args)
 
             args = map(node.args) do arg
                 typeof(arg) == Var ? calls[node2id[arg]] : arg
             end
-            calls[i] = Expr(:call, args...)
+            calls[i] = Expr(:call, node.f, args...)
         end
     end
 
