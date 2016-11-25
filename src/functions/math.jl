@@ -2,31 +2,17 @@ import Base: +, -, *, .*
 
 """
     +(x1::Var, x2::Var)
-    +(a::Number, x::Var)
-    +(x::Var, a::Number)
-
-    -(x1::Var, x2::Var)
-    -(a::Number, x::Var)
-    -(a::Number, x::Var)
-    -(x::Var)
-
-    \*(x1::Var, x2::Var)
-    \*(a::Number, x::Var)
-    \*(x::Var, a::Number)
-
-    \.\*(x1::Var, x2::Var)
 
 ```julia
-y = Var([1.,2.,3.]) + Var([4.,5.,6.])
-y = 1.0 + Var([4.,5.,6.])
-y = Var([1.,2.,3.]) + 4.0
+x1 = Var(rand(Float32,5,4))
+x2 = Var(rand(Float32,5,4))
+y = x1 + x2
 ```
 """
 function +(x1::Var, x2::Var)
     (x1.data == nothing || x2.data == nothing) && return Var(nothing, +, (x1,x2))
-    dims = length(x1) >= length(x2) ? size(x1) : size(x2)
-    y = broadcast(.+, x1.data, x2.data)
-    df(gy) = begin
+    y = x1.data + x2.data
+    function df(gy)
         isconst(x1) || (x1.grad .+= gy)
         isconst(x2) || (x2.grad .+= gy)
     end
@@ -35,46 +21,47 @@ end
 +(a::Number, x::Var) = Var(a) + x
 +(x::Var, a::Number) = x + Var(a)
 
-function aaa(gy::Array, gx::Array)
-    length(gy) == length(gx) && gx .+= gy
-
-end
-
-function ∇axpy2!{T}(a::Float64, gx::Array{T}, gy::Array{T})
-    n = length(gx)
-    for k = 1:n:length(gy)
-        BLAS.axpy!(n, T(a), pointer(gy,k), 1, pointer(gx), 1)
+"""
+    -(x1::Var, x2::Var)
+    -(x::Var)
+"""
+function -(x1::Var, x2::Var)
+    (x1.data == nothing || x2.data == nothing) && return Var(nothing, -, (x1,x2))
+    y = x1.data - x2.data
+    df(gy) = begin
+        isconst(x1) || (x1.grad .+= gy)
+        isconst(x2) || (x2.grad .-= gy)
     end
-    gx
+    Var(y, -, (x1,x2), df)
 end
+-(x::Var) = Var([eltype(x)(1)]) - x
 
-#=
-@graph -(x1::Var, x2::Var) = sum([1.0,-1.0], [x1,x2])
-@graph -(x::Var) = sum([-1.0], [x])
--(a::Number, x::Var) = constant(a) - x
--(x::Var, a::Number) = x - constant(a)
+"""
+    \*(x1::Var, x2::Var)
+"""
+*(x1::Var, x2::Var) = gemm(x1, x2)
 
-@graph function *(x1::Var, x2::Var)
-    y = x1.data * x2.data
-    function df{T}(gy::UniArray{T})
-        isconst(x1) || BLAS.gemm!('N', 'T', T(1), gy, x2.data, T(1), x1.grad)
-        isconst(x2) || BLAS.gemm!('T', 'N', T(1), x1.data, gy, T(1), x2.grad)
-    end
-    Var(y, [x1,x2], *, df)
-end
-@graph *(a::Number, x::Var) = axsum([a], [x])
-*(x::Var, a::Number) = a * x
-
-@graph function .*(x1::Var, x2::Var)
+"""
+    \.\*(x1::Var, x2::Var)
+"""
+function .*(x1::Var, x2::Var)
+    (x1.data == nothing || x2.data == nothing) && return Var(nothing, .*, (x1,x2))
+    @assert length(x1) == length(x2)
     y = x1.data .* x2.data
     function df(gy)
-        isconst(x1) || ∇elemtimes!(x2.data, x1.grad, gy)
-        isconst(x2) || ∇elemtimes!(x1.data, x2.grad, gy)
+        isconst(x1) || ∇elemtimes!(gy, x2.data, x1.grad)
+        isconst(x2) || ∇elemtimes!(gy, x1.data, x2.grad)
     end
-    Var(y, [x1,x2], .*, df)
+    Var(y, .*, (x1,x2), df)
 end
 
-function ∇elemtimes!{T}(x2::UniArray{T}, gx1::UniArray{T}, gy::UniArray{T})
+function ∇elemtimes!{T}(gy::Array{T}, x2::Array{T}, gx1::Array{T})
+    @inbounds @simd for i = 1:length(gy)
+        gx1[i] += gy[i] * x2[i]
+    end
+end
+
+function ∇elemtimes2!(x2, gx1, gy)
     if length(gx1) < length(gy)
         @inbounds for k = 0:length(gx1):length(gy)-1
             @simd for i = 1:length(gx1)
@@ -89,4 +76,3 @@ function ∇elemtimes!{T}(x2::UniArray{T}, gx1::UniArray{T}, gy::UniArray{T})
         end
     end
 end
-=#
