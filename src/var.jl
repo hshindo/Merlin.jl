@@ -23,7 +23,7 @@ end
 Var() = Var(nothing)
 Var(data) = Var(data, nothing, ())
 Var(data, f, args) = Var(data, f, args, nothing, nothing)
-Var(data, args, f, df) = Var(data, args, f, df, nothing)
+Var(data, f, args, df) = Var(data, f, args, df, nothing)
 
 Base.isconst(v::Var) = v.grad == nothing
 Base.getindex(v::Var, key::Int) = v.args[key]
