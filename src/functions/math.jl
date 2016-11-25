@@ -23,19 +23,22 @@ y = Var([1.,2.,3.]) + 4.0
 ```
 """
 function +(x1::Var, x2::Var)
-    (x1.data == nothing || x2.data == nothing) && return Var(nothing, (+,x1,x2))
-    dims = length(x1.data) >= length(x2.data) ? size(x1) : size(x2)
-    y = Var(eltype(x1), dims, (x1,x2))
-    broadcast!(+, y.data, x1.data, x2.data)
-    y.df = () -> begin
-        isconst(y) && zerograd!(y)
-        x1.grad .+= y.grad
-        x2.grad .+= y.grad
+    (x1.data == nothing || x2.data == nothing) && return Var(nothing, +, (x1,x2))
+    dims = length(x1) >= length(x2) ? size(x1) : size(x2)
+    y = broadcast(.+, x1.data, x2.data)
+    df(gy) = begin
+        isconst(x1) || (x1.grad .+= gy)
+        isconst(x2) || (x2.grad .+= gy)
     end
-    y
+    Var(y, +, (x1,x2), df)
 end
 +(a::Number, x::Var) = Var(a) + x
 +(x::Var, a::Number) = x + Var(a)
+
+function aaa(gy::Array, gx::Array)
+    length(gy) == length(gx) && gx .+= gy
+
+end
 
 function ∇axpy2!{T}(a::Float64, gx::Array{T}, gy::Array{T})
     n = length(gx)

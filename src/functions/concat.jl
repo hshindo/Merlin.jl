@@ -47,7 +47,7 @@ function ∇concat!(gy::Array, dim::Int, xs::Vector{Var})
         isconst(x) && continue
         s = size(x.data, dim)
         range[dim] = offset:(offset+s-1)
-        x.grad += view(gy, range...)
+        x.grad .+= view(gy, range...)
         offset += s
     end
 end
