@@ -100,7 +100,7 @@ end
 Merlin provides a `fit` function to train your model.
 ```julia
 train_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
-train_y = [Var([1,2,3]) for i=1:100] # correct labels
+train_y = [[1,2,3] for i=1:100] # correct labels
 
 f = begin
     T = Float32
