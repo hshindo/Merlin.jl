@@ -44,7 +44,7 @@ for name in [
     "argmax",
     "activation",
     "concat",
-    #"convolution",
+    "conv",
     "crossentropy",
     #"dropout",
     #"exp",

@@ -11,7 +11,6 @@ Base.size(w::Window, d::Int) = w.dims[d]
 Base.size(x::AbstractArray, w::Window, i::Int) = (size(x,i) + 2*pad(w,i) - size(w,i)) ÷ stride(w,i) + 1
 Base.strides(w::Window) = w.strides
 Base.stride(w::Window, i::Int) = w.strides[i]
-
 pads(w::Window) = w.pads
 pad(w::Window, i::Int) = w.pads[i]
 
