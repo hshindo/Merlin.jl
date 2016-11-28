@@ -126,23 +126,6 @@ function fvalue(golds::Vector{Vector{Int}}, preds::Vector{Vector{Int}}, tagdict)
     prec, recall, fval
 end
 
-function fvalue(golds::Vector{Vector{UnitRange{Int}}}, preds::Vector{Vector{UnitRange{Int}}})
-    @assert length(golds) == length(preds)
-    correct = 0
-    total_y, total_z = 0, 0
-    for i = 1:length(golds)
-        s1 = Set(golds[i])
-        s2 = Set(preds[i])
-        correct += length(intersect(s1,s2))
-        total_y += length(s1)
-        total_z += length(s2)
-    end
-    prec = correct / total_y
-    recall = correct / total_z
-    fval = 2*recall*prec/(recall+prec)
-    prec, recall, fval
-end
-
 include("intdict.jl")
 include("tagset.jl")
 include("token.jl")
