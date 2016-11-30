@@ -43,7 +43,7 @@ function main()
     ytests = [ytest[(i-1)*100+1:i*100] for i = 1:100]
 
     nn = model()
-    #nn = Merlin.load("mnist.h5", "3")
+    #nn = Merlin.load("mnist.h5", "7")
     opt = SGD(0.005)
     for epoch = 1:10
         println("Epoch: $(epoch)")
