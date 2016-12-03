@@ -3,6 +3,8 @@ export relu, sigmoid
 
 """
     relu(x::Var)
+
+Rectifier function.
 """
 function relu(x::Var)
     x.data == nothing && return Var(nothing, relu, (x,))
@@ -47,6 +49,8 @@ end
 
 """
     sigmoid(x::Var)
+
+Sigmoid function.
 """
 function sigmoid(x::Var)
     x.data == nothing && return Var(nothing, sigmoid, (x,))
@@ -77,6 +81,8 @@ end
 
 """
     tanh(x::Var)
+
+Hyperbolic tangent function.
 """
 function tanh(x::Var)
     x.data == nothing && return Var(nothing, tanh, (x,))

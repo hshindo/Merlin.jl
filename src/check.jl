@@ -1,20 +1,19 @@
 export checkgrad, checkcuda
 
-function checkgrad(f, args...; eps=1e-3)
-    xs = filter(a -> typeof(a) == Var && !isconst(a), args)
-    foreach(zerograd!, xs)
-    y = f(args...)
+function checkgrad(f, args::Var...; eps=1e-3)
+    foreach(zerograd!, args)
+    y = f()
     gradient!(y)
-    gxs1 = map(x -> x.grad, xs)
-    gxs2 = map(xs) do v
-        x = v.data
+    gxs1 = map(x -> x.grad, args)
+    gxs2 = map(args) do arg
+        x = arg.data
         gx = similar(x)
         for k = 1:length(x)
             xk = x[k]
             x[k] = xk + eps
-            y1 = f(args...).data
+            y1 = f().data
             x[k] = xk - eps
-            y2 = f(args...).data
+            y2 = f().data
             x[k] = xk
             gx[k] = sum(y1 - y2) / 2eps
         end
