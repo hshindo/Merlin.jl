@@ -11,8 +11,12 @@ else
     throw("Unsupported OS.")
 end
 
-if haskey(ENV,"USE_CUDA") && ENV["USE_CUDA"]
+use_cuda() = haskey(ENV,"USE_CUDA") && ENV["USE_CUDA"] == "true"
+
+if use_cuda()
     using CUDA
+    include("cudnn/CUDNN.jl")
+    using .CUDNN
 else
     type CuArray{T,N}
     end
