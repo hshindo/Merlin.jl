@@ -171,7 +171,7 @@ immutable cudnnConvolutionFwdAlgoPerf_t
     algo::cudnnConvolutionFwdAlgo_t
     status::cudnnStatus_t
     time::Cfloat
-    memory::Cint
+    memory::Csize_t
 end
 
 # begin enum ANONYMOUS_9
@@ -210,7 +210,7 @@ immutable cudnnConvolutionBwdFilterAlgoPerf_t
     algo::cudnnConvolutionBwdFilterAlgo_t
     status::cudnnStatus_t
     time::Cfloat
-    memory::Cint
+    memory::Csize_t
 end
 
 # begin enum ANONYMOUS_11
@@ -251,7 +251,7 @@ immutable cudnnConvolutionBwdDataAlgoPerf_t
     algo::cudnnConvolutionBwdDataAlgo_t
     status::cudnnStatus_t
     time::Cfloat
-    memory::Cint
+    memory::Csize_t
 end
 
 # begin enum ANONYMOUS_13

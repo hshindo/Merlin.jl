@@ -46,7 +46,10 @@ function ∇concat!(gy::Array, dim::Int, xs::Vector{Var})
         isconst(x) && continue
         s = size(x.data, dim)
         range[dim] = offset:(offset+s-1)
-        broadcast!(+, x.grad, x.grad, view(gy,range...))
+        gy[range...] += x.grad
+        #add!(x.grad, view(gy,range...))
         offset += s
     end
 end
+
+add!{T}(x::Array, y::SubArray) = broadcast!(+, y, y, x)
