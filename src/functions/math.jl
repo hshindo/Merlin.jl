@@ -13,8 +13,8 @@ function +(x1::Var, x2::Var)
     (x1.data == nothing || x2.data == nothing) && return Var(nothing, +, (x1,x2))
     y = x1.data + x2.data
     function df(gy)
-        isconst(x1) || (x1.grad .+= gy)
-        isconst(x2) || (x2.grad .+= gy)
+        isconst(x1) || broadcast!(x1.grad, x1.grad, gy)
+        isconst(x2) || broadcast!(x2.grad, x2.grad, gy)
     end
     Var(y, +, (x1,x2), df)
 end
@@ -34,7 +34,7 @@ function -(x1::Var, x2::Var)
     end
     Var(y, -, (x1,x2), df)
 end
--(x::Var) = Var([eltype(x)(1)]) - x
+#-(x::Var) = Var() - x
 
 """
     \*(x1::Var, x2::Var)
@@ -46,7 +46,7 @@ end
 """
 function .*(x1::Var, x2::Var)
     (x1.data == nothing || x2.data == nothing) && return Var(nothing, .*, (x1,x2))
-    @assert length(x1) == length(x2)
+    length(x1) == length(x2) || throw(DimensionMismatch())
     y = x1.data .* x2.data
     function df(gy)
         isconst(x1) || ∇elemtimes!(gy, x2.data, x1.grad)

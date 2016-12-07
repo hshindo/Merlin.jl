@@ -52,4 +52,4 @@ function ∇concat!(gy::Array, dim::Int, xs::Vector{Var})
     end
 end
 
-add!{T}(x::Array, y::SubArray) = broadcast!(+, y, y, x)
+#add!(x::Array, y::SubArray) = broadcast!(+, y, y, x)
