@@ -24,7 +24,7 @@ function checkgrad(f, args::Var...; eps=1e-3)
 end
 
 function checkcuda(f, args::Var...; eps=1e-3)
-    use_cuda() || return true
+    Pkg.installed("CUDA") == nothing && return true
     foreach(zerograd!, args)
     y = f()
     gradient!(y)

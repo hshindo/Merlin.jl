@@ -4,19 +4,16 @@ using Base.LinAlg.BLAS
 using HDF5
 
 if is_windows()
-    const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.dll"))
+    const libmerlin = Libdl.dlopen(joinpath(@__FILE__,"../../deps/libmerlin.dll"))
 elseif is_linux() || is_apple()
-    const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.so"))
+    const libmerlin = Libdl.dlopen(joinpath(@__FILE__,"../../deps/libmerlin.so"))
 else
     throw("Unsupported OS.")
 end
 
-use_cuda() = haskey(ENV,"USE_CUDA") && ENV["USE_CUDA"] == "true"
-
-if use_cuda()
+if Pkg.installed("CUDA") != nothing
     using CUDA
-    include("cudnn/CUDNN.jl")
-    using .CUDNN
+    using CUDA.CUDNN
 else
     type CuArray{T,N}
     end
@@ -24,7 +21,7 @@ else
     typealias CuMatrix{T} CuArray{T,2}
 end
 
-#typealias UniArray{T,N} Union{Array{T,N},SubArray{T,N},CuArray{T,N}}
+typealias UniArray{T,N} Union{Array{T,N},SubArray{T,N},CuArray{T,N}}
 
 #include("interop/c/carray.jl")
 
@@ -38,7 +35,6 @@ include("check.jl")
 abstract Functor
 for name in [
     "argmax",
-    "activation",
     "concat",
     "conv",
     "crossentropy",
@@ -54,8 +50,11 @@ for name in [
     "max",
     #"pooling",
     #"reduce",
+    "relu",
     #"reshape",
+    "sigmoid",
     "softmax",
+    "tanh",
     #"transpose",
     #"view",
     "window",

@@ -1,13 +1,6 @@
 const T = Float32
 
-@testset "functions" for i = 1:5
-
-# activation
-x = Var(rand(T,5,4))
-for f in (sigmoid, tanh)
-    @test checkgrad(()->f(x), x)
-    @test checkcuda(()->f(x), x)
-end
+@testset "functions" for i = 1:1
 
 # concat
 x1 = Var(rand(T,10,5,2))
@@ -15,6 +8,7 @@ x2 = Var(rand(T,10,5,2))
 x3 = Var(rand(T,10,5,2))
 for dim = 1:3
     @test checkgrad(()->concat(dim,x1,x2,x3), x1, x2, x3)
+    @test checkcuda(()->concat(dim,x1,x2,x3), x1, x2, x3)
 end
 
 # crossentropy
@@ -34,8 +28,9 @@ x3 = Var(rand(T,10,5))
 # linear
 x = Var(rand(T,10,5))
 f = Linear(T, 10, 7)
-f.b = Var(rand(T,size(f.b)))
+#f.b = Var(rand(T,size(f.b)))
 @test checkgrad(()->f(x), f.w, x, f.b)
+@test checkcuda(()->f(x), f.w, x, f.b)
 
 # math
 x1 = Var(rand(T,10,5))
@@ -49,11 +44,21 @@ end
 x4 = Var(rand(T,5,7))
 @test checkgrad(()->x1*x4, x1, x4)
 
+# sigmoid
+x = Var(rand(T,5,4))
+@test checkgrad(()->sigmoid(x), x)
+@test checkcuda(()->sigmoid(x), x)
+
 # softmax
 x = Var(rand(T,10,5,3,4))
 for f in (softmax,logsoftmax)
     @test checkgrad(()->f(x), x)
 end
+
+# tanh
+x = Var(rand(T,5,4))
+@test checkgrad(()->tanh(x), x)
+@test checkcuda(()->tanh(x), x)
 
 # window
 x = Var(rand(T,100))

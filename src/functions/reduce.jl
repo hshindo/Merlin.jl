@@ -6,11 +6,24 @@ import Base.sum
 Compute the sum along the given dimension.
 """
 function sum(x::Var, dim::Int)
-    x.data == nothing && return Var(nothing, (sum,x,dim))
-    dims = ntuple(i -> i==dim ? 1 : size(x,i), ndims(x))
-    y = Var(eltype(x), dims, (x,))
-    Base.mapreducedim!(identity, +, y.data, x.data)
-    y.df = () -> isconst(x) || (x.grad .+= y.grad)
+    x.data == nothing && return Var(nothing, sum, (x,dim))
+    y = sum(x.data, dim)
+    df(gy) = isconst(x) || broadcast!(+, x.grad, x.grad, y)
+    Var(y, sum, (x,), df)
+end
+
+function sum{T,N}(x::CuArray{T,N}, dim::Int)
+    t = ctype(T)
+    f = @nvrtc CuArray{T,N} """
+    $array_h
+    __global__ void f(Array<$t,$N> x, int dim, Array<$t,$N> y) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < y.length()) {
+            
+        }
+    }
+    """
+    f(length(y), 1, 1, y, x1, x2)
     y
 end
 

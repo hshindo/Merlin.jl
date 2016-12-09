@@ -13,8 +13,8 @@ function +(x1::Var, x2::Var)
     (x1.data == nothing || x2.data == nothing) && return Var(nothing, +, (x1,x2))
     y = x1.data + x2.data
     function df(gy)
-        isconst(x1) || broadcast!(x1.grad, x1.grad, gy)
-        isconst(x2) || broadcast!(x2.grad, x2.grad, gy)
+        isconst(x1) || broadcast!(+, x1.grad, x1.grad, gy)
+        isconst(x2) || broadcast!(+, x2.grad, x2.grad, gy)
     end
     Var(y, +, (x1,x2), df)
 end
