@@ -1,6 +1,6 @@
 const T = Float32
 
-@testset "functions" for i = 1:1
+@testset "functions" for i = 1:5
 
 # concat
 x1 = Var(rand(T,10,5,2))
@@ -28,7 +28,7 @@ x3 = Var(rand(T,10,5))
 # linear
 x = Var(rand(T,10,5))
 f = Linear(T, 10, 7)
-#f.b = Var(rand(T,size(f.b)))
+f.b = Var(rand(T,size(f.b)))
 @test checkgrad(()->f(x), f.w, x, f.b)
 @test checkcuda(()->f(x), f.w, x, f.b)
 
@@ -53,6 +53,7 @@ x = Var(rand(T,5,4))
 x = Var(rand(T,10,5,3,4))
 for f in (softmax,logsoftmax)
     @test checkgrad(()->f(x), x)
+    @test checkcuda(()->f(x), x)
 end
 
 # tanh
@@ -63,9 +64,6 @@ x = Var(rand(T,5,4))
 # window
 x = Var(rand(T,100))
 @test checkgrad(()->window(x,(30,),pads=(10,),strides=(10,)), x)
-
-
-
 
 #=
 @testset "reduce" begin

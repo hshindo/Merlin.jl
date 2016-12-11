@@ -36,7 +36,6 @@ abstract Functor
 for name in [
     "argmax",
     "concat",
-    "conv",
     "crossentropy",
     #"dropout",
     #"exp",
@@ -58,6 +57,7 @@ for name in [
     #"transpose",
     #"view",
     "window",
+    "conv",
     ]
     include("functions/$(name).jl")
 end

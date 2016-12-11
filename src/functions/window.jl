@@ -1,4 +1,4 @@
-export window
+export window, Window
 
 immutable Window{N}
     dims::NTuple{N,Int}

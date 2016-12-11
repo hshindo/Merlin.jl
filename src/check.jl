@@ -25,7 +25,10 @@ end
 
 function checkcuda(f, args::Var...; eps=1e-3)
     Pkg.installed("CUDA") == nothing && return true
-    foreach(zerograd!, args)
+    for x in args
+        x.data = Array(x.data)
+        x.grad = zeros(x.data)
+    end
     y = f()
     gradient!(y)
     gxs = map(x -> x.grad, args)
