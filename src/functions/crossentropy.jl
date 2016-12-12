@@ -22,6 +22,7 @@ function crossentropy(p::Var, x::Var)
     df(gy) = isconst(x) || ∇crossentropy!(gy, p.data, logq, x.grad)
     Var(y, crossentropy, (p,x), df)
 end
+crossentropy(p, x::Var) = crossentropy(Var(p), x)
 
 function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
     y = Array(T, 1, size(p,2))
