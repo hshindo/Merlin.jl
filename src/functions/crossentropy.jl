@@ -1,7 +1,7 @@
 export crossentropy
 
 """
-    crossentropy(p::Var, x::Var; normalize=true)
+    crossentropy(p::Var, x::Var)
 
 Computes cross-entropy between p and x.
 * p: Var of Vector{Int} or Matrix{Float}
@@ -15,16 +15,14 @@ x = Var(rand(Float32,10,5))
 y = crossentropy(p, x)
 ```
 """
-function crossentropy(p::Var, x::Var; normalize=true)
-    normalize == false && throw("Not implemented yet.")
-
+function crossentropy(p::Var, x::Var)
     x.data == nothing && return Var(nothing, crossentropy, (p,x))
-    logpx = logsoftmax(x.data)
-    y = crossentropy(p.data, logpx)
-    df(gy) = isconst(x) || ∇crossentropy!(gy, p.data, logpx, x.grad)
+    logq = logsoftmax(x.data)
+    y = crossentropy(p.data, logq)
+    df(gy) = isconst(x) || ∇crossentropy!(gy, p.data, logq, x.grad)
     Var(y, crossentropy, (p,x), df)
 end
-crossentropy(p, x::Var; normalize=true) = crossentropy(Var(p), x, normalize=normalize)
+crossentropy(p, x::Var) = crossentropy(Var(p), x)
 
 function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
     y = Array(T, 1, size(p,2))
@@ -38,11 +36,28 @@ function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
     y
 end
 
-function crossentropy{T}(p::Vector{Int}, logx::Matrix{T})
+function crossentropy{T}(p::Vector{Int}, logq::Matrix{T})
+    length(p) == size(logq,2) || throw(DimensionMismatch())
     y = Array(T, 1, length(p))
     @inbounds @simd for j = 1:length(p)
-        y[j] = -logx[p[j],j]
+        y[j] = -logq[p[j],j]
     end
+    y
+end
+
+function crossentropy{T}(p::CuVector{Cint}, logq::CuArray{T})
+    length(p) == size(logq,2) || throw(DimensionMismatch())
+    y = CuArray{T}(1, length(p))
+    t = CUDA.ctype(T)
+    f = @nvrtc t """
+    $(CUDA.array_h)
+    __global__ void f(Array<int,1> p, Array<$t,2> logq, Array<$t,2> y) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < p.length()) {
+            y[idx] = -logq(p[idx]-1, idx);
+        }
+    } """
+    f(length(y), 1, 1, p, logq, y)
     y
 end
 
@@ -55,12 +70,28 @@ function ∇crossentropy!{T}(gy::Matrix{T}, p::Matrix{T}, logx::Matrix{T}, gx::M
     end
 end
 
-function ∇crossentropy!{T}(gy::Matrix{T}, p::Vector{Int}, logx::Matrix{T}, gx::Matrix{T})
+function ∇crossentropy!{T}(gy::Matrix{T}, p::Vector{Int}, logq::Matrix{T}, gx::Matrix{T})
     for j = 1:length(p)
         g = gy[j]
-        @inbounds @simd for i = 1:size(logx,1)
+        @inbounds @simd for i = 1:size(logq,1)
             delta = ifelse(i == p[j], T(1), T(0))
-            gx[i,j] += g * (exp(logx[i,j]) - delta)
+            gx[i,j] += g * (exp(logq[i,j]) - delta)
         end
     end
+end
+
+function ∇crossentropy!{T}(gy::CuMatrix{T}, p::CuVector{Cint}, logq::CuMatrix{T}, gx::CuMatrix{T})
+    length(p) == size(logq,2) || throw(DimensionMismatch())
+    y = CuArray{T}(1, length(p))
+    t = CUDA.ctype(T)
+    f = @nvrtc t """
+    $(CUDA.array_h)
+    __global__ void f(Array<int,1> p, Array<$t,2> logq, Array<$t,2> y) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < p.length()) {
+            y[idx] = -logq(p[idx]-1, idx);
+        }
+    } """
+    f(length(y), 1, 1, p, logq, y)
+    y
 end

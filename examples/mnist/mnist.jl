@@ -43,7 +43,7 @@ function main()
     ytests = [ytest[(i-1)*100+1:i*100] for i = 1:100]
 
     nn = model()
-    #nn = Merlin.load("mnist.h5", "3")
+    #nn = Merlin.load("mnist.h5", "7")
     opt = SGD(0.005)
     for epoch = 1:10
         println("Epoch: $(epoch)")
@@ -56,7 +56,7 @@ function main()
         end
         acc = accuracy(ytests, zs)
         println("Test accuracy: $(acc)")
-        #Merlin.save("mnist.h5", epoch==1 ? "w" : "r+", string(epoch), nn)
+        Merlin.save("mnist.h5", epoch==1 ? "w" : "r+", string(epoch), nn)
     end
 end
 

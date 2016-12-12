@@ -1,20 +1,19 @@
 export checkgrad, checkcuda
 
-function checkgrad(f, args...; eps=1e-3)
-    xs = filter(a -> typeof(a) == Var && !isconst(a), args)
-    foreach(zerograd!, xs)
-    y = f(args...)
+function checkgrad(f, args::Var...; eps=1e-2)
+    foreach(zerograd!, args)
+    y = f()
     gradient!(y)
-    gxs1 = map(x -> x.grad, xs)
-    gxs2 = map(xs) do v
-        x = v.data
+    gxs1 = map(x -> x.grad, args)
+    gxs2 = map(args) do arg
+        x = arg.data
         gx = similar(x)
         for k = 1:length(x)
             xk = x[k]
             x[k] = xk + eps
-            y1 = f(args...).data
+            y1 = f().data
             x[k] = xk - eps
-            y2 = f(args...).data
+            y2 = f().data
             x[k] = xk
             gx[k] = sum(y1 - y2) / 2eps
         end
@@ -24,25 +23,29 @@ function checkgrad(f, args...; eps=1e-3)
     true
 end
 
-function checkcuda(f, args...; eps=1e-3)
-    #USE_CUDA || return true
-    xs = filter(a -> typeof(a) == Var && !isconst(a), args)
-    foreach(zerograd!, xs)
-    y = f(args...)
-    gradient!(y)
-    gxs = map(x -> x.grad, xs)
-
-    for x in xs
-        x.data = CudaArray(x.data)
+function checkcuda(f, args::Var...; eps=1e-2)
+    Pkg.installed("CUDA") == nothing && return true
+    for x in args
+        x.data = Array(x.data)
         x.grad = zeros(x.data)
     end
-    cuy = f(args...)
-    gradient!(cuy)
-    cugxs = map(x -> Array(x.grad), xs)
-    checkdiff(y.data, Array(cuy.data), eps)
-    foreach(i -> checkdiff(gxs[i],cugxs[i],eps), 1:length(gxs))
+    y = f()
+    gradient!(y)
+    gxs = map(x -> x.grad, args)
 
-    for x in xs
+    for x in args
+        x.data = CuArray(x.data)
+        x.grad = zeros(x.data)
+    end
+    cuy = f()
+    gradient!(cuy)
+    cugxs = map(x -> Array(x.grad), args)
+    checkdiff(y.data, Array(cuy.data), eps)
+    for i = 1:length(gxs)
+        checkdiff(gxs[i],cugxs[i],eps)
+    end
+
+    for x in args
         x.data = Array(x.data)
         x.grad = zeros(x.data)
     end

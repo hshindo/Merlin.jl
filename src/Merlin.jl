@@ -4,32 +4,24 @@ using Base.LinAlg.BLAS
 using HDF5
 
 if is_windows()
-    const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.dll"))
+    const libmerlin = Libdl.dlopen(joinpath(@__FILE__,"../../deps/libmerlin.dll"))
 elseif is_linux() || is_apple()
-    const libmerlin = Libdl.dlopen(joinpath(Pkg.dir("Merlin"),"deps/libmerlin.so"))
+    const libmerlin = Libdl.dlopen(joinpath(@__FILE__,"../../deps/libmerlin.so"))
 else
     throw("Unsupported OS.")
 end
 
-abstract Functor
-type CuArray{T,N}; end
-
-#=
-const USE_CUDA = try
-    using JuCUDA
-    include("cuda/cudnn/CUDNN.jl")
-    using .CUDNN
-    true
-catch e
-    info(e)
-    type CuArray{T,N}; end
+if Pkg.installed("CUDA") != nothing
+    using CUDA
+    using CUDA.CUDNN
+else
+    type CuArray{T,N}
+    end
     typealias CuVector{T} CuArray{T,1}
     typealias CuMatrix{T} CuArray{T,2}
-    false
 end
-=#
 
-#typealias UniArray{T,N} Union{Array{T,N},SubArray{T,N},CuArray{T,N}}
+typealias UniArray{T,N} Union{Array{T,N},SubArray{T,N},CuArray{T,N}}
 
 #include("interop/c/carray.jl")
 
@@ -40,29 +32,32 @@ include("native.jl")
 include("hdf5.jl")
 include("check.jl")
 
+abstract Functor
 for name in [
     "argmax",
-    "activation",
     "concat",
-    #"convolution",
     "crossentropy",
     #"dropout",
     #"exp",
-    #"gemm",
+    "gemm",
     #"getindex",
     #"gru",
     "linear",
     "lookup",
     #"log",
-    #"math",
+    "math",
     "max",
     #"pooling",
     #"reduce",
+    "relu",
     #"reshape",
+    "sigmoid",
     "softmax",
+    "tanh",
     #"transpose",
     #"view",
     "window",
+    "conv",
     ]
     include("functions/$(name).jl")
 end

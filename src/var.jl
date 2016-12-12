@@ -1,7 +1,7 @@
 export
     Var,
     zerograd, zerograd!,
-    topsort, gradient!
+    topsort, gradient!, setbackend!
 
 """
     Var
@@ -71,4 +71,10 @@ function gradient!(top::Var)
         v.df == nothing || v.df(v.grad)
     end
     sorted
+end
+
+function setbackend!{T}(v::Var, ::Type{T})
+    typeof(v.data) <: T && return v
+    v.data = T(v.data)
+    v.grad == nothing || (v.grad = T(v.grad))
 end

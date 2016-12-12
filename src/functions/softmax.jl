@@ -25,6 +25,28 @@ function softmax(x::Var)
     Var(y, softmax, (x,), df)
 end
 
+function softmax{T}(x::Array{T})
+    y = similar(x)
+    h = softmax_handle(T)
+    dims = dim3d(x, ndims(x)-1)
+    ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint), x, y, dims[1], dims[2], dims[3])
+    y
+end
+
+function softmax{T,N}(x::CuArray{T,N})
+    CUDNN.softmax(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x)
+end
+
+function ∇softmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
+    h = ∇softmax_handle(T)
+    dims = dim3d(y, ndims(y)-1)
+    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), gx, y, gy, dims[1], dims[2], dims[3])
+end
+
+function ∇softmax!(y::CuArray, gy::CuArray, gx::CuArray)
+    CUDNN.∇softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
+end
+
 """
     logsoftmax(x::Var)
 
@@ -37,14 +59,6 @@ function logsoftmax(x::Var)
     Var(y, logsoftmax, (x,), df)
 end
 
-function softmax{T}(x::Array{T})
-    y = similar(x)
-    h = softmax_handle(T)
-    dims = dim3d(x, ndims(x)-1)
-    ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint), x, y, dims[1], dims[2], dims[3])
-    y
-end
-
 function logsoftmax{T}(x::Array{T})
     y = similar(x)
     h = logsoftmax_handle(T)
@@ -53,15 +67,7 @@ function logsoftmax{T}(x::Array{T})
     y
 end
 
-softmax(x::CuArray) = CUDNN.softmax(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x)
-
 logsoftmax(x::CuArray) = CUDNN.softmax(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, x)
-
-function ∇softmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
-    h = ∇softmax_handle(T)
-    dims = dim3d(y, ndims(y)-1)
-    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), gx, y, gy, dims[1], dims[2], dims[3])
-end
 
 function ∇logsoftmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     h = ∇logsoftmax_handle(T)
@@ -69,11 +75,7 @@ function ∇logsoftmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), gx, y, gy, dims[1], dims[2], dims[3])
 end
 
-function ∇softmax!(gx::CuArray, y::CuArray, gy::CuArray)
-    CUDNN.∇softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
-end
-
-function ∇logsoftmax!(gx::CuArray, y::CuArray, gy::CuArray)
+function ∇logsoftmax!(y::CuArray, gy::CuArray, gx::CuArray)
     CUDNN.∇softmax!(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
 end
 

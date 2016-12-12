@@ -1,4 +1,4 @@
-export window
+export window, Window
 
 immutable Window{N}
     dims::NTuple{N,Int}
@@ -6,12 +6,17 @@ immutable Window{N}
     strides::NTuple{N,Int}
 end
 
+Window(dim, pad, stride) = Window((dim,), (pad,), (stride,))
+Window(dim1, dim2, pad1, pad2, stride1, stride2) = Window((dim1,dim2), (pad1,pad2), (stride1,stride2))
+function Window(dim1, dim2, dim3, pad1, pad2, pad3, stride1, stride2, stride3)
+    Window((dim1,dim2,dim3), (pad1,pad2,pad3), (strde1,stride2,stride3))
+end
+
 Base.size(w::Window) = w.dims
 Base.size(w::Window, d::Int) = w.dims[d]
 Base.size(x::AbstractArray, w::Window, i::Int) = (size(x,i) + 2*pad(w,i) - size(w,i)) ÷ stride(w,i) + 1
 Base.strides(w::Window) = w.strides
 Base.stride(w::Window, i::Int) = w.strides[i]
-
 pads(w::Window) = w.pads
 pad(w::Window, i::Int) = w.pads[i]
 
