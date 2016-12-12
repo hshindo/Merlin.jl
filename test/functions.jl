@@ -11,6 +11,12 @@ for dim = 1:3
     @test checkcuda(()->concat(dim,x1,x2,x3), x1, x2, x3)
 end
 
+# conv
+x = Var(rand(T,5,4,3,2))
+f = Conv(T, Window(2,2,0,0,1,1), 3, 4)
+@test checkgrad(()->f(x), f.w, x)
+#@test checkcuda(()->f(x), f.w, x)
+
 # crossentropy
 p = Var([1:5;])
 x = Var(rand(T,10,5))
@@ -30,7 +36,7 @@ x = Var(rand(T,10,5))
 f = Linear(T, 10, 7)
 f.b = Var(rand(T,size(f.b)))
 @test checkgrad(()->f(x), f.w, x, f.b)
-@test checkcuda(()->f(x), f.w, x, f.b)
+@test checkcuda(()->f(x), f.w, x)
 
 # math
 x1 = Var(rand(T,10,5))
@@ -71,13 +77,6 @@ x = Var(rand(T,100))
     #@test checkgrad(sum, x, 1)
     #@test checkgrad(sum, x, 2)
 end
-
-=#
-
-#=
-x = Var(rand(T,5,4,3,2))
-f = Convolution(T, (2,2), (3,4), (0,0), (1,1))
-@test checkgrad(f, x)
 
 =#
 

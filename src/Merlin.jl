@@ -57,7 +57,7 @@ for name in [
     #"transpose",
     #"view",
     "window",
-    "conv2",
+    "conv",
     ]
     include("functions/$(name).jl")
 end

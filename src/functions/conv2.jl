@@ -60,6 +60,8 @@ function (f::Conv{2}){T}(x::Array{T,4})
         ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint),
             x, work_i, size(x,1), size(x,2), size(x,3),
             size(f.w,1), size(f.w,2), f.pads[1], f.pads[2], f.strides[1], f.strides[2])
+        println(size(x,1), size(x,2), size(x,3), size(f.w,1), size(f.w,2), f.pads[1], f.pads[2], f.strides[1], f.strides[2])
+        throw("eee")
         BLAS.gemm!('N', 'N', T(1), work_i, w, T(0), view(y,:,:,i))
     end
     y = reshape(y, outsize(f,x,1), outsize(f,x,2), size(y,2), size(y,3))

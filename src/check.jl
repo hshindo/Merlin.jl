@@ -1,6 +1,6 @@
 export checkgrad, checkcuda
 
-function checkgrad(f, args::Var...; eps=1e-3)
+function checkgrad(f, args::Var...; eps=1e-2)
     foreach(zerograd!, args)
     y = f()
     gradient!(y)
@@ -23,7 +23,7 @@ function checkgrad(f, args::Var...; eps=1e-3)
     true
 end
 
-function checkcuda(f, args::Var...; eps=1e-3)
+function checkcuda(f, args::Var...; eps=1e-2)
     Pkg.installed("CUDA") == nothing && return true
     for x in args
         x.data = Array(x.data)
@@ -41,7 +41,9 @@ function checkcuda(f, args::Var...; eps=1e-3)
     gradient!(cuy)
     cugxs = map(x -> Array(x.grad), args)
     checkdiff(y.data, Array(cuy.data), eps)
-    foreach(i -> checkdiff(gxs[i],cugxs[i],eps), 1:length(gxs))
+    for i = 1:length(gxs)
+        checkdiff(gxs[i],cugxs[i],eps)
+    end
 
     for x in args
         x.data = Array(x.data)
