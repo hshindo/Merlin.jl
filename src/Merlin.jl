@@ -19,6 +19,8 @@ else
     end
     typealias CuVector{T} CuArray{T,1}
     typealias CuMatrix{T} CuArray{T,2}
+    macro nvrtc(ex...)
+    end
 end
 
 typealias UniArray{T,N} Union{Array{T,N},SubArray{T,N},CuArray{T,N}}
