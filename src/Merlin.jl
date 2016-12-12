@@ -4,9 +4,9 @@ using Base.LinAlg.BLAS
 using HDF5
 
 if is_windows()
-    const libmerlin = Libdl.dlopen(joinpath(@__FILE__,"../../deps/libmerlin.dll"))
+    const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.dll"))
 elseif is_linux() || is_apple()
-    const libmerlin = Libdl.dlopen(joinpath(@__FILE__,"../../deps/libmerlin.so"))
+    const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.so"))
 else
     throw("Unsupported OS.")
 end
@@ -19,6 +19,8 @@ else
     end
     typealias CuVector{T} CuArray{T,1}
     typealias CuMatrix{T} CuArray{T,2}
+    macro nvrtc(ex...)
+    end
 end
 
 typealias UniArray{T,N} Union{Array{T,N},SubArray{T,N},CuArray{T,N}}
