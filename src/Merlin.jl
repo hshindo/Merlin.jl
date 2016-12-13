@@ -11,6 +11,8 @@ else
     throw("Unsupported OS.")
 end
 
+include("mkl/MKL.jl")
+
 if Pkg.installed("CUDA") != nothing
     using CUDA
     using CUDA.CUDNN

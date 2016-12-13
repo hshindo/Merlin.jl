@@ -1,0 +1,4 @@
+export
+    dnnAlgorithmPoolingMax,
+    dnnAlgorithmPoolingMin,
+    dnnAlgorithmPoolingAvg
