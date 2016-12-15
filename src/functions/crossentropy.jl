@@ -19,17 +19,17 @@ function crossentropy(p::Var, x::Var)
     x.data == nothing && return Var(nothing, crossentropy, (p,x))
     logq = logsoftmax(x.data)
     y = crossentropy(p.data, logq)
-    df(gy) = isconst(x) || ∇crossentropy!(gy, p.data, logq, x.grad)
+    df(gy) = x.grad == nothing || ∇crossentropy!(gy, p.data, logq, x.grad)
     Var(y, crossentropy, (p,x), df)
 end
 crossentropy(p, x::Var) = crossentropy(Var(p), x)
 
-function crossentropy{T}(p::Matrix{T}, logx::Matrix{T})
+function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
     y = Array(T, 1, size(p,2))
     for j = 1:size(p,2)
         s = T(0)
         @inbounds @simd for i = 1:size(p,1)
-            s += -p[i,j] * logx[i,j]
+            s += -p[i,j] * logq[i,j]
         end
         y[j] = s
     end

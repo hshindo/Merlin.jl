@@ -25,7 +25,7 @@ else
     end
 end
 
-typealias UniArray{T,N} Union{Array{T,N},SubArray{T,N},CuArray{T,N}}
+typealias XPUArray{T,N} Union{Array{T,N},CuArray{T,N}}
 
 #include("interop/c/carray.jl")
 
@@ -40,6 +40,7 @@ abstract Functor
 for name in [
     "argmax",
     "concat",
+    "convolution",
     "crossentropy",
     #"dropout",
     #"exp",
@@ -61,7 +62,6 @@ for name in [
     #"transpose",
     #"view",
     "window",
-    "conv",
     ]
     include("functions/$(name).jl")
 end

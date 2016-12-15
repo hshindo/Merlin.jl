@@ -33,17 +33,15 @@ function concat(dim::Int, xs::Vector{Var})
 end
 
 function concat(dim::Int, xs::Var...)
-    for x in xs
-        x.data == nothing && return Var(nothing, concat, (dim,xs...))
-    end
+    any(x -> x.data == nothing, xs) && return Var(nothing, concat, (dim,xs...))
     concat(dim, [xs...])
 end
 
-function ∇concat!(gy::UniArray, dim::Int, xs::Vector{Var})
+function ∇concat!(gy::XPUArray, dim::Int, xs::Vector{Var})
     range = [1:size(gy,i) for i=1:ndims(gy)]
     offset = 1
     for x in xs
-        isconst(x) && continue
+        x.grad == nothing && continue
         s = size(x.data, dim)
         range[dim] = offset:(offset+s-1)
         broadcast!(+, x.grad, x.grad, view(gy,range...))

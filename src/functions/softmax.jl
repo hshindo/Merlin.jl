@@ -21,7 +21,7 @@ f(x) = \exp(x) \over \sum \exp(x)
 function softmax(x::Var)
     x.data == nothing && return Var(nothing, softmax, (x,))
     y = softmax(x.data)
-    df(gy) = isconst(x) || ∇softmax!(y, gy, x.grad)
+    df(gy) = x.data == nothing || ∇softmax!(y, gy, x.grad)
     Var(y, softmax, (x,), df)
 end
 
@@ -55,7 +55,7 @@ Computes a logarithm of softmax function.
 function logsoftmax(x::Var)
     x.data == nothing && return Var(nothing, logsoftmax, (x,))
     y = logsoftmax(x.data)
-    df(gy) = isconst(x) || ∇logsoftmax!(y, gy, x.grad)
+    df(gy) = x.data == nothing || ∇logsoftmax!(y, gy, x.grad)
     Var(y, logsoftmax, (x,), df)
 end
 

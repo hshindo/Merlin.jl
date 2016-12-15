@@ -25,7 +25,7 @@ Var(data) = Var(data, nothing, ())
 Var(data, f, args) = Var(data, f, args, nothing, nothing)
 Var(data, f, args, df) = Var(data, f, args, df, nothing)
 
-Base.isconst(v::Var) = v.grad == nothing
+Base.isconst(v::Var) = isa(v.grad, Void)
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
 Base.eltype(v::Var) = eltype(v.data)
@@ -51,7 +51,7 @@ function topsort(top::Var)
         haskey(dict, var) && return
         dict[var] = var
         for arg in var.args
-            typeof(arg) == Var && visit(arg)
+            typeof(arg) <: Var && visit(arg)
         end
         push!(sorted, var)
     end

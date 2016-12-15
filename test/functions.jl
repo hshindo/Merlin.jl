@@ -13,9 +13,9 @@ end
 
 # conv
 x = Var(rand(T,5,4,3,2))
-f = Conv(T, Window(2,2,0,0,1,1), 3, 4)
+f = Convolution(T, (2,2), (3,4), (0,0), (1,1))
 @test checkgrad(()->f(x), f.w, x)
-#@test checkcuda(()->f(x), f.w, x)
+@test checkcuda(()->f(x), f.w, x)
 
 # crossentropy
 p = Var([1:5;])

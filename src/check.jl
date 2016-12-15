@@ -1,6 +1,6 @@
 export checkgrad, checkcuda
 
-function checkgrad(f, args::Var...; eps=1e-2)
+function checkgrad(f, args::Var...; eps=1e-3)
     foreach(zerograd!, args)
     y = f()
     gradient!(y)
@@ -23,7 +23,7 @@ function checkgrad(f, args::Var...; eps=1e-2)
     true
 end
 
-function checkcuda(f, args::Var...; eps=1e-2)
+function checkcuda(f, args::Var...; eps=1e-3)
     Pkg.installed("CUDA") == nothing && return true
     for x in args
         x.data = Array(x.data)

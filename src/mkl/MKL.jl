@@ -6,6 +6,9 @@ isempty(libmkl) && throw("MKL library cannot be found.")
 include("lib/libmkl_dnn.jl")
 include("lib/libmkl_dnn_types.jl")
 
+include("convolution.jl")
+include("relu.jl")
+
 function check_dnnerror(e)
     e == E_SUCCESS && return
     e == E_INCORRECT_INPUT_PARAMETER && throw("INCORRECT_INPUT_PARAMETER.")
@@ -15,7 +18,30 @@ function check_dnnerror(e)
     e == E_UNIMPLEMENTED && throw("UNIMPLEMENTED.")
 end
 
-include("convolution.jl")
-include("relu.jl")
+function dnnLayoutCreate{T}(x::Array{T})
+    p = Ptr{Void}[0]
+    csize = Csize_t[size(x)...]
+    cstrides = Csize_t[strides(x)...]
+    dnnLayoutCreate_F32(p, ndims(x), csize, cstrides)
+    p[1]
+end
+
+function dnnPrimitiveAttributesCreate()
+    p = Ptr{Void}[0]
+    dnnPrimitiveAttributesCreate_F32(p)
+    p[1]
+end
+
+function dnnExecute(primitive, resources)
+    dnnExecute_F32(primitive, resources)
+end
+
+function dnnPrimitiveAttributesDestroy(attributes)
+    dnnPrimitiveAttributesDestroy_F32(attributes)
+end
+
+function dnnDelete(primitive)
+    dnnDelete_F32(primitive)
+end
 
 end
