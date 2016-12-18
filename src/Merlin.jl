@@ -25,7 +25,7 @@ else
     end
 end
 
-typealias XPUArray{T,N} Union{Array{T,N},CuArray{T,N}}
+typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
 
 #include("interop/c/carray.jl")
 

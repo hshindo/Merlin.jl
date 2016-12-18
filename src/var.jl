@@ -16,16 +16,11 @@ type Var
     data
     f
     args
-    df
     grad
 end
 
-Var() = Var(nothing)
-Var(data) = Var(data, nothing, ())
-Var(data, f, args) = Var(data, f, args, nothing, nothing)
-Var(data, f, args, df) = Var(data, f, args, df, nothing)
+Var(data=nothing, f=nothing, args=()) = Var(data, f, args)
 
-Base.isconst(v::Var) = isa(v.grad, Void)
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
 Base.eltype(v::Var) = eltype(v.data)
@@ -35,14 +30,16 @@ Base.length(v::Var) = length(v.data)
 Base.ndims(v::Var) = ndims(v.data)
 
 function zerograd!(v::Var)
-    if v.grad == nothing
-        v.grad = zeros(v.data)
-    else
-        fill!(v.grad, 0)
-    end
-    v
+    v.grad == nothing && (v.grad = similar(v.data))
+    fill!(v.grad, 0)
 end
 zerograd(x) = zerograd!(Var(x))
+
+function setbackend!{T}(v::Var, ::Type{T})
+    typeof(v.data) <: T && return v
+    v.data = T(v.data)
+    v.grad == nothing || (v.grad = T(v.grad))
+end
 
 function topsort(top::Var)
     sorted = Var[]
@@ -71,10 +68,4 @@ function gradient!(top::Var)
         v.df == nothing || v.df(v.grad)
     end
     sorted
-end
-
-function setbackend!{T}(v::Var, ::Type{T})
-    typeof(v.data) <: T && return v
-    v.data = T(v.data)
-    v.grad == nothing || (v.grad = T(v.grad))
 end

@@ -7,6 +7,7 @@ include("lib/libmkl_dnn.jl")
 include("lib/libmkl_dnn_types.jl")
 
 include("convolution.jl")
+include("pooling.jl")
 include("relu.jl")
 
 function check_dnnerror(e)

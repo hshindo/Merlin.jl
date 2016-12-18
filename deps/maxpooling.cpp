@@ -1,7 +1,7 @@
 #include <limits>
 
 template <typename T>
-void maxpool1d(T *x, T *y, int *indexes, int xsize1, int xsize2, int winsize, int pad, int stride) {
+void maxpooling1d(T *x, T *y, int *indexes, int xsize1, int xsize2, int winsize, int pad, int stride) {
     int o = 0;
     for (int m2 = 0; m2 < xsize2; m2++) {
         for (int m1 = -pad; m1 <= xsize1+pad-winsize; m1 += stride) {
@@ -24,7 +24,7 @@ void maxpool1d(T *x, T *y, int *indexes, int xsize1, int xsize2, int winsize, in
 }
 
 template <typename T>
-void maxpool2d(T *x, T *y, int *indexes, int xsize1, int xsize2, int xsize3,
+void maxpooling2d(T *x, T *y, int *indexes, int xsize1, int xsize2, int xsize3,
     int winsize1, int winsize2, int pad1, int pad2, int stride1, int stride2) {
     int o = 0;
     for (int m3 = 0; m3 < xsize3; m3++) {
@@ -52,20 +52,20 @@ void maxpool2d(T *x, T *y, int *indexes, int xsize1, int xsize2, int xsize3,
 }
 
 template <typename T>
-void maxpool_grad(T *gy, T *gx, int *indexes, int ysize) {
+void maxpooling_grad(T *gy, T *gx, int *indexes, int ysize) {
     for (int i = 0; i < ysize; i++) gx[indexes[i]] += gy[i];
 }
 
 extern "C" {
-    void maxpool1d_f32(float* x, float *y, int *indexes, int xsize1, int xsize2,
+    void maxpooling1d_f32(float* x, float *y, int *indexes, int xsize1, int xsize2,
         int winsize, int pad, int stride) {
-        maxpool1d(x, y, indexes, xsize1, xsize2, winsize, pad, stride);
+        maxpooling1d(x, y, indexes, xsize1, xsize2, winsize, pad, stride);
     }
-    void maxpool2d_f32(float* x, float *y, int *indexes, int xsize1, int xsize2, int xsize3,
+    void maxpooling2d_f32(float* x, float *y, int *indexes, int xsize1, int xsize2, int xsize3,
         int winsize1, int winsize2, int pad1, int pad2, int stride1, int stride2) {
-        maxpool2d(x, y, indexes, xsize1, xsize2, xsize3, winsize1, winsize2, pad1, pad2, stride1, stride2);
+        maxpooling2d(x, y, indexes, xsize1, xsize2, xsize3, winsize1, winsize2, pad1, pad2, stride1, stride2);
     }
-    void maxpool_f32_grad(float *gy, float *gx, int *indexes, int ysize) {
-        maxpool_grad(gy, gx, indexes, ysize);
+    void maxpooling_f32_grad(float *gy, float *gx, int *indexes, int ysize) {
+        maxpooling_grad(gy, gx, indexes, ysize);
     }
 }

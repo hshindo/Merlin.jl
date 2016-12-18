@@ -8,3 +8,4 @@ sandbox.jl
 *.so
 *.dll
 /mkl
+examples/dev

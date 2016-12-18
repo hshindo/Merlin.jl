@@ -31,22 +31,21 @@ function Convolution(T::Type, filtersize, channels, padding, strides)
     Convolution(zerograd(w), padding, strides)
 end
 
-function (f::Convolution)(x::Var, desc)
+function (f::Convolution)(x::Var)
     x.data == nothing && return Var(nothing, f, (x,))
     setbackend!(f.w, typeof(x.data))
     convolution(typeof(x.data), x, f.w, f.padding, f.strides)
 end
 
-function convolution{T<:Array}(::Type{T}, x::Var, w::Var)
-    #desc = MKL.convolution_desc(x.data, w.data, padding, strides)
+function convolution{T<:Array}(::Type{T}, x::Var, w::Var, padding, strides)
     y = MKL.convolution(x.data, w.data, padding, strides)
     function df(gy::Array)
-        gx = MKL.∇convolution_data(x.data, w.data, gy, desc)
+        gx = MKL.∇convolution_data(x.data, w.data, gy, padding, strides)
         broadcast!(+, x.grad, x.grad, gx)
-        gw = MKL.∇convolution_filter(x.data, w.data, gy, desc)
+        gw = MKL.∇convolution_filter(x.data, w.data, gy, padding, strides)
         broadcast!(+, w.grad, w.grad, gw)
     end
-    Var(y, convolution, (x,w), df)
+    Var(y, df, (x,w))
 end
 
 function convolution{T<:CuArray}(::Type{T}, x::Var, w::Var, padding, strides)
@@ -55,7 +54,7 @@ function convolution{T<:CuArray}(::Type{T}, x::Var, w::Var, padding, strides)
         CUDNN.∇convolution_filter!(x.data, padding, strides, gy, w.grad, beta=1.0)
         CUDNN.∇convolution_data!(w.data, padding, strides, gy, x.grad, beta=1.0)
     end
-    Var(y, convolution, (x,w), df)
+    Var(y, df, (x,w))
 end
 
 #=
