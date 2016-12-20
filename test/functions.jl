@@ -16,6 +16,7 @@ for dim = 1:3
     @test checkgrad(()->concat(dim,x1,x2,x3), x1, x2, x3)
 end
 
+#=
 # convolution
 x = Var(rand(T,5,4,3,2))
 f = Convolution(T, (2,2), (3,4), (0,0), (1,1))
@@ -30,8 +31,6 @@ x = Var(rand(T,10,5))
 x = Var(rand(T,10,5))
 #@test checkgrad(()->dropout(x,0.5), x, cuda=false)
 
-# exp
-
 
 # gemm
 x1 = Var(rand(T,10,5))
@@ -41,6 +40,7 @@ x3 = Var(rand(T,10,5))
 #@test checkgrad(()->gemm('N','T',T(0.3),x1,x3), x1, x3)
 #@test checkgrad(()->gemm('T','N',T(0.4),x1,x3), x1, x3)
 #@test checkgrad(()->gemm('T','T',T(0.5),x1,x2), x1, x2)
+=#
 
 #=
 # linear

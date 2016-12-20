@@ -1,4 +1,6 @@
-function convolution{T<:CuArray}(::Type{T}, x::Var, w::Var, padding, strides)
+import Merlin.convolution
+
+function convolution{T<:CuArray}(x::Var{T}, w::Var, padding, strides)
     y = CUDNN.convolution(x.data, w.data, padding, strides)
     function df(gy::CuArray)
         CUDNN.∇convolution_filter!(x.data, padding, strides, gy, w.grad, beta=1.0)

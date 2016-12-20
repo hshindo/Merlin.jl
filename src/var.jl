@@ -12,14 +12,16 @@ export
 Var(data, [args=()])
 ```
 """
-type Var
-    data
+type Var{T}
+    data::T
     f
     args
     grad
 end
 
 Var(data=nothing, f=nothing, args=()) = Var(data, f, args, nothing)
+
+isvoid(x) = x == nothing
 
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
@@ -35,6 +37,10 @@ function zerograd!(v::Var)
     v
 end
 zerograd(x) = zerograd!(Var(x))
+
+function setbackend{T1,T2}(::Type{T1}, v::Var{T2})
+    throw("Not implemented yet.")
+end
 
 function setbackend!{T}(v::Var, ::Type{T})
     typeof(v.data) <: T && return v

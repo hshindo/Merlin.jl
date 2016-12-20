@@ -17,7 +17,7 @@ include("graph.jl")
 include("fit.jl")
 include("native.jl")
 include("hdf5.jl")
-include("check.jl")
+include("gradient.jl")
 
 abstract Functor
 for name in [

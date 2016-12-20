@@ -1,10 +1,10 @@
 export Convolution, convolution
 
-#const IM2COL_F32 = Libdl.dlsym(libmerlin, :im2col_f32)
-#const ∇IM2COL_F32 = Libdl.dlsym(libmerlin, :im2col_f32_grad)
+const IM2COL_F32 = Libdl.dlsym(libmerlin, :im2col_f32)
+const ∇IM2COL_F32 = Libdl.dlsym(libmerlin, :im2col_f32_grad)
 
-#im2col_handle(::Type{Float32}) = IM2COL_F32
-#∇im2col_handle(::Type{Float32}) = ∇IM2COL_F32
+im2col_handle(::Type{Float32}) = IM2COL_F32
+∇im2col_handle(::Type{Float32}) = ∇IM2COL_F32
 
 """
     Convolution(T, filtersize, channels, padding, strides)
@@ -31,13 +31,7 @@ function Convolution(T::Type, filtersize, channels, padding, strides)
     Convolution(zerograd(w), padding, strides)
 end
 
-function (f::Convolution)(x::Var)
-    x.data == nothing && return Var(nothing, f, (x,))
-    setbackend!(f.w, typeof(x.data))
-    convolution(typeof(x.data), x, f.w, f.padding, f.strides)
-end
-
-function convolution{T<:Array}(::Type{T}, x::Var, w::Var, padding, strides)
+function (f::Convolution){T,N}(x::Var{Array{T,N}})
     y = MKL.convolution(x.data, w.data, padding, strides)
     function df(gy::Array)
         gx = MKL.∇convolution_data(x.data, w.data, gy, padding, strides)
@@ -47,9 +41,9 @@ function convolution{T<:Array}(::Type{T}, x::Var, w::Var, padding, strides)
     end
     Var(y, df, (x,w))
 end
+(f::Convolution)(x::Var{Void}) = Var(Void(), f, (x,))
 
-#=
-function convolution{T}(w::Array{T,4}, win::Window{2}, x::Array{T,4})
+function convolution{T}(x::Array{T,4}, w::Array{T,4}, padding, strides)
     outdims = outsize(win, x)
     work = Array{T}(outdims[1]*outdims[2], size(win,1)*size(win,2)*size(x,3), size(x,4))
     w = reshape(w, size(work,2), size(w,4))
@@ -67,4 +61,3 @@ function convolution{T}(w::Array{T,4}, win::Window{2}, x::Array{T,4})
     df(gy::Array) = ∇conv!(gy, work, vw.data, vw.grad, win, vx.data, vx.grad)
     y, df
 end
-=#

@@ -34,7 +34,7 @@ function concat(dim::Int, xs::Vector{Var})
 end
 
 function concat(dim::Int, xs::Var...)
-    any(x -> x.data == nothing, xs) && return Var(nothing, concat, (dim,xs...))
+    any(x -> typeof(x) == Var{Void}, xs) && return Var(Void(), concat, (dim,xs...))
     concat(dim, Var[xs...])
 end
 
@@ -42,7 +42,7 @@ function ∇concat!(gy, dim::Int, xs::Vector{Var})
     range = [1:size(gy,i) for i=1:ndims(gy)]
     offset = 1
     for x in xs
-        x.grad == nothing && continue
+        isvoid(x.grad) && continue
         s = size(x, dim)
         range[dim] = offset:(offset+s-1)
         broadcast!(+, x.grad, x.grad, view(gy,range...))

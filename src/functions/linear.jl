@@ -31,22 +31,19 @@ function Linear(T::Type, indim::Int, outdim::Int)
     b = fill(T(0), outdim, 1)
     Linear(zerograd(w), zerograd(b))
 end
-(f::Linear)(x::Var) = linear(f.w, x, f.b)
 
-function linear(w::Var, x::Var, b::Var)
-    isa(x.data, Void) && return Var(nothing, linear, (w,x,b))
-    setbackend!(w, typeof(x.data))
-    setbackend!(b, typeof(x.data))
+function (f::Linear)(x::Var)
+    w, b = f.w, f.b
     y = w.data * x.data
     broadcast!(+, y, y, b.data)
     df(gy) = ∇linear!(y, gy, w, x, b)
-    Var(y, linear, (w,x,b), df)
+    Var(y, df, (w,x,b))
 end
+(f::Linear)(x::Var{Void}) = Var(Void(), f, (x,))
 
-function ∇linear!(y::UniArray, gy::UniArray, w::Var, x::Var, b::Var)
+function ∇linear!(y, gy, w::Var, x::Var, b::Var)
     T = eltype(y)
-    isconst(w) || BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
-    isconst(x) || BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
-    g = sum(gy, 2)
-    broadcast!(+, b.grad, b.grad, g)
+    w.grad == nothing || BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
+    x.grad == nothing || BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
+    broadcast!(+, b.grad, b.grad, sum(gy,2))
 end
