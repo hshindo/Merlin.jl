@@ -43,7 +43,7 @@ function linear(w::Var, x::Var, b::Var)
     Var(y, linear, (w,x,b), df)
 end
 
-function ∇linear!(y::XPUArray, gy::XPUArray, w::Var, x::Var, b::Var)
+function ∇linear!(y::UniArray, gy::UniArray, w::Var, x::Var, b::Var)
     T = eltype(y)
     isconst(w) || BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
     isconst(x) || BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)

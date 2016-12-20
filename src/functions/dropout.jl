@@ -1,34 +1,39 @@
 export dropout
 
 """
-    dropout(x::Var, ratio::Float64, istrain::Bool)
+    dropout(x::Var, rate::Float64, istrain::Bool)
 """
-@graph function dropout(x::Var, ratio::Float64, istrain::Bool)
-    istrain || return x
-    if typeof(x.data) <: Array
-        rx = rand(eltype(x.data), length(x.data))
-        y = dropout(x.data, ratio, rx)
-        df(gy) = isconst(x) || ∇dropout!(ratio, rx, x.grad, gy)
-    else
-        y, states, statessize, reservespace, reservesize = CUDNN.dropout(x.data, ratio)
-        df(gy) = isconst(x) || CUDNN.∇dropout!(gy, x.grad, states, statessize, reservespace, reservesize)
-    end
-    Var(y, [x], dropout, df)
+function dropout(x::Var, rate::Float64)
+    x.data == nothing && return Var(nothing, dropout, (x,rate))
+    dropout(typeof(x.data), x, rate)
 end
 
-function dropout{T}(x::Array{T}, ratio::Float64, rx::Array{T})
-    scale = T(1.0 / (1.0-ratio))
+function dropout{T<:Array}(::Type{T}, x::Var, rate::Float64)
+    rx = rand(eltype(x.data), length(x.data))
+    y = dropout(x.data, rate, rx)
+    df(gy) = x.grad == nothing || ∇dropout!(gy, x.grad, rate, rx)
+    Var(y, df, (x,))
+end
+
+function dropout{T<:CuArray}(::Type{T}, x::Var, rate::Float64)
+    y, work = CUDNN.dropout(x.data, rate)
+    df(gy::CuArray) = x.grad == nothing || ∇dropout!(gy, x.grad, rate, work::DropoutWork)
+    Var(y, df, (x,))
+end
+
+function dropout{T}(x::Array{T}, rate::Float64, rx::Array{T})
+    scale = T(1.0 / (1.0-rate))
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
-        y[i] = ifelse(rx[i] <= T(ratio), T(0), scale*x[i])
+        y[i] = ifelse(rx[i] <= T(rate), T(0), scale*x[i])
     end
     y
 end
 
-function ∇dropout!{T}(ratio::Float64, rx::Array{T}, gx::Array{T}, gy::Array{T})
-    scale = T(1.0 / (1.0-ratio))
+function ∇dropout!{T}(gy::Array{T}, gx::Array{T}, rate::Float64, rx::Array{T})
+    scale = T(1.0 / (1.0-rate))
     @inbounds @simd for i = 1:length(gx)
-        gx[i] += ifelse(rx[i] <= T(ratio), T(0), scale*gy[i])
+        gx[i] += ifelse(rx[i] <= T(rate), T(0), scale*gy[i])
     end
     gx
 end

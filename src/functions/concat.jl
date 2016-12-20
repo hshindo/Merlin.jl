@@ -38,7 +38,7 @@ function concat(dim::Int, xs::Var...)
     concat(dim, Var[xs...])
 end
 
-function ∇concat!(gy::UniArray, dim::Int, xs::Vector{Var})
+function ∇concat!(gy, dim::Int, xs::Vector{Var})
     range = [1:size(gy,i) for i=1:ndims(gy)]
     offset = 1
     for x in xs

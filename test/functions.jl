@@ -2,35 +2,47 @@ const T = Float32
 
 @testset "functions" for i = 1:5
 
+# argmax
+x = rand(T,10,5,2)
+for d = 1:ndims(x)
+    y = argmax(x, d)
+end
+
 # concat
 x1 = Var(rand(T,10,5,2))
 x2 = Var(rand(T,10,5,2))
 x3 = Var(rand(T,10,5,2))
 for dim = 1:3
     @test checkgrad(()->concat(dim,x1,x2,x3), x1, x2, x3)
-    @test checkcuda(()->concat(dim,x1,x2,x3), x1, x2, x3)
 end
 
-# conv
+# convolution
 x = Var(rand(T,5,4,3,2))
 f = Convolution(T, (2,2), (3,4), (0,0), (1,1))
 @test checkgrad(()->f(x), f.w, x)
-@test checkcuda(()->f(x), f.w, x)
 
 # crossentropy
 p = Var([1:5;])
 x = Var(rand(T,10,5))
-@test checkgrad(()->crossentropy(p,x), x)
+@test checkgrad(()->crossentropy(p,x), x, cuda=false)
+
+# dropout
+x = Var(rand(T,10,5))
+#@test checkgrad(()->dropout(x,0.5), x, cuda=false)
+
+# exp
+
 
 # gemm
 x1 = Var(rand(T,10,5))
 x2 = Var(rand(T,5,10))
 x3 = Var(rand(T,10,5))
-@test checkgrad(()->gemm('N','N',T(0.2),x1,x2), x1, x2)
-@test checkgrad(()->gemm('N','T',T(0.3),x1,x3), x1, x3)
-@test checkgrad(()->gemm('T','N',T(0.4),x1,x3), x1, x3)
-@test checkgrad(()->gemm('T','T',T(0.5),x1,x2), x1, x2)
+#@test checkgrad(()->gemm('N','N',T(0.2),x1,x2), x1, x2)
+#@test checkgrad(()->gemm('N','T',T(0.3),x1,x3), x1, x3)
+#@test checkgrad(()->gemm('T','N',T(0.4),x1,x3), x1, x3)
+#@test checkgrad(()->gemm('T','T',T(0.5),x1,x2), x1, x2)
 
+#=
 # linear
 x = Var(rand(T,10,5))
 f = Linear(T, 10, 7)
@@ -70,6 +82,7 @@ x = Var(rand(T,5,4))
 # window
 x = Var(rand(T,100))
 @test checkgrad(()->window(x,(30,),pads=(10,),strides=(10,)), x)
+=#
 
 #=
 @testset "reduce" begin

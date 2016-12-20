@@ -1,33 +1,16 @@
 module Merlin
 
 using Base.LinAlg.BLAS
-using HDF5
 
-if is_windows()
-    const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.dll"))
-elseif is_linux() || is_apple()
-    const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.so"))
-else
-    throw("Unsupported OS.")
+const libmerlin = Libdl.find_library(["libmerlin"], [joinpath(dirname(@__FILE__),"../deps")])
+
+if !isempty(Libdl.find_library(["nvcuda","libcuda"]))
+    include("cuda/CUDA.jl")
+    #using .CUDA
 end
+#typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
 
-include("mkl/MKL.jl")
-
-if Pkg.installed("CUDA") != nothing
-    using CUDA
-    using CUDA.CUDNN
-else
-    type CuArray{T,N}
-    end
-    typealias CuVector{T} CuArray{T,1}
-    typealias CuMatrix{T} CuArray{T,2}
-    macro nvrtc(ex...)
-    end
-end
-
-typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
-
-#include("interop/c/carray.jl")
+#include("mkl/MKL.jl")
 
 include("var.jl")
 include("graph.jl")
@@ -41,29 +24,31 @@ for name in [
     "argmax",
     "concat",
     "convolution",
-    "crossentropy",
+    #"crossentropy",
     #"dropout",
     #"exp",
-    "gemm",
+    #"gemm",
     #"getindex",
     #"gru",
-    "linear",
-    "lookup",
+    #"linear",
+    #"lookup",
     #"log",
-    "math",
-    "max",
+    #"math",
+    #"max",
     #"pooling",
     #"reduce",
-    "relu",
+    #"relu",
     #"reshape",
-    "sigmoid",
-    "softmax",
-    "tanh",
+    #"sigmoid",
+    #"softmax",
+    #"tanh",
     #"transpose",
     #"view",
-    "window",
+    #"window",
     ]
     include("functions/$(name).jl")
+    #path = "cuda/functions/$(name).jl"
+    #isfile(path) && include(path)
 end
 
 export update!

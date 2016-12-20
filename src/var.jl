@@ -19,7 +19,7 @@ type Var
     grad
 end
 
-Var(data=nothing, f=nothing, args=()) = Var(data, f, args)
+Var(data=nothing, f=nothing, args=()) = Var(data, f, args, nothing)
 
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
@@ -32,6 +32,7 @@ Base.ndims(v::Var) = ndims(v.data)
 function zerograd!(v::Var)
     v.grad == nothing && (v.grad = similar(v.data))
     fill!(v.grad, 0)
+    v
 end
 zerograd(x) = zerograd!(Var(x))
 
@@ -58,14 +59,14 @@ end
 
 function gradient!(top::Var)
     sorted = topsort(top)
-    isconst(top) && (top.grad = ones(top.data))
+    top.grad == nothing && (top.grad = ones(top.data))
     for i = 1:length(sorted)
         v = sorted[i]
-        isconst(v) && !isempty(v.args) && zerograd!(v)
+        v.grad == nothing && !isempty(v.args) && zerograd!(v)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
-        v.df == nothing || v.df(v.grad)
+        v.f == nothing || v.f(v.grad)
     end
     sorted
 end
