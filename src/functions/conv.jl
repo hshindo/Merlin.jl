@@ -3,18 +3,19 @@ import Base.conv
 
 const IM2COL_F32 = Libdl.dlsym(libmerlin, :im2col_f32)
 const ∇IM2COL_F32 = Libdl.dlsym(libmerlin, :im2col_f32_grad)
+
 im2col_handle(::Type{Float32}) = IM2COL_F32
 ∇im2col_handle(::Type{Float32}) = ∇IM2COL_F32
 
 """
-    Conv(T, filtersize, channels, padding, strides)
+    Conv(T::Type, filtersize::Tuple, [padding=0], [strides=1])
 
 N-dimensional convolution function.
 
 ```julia
 T = Float32
 x = Var(rand(T,5,4,3,2))
-f = Conv(T, (2,2), (3,4), (0,0), (1,1))
+f = Conv(T, (2,2,3,4), padding=(0,0), strides=(1,1))
 y = f(x)
 ```
 """
@@ -24,19 +25,22 @@ type Conv{N}
     strides::NTuple{N,Int}
 end
 
-function Conv(T::Type, filtersize, channels, padding, strides)
-    w = rand(T, filtersize..., channels...)
+function Conv{T,N}(::Type{T}, filtersize::NTuple{N,Int}; padding=0, strides=1)
+    w = rand(T, filtersize)
     w .*= 0.02
     w .-= 0.01
+    typeof(padding) == Int && (padding = ntuple(_ -> padding, N-2))
+    typeof(strides) == Int && (strides = ntuple(_ -> strides, N-2))
     Conv(zerograd(w), padding, strides)
 end
 
 (f::Conv)(x::Var{Void}) = Var(Void(), f, (x,))
 
 function (f::Conv){T<:Array}(x::Var{T})
-    y, work = conv(x.data, f.w.data, f.padding, f.strides)
-    df(gy::Array) = isvoid(x.grad) || ∇conv!(gy, x.grad, f.w.data, f.w.grad, work, f.padding, f.strides)
-    Var(y, df, (f.w,x))
+    w, padding, strides = f.w, f.padding, f.strides
+    y, work = conv(x.data, w.data, padding, strides)
+    df(gy::Array) = isvoid(x.grad) || ∇conv!(gy, x.grad, w.data, w.grad, work, padding, strides)
+    Var(y, df, (w,x))
 end
 
 function conv{T}(x::Array{T,4}, w::Array{T,4}, padding::NTuple{2,Int}, strides::NTuple{2,Int})
