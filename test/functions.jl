@@ -16,12 +16,12 @@ for dim = 1:3
     @test checkgrad(()->concat(dim,x1,x2,x3), x1, x2, x3)
 end
 
-#=
 # convolution
 x = Var(rand(T,5,4,3,2))
-f = Convolution(T, (2,2), (3,4), (0,0), (1,1))
+f = Conv(T, (2,2), (3,4), (0,0), (1,1))
 @test checkgrad(()->f(x), f.w, x)
 
+#=
 # crossentropy
 p = Var([1:5;])
 x = Var(rand(T,10,5))

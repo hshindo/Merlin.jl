@@ -1,6 +1,6 @@
 const sources = [
     "im2col.cpp",
-    "maxpool.cpp",
+    "maxpooling.cpp",
     "softmax.cpp",
     "window.cpp"]
 

@@ -2,7 +2,13 @@ module Merlin
 
 using Base.LinAlg.BLAS
 
-const libmerlin = Libdl.find_library(["libmerlin"], [joinpath(dirname(@__FILE__),"../deps")])
+if is_windows()
+    const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.dll"))
+elseif is_linux() || is_apple()
+    const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.so"))
+else
+    throw("Unsupported OS.")
+end
 
 if !isempty(Libdl.find_library(["nvcuda","libcuda"]))
     include("cuda/CUDA.jl")
@@ -23,7 +29,7 @@ abstract Functor
 for name in [
     "argmax",
     "concat",
-    "convolution",
+    "conv",
     #"crossentropy",
     #"dropout",
     #"exp",

@@ -9,7 +9,7 @@ export
 `Var` is a type of variable.
 
 ```julia
-Var(data, [args=()])
+Var(rand(Float32,5,4))
 ```
 """
 type Var{T}
