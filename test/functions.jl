@@ -18,7 +18,7 @@ end
 
 # convolution
 x = Var(rand(T,5,4,3,2))
-f = Conv(T, (2,2), (3,4), (0,0), (1,1))
+f = Conv(T, (2,2,3,4), padding=(0,0), strides=(1,1))
 @test checkgrad(()->f(x), f.w, x)
 
 #=
