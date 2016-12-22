@@ -39,12 +39,11 @@ function handle(x::CuArray)
 end
 atexit(() -> foreach(cudnnDestroy, handles))
 
-include("tensor.jl")
+include("descriptors.jl")
 include("activation.jl")
 #include("batchnorm.jl")
 include("convolution.jl")
 include("dropout.jl")
-include("filter.jl")
 ##include("lrn.jl")
 include("pooling.jl")
 include("softmax.jl")

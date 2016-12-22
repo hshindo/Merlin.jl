@@ -1,5 +1,6 @@
 export
-    CUDNN_BATCHNORM_PER_ACTIVATION, CUDNN_BATCHNORM_SPATIAL # mode
+    CUDNN_BATCHNORM_PER_ACTIVATION,
+    CUDNN_BATCHNORM_SPATIAL
 
 function batchnorm_inference(mode, x, scale, bias, estimated_mean, estimated_var, epsilon::Float64)
     T = eltype(x)
@@ -10,7 +11,7 @@ function batchnorm_inference(mode, x, scale, bias, estimated_mean, estimated_var
     sbmvdesc = tensor_desc(scale)
 
     cudnnBatchNormalizationForwardInference(h, mode, T[1], T[0], xdesc, x,
-    ydesc, y, sbmvdesc, scale, bias, estimated_mean, estimated_var, Cdouble(epsilon))
+        ydesc, y, sbmvdesc, scale, bias, estimated_mean, estimated_var, Cdouble(epsilon))
 
     cudnnDestroyTensorDescriptor(xdesc)
     cudnnDestroyTensorDescriptor(ydesc)
@@ -50,7 +51,7 @@ function ∇batchnorm!(mode, x, dy, dx, scale, dscale, dbias, epsilon::Float64, 
 
     cudnnBatchNormalizationBackward(h, mode, T[1], T[0], T[1], T[0],
     xdesc, x, dydesc, dy, dxdesc, dx, dsbdesc, scale, dscale, dbias,
-    Cdouble(epsilon), saved_mean, saved_invvar)
+        Cdouble(epsilon), saved_mean, saved_invvar)
 
     cudnnDestroyTensorDescriptor(xdesc)
     cudnnDestroyTensorDescriptor(dydesc)

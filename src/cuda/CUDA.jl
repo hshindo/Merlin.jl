@@ -9,11 +9,9 @@ isempty(libcuda) && throw("CUDA library cannot be found.")
 
 function check_curesult(status)
     status == CUDA_SUCCESS && return nothing
-    warn("CUDA error triggered from:")
-    Base.show_backtrace(STDOUT, backtrace())
-    ref = Ptr{UInt8}[0]
-    cuGetErrorString(status, ref)
-    throw(unsafe_string(ref[1]))
+    p = Ptr{UInt8}[0]
+    cuGetErrorString(status, p)
+    throw(unsafe_string(p[1]))
 end
 
 p = Cint[0]
@@ -29,7 +27,6 @@ include("context.jl")
 include("device.jl")
 include("module.jl")
 include("function.jl")
-include("headers.jl")
 
 info("CUDA driver version: $driver_version")
 initctx()
@@ -39,12 +36,14 @@ ctype(::Type{Int64}) = :int
 ctype(::Type{Float32}) = :float
 ctype(::Type{Float64}) = :double
 
-include("pointer.jl")
-include("abstractarray.jl")
-include("array.jl")
-include("arraymath.jl")
-include("reducedim.jl")
-include("subarray.jl")
+include("base/pointer.jl")
+include("base/abstractarray.jl")
+include("base/array.jl")
+include("base/arraymath.jl")
+include("base/headers.jl")
+include("base/reducedim.jl")
+include("base/subarray.jl")
+
 include("Interop.jl")
 
 ##### NVRTC #####
