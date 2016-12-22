@@ -57,6 +57,7 @@ using .CUBLAS
 import ..Merlin: Var
 for name in [
     "activation",
+    "conv",
     ]
     include("functions/$(name).jl")
 end

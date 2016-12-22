@@ -1,5 +1,4 @@
 export Conv
-import Base.conv
 
 const IM2COL_F32 = Libdl.dlsym(libmerlin, :im2col_f32)
 const ∇IM2COL_F32 = Libdl.dlsym(libmerlin, :im2col_f32_grad)
@@ -43,7 +42,7 @@ function (f::Conv){T<:Array}(x::Var{T})
     Var(y, df, (w,x))
 end
 
-function conv{T}(x::Array{T,4}, w::Array{T,4}, padding::NTuple{2,Int}, strides::NTuple{2,Int})
+function Base.conv{T}(x::Array{T,4}, w::Array{T,4}, padding::NTuple{2,Int}, strides::NTuple{2,Int})
     size(x,3) == size(w,3) || throw("Input channel size mismatch.")
 
     outsize = ntuple(i -> (size(x,i)+2padding[i]-size(w,i)) ÷ strides[i] + 1, 2)

@@ -1,17 +1,16 @@
-export relu
+export relu, clipped_relu
 
 """
     relu(x::Var)
 
 Rectifier linear unit.
 """
-relu(x::Var{Void}) = Var(Void(), relu, (x,))
-
 function relu(x::Var)
     y = relu(x.data)
     df(gy) = isvoid(x.grad) || ∇relu!(y, gy, x.data, x.grad)
     Var(y, df, (x,))
 end
+relu(x::Var{Void}) = Var(Void(), relu, (x,))
 
 function relu{T}(x::Array{T})
     y = similar(x)
@@ -26,6 +25,16 @@ function ∇relu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
         gx[i] += ifelse(x[i]>T(0), gy[i], T(0))
     end
 end
+
+"""
+    clipped_relu(x::Var)
+"""
+function clipped_relu(x::Var)
+    y = clipped_relu(x.data)
+    df(gy) = isvoid(x.grad) || ∇clipped_relu!(y, gy, x.data, x.grad)
+    Var(y, df, (x,))
+end
+clipped_relu(x::Var{Void}) = Var(Void(), clipped_relu, (x,))
 
 function clipped_relu{T}(x::Array{T})
     y = similar(x)

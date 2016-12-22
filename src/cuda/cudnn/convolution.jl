@@ -1,31 +1,29 @@
 export CUDNN_CONVOLUTION, CUDNN_CROSS_CORRELATION
 
-function convolution{T}(x::CuArray{T}, w::CuArray{T}, padding, strides;
-    mode=CUDNN_CROSS_CORRELATION, alpha=1.0, beta=0.0)
-
-    N = length(padding)
-    outdims = ntuple(i -> (size(x,i)+2padding[i]-size(w,i)) ÷ stride[i] + 1, N)
+function convolution{T,N}(x::CuArray{T}, w::CuArray{T}, desc::ConvDesc{N}; alpha=1.0, beta=0.0)
+    outdims = ntuple(N) do i
+        (size(x,i) + 2*desc.padding[i] - size(w,i)) ÷ desc.strides[i] + 1
+    end
     y = similar(x, outdims..., size(w,N+2), size(x,N+2))
 
     h = handle(x)
     xdesc = TensorDesc(x)
     wdesc = TensorDesc(w)
-    convdesc = ConvDesc(T, padding, strides, mode)
     ydesc = TensorDesc(y)
 
-    algo_p = cudnnConvolutionFwdAlgo_t[0]
-    cudnnGetConvolutionForwardAlgorithm(h, xdesc, wdesc, convdesc, ydesc,
-        CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, algo_p)
-    algo = algo_p[1]
+    p = cudnnConvolutionFwdAlgo_t[0]
+    cudnnGetConvolutionForwardAlgorithm(h, xdesc, wdesc, desc, ydesc,
+        CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, p)
+    algo = p[1]
 
-    worksize_p = Cint[0]
-    cudnnGetConvolutionForwardWorkspaceSize(h, xdesc, wdesc, convdesc, ydesc, algo, worksize_p)
-    worksize = worksize_p[1]
+    p = Cint[0]
+    cudnnGetConvolutionForwardWorkspaceSize(h, xdesc, wdesc, desc, ydesc, algo, p)
+    worksize = p[1]
     workspace = CuArray{Int8}(Int(worksize))
 
-    cudnnConvolutionForward(h, T[alpha], xdesc, x, wdesc, w, convdesc,
+    cudnnConvolutionForward(h, T[alpha], xdesc, x, wdesc, w, desc,
         algo, workspace, worksize, T[beta], ydesc, y)
-    xdesc, wdesc, convdesc, ydesc, y
+    y
 end
 
 function ∇convolution_bias!(dy, db; alpha=1.0, beta=0.0)
@@ -34,42 +32,39 @@ function ∇convolution_bias!(dy, db; alpha=1.0, beta=0.0)
     dydesc = TensorDesc(dy)
     dbdesc = TensorDesc(db)
     cudnnConvolutionBackwardBias(h, T[alpha], dydesc, dy, T[beta], dbdesc, db)
-    db
 end
 
-function ∇convolution_filter!(x, dy, convdesc, dw; alpha=1.0, beta=0.0)
+function ∇convolution_filter!(x, dy, desc::ConvDesc, dw; alpha=1.0, beta=0.0)
     T = eltype(dy)
     h = handle(dy)
-    algo_p = cudnnConvolutionBwdFilterAlgo_t[0]
-    cudnnGetConvolutionBackwardFilterAlgorithm(h, xdesc, dydesc, convdesc, dwdesc,
-        CUDNN_CONVOLUTION_BWD_FILTER_PREFER_FASTEST, 0, algo_p)
-    algo = algo_p[1]
+    p = cudnnConvolutionBwdFilterAlgo_t[0]
+    cudnnGetConvolutionBackwardFilterAlgorithm(h, xdesc, dydesc, desc, dwdesc,
+        CUDNN_CONVOLUTION_BWD_FILTER_PREFER_FASTEST, 0, p)
+    algo = p[1]
 
-    worksize_p = Cint[0]
-    cudnnGetConvolutionBackwardFilterWorkspaceSize(h, xdesc, dydesc, convdesc, dwdesc, algo, worksize_p)
-    worksize = worksize_p[1]
-    workspace = CuArray{Int8}(Int(worksize))
+    p = Cint[0]
+    cudnnGetConvolutionBackwardFilterWorkspaceSize(h, xdesc, dydesc, desc, dwdesc, algo, p)
+    worksize = p[1]
+    workspace = CuArray{Int8}(Int(p[1]))
 
-    cudnnConvolutionBackwardFilter(h, T[alpha], xdesc, x, dydesc, dy, convdesc,
+    cudnnConvolutionBackwardFilter(h, T[alpha], xdesc, x, dydesc, dy, desc,
         algo, workspace, worksize, T[beta], dwdesc, dw)
-    dw
 end
 
-function ∇convolution_data!(w, dy, dx; alpha=1.0, beta=0.0)
+function ∇convolution_data!(w, dy, desc::ConvDesc, dx; alpha=1.0, beta=0.0)
     T = eltype(dy)
     h = handle(dy)
-    algo_p = cudnnConvolutionBwdDataAlgo_t[0]
-    cudnnGetConvolutionBackwardDataAlgorithm(h, wdesc, dydesc, convdesc, dxdesc,
-        CUDNN_CONVOLUTION_BWD_DATA_PREFER_FASTEST, 0, algo_p)
-    algo = algo_p[1]
+    p = cudnnConvolutionBwdDataAlgo_t[0]
+    cudnnGetConvolutionBackwardDataAlgorithm(h, wdesc, dydesc, desc, dxdesc,
+        CUDNN_CONVOLUTION_BWD_DATA_PREFER_FASTEST, 0, p)
+    algo = p[1]
 
-    worksize_p = Cint[0]
-    cudnnGetConvolutionBackwardDataWorkspaceSize(h, wdesc, dydesc, convdesc,
-        dxdesc, algo, worksize_p)
-    worksize = worksize_p[1]
+    p = Cint[0]
+    cudnnGetConvolutionBackwardDataWorkspaceSize(h, wdesc, dydesc, desc,
+        dxdesc, algo, p)
+    worksize = p[1]
     workspace = CuArray{Int8}(Int(worksize))
 
-    cudnnConvolutionBackwardData(h, T[alpha], wdesc, w, dydesc, dy, convdesc,
+    cudnnConvolutionBackwardData(h, T[alpha], wdesc, w, dydesc, dy, desc,
         algo, workspace, worksize, T[beta], dxdesc, dx)
-    dx
 end

@@ -38,8 +38,10 @@ type ActivationDesc
     end
 end
 
-type ConvDesc
+type ConvDesc{N}
     ptr::Ptr{Void}
+    padding::NTuple{N,Int}
+    strides::NTuple{N,Int}
 
     function ConvDesc(T::Type, padding, strides; mode=CUDNN_CROSS_CORRELATION)
         N = length(padding)
@@ -49,7 +51,7 @@ type ConvDesc
         cstrides = Cint[stride[i] for i=N:-1:1]
         cupscale = fill(Cint(1), N)
         cudnnSetConvolutionNdDescriptor(p[1], N, cpadding, cstrides, cupscale, mode, datatype(T))
-        desc = new(p[1])
+        desc = new(p[1], padding, strides)
         finalizer(desc, cudnnDestroyConvolutionDescriptor)
         desc
     end
