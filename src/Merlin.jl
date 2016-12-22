@@ -10,10 +10,6 @@ else
     throw("Unsupported OS.")
 end
 
-if !isempty(Libdl.find_library(["nvcuda","libcuda"]))
-    include("cuda/CUDA.jl")
-    using .CUDA
-end
 #typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
 
 #include("mkl/MKL.jl")
@@ -62,6 +58,11 @@ for name in [
     "adam",
     "sgd"]
     include("optimizers/$(name).jl")
+end
+
+if !isempty(Libdl.find_library(["nvcuda","libcuda"]))
+    include("cuda/CUDA.jl")
+    using .CUDA
 end
 
 #include("caffe/Caffe.jl")
