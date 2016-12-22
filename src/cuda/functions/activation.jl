@@ -1,4 +1,4 @@
-import Merlin: clipped_relu, relu, sigmoid
+import ..Merlin: clipped_relu, relu, sigmoid
 import Base.tanh
 
 function activation{T<:CuArray}(x::Var{T}, mode)

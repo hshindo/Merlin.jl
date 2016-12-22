@@ -54,6 +54,7 @@ include("CUBLAS.jl")
 using .CUBLAS
 
 ##### CUDNN #####
+import ..Merlin: Var
 for name in [
     "activation",
     ]
