@@ -54,6 +54,11 @@ include("CUBLAS.jl")
 using .CUBLAS
 
 ##### CUDNN #####
+for name in [
+    "activation",
+    ]
+    include("functions/$(name).jl")
+end
 include("cudnn/CUDNN.jl")
 
 end
