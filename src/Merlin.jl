@@ -12,7 +12,7 @@ end
 
 if !isempty(Libdl.find_library(["nvcuda","libcuda"]))
     include("cuda/CUDA.jl")
-    #using .CUDA
+    using .CUDA
 end
 #typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
 
