@@ -20,7 +20,8 @@ end
 
 ### 👉 Example
 ```julia
-f = Lookup(Float32,10000,100) # 100-length vector, 10k vocabulary
+T = Float32
+f = Lookup(T,10000,100) # 100-length vector, 10k vocabulary
 x = Var(rand(1:1000,5,3))
 y = f(x)
 ```

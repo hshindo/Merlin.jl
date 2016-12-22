@@ -1,40 +1,73 @@
+import Base: exp, log
 import Base: +, -, *, .*
 
 """
-    +(x1::Var, x2::Var)
+    exp
+"""
+function exp(x::Var)
+    y = exp(x.data)
+    df(gy) = isvoid(x.grad) || ∇exp!(y, gy, x.grad)
+    Var(y, df, (x,))
+end
+exp(x::Var{Void}) = Var(Void(), exp, (x,))
 
-```julia
-x1 = Var(rand(Float32,5,4))
-x2 = Var(rand(Float32,5,4))
-y = x1 + x2
-```
+function ∇exp!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
+    @inbounds @simd for i = 1:length(gx)
+        gx[i] += gy[i] * y[i]
+    end
+end
+
+"""
+    log
+"""
+function log(x::Var)
+    y = log(x.data)
+    df(gy) = isvoid(x.grad) || ∇log!(gy, x.data, x.grad)
+    Var(y, df, (x,))
+end
+log(x::Var{Void}) = Var(Void(), log, (x,))
+
+function ∇log!{T}(gy::Array{T}, x::Array{T}, gx::Array{T})
+    @inbounds @simd for i = 1:length(gx)
+        gx[i] += gy[i] / x[i]
+    end
+end
+
+"""
+    +(x1::Var, x2::Var)
 """
 function +(x1::Var, x2::Var)
-    (x1.data == nothing || x2.data == nothing) && return Var(nothing, +, (x1,x2))
+    (isvoid(x1.data) || isvoid(x2.data)) && return Var(Void(), +, (x1,x2))
     y = x1.data + x2.data
     function df(gy)
-        isconst(x1) || broadcast!(+, x1.grad, x1.grad, gy)
-        isconst(x2) || broadcast!(+, x2.grad, x2.grad, gy)
+        isvoid(x1.grad) || broadcast!(+, x1.grad, x1.grad, gy)
+        isvoid(x2.grad) || broadcast!(+, x2.grad, x2.grad, gy)
     end
-    Var(y, +, (x1,x2), df)
+    Var(y, df, (x1,x2))
 end
-+(a::Number, x::Var) = Var(a) + x
-+(x::Var, a::Number) = x + Var(a)
++(a::Number, x::Var) = Var([a]) + x
++(x::Var, a::Number) = x + Var([a])
 
 """
     -(x1::Var, x2::Var)
     -(x::Var)
 """
 function -(x1::Var, x2::Var)
-    (x1.data == nothing || x2.data == nothing) && return Var(nothing, -, (x1,x2))
+    (isvoid(x1.data) || isvoid(x2.data)) && return Var(Void(), -, (x1,x2))
     y = x1.data - x2.data
     df(gy) = begin
-        isconst(x1) || (x1.grad .+= gy)
-        isconst(x2) || (x2.grad .-= gy)
+        isvoid(x1.grad) || broadcast!(+, x1.grad, x1.grad, gy)
+        isvoid(x2.grad) || broadcast!(-, x2.grad, x2.grad, gy)
     end
-    Var(y, -, (x1,x2), df)
+    Var(y, df, (x1,x2))
 end
-#-(x::Var) = Var() - x
+
+function -(x::Var)
+    y = -x.data
+    df(gy) = isvoid(x.grad) || broadcast!(-, x.grad, x.grad, gy)
+    Var(y, df, (x,))
+end
+-(x::Var{Void}) = Var(Void(), -, (x,))
 
 """
     \*(x1::Var, x2::Var)
@@ -45,14 +78,14 @@ end
     \.\*(x1::Var, x2::Var)
 """
 function .*(x1::Var, x2::Var)
-    (x1.data == nothing || x2.data == nothing) && return Var(nothing, .*, (x1,x2))
+    (isvoid(x1.data) || isvoid(x2.data)) && return Var(Void(), .*, (x1,x2))
     length(x1) == length(x2) || throw(DimensionMismatch())
     y = x1.data .* x2.data
     function df(gy)
-        isconst(x1) || ∇elemtimes!(gy, x2.data, x1.grad)
-        isconst(x2) || ∇elemtimes!(gy, x1.data, x2.grad)
+        isvoid(x1.grad) || ∇elemtimes!(gy, x2.data, x1.grad)
+        isvoid(x2.grad) || ∇elemtimes!(gy, x1.data, x2.grad)
     end
-    Var(y, .*, (x1,x2), df)
+    Var(y, df, (x1,x2))
 end
 
 function ∇elemtimes!{T}(gy::Array{T}, x2::Array{T}, gx1::Array{T})

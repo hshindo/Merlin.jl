@@ -2,14 +2,13 @@ export sigmoid
 
 """
     sigmoid(x::Var)
-
-Sigmoid function.
 """
+sigmoid(x::Var{Void}) = Var(Void(), sigmoid, (x,))
+
 function sigmoid(x::Var)
-    x.data == nothing && return Var(nothing, sigmoid, (x,))
     y = sigmoid(x.data)
-    df(gy) = isconst(x) || ∇sigmoid!(y, gy, x.data, x.grad)
-    Var(y, sigmoid, (x,), df)
+    df(gy) = isvoid(x.grad) || ∇sigmoid!(y, gy, x.data, x.grad)
+    Var(y, df, (x,))
 end
 
 function sigmoid{T}(x::Array{T})
@@ -20,14 +19,8 @@ function sigmoid{T}(x::Array{T})
     y
 end
 
-sigmoid(x::CuArray) = CUDNN.activation(CUDNN_ACTIVATION_SIGMOID, x)
-
 function ∇sigmoid!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
     @inbounds @simd for i = 1:length(gx)
         gx[i] += gy[i] * y[i] * (T(1) - y[i])
     end
-end
-
-function ∇sigmoid!(y::CuArray, gy::CuArray, x::CuArray, gx::CuArray)
-    CUDNN.∇activation!(CUDNN_ACTIVATION_SIGMOID, y, gy, x, gx, beta=1.0)
 end

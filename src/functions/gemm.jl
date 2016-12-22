@@ -8,52 +8,58 @@ export gemm, gemm_batch
 C = \alpha * \textrm{tA}(A) * \textrm{tB}(B)
 ```
 
-* tA: transpose A('T') or not('N')
-* tB: transpose B('T') or not('N')
+* tA: 'T' (transpose) or 'N' (not transpose)
+* tB: same as tA
 """
-function gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)
-    (A.data == nothing || B.data == nothing) && return Var(nothing, gemm, (tA,tB,A,B))
-    C = BLAS.gemm(tA, tB, eltype(A)(alpha), A.data, B.data)
-    function df(gC)
-        isconst(A) || ∇gemm_A!(gC, tA, tB, alpha, A.grad, B.data)
-        isconst(B) || ∇gemm_B!(gC, tA, tB, alpha, A.data, B.grad)
-    end
-    Var(C, gemm, (A,B), df)
-end
-gemm(A::Var, B::Var; tA='N', tB='N', alpha=1.0) = gemm(tA, tB, alpha, A, B)
+gemm(tA::Char, tB::Char, alpha, A::Var{Void}, B::Var) = Var(Void(), gemm, (tA,tB,alpha,A,B))
+gemm(tA::Char, tB::Char, alpha, A::Var, B::Var{Void}) = Var(Void(), gemm, (tA,tB,alpha,A,B))
 
-function ∇gemm_A!(gC, tA::Char, tB::Char, alpha, gA, B)
-    T = eltype(gC)
-    if tA == 'N'
-        BLAS.gemm!('N', tB=='N'?'T':'N', T(alpha), gC, B, T(1), gA)
-    else
-        BLAS.gemm!(tB, 'T', T(alpha), B, gC, T(1), gA)
-    end
+function gemm{T}(tA::Char, tB::Char, alpha::T, A::Var, B::Var)
+    C = BLAS.gemm(tA, tB, alpha, A.data, B.data)
+    df(gC) = ∇gemm!(gC, tA, tB, alpha, A, B)
+    Var(C, df, (A,B))
 end
+gemm(A::Var, B::Var; tA='N', tB='N', alpha=1.0) = gemm(tA, tB, eltype(A.data)(alpha), A, B)
 
-function ∇gemm_B!(gC, tA::Char, tB::Char, alpha, A, gB)
-    T = eltype(gC)
-    if tB == 'N'
-        BLAS.gemm!(tA=='N'?'T':'N', 'N', T(alpha), A, gC, T(1), gB)
-    else
-        BLAS.gemm!('T', tA, T(alpha), gC, A, T(1), gB)
+function ∇gemm!{T}(gC, tA::Char, tB::Char, alpha::T, A::Var, B::Var)
+    if !isvoid(A.grad)
+        if tA == 'N'
+            BLAS.gemm!('N', tB=='N'?'T':'N', alpha, gC, B.data, T(1), A.grad)
+        else
+            BLAS.gemm!(tB, 'T', alpha, B.data, gC, T(1), A.grad)
+        end
+    end
+    if !isvoid(B.grad)
+        if tB == 'N'
+            BLAS.gemm!(tA=='N'?'T':'N', 'N', alpha, A.data, gC, T(1), B.grad)
+        else
+            BLAS.gemm!('T', tA, alpha, gC, A.data, T(1), B.grad)
+        end
     end
 end
 
 """
     gemm_batch(tA::Char, tB::Char, alpha, As::Vector{Var}, B::Vector{Var})
     gemm_batch(As::Vector{Var}, B::Vector{Var}; tA='N', tB='N', alpha=1.0)
+
+Returns batched gemm.
+
+TODO: add equation here.
 """
-function gemm_batch(tA::Char, tB::Char, alpha, As::Vector{Var}, Bs::Vector{Var})
-    @assert length(As) == length(Bs)
-    T = eltype(As[1])
+gemm_batch(tA::Char, tB::Char, alpha, A::Var{Void}, B::Var) = Var(Void(), gemm_batch, (tA,tB,alpha,A,B))
+gemm_batch(tA::Char, tB::Char, alpha, A::Var, B::Var{Void}) = Var(Void(), gemm_batch, (tA,tB,alpha,A,B))
+
+function gemm_batch{T<:Array}(tA::Char, tB::Char, alpha, As::Vector{Var{T}}, Bs::Vector)
+    length(As) == length(Bs) || throw(DimensionMismatch("Length of As and Bs must be the same."))
+
     rowC = tA == 'N' ? size(As[1],1) : size(As[1],2)
     colC = tB == 'N' ? size(Bs[1],2) : size(Bs[1],1)
-    C = similar(As[1], rowC, colC, length(As))
+    C = Array{T}(rowC, colC, length(As))
     for i = 1:length(As)
-        BLAS.gemm!(tA, tB, T(alpha), As[i], Bs[i], T(0), view(C,:,:,i))
+        BLAS.gemm!(tA, tB, alpha, As[i], Bs[i], T(0), view(C,:,:,i))
     end
-    C
+    df(gC) = ∇gemm_batch!(gC, tA, tB, alpha, As, Bs)
+    Var(C, df, (As,Bs))
 end
 gemm_batch(As, Bs; tA='N', tB='N', alpha=1.0) = gemm_batch(tA, tB, alpha, As, Bs)
 

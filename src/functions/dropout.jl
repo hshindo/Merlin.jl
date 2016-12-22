@@ -3,7 +3,7 @@ export dropout
 """
     dropout(x::Var, rate::Float64)
 """
-dropout(x::Var{Void}, rate) = Var(Void(), dropout, (x,rate))
+dropout(x::Var{Void}, rate::Float64) = Var(Void(), dropout, (x,rate))
 
 function dropout{T,N}(x::Var{Array{T,N}}, rate::Float64)
     rx = rand(T, length(x.data))

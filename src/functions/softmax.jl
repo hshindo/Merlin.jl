@@ -1,28 +1,32 @@
 export softmax, logsoftmax
 
 const SOFTMAX_F32 = Libdl.dlsym(libmerlin, :softmax_f32)
-const LOGSOFTMAX_F32 = Libdl.dlsym(libmerlin, :logsoftmax_f32)
 const ∇SOFTMAX_F32 = Libdl.dlsym(libmerlin, :softmax_f32_grad)
+
+const LOGSOFTMAX_F32 = Libdl.dlsym(libmerlin, :logsoftmax_f32)
 const ∇LOGSOFTMAX_F32 = Libdl.dlsym(libmerlin, :logsoftmax_f32_grad)
 
 softmax_handle(::Type{Float32}) = SOFTMAX_F32
-logsoftmax_handle(::Type{Float32}) = LOGSOFTMAX_F32
 ∇softmax_handle(::Type{Float32}) = ∇SOFTMAX_F32
+
+logsoftmax_handle(::Type{Float32}) = LOGSOFTMAX_F32
 ∇logsoftmax_handle(::Type{Float32}) = ∇LOGSOFTMAX_F32
 
 """
     softmax(x::Var)
 
-Computes a softmax along the `ndims(x)-1`-th dimension.
+Returns a softmax over the `ndims(x)-1`-th dimension.
+
 ```math
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
+softmax(x::Var{Void}) = Var(Void(), softmax, (x,))
+
 function softmax(x::Var)
-    x.data == nothing && return Var(nothing, softmax, (x,))
     y = softmax(x.data)
-    df(gy) = x.data == nothing || ∇softmax!(y, gy, x.grad)
-    Var(y, softmax, (x,), df)
+    df(gy) = isvoid(x.grad) || ∇softmax!(y, gy, x.grad)
+    Var(y, df, (x,))
 end
 
 function softmax{T}(x::Array{T})
@@ -33,30 +37,23 @@ function softmax{T}(x::Array{T})
     y
 end
 
-function softmax{T,N}(x::CuArray{T,N})
-    CUDNN.softmax(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x)
-end
-
 function ∇softmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     h = ∇softmax_handle(T)
     dims = dim3d(y, ndims(y)-1)
-    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), gx, y, gy, dims[1], dims[2], dims[3])
-end
-
-function ∇softmax!(y::CuArray, gy::CuArray, gx::CuArray)
-    CUDNN.∇softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
+    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), y, gy, gx, dims[1], dims[2], dims[3])
 end
 
 """
     logsoftmax(x::Var)
 
-Computes a logarithm of softmax function.
+Returns a logarithm of softmax function.
 """
+logsoftmax(x::Var{Void}) = Var(Void(), logsoftmax, (x,))
+
 function logsoftmax(x::Var)
-    x.data == nothing && return Var(nothing, logsoftmax, (x,))
     y = logsoftmax(x.data)
-    df(gy) = x.data == nothing || ∇logsoftmax!(y, gy, x.grad)
-    Var(y, logsoftmax, (x,), df)
+    df(gy) = isvoid(x.grad) || ∇logsoftmax!(y, gy, x.grad)
+    Var(y, df, (x,))
 end
 
 function logsoftmax{T}(x::Array{T})
@@ -67,16 +64,10 @@ function logsoftmax{T}(x::Array{T})
     y
 end
 
-logsoftmax(x::CuArray) = CUDNN.softmax(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, x)
-
 function ∇logsoftmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     h = ∇logsoftmax_handle(T)
     dims = dim3d(y, ndims(y)-1)
-    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), gx, y, gy, dims[1], dims[2], dims[3])
-end
-
-function ∇logsoftmax!(y::CuArray, gy::CuArray, gx::CuArray)
-    CUDNN.∇softmax!(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
+    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), y, gy, gx, dims[1], dims[2], dims[3])
 end
 
 function dim3d(x::Array, dim::Int)
