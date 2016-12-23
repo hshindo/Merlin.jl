@@ -17,13 +17,13 @@ y = gru(x, h)
 ```
 """
 function GRU{T}(::Type{T}, xsize::Int)
-    ws = [Var(rand(T,xsize,xsize)) for i=1:3]
-    us = [Var(rand(T,xsize,xsize)) for i=1:3]
+    ws = [zerograd(rand(T,xsize,xsize)) for i=1:3]
+    us = [zerograd(rand(T,xsize,xsize)) for i=1:3]
     x = Var()
     h = Var()
     r = sigmoid(ws[1]*x + us[1]*h)
     z = sigmoid(ws[2]*x + us[2]*h)
     h_ = tanh(ws[3]*x + us[3]*(r.*h))
-    h_next = (1 - z) .* h + z .* h_
+    h_next = (Var(ones(T,xsize)) - z) .* h + z .* h_
     compile(h_next, x, h)
 end

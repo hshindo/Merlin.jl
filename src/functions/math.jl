@@ -51,6 +51,8 @@ end
 """
     -(x1::Var, x2::Var)
     -(x::Var)
+
+Automatically broadcasted.
 """
 function -(x1::Var, x2::Var)
     (isvoid(x1.data) || isvoid(x2.data)) && return Var(Void(), -, (x1,x2))
@@ -61,6 +63,8 @@ function -(x1::Var, x2::Var)
     end
     Var(y, df, (x1,x2))
 end
+-(a::Number, x::Var) = Var([a]) - x
+-(x::Var, a::Number) = x - Var([a])
 
 function -(x::Var)
     y = -x.data
@@ -69,10 +73,18 @@ function -(x::Var)
 end
 -(x::Var{Void}) = Var(Void(), -, (x,))
 
+mat(x::Vector) = reshape(x,length(x),1)
+mat(x::Matrix) = x
+
 """
     \*(x1::Var, x2::Var)
 """
-*(x1::Var, x2::Var) = gemm(x1, x2)
+function *(x1::Var, x2::Var)
+    (isvoid(x1.data) || isvoid(x2.data)) && return Var(Void(), *, (x1,x2))
+    ndims(x2.data) == 1 && return gemv(x1, x2)
+    ndims(x2.data) == 2 && size(x2.data,2) == 1 && return gemv(x1, Var(x2,data=vec(x2.data)))
+    gemm(x1, x2)
+end
 
 """
     \.\*(x1::Var, x2::Var)

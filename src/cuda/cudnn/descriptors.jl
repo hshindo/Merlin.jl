@@ -38,10 +38,10 @@ type ActivationDesc
     end
 end
 
-type ConvDesc{N}
+type ConvDesc
     ptr::Ptr{Void}
-    padding::NTuple{N,Int}
-    strides::NTuple{N,Int}
+    padding
+    strides
 
     function ConvDesc(T::Type, padding, strides; mode=CUDNN_CROSS_CORRELATION)
         N = length(padding)

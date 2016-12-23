@@ -8,6 +8,19 @@ for d = 1:ndims(x)
     y = argmax(x, d)
 end
 
+# blas
+A = Var(rand(T,10,5))
+x = Var(rand(T,5))
+@test checkgrad(()->gemv('N',T(0.3),A,x))
+
+x1 = Var(rand(T,10,5))
+x2 = Var(rand(T,5,10))
+x3 = Var(rand(T,10,5))
+@test checkgrad(()->gemm('N','N',T(0.2),x1,x2), x1, x2)
+@test checkgrad(()->gemm('N','T',T(0.3),x1,x3), x1, x3)
+@test checkgrad(()->gemm('T','N',T(0.4),x1,x3), x1, x3)
+@test checkgrad(()->gemm('T','T',T(0.5),x1,x2), x1, x2)
+
 # concat
 x1 = Var(rand(T,10,5,2))
 x2 = Var(rand(T,10,5,2))
@@ -31,19 +44,15 @@ x = Var(rand(T,10,5))
 y = dropout(x, 0.5)
 #@test checkgrad(()->dropout(x,0.5), x)
 
-# gemm
-x1 = Var(rand(T,10,5))
-x2 = Var(rand(T,5,10))
-x3 = Var(rand(T,10,5))
-@test checkgrad(()->gemm('N','N',T(0.2),x1,x2), x1, x2)
-@test checkgrad(()->gemm('N','T',T(0.3),x1,x3), x1, x3)
-@test checkgrad(()->gemm('T','N',T(0.4),x1,x3), x1, x3)
-@test checkgrad(()->gemm('T','T',T(0.5),x1,x2), x1, x2)
-
 # getindex
 x = Var(rand(T,10,5))
 @test checkgrad(()->x[1:3], x)
 @test checkgrad(()->x[10:10], x)
+
+x = Var(rand(T,100,1))
+h = Var(rand(T,100,1))
+f = GRU(T, 100)
+#@test checkgrad(()->f(x,h), x, h)
 
 # linear
 x = Var(rand(T,10,5))
@@ -62,7 +71,7 @@ for op in (+,-,.*)
 end
 x4 = Var(rand(T,5,7))
 @test checkgrad(()->-x4, x4)
-@test checkgrad(()->x1*x4, x1, x4)
+#@test checkgrad(()->x1*x4, x1, x4)
 
 # sigmoid
 x = Var(rand(T,10,5))
@@ -114,11 +123,6 @@ x = Var(rand(T,10,5,4,3))
 for dim = 1:ndims(x.data)
     @test checkgrad(()->sum(x,dim), x)
 end
-
-x = Var(rand(T,100,1))
-h = Var(rand(T,100,1))
-f = GRU(T, 100)
-@test checkgrad(()->f(x,h), x, h)
 
 =#
 

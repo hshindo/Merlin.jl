@@ -24,16 +24,15 @@ include("gradient.jl")
 abstract Functor
 for name in [
     "argmax",
+    "blas",
     "concat",
     "conv",
     "crossentropy",
     "dropout",
-    "gemm",
     "getindex",
-    #"gru",
+    "gru",
     "linear",
     #"lookup",
-    #"log",
     "math",
     #"max",
     #"pooling",

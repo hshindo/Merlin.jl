@@ -1,6 +1,7 @@
 export CUDNN_CONVOLUTION, CUDNN_CROSS_CORRELATION
 
-function convolution{T,N}(x::CuArray{T}, w::CuArray{T}, desc::ConvDesc{N}; alpha=1.0, beta=0.0)
+function convolution{T}(x::CuArray{T}, w::CuArray{T}, desc::ConvDesc; alpha=1.0, beta=0.0)
+    N = length(desc.padding)
     outdims = ntuple(N) do i
         (size(x,i) + 2*desc.padding[i] - size(w,i)) ÷ desc.strides[i] + 1
     end

@@ -1,4 +1,20 @@
-export gemm, gemm_batch
+export gemv, gemm, gemm_batch
+
+"""
+    gemv
+"""
+function gemv{T}(tA::Char, alpha::T, A::Var, x::Var)
+    (isvoid(A.data) || isvoid(x.data)) && return Var(Void(), gemv, (tA,A,x))
+    ndims(x.data) == 1 || throw(DimensionMismatch())
+
+    C = BLAS.gemv(tA, alpha, A.data, x.data)
+    function df(gC)
+        isvoid(A.grad) || BLAS.gemm!('N', 'N', alpha, gC, reshape(x.data,1,size(x.data,1)), T(1), A.grad)
+        isvoid(x.grad) || BLAS.gemv!('T', alpha, A.data, gC, T(1), x.grad)
+    end
+    Var(C, df, (A,x))
+end
+gemv(A::Var, x::Var; tA='N', alpha=1.0) = gemv(tA, eltype(x.data)(alpha), A, x)
 
 """
     gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)

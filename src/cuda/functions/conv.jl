@@ -1,6 +1,6 @@
 import ..Merlin: Conv
 
-function (f::Conv){T<:CuArray}(x::Var{T})
+function (f::Conv){T,N}(x::Var{CuArray{T,N}})
     desc = ConvDesc(T, f.padding, f.strides)
     y = CUDNN.convolution(x.data, w.data, desc)
     function df(gy::CuArray)

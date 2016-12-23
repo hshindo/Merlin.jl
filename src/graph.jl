@@ -22,7 +22,7 @@ function compile(output::Var, inputs::Var...)
     nodes = map(nodes) do node
         isempty(node.args) && return node
         args = map(node.args) do arg
-            typeof(arg) == Var ? Var(node2id[arg]) : arg
+            typeof(arg) <: Var ? Var(node2id[arg]) : arg
         end
         Var(node.data, node.f, args)
     end
@@ -34,10 +34,10 @@ function compile!(g::Graph)
     calls = []
     for node in g.nodes
         if isempty(node.args)
-            push!(calls, node.data == nothing ? gensym() : node)
+            push!(calls, isvoid(node.data) ? gensym() : node)
         else
             args = map(node.args) do arg
-                typeof(arg) == Var ? calls[arg.data] : arg
+                typeof(arg) <: Var ? calls[arg.data] : arg
             end
             push!(calls, Expr(:call, node.f, args...))
         end
