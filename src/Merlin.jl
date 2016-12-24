@@ -35,6 +35,7 @@ for name in [
     #"lookup",
     "math",
     #"max",
+    "pairwise",
     #"pooling",
     #"reduce",
     "relu",

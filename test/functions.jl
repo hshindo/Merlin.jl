@@ -73,6 +73,11 @@ x4 = Var(rand(T,5,7))
 @test checkgrad(()->-x4, x4)
 #@test checkgrad(()->x1*x4, x1, x4)
 
+# pairwise
+x1 = Var(rand(T,10,5))
+x2 = Var(rand(T,8,6))
+@test checkgrad(()->pairwise(x1,x2), x1, x2)
+
 # sigmoid
 x = Var(rand(T,10,5))
 @test checkgrad(()->sigmoid(x), x)
