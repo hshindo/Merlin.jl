@@ -30,6 +30,12 @@ julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 julia> Pkg.build("Merlin")
 ```
 
+To run the Merlin examples, add `MLDatasets` package:
+```julia
+julia> Pkg.clone("https://github.com/JuliaML/MLDatasets.jl.git")
+```
+which provides an access to common machine learning datasets.
+
 ## Quick Start
 Basically,
 
@@ -45,7 +51,7 @@ Here is an example of three-layer network:
 using Merlin
 
 T = Float32
-x = zerograd(rand(T,10,5))
+x = zerograd(rand(T,10,5)) # initialize Var with zero gradient
 y = Linear(T,10,7)(x)
 y = relu(y)
 y = Linear(T,7,3)(y)

@@ -1,28 +1,21 @@
 export CUDNN_CONVOLUTION, CUDNN_CROSS_CORRELATION
 
-function convolution{T}(x::CuArray{T}, w::CuArray{T}, desc::ConvDesc; alpha=1.0, beta=0.0)
-    N = length(desc.padding)
-    outdims = ntuple(N) do i
-        (size(x,i) + 2*desc.padding[i] - size(w,i)) ÷ desc.strides[i] + 1
-    end
-    y = similar(x, outdims..., size(w,N+2), size(x,N+2))
-
-    h = handle(x)
+function convolution!{T}(x, w, desc, y; alpha=1.0, beta=0.0)
     xdesc = TensorDesc(x)
     wdesc = TensorDesc(w)
     ydesc = TensorDesc(y)
 
     p = cudnnConvolutionFwdAlgo_t[0]
-    cudnnGetConvolutionForwardAlgorithm(h, xdesc, wdesc, desc, ydesc,
+    cudnnGetConvolutionForwardAlgorithm(handle(x), xdesc, wdesc, desc, ydesc,
         CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, p)
     algo = p[1]
 
     p = Cint[0]
-    cudnnGetConvolutionForwardWorkspaceSize(h, xdesc, wdesc, desc, ydesc, algo, p)
+    cudnnGetConvolutionForwardWorkspaceSize(handle(x), xdesc, wdesc, desc, ydesc, algo, p)
     worksize = p[1]
     workspace = CuArray{Int8}(Int(worksize))
 
-    cudnnConvolutionForward(h, T[alpha], xdesc, x, wdesc, w, desc,
+    cudnnConvolutionForward(handle(x), T[alpha], xdesc, x, wdesc, w, desc,
         algo, workspace, worksize, T[beta], ydesc, y)
     y
 end
