@@ -16,9 +16,11 @@ function Lookup{T}(w::Matrix{T})
 end
 
 """
-    Lookup{T}(::Type{T}, indim, outdim)
+    Lookup{T}(::Type{T}, indim::Int, outdim::Int)
 
-### 👉 Example
+* indim: input dimension
+* outdim: output dimension
+
 ```julia
 T = Float32
 f = Lookup(T,10000,100) # 100-length vector, 10k vocabulary
@@ -26,7 +28,7 @@ x = Var(rand(1:1000,5,3))
 y = f(x)
 ```
 """
-function Lookup(T::Type, indim::Int, outdim::Int)
+function Lookup{T}(::Type{T}, indim::Int, outdim::Int)
     ws = Var[zerograd(rand(T,outdim)) for i=1:indim]
     Lookup(ws)
 end
@@ -48,7 +50,6 @@ function Lookup(path::String, T::Type)
 end
 
 function (f::Lookup)(x::Var)
-    x.data == nothing && return Var(nothing, f, (x,))
     y = lookup(f.ws, x.data)
     function df(gy)
         ∇lookup!(gy, f.ws, x.data)
@@ -56,8 +57,9 @@ function (f::Lookup)(x::Var)
             id > 0 && push!(f.idset, id)
         end
     end
-    Var(y, f, (x,), df)
+    Var(y, df, (x,))
 end
+(f::Lookup)(x::Var{Void}) = Var(Void(), f, (x,))
 
 function lookup(ws::Vector{Var}, x::Array{Int})
     T = eltype(ws[1].data)
@@ -97,17 +99,4 @@ function h5convert(f::Lookup)
     data = map(w -> w.data, f.ws)
     hcat(data...)
 end
-
 h5convert(::Type{Lookup}, w) = Lookup(w)
-
-export quantize!
-function quantize!(f::Lookup)
-    for w in f.ws
-        x = w.data
-        for i = 1:length(x)
-            x[i] < -0.0 && (x[i] = 0.0)
-            x[1] > 1.0 && (x[i] = 1.0)
-            x[i] = round(x[i], 1)
-        end
-    end
-end

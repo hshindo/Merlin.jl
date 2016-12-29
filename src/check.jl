@@ -1,4 +1,37 @@
 export checkgrad, checkcuda
+export @test_grad
+
+using Base.Test
+
+macro test_grad(f, args...)
+    args = Expr(:tuple, args...)
+    quote
+        eps = 1e-3
+        local f = () -> $(esc(f))
+        local args = $(esc(args))
+        foreach(zerograd!, args)
+        y = f()
+        gradient!(y)
+        gxs1 = map(a -> a.grad, args)
+        gxs2 = map(args) do arg
+            x = arg.data
+            gx = similar(x)
+            for k = 1:length(x)
+                xk = x[k]
+                x[k] = xk + eps
+                y1 = f().data
+                x[k] = xk - eps
+                y2 = f().data
+                x[k] = xk
+                gx[k] = sum(y1 - y2) / 2eps
+            end
+            gx
+        end
+        foreach(i -> checkdiff(gxs1[i],gxs2[i],eps), 1:length(gxs1))
+        cuda && Pkg.installed("CUDA") != nothing && checkcuda(f, args...)
+        @test 1 == 1
+    end
+end
 
 function checkgrad(f, args::Var...; eps=1e-3, cuda=true)
     foreach(zerograd!, args)

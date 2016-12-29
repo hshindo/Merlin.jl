@@ -11,8 +11,8 @@ end
 
 Compute linear function (a.k.a. affine transformation).
 
-* indim: size of inout dimension
-* outdim: size of output dimension
+* indim: inout dimension
+* outdim: output dimension
 
 ```math
 f(x) = W^{T}x + b
@@ -26,12 +26,10 @@ f = Linear(T,10,7)
 y = f(x)
 ```
 """
-function Linear(T::Type, indim::Int, outdim::Int)
-    r = T(sqrt(6 / (indim+outdim)))
-    w = rand(T, outdim, indim)
-    w .*= 2r
-    w .-= r
-    b = fill(T(0), outdim, 1)
+function Linear{T}(::Type{T}, indim::Int, outdim::Int)
+    r = T(sqrt(6/(indim+outdim)))
+    w = uniform(T, -r, r, outdim, indim)
+    b = fill(T(0), outdim)
     Linear(zerograd(w), zerograd(b))
 end
 
@@ -39,14 +37,12 @@ function (f::Linear)(x::Var)
     w, b = f.w, f.b
     y = w.data * x.data
     broadcast!(+, y, y, b.data)
-    df(gy) = ∇linear!(y, gy, w, x, b)
-    Var(y, df, (w,x,b))
+    function df(gy)
+        T = eltype(gy)
+        isvoid(x.grad) || BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
+        isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
+        isvoid(b.grad) || BLAS.axpy!(T(1), sum(gy,2), b.grad)
+    end
+    Var(y, df, (x,w,b))
 end
 (f::Linear)(x::Var{Void}) = Var(Void(), f, (x,))
-
-function ∇linear!(y, gy, w::Var, x::Var, b::Var)
-    T = eltype(y)
-    isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
-    isvoid(x.grad) || BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
-    broadcast!(+, b.grad, b.grad, sum(gy,2))
-end

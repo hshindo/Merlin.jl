@@ -27,12 +27,13 @@ x2 = Var(rand(T,10,5,2))
 x3 = Var(rand(T,10,5,2))
 for dim = 1:3
     @test checkgrad(()->concat(dim,x1,x2,x3), x1, x2, x3)
+    #@test_grad concat(dim,x1,x2,x3) x1 x2 x3
 end
 
 # conv
 x = Var(rand(T,5,4,3,2))
-f = Conv(T, (2,2,3,4), padding=(0,0), strides=(1,1))
-@test checkgrad(()->f(x), f.w, x)
+f = Conv(T,2,2,3,4, padding=(0,0), strides=(1,1))
+@test checkgrad(()->f(x), x, f.w, f.b)
 
 # crossentropy
 p = Var([1:5;])
@@ -78,6 +79,18 @@ x1 = Var(rand(T,10,5))
 x2 = Var(rand(T,8,6))
 @test checkgrad(()->pairwise(x1,x2), x1, x2)
 
+# reduce
+x = Var(rand(T,5,4,3,2))
+for dim = 1:ndims(x)
+    @test checkgrad(()->sum(x,dim), x)
+    # @test checkgrad(()->max(x,dim), x)
+end
+
+# reshape
+x = Var(rand(T,5,4,3))
+@test checkgrad(()->reshape(x,3,4,5))
+@test checkgrad(()->reshape(x,4,3,5))
+
 # sigmoid
 x = Var(rand(T,10,5))
 @test checkgrad(()->sigmoid(x), x)
@@ -86,49 +99,18 @@ x = Var(rand(T,10,5))
 x = Var(rand(T,10,5))
 @test checkgrad(()->tanh(x), x)
 
+# transpose
+x = Var(rand(T,10,5))
+@test checkgrad(()->transpose(x), x)
+
 # softmax
 x = Var(rand(T,10,5,3,4))
 for f in (softmax,logsoftmax)
     @test checkgrad(()->f(x), x)
 end
 
-#=
-=#
-
-#=
-
-# window
-x = Var(rand(T,100))
-@test checkgrad(()->window(x,(30,),pads=(10,),strides=(10,)), x)
-=#
-
-#=
-@testset "reduce" begin
-    x = Var(rand(T,10,5))
-    #@test checkgrad(sum, x, 1)
-    #@test checkgrad(sum, x, 2)
-end
-
-=#
-
-#x = Var(rand(T,5,4,3,2))
-#f = Conv(T, (2,2), (3,4), stride=(1,1), paddims=(0,0))
-#@test checkgrad(()->f(x), f.w, x)
-
-#=
-
-xx = Var(rand(T,1)[1])
-@test checkgrad(()->exp(x1), x1)
-#@test checkgrad(()->exp(xx), xx) # TODO: fail test
-#@test checkgrad(()->log(x1), x1) # TODO: fail test
-x1 = Var(rand(T,10,5))
-#@test checkgrad(()->dropout(x1,0.5,true), x1)
-
-x = Var(rand(T,10,5,4,3))
-for dim = 1:ndims(x.data)
-    @test checkgrad(()->sum(x,dim), x)
-end
-
-=#
+# view
+x = Var(rand(T,5,4,3))
+#@test checkgrad(()->view(x,1:3,2:2,3:3), x)
 
 end

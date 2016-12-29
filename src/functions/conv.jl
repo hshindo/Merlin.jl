@@ -8,20 +8,19 @@ im2col_handle(::Type{Float32}) = IM2COL_F32
 ∇im2col_handle(::Type{Float32}) = ∇IM2COL_F32
 
 """
-    Conv(T::Type, wsize::Tuple, [padding=0], [strides=1])
+    Conv(T::Type, dims::Int..., [padding], [strides])
 
 N-dimensional convolution function.
 
-* wsize: ``k_h, k_w, c_{in}, c_{out}`` where ``k_h``, ``k_w``, ``c_{in}``,
-``c_{out}`` are kernel height, kernel width, input channel, output channel, respectively.
-* [padding=0]: spatial padding size. `padding=p` and `padding=(p,p,...)` are equivalent.
-* [strides=1]: filter strides. `strides=s` and `strides=(s,s,...)` are equivalent.
+* dims: ``k1, k2, ..., c_{in}, c_{out}`` where ``k1``, ``k2``, ... are kernel size.
+``c_{in}`` and ``c_{out}`` are input channel and output channel, respectively.
+* [padding=(0,0,...)]: spatial padding size.
+* [strides=(1,1,...)]: kernel strides.
 
 ```julia
 T = Float32
 x = Var(rand(T,5,4,3,2))
-f = Conv(T, (2,2,3,4), padding=(0,0), strides=(1,1))
-f = Conv(rand(T,2,2,3,4))
+f = Conv(T,2,2,3,4, padding=(0,0), strides=(1,1))
 y = f(x)
 ```
 """
@@ -32,10 +31,12 @@ type Conv{N}
     strides::NTuple{N,Int}
 end
 
-function Conv{T,N}(w::Array{T,N}, b=nothing; padding=0, strides=1)
-    typeof(b) == Void && (b = zeros(T,size(w,4)))
-    typeof(padding) == Int && (padding = ntuple(_ -> padding, N-2))
-    typeof(strides) == Int && (strides = ntuple(_ -> strides, N-2))
+function Conv{T}(::Type{T}, dims::Int...; padding=nothing, strides=nothing)
+    w = uniform(T, -0.01, 0.01, dims)
+    b = zeros(T, dims[end])
+    N = length(dims) - 2
+    padding == nothing && (padding = ntuple(_ -> 0, N))
+    strides == nothing && (strides = ntuple(_ -> 1, N))
     Conv(zerograd(w), zerograd(b), padding, strides)
 end
 
@@ -44,8 +45,14 @@ end
 function (f::Conv){T<:Array}(x::Var{T})
     w, b, padding, strides = f.w, f.b, f.padding, f.strides
     y, work = conv(x.data, w.data, b.data, padding, strides)
-    df(gy::Array) = isvoid(x.grad) || ∇conv!(gy, x.grad, w.data, w.grad, work, padding, strides)
-    Var(y, df, (w,x))
+    function df(gy::Array)
+        gy = permutedims(gy, [1,2,4,3])
+        gy_mat = reshape(gy, size(gy,1)*size(gy,2)*size(gy,3), size(gy,4))
+        isvoid(x.grad) || ∇conv_x!(gy_mat, x.grad, w.data, work, padding, strides)
+        isvoid(w.grad) || ∇conv_w!(gy_mat, w.grad, work)
+        isvoid(b.grad) || BLAS.axpy!(eltype(gy)(1), sum(gy_mat,1), b.grad)
+    end
+    Var(y, df, (x,w,b))
 end
 
 function conv{T}(x::Array{T,4}, w::Array{T,4}, b::Vector{T}, padding::NTuple{2,Int}, strides::NTuple{2,Int})
@@ -59,22 +66,22 @@ function conv{T}(x::Array{T,4}, w::Array{T,4}, b::Vector{T}, padding::NTuple{2,I
 
     _w = reshape(w,size(work,2),size(w,4))
     y = work * _w
-    y .+= b
     y = reshape(y, outsize..., size(x,4), size(w,4))
     y = permutedims(y, [1,2,4,3])
+    broadcast!(.+, y, y, b)
     y, work
 end
 
-function ∇conv!{T}(gy::Array{T,4}, gx::Array{T,4}, w::Array{T,4}, gw::Array{T,4}, work, padding, strides)
-    outsize = ntuple(i -> (size(gx,i)+2padding[i]-size(w,i)) ÷ strides[i] + 1, 2)
-    gy = permutedims(gy, [1,2,4,3])
-    _gy = reshape(gy, size(gy,1)*size(gy,2)*size(gy,3), size(gy,4))
-    _w = reshape(w, size(work,2), size(w,4))
-    _gw = reshape(gw, size(_w,1), size(_w,2))
-    gwork = zeros(work)
-    BLAS.gemm!('N', 'T', T(1), _gy, _w, T(1), gwork)
-    BLAS.gemm!('T', 'N', T(1), work, _gy, T(1), _gw)
+function ∇conv_x!{T}(gy_mat::Matrix{T}, gx::Array{T,4}, w::Array{T,4}, work::Matrix{T}, padding, strides)
+    w_mat = reshape(w, size(work,2), size(w,4))
+    gwork = similar(work)
+    BLAS.gemm!('N', 'T', T(1), gy_mat, w_mat, T(0), gwork)
     ccall(∇im2col_handle(T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint),
         gwork, gx, size(gx,1), size(gx,2), size(gx,3), size(gx,4),
         size(w,1), size(w,2), padding[1], padding[2], strides[1], strides[2])
+end
+
+function ∇conv_w!{T}(gy_mat::Matrix{T}, gw::Array{T,4}, work::Matrix{T})
+    gw_mat = reshape(gw, size(work,2), size(gw,4))
+    BLAS.gemm!('T', 'N', T(1), work, gy_mat, T(1), gw_mat)
 end

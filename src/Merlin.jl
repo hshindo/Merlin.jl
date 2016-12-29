@@ -14,6 +14,7 @@ end
 
 #include("mkl/MKL.jl")
 
+include("util.jl")
 include("var.jl")
 include("graph.jl")
 include("fit.jl")
@@ -32,19 +33,18 @@ for name in [
     "getindex",
     "gru",
     "linear",
-    #"lookup",
+    "lookup",
     "math",
-    #"max",
     "pairwise",
     #"pooling",
-    #"reduce",
+    "reduce",
     "relu",
-    #"reshape",
+    "reshape",
     "sigmoid",
     "softmax",
     "tanh",
-    #"transpose",
-    #"view",
+    "transpose",
+    "view",
     #"window",
     ]
     include("functions/$(name).jl")

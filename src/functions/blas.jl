@@ -1,18 +1,24 @@
 export gemv, gemm, gemm_batch
 
 """
-    gemv
+    gemv(tA::Char, alpha, A::Var, x::Var)
+
+* tA: 'T' (transpose) or 'N' (not transpose)
+
+```math
+y = \alpha \times \textrm{tA}(A) \times x
+```
 """
 function gemv{T}(tA::Char, alpha::T, A::Var, x::Var)
     (isvoid(A.data) || isvoid(x.data)) && return Var(Void(), gemv, (tA,A,x))
     ndims(x.data) == 1 || throw(DimensionMismatch())
 
-    C = BLAS.gemv(tA, alpha, A.data, x.data)
-    function df(gC)
-        isvoid(A.grad) || BLAS.gemm!('N', 'N', alpha, gC, reshape(x.data,1,size(x.data,1)), T(1), A.grad)
-        isvoid(x.grad) || BLAS.gemv!('T', alpha, A.data, gC, T(1), x.grad)
+    y = BLAS.gemv(tA, alpha, A.data, x.data)
+    function df(gy)
+        isvoid(A.grad) || BLAS.gemm!('N', 'N', alpha, gy, reshape(x.data,1,size(x.data,1)), T(1), A.grad)
+        isvoid(x.grad) || BLAS.gemv!('T', alpha, A.data, gy, T(1), x.grad)
     end
-    Var(C, df, (A,x))
+    Var(y, df, (A,x))
 end
 gemv(A::Var, x::Var; tA='N', alpha=1.0) = gemv(tA, eltype(x.data)(alpha), A, x)
 
@@ -20,12 +26,12 @@ gemv(A::Var, x::Var; tA='N', alpha=1.0) = gemv(tA, eltype(x.data)(alpha), A, x)
     gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)
     gemm(A::Var, B::Var; tA='N', tB='N', alpha=1.0)
 
-```math
-C = \alpha * \textrm{tA}(A) * \textrm{tB}(B)
-```
-
 * tA: 'T' (transpose) or 'N' (not transpose)
 * tB: same as tA
+
+```math
+C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
+```
 """
 gemm(tA::Char, tB::Char, alpha, A::Var{Void}, B::Var) = Var(Void(), gemm, (tA,tB,alpha,A,B))
 gemm(tA::Char, tB::Char, alpha, A::Var, B::Var{Void}) = Var(Void(), gemm, (tA,tB,alpha,A,B))
@@ -58,9 +64,7 @@ end
     gemm_batch(tA::Char, tB::Char, alpha, As::Vector{Var}, B::Vector{Var})
     gemm_batch(As::Vector{Var}, B::Vector{Var}; tA='N', tB='N', alpha=1.0)
 
-Returns batched gemm.
-
-TODO: add equation here.
+Batched gemm.
 """
 gemm_batch(tA::Char, tB::Char, alpha, A::Var{Void}, B::Var) = Var(Void(), gemm_batch, (tA,tB,alpha,A,B))
 gemm_batch(tA::Char, tB::Char, alpha, A::Var, B::Var{Void}) = Var(Void(), gemm_batch, (tA,tB,alpha,A,B))

@@ -3,8 +3,9 @@ import Base.transpose
 """
     transpose(x::Var)
 """
-@graph function transpose(x::Var)
+function transpose(x::Var)
     y = transpose(x.data)
-    df(gy::UniArray) = isconst(x) || (x.grad .+= transpose(gy))
-    Var(y, [x], transpose, df)
+    df(gy) = isvoid(x.grad) || BLAS.axpy!(eltype(gy)(1), transpose(gy), x.grad)
+    Var(y, df, (x,))
 end
+transpose(x::Var{Void}) = Var(Void(), transpose, (x,))
