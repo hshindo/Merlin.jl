@@ -5,8 +5,6 @@ export
     CUDNN_ACTIVATION_CLIPPED_RELU
 
 """
-    activation
-
 reluNanOpt: whether propagates NaN or not
 reluCeiling: floating point number to specify the clipping threshold
 when the activation mode is set to CUDNN_ACTIVATION_CLIPPED_RELU.

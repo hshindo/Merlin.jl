@@ -79,6 +79,10 @@ x1 = Var(rand(T,10,5))
 x2 = Var(rand(T,8,6))
 @test checkgrad(()->pairwise(x1,x2), x1, x2)
 
+# pooling
+x = Var(rand(Float32,5,4,3,2))
+@test checkgrad(()->pooling(:average,x,(2,2)), x)
+
 # reduce
 x = Var(rand(T,5,4,3,2))
 for dim = 1:ndims(x)

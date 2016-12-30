@@ -36,7 +36,7 @@ for name in [
     "lookup",
     "math",
     "pairwise",
-    #"pooling",
+    "pooling",
     "reduce",
     "relu",
     "reshape",

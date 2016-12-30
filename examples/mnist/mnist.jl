@@ -38,12 +38,13 @@ function main()
 
     # Create mini-batch
     xtrains = [Var(Matrix{Float32}(xtrain[:,(i-1)*100+1:i*100])) for i=1:600]
-    ytrains = [ytrain[(i-1)*100+1:i*100] for i = 1:600]
+    ytrains = [Var(ytrain[(i-1)*100+1:i*100]) for i = 1:600]
     xtests = [Var(Matrix{Float32}(xtest[:,(i-1)*100+1:i*100])) for i=1:100]
-    ytests = [ytest[(i-1)*100+1:i*100] for i = 1:100]
+    ytests = [Var(ytest[(i-1)*100+1:i*100]) for i = 1:100]
+    ys = map(y -> y.data, ytests)
 
-    nn = model()
-    #nn = Merlin.load("mnist.h5", "7")
+    #nn = model()
+    nn = Merlin.load("mnist.h5", "10")
     opt = SGD(0.005)
     for epoch = 1:10
         println("Epoch: $(epoch)")
@@ -54,9 +55,9 @@ function main()
             out = nn(x).data
             argmax(out, 1)
         end
-        acc = accuracy(ytests, zs)
+        acc = accuracy(ys, zs)
         println("Test accuracy: $(acc)")
-        Merlin.save("mnist.h5", epoch==1 ? "w" : "r+", string(epoch), nn)
+        #Merlin.save("mnist.h5", epoch==1 ? "w" : "r+", string(epoch), nn)
     end
 end
 
