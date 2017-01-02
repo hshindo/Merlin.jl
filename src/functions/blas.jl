@@ -10,7 +10,7 @@ y = \alpha \times \textrm{tA}(A) \times x
 ```
 """
 function gemv{T}(tA::Char, alpha::T, A::Var, x::Var)
-    (isvoid(A.data) || isvoid(x.data)) && return Var(Void(), gemv, (tA,A,x))
+    (isvoid(A.data) || isvoid(x.data)) && return Var(nothing, gemv, (tA,A,x))
     ndims(x.data) == 1 || throw(DimensionMismatch())
 
     y = BLAS.gemv(tA, alpha, A.data, x.data)
@@ -33,10 +33,8 @@ gemv(A::Var, x::Var; tA='N', alpha=1.0) = gemv(tA, eltype(x.data)(alpha), A, x)
 C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
 ```
 """
-gemm(tA::Char, tB::Char, alpha, A::Var{Void}, B::Var) = Var(Void(), gemm, (tA,tB,alpha,A,B))
-gemm(tA::Char, tB::Char, alpha, A::Var, B::Var{Void}) = Var(Void(), gemm, (tA,tB,alpha,A,B))
-
 function gemm{T}(tA::Char, tB::Char, alpha::T, A::Var, B::Var)
+    (isvoid(A.data) || isvoid(B.data)) && return Var(nothing, gemm, (tA,tB,alpha,A,B))
     C = BLAS.gemm(tA, tB, alpha, A.data, B.data)
     df(gC) = ∇gemm!(gC, tA, tB, alpha, A, B)
     Var(C, df, (A,B))
@@ -66,10 +64,10 @@ end
 
 Batched gemm.
 """
-gemm_batch(tA::Char, tB::Char, alpha, A::Var{Void}, B::Var) = Var(Void(), gemm_batch, (tA,tB,alpha,A,B))
-gemm_batch(tA::Char, tB::Char, alpha, A::Var, B::Var{Void}) = Var(Void(), gemm_batch, (tA,tB,alpha,A,B))
+#gemm_batch(tA::Char, tB::Char, alpha, A::Var{Void}, B::Var) = Var(Void(), gemm_batch, (tA,tB,alpha,A,B))
+#gemm_batch(tA::Char, tB::Char, alpha, A::Var, B::Var{Void}) = Var(Void(), gemm_batch, (tA,tB,alpha,A,B))
 
-function gemm_batch{T<:Array}(tA::Char, tB::Char, alpha, As::Vector{Var{T}}, Bs::Vector)
+function gemm_batch(tA::Char, tB::Char, alpha, As::Vector{Var}, Bs::Vector)
     length(As) == length(Bs) || throw(DimensionMismatch("Length of As and Bs must be the same."))
 
     rowC = tA == 'N' ? size(As[1],1) : size(As[1],2)

@@ -50,6 +50,7 @@ function Lookup(path::String, T::Type)
 end
 
 function (f::Lookup)(x::Var)
+    isvoid(x.data) && return Var(nothing, f, (x,))
     y = lookup(f.ws, x.data)
     function df(gy)
         ∇lookup!(gy, f.ws, x.data)
@@ -57,9 +58,10 @@ function (f::Lookup)(x::Var)
             id > 0 && push!(f.idset, id)
         end
     end
+    #args = Var[]
+    #foreach(id -> push!(args,f.xs[id]), Set(x.data))
     Var(y, df, (x,))
 end
-(f::Lookup)(x::Var{Void}) = Var(Void(), f, (x,))
 
 function lookup(ws::Vector{Var}, x::Array{Int})
     T = eltype(ws[1].data)

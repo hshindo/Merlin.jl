@@ -34,7 +34,7 @@ function concat(dim::Int, xs::Vector{Var})
 end
 
 function concat(dim::Int, xs::Var...)
-    any(x -> typeof(x) == Var{Void}, xs) && return Var(Void(), concat, (dim,xs...))
+    any(x -> isvoid(x.data), xs) && return Var(nothing, concat, (dim,xs...))
     concat(dim, Var[xs...])
 end
 

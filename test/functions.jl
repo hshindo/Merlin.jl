@@ -32,7 +32,7 @@ end
 
 # conv
 x = Var(rand(T,5,4,3,2))
-f = Conv(T,2,2,3,4, padding=(0,0), strides=(1,1))
+f = Conv(T, (2,2,3,4), pads=(0,0), strides=(1,1))
 @test checkgrad(()->f(x), x, f.w, f.b)
 
 # crossentropy
@@ -59,7 +59,7 @@ f = GRU(T, 100)
 x = Var(rand(T,10,5))
 f = Linear(T, 10, 7)
 f.b = Var(rand(T,size(f.b)))
-@test checkgrad(()->f(x), f.w, x, f.b)
+@test checkgrad(()->f(x), x, f.w, f.b)
 
 # math
 x1 = Var(rand(T,10,5))
@@ -80,7 +80,7 @@ x2 = Var(rand(T,8,6))
 @test checkgrad(()->pairwise(x1,x2), x1, x2)
 
 # pooling
-x = Var(rand(Float32,5,4,3,2))
+x = Var(rand(T,5,4,3,2))
 @test checkgrad(()->pooling(:average,x,(2,2)), x)
 
 # reduce

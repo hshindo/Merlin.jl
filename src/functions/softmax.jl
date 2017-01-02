@@ -21,9 +21,9 @@ Returns a softmax over the `ndims(x)-1`-th dimension.
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
-softmax(x::Var{Void}) = Var(Void(), softmax, (x,))
-
 function softmax(x::Var)
+    isvoid(x.data) && return Var(nothing, softmax, (x,))
+    iscuda(x.data) && return CUDA.softmax(x)
     y = softmax(x.data)
     df(gy) = isvoid(x.grad) || ∇softmax!(y, gy, x.grad)
     Var(y, df, (x,))
@@ -48,9 +48,9 @@ end
 
 Returns a logarithm of softmax function.
 """
-logsoftmax(x::Var{Void}) = Var(Void(), logsoftmax, (x,))
-
 function logsoftmax(x::Var)
+    isvoid(x.data) && return Var(nothing, logsoftmax, (x,))
+    iscuda(x.data) && return CUDA.logsoftmax(x)
     y = logsoftmax(x.data)
     df(gy) = isvoid(x.grad) || ∇logsoftmax!(y, gy, x.grad)
     Var(y, df, (x,))

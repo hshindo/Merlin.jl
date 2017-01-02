@@ -12,6 +12,7 @@ Note that `y = x[i]` throws an error since `y` is not a vector but a scholar.
 Instead, use `y = x[i:i]`.
 """
 function getindex(x::Var, inds::Tuple)
+    isvoid(x.data) && return Var(nothing, getindex, (x,inds))
     y = x.data[inds...]
     function df(gy)
         isvoid(x.grad) && return
@@ -21,4 +22,3 @@ function getindex(x::Var, inds::Tuple)
     Var(y, df, (x,))
 end
 getindex(x::Var, inds...) = getindex(x, inds)
-getindex(x::Var{Void}, inds...) = Var(Void(), getindex, (x,inds))

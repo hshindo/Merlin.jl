@@ -1,7 +1,7 @@
 using Merlin
 using MLDatasets
 
-function model()
+function setup_model()
     T = Float32
     h = 1000 # hidden vector size
     x = Var()
@@ -43,8 +43,8 @@ function main()
     ytests = [Var(ytest[(i-1)*100+1:i*100]) for i = 1:100]
     ys = map(y -> y.data, ytests)
 
-    #nn = model()
-    nn = Merlin.load("mnist.h5", "10")
+    nn = setup_model()
+    #nn = Merlin.load("mnist.h5", "10")
     opt = SGD(0.005)
     for epoch = 1:10
         println("Epoch: $(epoch)")

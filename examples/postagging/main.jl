@@ -2,37 +2,9 @@ using Merlin
 using MLDatasets
 using HDF5
 
-function main()
-    h5file = "wordembeds_nyt100.h5"
-    words = h5read(h5file, "s")
-    wordembeds = Lookup(h5read(h5file,"v"))
-    charembeds = Lookup(Float32,100,10)
+const nepochs = 10
 
-    worddict = IntDict(words)
-    chardict = IntDict{String}()
-    tagdict = IntDict{String}()
-
-    traindata = UD_English.traindata()
-    testdata = UD_English.testdata()
-    #traindata = CoNLL.read(".data/wsj_00-18.conll")
-    #testdata = CoNLL.read(".data/wsj_22-24.conll")
-    info("# sentences of train data: $(length(traindata))")
-    info("# sentences of test data: $(length(testdata))")
-
-    train_x, train_y = encode(traindata, worddict, chardict, tagdict, true)
-    test_x, test_y = encode(testdata, worddict, chardict, tagdict, false)
-    info("# words: $(length(worddict))")
-    info("# chars: $(length(chardict))")
-    info("# tags: $(length(tagdict))")
-
-    model = Model(wordembeds, charembeds, length(tagdict))
-    # model = Merlin.load("postagger.h5", "model")
-    train(5, model, train_x, train_y, test_x, test_y)
-
-    #Merlin.save("postagger.h5", "w", "model", model)
-end
-
-function train(nepochs::Int, model, train_x, train_y, test_x, test_y)
+function train(model, train_x, train_y, test_x, test_y)
     opt = SGD()
     for epoch = 1:nepochs
         println("epoch: $(epoch)")
@@ -49,32 +21,6 @@ end
 
 predict(model, data) = argmax(model(data).data, 1)
 
-function encode(data::Vector, worddict, chardict, tagdict, append::Bool)
-    data_x, data_y = Vector{Token}[], Vector{Int}[]
-    unkword = worddict["UNKNOWN"]
-    for sent in data
-        push!(data_x, Token[])
-        push!(data_y, Int[])
-        for items in sent
-            word, tag = items[2], items[5]
-            word0 = replace(word, r"[0-9]", '0')
-            wordid = get(worddict, lowercase(word0), unkword)
-
-            chars = Vector{Char}(word0)
-            if append
-                charids = map(c -> push!(chardict,string(c)), chars)
-            else
-                charids = map(c -> get(chardict,string(c),0), chars)
-            end
-            tagid = push!(tagdict, tag)
-            token = Token(wordid, charids)
-            push!(data_x[end], token)
-            push!(data_y[end], tagid)
-        end
-    end
-    data_x, data_y
-end
-
 function accuracy(golds::Vector{Vector{Int}}, preds::Vector{Vector{Int}})
     @assert length(golds) == length(preds)
     correct = 0
@@ -89,8 +35,20 @@ function accuracy(golds::Vector{Vector{Int}}, preds::Vector{Vector{Int}})
     correct / total
 end
 
-include("intdict.jl")
+include("data.jl")
 include("token.jl")
 include("model.jl")
+
+h5file = "wordembeds_nyt100.h5"
+words = h5read(h5file, "s")
+wordembeds = h5read(h5file,"v")
+train_x, test_x = setup_data()
+model = Model()
+train()
+
+#model = Model(wordembeds, charembeds, length(tagdict))
+# model = Merlin.load("postagger.h5", "model")
+train(5, model, train_x, train_y, test_x, test_y)
+#Merlin.save("postagger.h5", "w", "model", model)
 
 main()

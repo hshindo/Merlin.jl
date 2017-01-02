@@ -3,7 +3,11 @@ export dropout
 """
     dropout(x::Var, rate::Float64)
 """
-function dropout{T,N}(x::Var{Array{T,N}}, rate::Float64)
+function dropout(x::Var, rate::Float64)
+    isvoid(x.data) && return Var(nothing, dropout, (x,rate))
+    iscuda(x.data) && return CUDA.dropout(x, rate)
+
+    T = eltype(x.data)
     rx = rand(T, length(x.data))
     scale = T(1 / (1-rate))
     y = similar(x.data)
@@ -13,7 +17,6 @@ function dropout{T,N}(x::Var{Array{T,N}}, rate::Float64)
     df(gy) = isvoid(x.grad) || ∇dropout!(gy, x.grad, rate, rx)
     Var(y, df, (x,))
 end
-dropout(x::Var{Void}, rate::Float64) = Var(Void(), dropout, (x,rate))
 
 function ∇dropout!{T}(gy::Array{T}, gx::Array{T}, rate::Float64, rx::Array{T})
     scale = T(1/(1-rate))

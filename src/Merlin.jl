@@ -24,6 +24,7 @@ include("gradient.jl")
 
 abstract Functor
 for name in [
+    "activation",
     "argmax",
     "blas",
     "concat",
@@ -38,12 +39,8 @@ for name in [
     "pairwise",
     "pooling",
     "reduce",
-    "relu",
     "reshape",
-    "sigmoid",
     "softmax",
-    "tanh",
-    "transpose",
     "view",
     #"window",
     ]

@@ -1,4 +1,4 @@
-export Linear, linear
+export Linear
 
 type Linear
     w::Var
@@ -9,10 +9,10 @@ end
     Linear(w::Var, b::Var)
     Linear(T::Type, indim::Int, outdim::Int)
 
-Compute linear function (a.k.a. affine transformation).
+Computes linear function (a.k.a. affine transformation).
 
-* indim: inout dimension
-* outdim: output dimension
+* indim: size of inout dimension
+* outdim: size of output dimension
 
 ```math
 f(x) = W^{T}x + b
@@ -34,7 +34,11 @@ function Linear{T}(::Type{T}, indim::Int, outdim::Int)
 end
 
 function (f::Linear)(x::Var)
+    isvoid(x.data) && return Var(nothing, f, (x,))
     w, b = f.w, f.b
+    #settype!(w, typeof(x.data))
+    #settype!(b, typeof(x.data))
+
     y = w.data * x.data
     broadcast!(+, y, y, b.data)
     function df(gy)
@@ -45,4 +49,3 @@ function (f::Linear)(x::Var)
     end
     Var(y, df, (x,w,b))
 end
-(f::Linear)(x::Var{Void}) = Var(Void(), f, (x,))

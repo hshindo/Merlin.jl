@@ -1,7 +1,7 @@
 export pairwise
 
 function pairwise(x1::Var, x2::Var)
-    (isvoid(x1.data) || isvoid(x2.data)) && return Var(Void(), pairwise, (x1,x2))
+    (isvoid(x1.data) || isvoid(x2.data)) && return Var(nothing, pairwise, (x1,x2))
     y = pairwise(x1.data, x2.data)
     df(gy) = isvoid(x1.grad) || isvoid(x2.grad) || ∇pairwise!(gy, x1.grad, x2.grad)
     Var(y, df, (x1,x2))

@@ -35,17 +35,23 @@ function pooling{N}(mode, x::Var, dims::NTuple{N,Int}; pads=nothing, strides=not
     else
         throw("Invalid mode is specified: $(mode).")
     end
+    isvoid(x.data) && return Var(nothing, f, (x,dims,pads,strides))
+    iscuda(x.data) && return CUDA.f(x, dims, pads, strides)
     f(x, dims, pads, strides)
 end
 
-function maxpooling{T}(x::Var{Array{T,4}}, dims, pads, strides)
+function maxpooling(x::Var, dims::NTuple{2,Int}, pads, strides)
+    T = eltype(x.data)
     h = maxpooling2d_handle(T)
     spdims = ntuple(i -> (size(x.data,i) + 2pads[i] - dims[i]) ÷ strides[i] + 1, 2)
     y = Array(T, spdims..., size(x,3), size(x,4))
     inds = Array(Cint, length(y))
-    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint),
-        x.data, y, inds, size(x.data,1), size(x.data,2), size(x.data,3)*size(x.data,4),
-        dims[1], dims[2], pads[1], pads[2], strides[1], strides[2])
+    function f{T}(x::Array{T})
+        ccall(h, Void, (Ptr{T},Ptr{T},Ptr{Cint},Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint),
+            x, y, inds, size(x,1), size(x,2), size(x,3)*size(x,4),
+            dims[1], dims[2], pads[1], pads[2], strides[1], strides[2])
+    end
+    f(x.data)
 
     function df{T}(gy::Array{T})
         isvoid(x.grad) && return
@@ -55,15 +61,19 @@ function maxpooling{T}(x::Var{Array{T,4}}, dims, pads, strides)
     Var(y, df, (x,))
 end
 
-function avgpooling{T}(x::Var{Array{T,4}}, dims, pads, strides)
+function avgpooling(x::Var, dims::NTuple{2,Int}, pads, strides)
+    T = eltype(x.data)
     h = avgpooling2d_handle(T)
     spdims = ntuple(i -> (size(x.data,i) + 2pads[i] - dims[i]) ÷ strides[i] + 1, 2)
     y = Array(T, spdims..., size(x,3), size(x,4))
-    ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint),
-        x.data, y, size(x.data,1), size(x.data,2), size(x.data,3)*size(x.data,4),
-        dims[1], dims[2], pads[1], pads[2], strides[1], strides[2])
+    function f{T}(x::Array{T})
+        ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint,Cint),
+            x, y, size(x,1), size(x,2), size(x,3)*size(x,4),
+            dims[1], dims[2], pads[1], pads[2], strides[1], strides[2])
+    end
+    f(x.data)
 
-    function df{T}(gy::Array{T,4})
+    function df{T}(gy::Array{T})
         isvoid(x.grad) && return
         gx = x.grad
         h = ∇avgpooling2d_handle(T)

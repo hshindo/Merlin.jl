@@ -12,7 +12,7 @@ Base.getindex(g::Graph, key::Int) = g.nodes[key]
 Base.setindex!(g::Graph, value::Var, key::Int) = g.nodes[key] = value
 
 function compile(output::Var, inputs::Var...)
-    @assert output.data == nothing
+    @assert isvoid(output.data)
     all(v -> isempty(v.args) && v.data == nothing, inputs) || throw("Invalid inputs.")
     nodes = topsort(output)
     #count(n -> isempty(n.args), nodes) == length(inputs) || throw("Wrong number of inputs.")
@@ -53,7 +53,6 @@ end
 h5convert(g::Graph) = Dict("nodes"=>g.nodes, "args"=>g.args)
 h5convert(::Type{Graph}, x) = Graph(x["nodes"], x["args"])
 
-#=
 macro graph(expr)
     (expr.head == :function || expr.head == :(=)) || throw("Invalid @graph.")
     args, vars = [], []
@@ -75,4 +74,3 @@ macro graph(expr)
     end
     :($expr)
 end
-=#
