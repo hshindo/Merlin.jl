@@ -108,11 +108,8 @@ for (fname, elty) in ((:cublasDgemm,:Float64), (:cublasSgemm,:Float32))
             if m != size(C,1) || n != size(C,2) || k != size(B, tB == 'N' ? 1 : 2)
                 throw(DimensionMismatch())
             end
-            lda = max(1, stride(A,2))
-            ldb = max(1, stride(B,2))
-            ldc = max(1, stride(C,2))
             $fname(handle(C), cublasop(tA), cublasop(tB), m, n, k,
-                [alpha], A, lda, B, ldb, [beta], C, ldc)
+                $elty[alpha], A, stride(A,2), B, stride(B,2), $elty[beta], C, stride(C,2))
             C
         end
     end

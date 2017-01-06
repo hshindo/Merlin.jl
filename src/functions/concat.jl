@@ -10,7 +10,7 @@ Concatenate arrays over the given dimension.
 x1 = Var(rand(Float32,4,3))
 x2 = Var(rand(Float32,4,5))
 y = concat(2, x1, x2)
-y = concat(2, [x1,x2])
+y = concat(2, Var[x1,x2])
 ```
 """
 function concat(dim::Int, xs::Vector{Var})
@@ -34,7 +34,7 @@ function concat(dim::Int, xs::Vector{Var})
 end
 
 function concat(dim::Int, xs::Var...)
-    any(x -> isvoid(x.data), xs) && return Var(nothing, concat, (dim,xs...))
+    any(x -> isa(x.data, Void), xs) && return Var(nothing, concat, (dim,xs...))
     concat(dim, Var[xs...])
 end
 
@@ -42,8 +42,8 @@ function ∇concat!(gy, dim::Int, xs::Vector{Var})
     range = [1:size(gy,i) for i=1:ndims(gy)]
     offset = 1
     for x in xs
-        isvoid(x.grad) && continue
-        s = size(x, dim)
+        isa(x.grad, Void) && continue
+        s = size(x.data, dim)
         range[dim] = offset:(offset+s-1)
         broadcast!(+, x.grad, x.grad, view(gy,range...))
         offset += s

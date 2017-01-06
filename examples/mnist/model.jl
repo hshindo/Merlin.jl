@@ -16,6 +16,6 @@ end
 function (m::Model)(x::Var, y=nothing)
     h = 1000 # hidden vector size
     x = x |> m.l1 |> relu |> m.l2 |> relu |> m.l3
-    isa(y, Void) && return argmax(x.data, 1)
+    y == nothing && return argmax(x.data, 1)
     crossentropy(y, x)
 end

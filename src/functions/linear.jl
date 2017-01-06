@@ -33,26 +33,16 @@ function Linear{T}(::Type{T}, indim::Int, outdim::Int)
     Linear(zerograd(w), zerograd(b))
 end
 
+function (f::Linear)(x::Var)
+    # setbackend
+    linear(x, f.w, f.b)
+end
+
 function linear(x::Var, w::Var, b::Var)
     isa(x.data, Void) && return Var(nothing, linear, (x,w,b))
     y = w.data * x.data
-    broadcast!(+, y, y, b.data)
-    function df(gy)
-        T = eltype(gy)
-        isa(x.grad, Void) || BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
-        isa(w.grad, Void) || BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
-        isa(b.grad, Void) || add!(b.grad, sum(gy,2))
-    end
-    Var(y, df, (x,w,b))
-end
-
-function (f::Linear)(x::Var)
-    isa(x.data, Void) && return Var(nothing, f, (x,))
-    w, b = f.w, f.b
-    #settype!(w, typeof(x.data))
-    #settype!(b, typeof(x.data))
-
-    y = w.data * x.data
+    #y = similar(x.data, size(w.data,1), size(x.data,2))
+    #fill!(y, 0)
     broadcast!(+, y, y, b.data)
     function df(gy)
         T = eltype(gy)

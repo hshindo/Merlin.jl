@@ -17,6 +17,13 @@ end
 
 # blas
 
+# concat
+x1 = zerograd(rand(T,10,5,2))
+x2 = zerograd(rand(T,10,5,2))
+x3 = zerograd(rand(T,10,5,2))
+for dim = 1:3
+    @test checkgrad(concat, dim, x1, x2, x3)
+end
 
 # conv
 x = Var(rand(T,5,4,3,2))
@@ -31,8 +38,17 @@ q = zerograd(rand(T,10,5))
 # linear
 x = zerograd(rand(T,10,5))
 f = Linear(T, 10, 7)
-f.b = zerograd(rand(T,size(f.b.data)))
-#f.b = Var(zeros(T,7,1))
+#f.w.grad = nothing
 @test checkgrad(linear, x, f.w, f.b)
+
+# reduce
+x = zerograd(rand(T,10,5))
+for dim = 1:ndims(x.data)
+    @test checkgrad(sum, x, dim)
+end
+
+# window
+x = zerograd(rand(T,10,5))
+@test checkgrad(window, x, (10,))
 
 end

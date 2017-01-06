@@ -1,5 +1,6 @@
 using Merlin
 using MLDatasets
+using ProgressMeter
 
 const load_model = false
 const write_model = false
@@ -22,13 +23,14 @@ function main()
     opt = SGD(0.005)
     for epoch = 1:10
         println("epoch: $epoch")
-        shuffle!(traindata)
+        prog = Progress(length(traindata))
         loss = 0.0
-        for (x,y) in traindata
+        for (x,y) in shuffle(traindata)
             z = model(x, y)
             loss += sum(z.data)
             vars = gradient!(z)
             foreach(v -> opt(v.data,v.grad), vars)
+            next!(prog)
         end
         println("loss: $(loss)")
 

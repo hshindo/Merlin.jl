@@ -50,24 +50,23 @@ function Lookup(path::String, T::Type)
 end
 
 function (f::Lookup)(x::Var)
-    isvoid(x.data) && return Var(nothing, f, (x,))
+    isa(x.data, Void) && return Var(nothing, f, (x,))
     y = lookup(f.ws, x.data)
     function df(gy)
         ∇lookup!(gy, f.ws, x.data)
-        for id in x.data
-            id > 0 && push!(f.idset, id)
-        end
+        #for id in x.data
+        #    id > 0 && push!(f.idset, id)
+        #end
     end
-    #args = Var[]
-    #foreach(id -> push!(args,f.xs[id]), Set(x.data))
-    Var(y, df, (x,))
+    args = Var[]
+    foreach(id -> id > 0 && push!(args,f.ws[id]), Set(x.data))
+    Var(y, df, args)
 end
 
 function lookup(ws::Vector{Var}, x::Array{Int})
     T = eltype(ws[1].data)
     n = length(ws[1].data)
-    dims = [size(x)...]
-    dims[1] *= n
+    dims = [n, size(x)...]
     y = similar(ws[1].data, dims...)
     for i = 1:length(x)
         yi = (i-1) * n + 1

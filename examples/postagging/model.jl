@@ -4,9 +4,9 @@ type Model
     sentfun
 end
 
-function Model{T}(wordembeds::Vector{Vector{T}}, charembeds::Vector{Vector{T}}, ntags::Int)
+function Model{T}(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int)
     x = Var()
-    y = charembeds(x)
+    y = Lookup(charembeds)(x)
     y = window(y, (50,), pads=(20,), strides=(10,))
     y = Linear(T,50,50)(y)
     y = max(y, 2)
@@ -21,9 +21,22 @@ function Model{T}(wordembeds::Vector{Vector{T}}, charembeds::Vector{Vector{T}}, 
     y = Linear(T,300,ntags)(y)
     sentfun = compile(y, w, c)
 
-    Model(wordembeds, charfun, sentfun)
+    Model(Lookup(wordembeds), charfun, sentfun)
 end
 
+function (m::Model)(w::Var, cs::Vector{Var}, y=nothing)
+    wmat = m.wordfun(w)
+    cvecs::Vector{Var} = map(m.charfun, cs)
+    cmat = concat(2, cvecs)
+    x = m.sentfun(wmat, cmat)
+    if y == nothing
+        argmax(x.data, 1)
+    else
+        crossentropy(y, x)
+    end
+end
+
+#=
 function (m::Model)(tokens::Vector{Token})
     wordvec = map(t -> t.word, tokens)
     wordvec = reshape(wordvec, 1, length(wordvec))
@@ -37,3 +50,4 @@ function (m::Model)(tokens::Vector{Token})
     charmat = concat(2, charvecs)
     m.sentfun(wordmat, charmat)
 end
+=#

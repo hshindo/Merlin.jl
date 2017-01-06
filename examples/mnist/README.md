@@ -9,5 +9,5 @@ julia> Pkg.clone("https://github.com/JuliaML/MLDatasets.jl.git")
 
 Finally, run the script:
 ```
-julia mnist.jl
+julia main.jl
 ```
