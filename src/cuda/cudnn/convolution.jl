@@ -1,6 +1,6 @@
 export CUDNN_CONVOLUTION, CUDNN_CROSS_CORRELATION
 
-function convolution!{T}(x, w, desc, y; alpha=1.0, beta=0.0)
+function convolution!(x, w, desc, y; alpha=1.0, beta=0.0)
     xdesc = TensorDesc(x)
     wdesc = TensorDesc(w)
     ydesc = TensorDesc(y)
@@ -15,22 +15,21 @@ function convolution!{T}(x, w, desc, y; alpha=1.0, beta=0.0)
     worksize = p[1]
     workspace = CuArray{Int8}(Int(worksize))
 
+    T = eltype(x)
     cudnnConvolutionForward(handle(x), T[alpha], xdesc, x, wdesc, w, desc,
         algo, workspace, worksize, T[beta], ydesc, y)
     y
 end
 
 function ∇convolution_bias!(dy, db; alpha=1.0, beta=0.0)
-    T = eltype(dy)
-    h = handle(dy)
     dydesc = TensorDesc(dy)
     dbdesc = TensorDesc(db)
-    cudnnConvolutionBackwardBias(h, T[alpha], dydesc, dy, T[beta], dbdesc, db)
+    T = eltype(dy)
+    cudnnConvolutionBackwardBias(handle(dy), T[alpha], dydesc, dy, T[beta], dbdesc, db)
 end
 
 function ∇convolution_filter!(x, dy, desc::ConvDesc, dw; alpha=1.0, beta=0.0)
-    T = eltype(dy)
-    h = handle(dy)
+    h = handle(x)
     p = cudnnConvolutionBwdFilterAlgo_t[0]
     cudnnGetConvolutionBackwardFilterAlgorithm(h, xdesc, dydesc, desc, dwdesc,
         CUDNN_CONVOLUTION_BWD_FILTER_PREFER_FASTEST, 0, p)
@@ -41,12 +40,12 @@ function ∇convolution_filter!(x, dy, desc::ConvDesc, dw; alpha=1.0, beta=0.0)
     worksize = p[1]
     workspace = CuArray{Int8}(Int(p[1]))
 
+    T = eltype(dy)
     cudnnConvolutionBackwardFilter(h, T[alpha], xdesc, x, dydesc, dy, desc,
         algo, workspace, worksize, T[beta], dwdesc, dw)
 end
 
 function ∇convolution_data!(w, dy, desc::ConvDesc, dx; alpha=1.0, beta=0.0)
-    T = eltype(dy)
     h = handle(dy)
     p = cudnnConvolutionBwdDataAlgo_t[0]
     cudnnGetConvolutionBackwardDataAlgorithm(h, wdesc, dydesc, desc, dxdesc,
@@ -59,6 +58,7 @@ function ∇convolution_data!(w, dy, desc::ConvDesc, dx; alpha=1.0, beta=0.0)
     worksize = p[1]
     workspace = CuArray{Int8}(Int(worksize))
 
+    T = eltype(dy)
     cudnnConvolutionBackwardData(h, T[alpha], wdesc, w, dydesc, dy, desc,
         algo, workspace, worksize, T[beta], dxdesc, dx)
 end

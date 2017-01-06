@@ -1,17 +1,19 @@
 export relu, clipped_relu, sigmoid
 import Base.tanh
 
+function activation{X<:Array}(x::Var{X}, f, ∇)
+    y = f(x.data)
+    df(gy) = isa(x.grad, Void) || ∇(y, gy, x.data, x.grad)
+    Var(y, df, (x,))
+end
+
 """
     relu(x::Var)
 
 Rectifier linear unit.
 """
-function relu(x::Var)
-    isvoid(x.data) && return Var(nothing, relu, (x,))
-    y = relu(x.data)
-    df(gy) = isvoid(x.grad) || ∇relu!(y, gy, x.data, x.grad)
-    Var(y, df, (x,))
-end
+relu(x::Var) = activation(x, relu, ∇relu!)
+relu(x::Var{Void}) = Var(nothing, relu, (x,))
 
 function relu{T}(x::Array{T})
     y = similar(x)
@@ -30,12 +32,8 @@ end
 """
     clipped_relu(x::Var)
 """
-function clipped_relu(x::Var)
-    isvoid(x.data) && return Var(nothing, clipped_relu, (x,))
-    y = clipped_relu(x.data)
-    df(gy) = isvoid(x.grad) || ∇clipped_relu!(y, gy, x.data, x.grad)
-    Var(y, df, (x,))
-end
+clipped_relu(x::Var) = activation(x, clipped_relu, ∇clipped_relu!)
+clipped_relu(x::Var{Void}) = Var(nothing, clipped_relu, (x,))
 
 function clipped_relu{T}(x::Array{T})
     y = similar(x)
@@ -54,12 +52,8 @@ end
 """
     sigmoid(x::Var)
 """
-function sigmoid(x::Var)
-    isvoid(x.data) && return Var(nothing, sigmoid, (x,))
-    y = sigmoid(x.data)
-    df(gy) = isvoid(x.grad) || ∇sigmoid!(y, gy, x.data, x.grad)
-    Var(y, df, (x,))
-end
+sigmoid(x::Var) = activation(x, sigmoid, ∇sigmoid!)
+sigmoid(x::Var{Void}) = Var(nothing, sigmoid, (x,))
 
 function sigmoid{T}(x::Array{T})
     y = similar(x)
@@ -78,12 +72,8 @@ end
 """
     tanh(x::Var)
 """
-function tanh(x::Var)
-    isvoid(x.data) && return Var(nothing, tanh, (x,))
-    y = tanh(x.data)
-    df(gy) = isvoid(x.grad) || ∇tanh!(y, gy, x.data, x.grad)
-    Var(y, df, (x,))
-end
+tanh(x::Var) = activation(x, tanh, ∇tanh!)
+tanh(x::Var{Void}) = Var(nothing, tanh, (x,))
 
 function ∇tanh!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
     @inbounds @simd for i = 1:length(gx)

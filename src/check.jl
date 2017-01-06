@@ -1,39 +1,36 @@
-export checkgrad, checkcuda
-export @test_grad
+export checkgrad
 
-using Base.Test
-
-macro test_grad(f, args...)
-    args = Expr(:tuple, args...)
-    quote
-        eps = 1e-3
-        local f = () -> $(esc(f))
-        local args = $(esc(args))
-        foreach(zerograd!, args)
-        y = f()
-        gradient!(y)
-        gxs1 = map(a -> a.grad, args)
-        gxs2 = map(args) do arg
-            x = arg.data
-            gx = similar(x)
-            for k = 1:length(x)
-                xk = x[k]
-                x[k] = xk + eps
-                y1 = f().data
-                x[k] = xk - eps
-                y2 = f().data
-                x[k] = xk
-                gx[k] = sum(y1 - y2) / 2eps
-            end
-            gx
+function checkgrad(f, args...; eps=1e-3)
+    vars = filter(a -> isa(a,Var), args)
+    foreach(zerograd!, vars)
+    y = f(args...)
+    gradient!(y)
+    gxs1 = map(x -> x.grad, vars)
+    gxs2 = map(vars) do v
+        x = v.data
+        gx = similar(x)
+        for k = 1:length(x)
+            xk = x[k]
+            x[k] = xk + eps
+            y1 = f(args...).data
+            x[k] = xk - eps
+            y2 = f(args...).data
+            x[k] = xk
+            gx[k] = sum(y1 - y2) / 2eps
         end
-        foreach(i -> checkdiff(gxs1[i],gxs2[i],eps), 1:length(gxs1))
-        cuda && Pkg.installed("CUDA") != nothing && checkcuda(f, args...)
-        @test 1 == 1
+        gx
     end
+    for i = 1:length(gxs1)
+        diff = gxs1[i] - gxs2[i]
+        all(d -> abs(d) < eps, diff) && continue
+        println(diff)
+        return false
+    end
+    true
 end
 
-function checkgrad(f, args::Var...; eps=1e-3, cuda=true)
+function checkgrad2(f::Function, args::Tuple; eps=1e-3)
+    args = map(a -> Var(a,:cpu), args)
     foreach(zerograd!, args)
     y = f()
     gradient!(y)
@@ -52,41 +49,26 @@ function checkgrad(f, args::Var...; eps=1e-3, cuda=true)
         end
         gx
     end
-    foreach(i -> checkdiff(gxs1[i],gxs2[i],eps), 1:length(gxs1))
-    cuda && Pkg.installed("CUDA") != nothing && checkcuda(f, args...)
-    true
+    all(1:length(gxs1)) do i
+        checkdiff(gxs1[i], gxs2[i], eps)
+    end
 end
 
-function checkcuda(f, args::Var...; eps=1e-3)
-    for x in args
-        x.data = Array(x.data)
-        x.grad = zeros(x.data)
-    end
-    y = f()
-    gradient!(y)
-    gxs = map(x -> x.grad, args)
+function testcuda(f::Function, args::Tuple; eps=1e-3)
+    args = map(a -> Var(a,:cpu), args)
+    foreach(zerograd!, args)
+    y1 = f()
+    gradient!(y1)
+    gxs1 = map(x -> x.grad, args)
 
-    for x in args
-        x.data = CuArray(x.data)
-        x.grad = zeros(x.data)
-    end
-    cuy = f()
-    gradient!(cuy)
-    cugxs = map(x -> Array(x.grad), args)
-    checkdiff(y.data, Array(cuy.data), eps)
-    for i = 1:length(gxs)
-        checkdiff(gxs[i],cugxs[i],eps)
-    end
+    args = map(a -> Var(a,:cuda), args)
+    foreach(zerograd!, args)
+    y2 = f()
+    gradient!(y2)
+    gxs2 = map(x -> Array(x.grad), args)
 
-    for x in args
-        x.data = Array(x.data)
-        x.grad = zeros(x.data)
+    testdiff(y1.data, Array(y2.data), eps)
+    all(1:length(gxs1)) do i
+        testdiff(gxs1[i], gxs2[i], eps)
     end
-    true
-end
-
-function checkdiff{T}(x1::Array{T}, x2::Array{T}, eps)
-    all(d -> abs(d) < T(eps), x1 - x2) && return nothing
-    println(x1 - x2)
-    throw("Check failed.")
 end

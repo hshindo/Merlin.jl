@@ -53,14 +53,14 @@ include("NVRTC.jl")
 include("CUBLAS.jl")
 using .CUBLAS
 
-##### CUDNN #####
 import ..Merlin: Var
 for name in [
     "activation",
-    "conv",
+    "argmax",
     ]
     include("functions/$(name).jl")
 end
 include("cudnn/CUDNN.jl")
+using .CUDNN
 
 end

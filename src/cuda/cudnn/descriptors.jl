@@ -1,22 +1,12 @@
-reshape4d_l{T}(x::CuArray{T,1}) = reshape(x, size(x,1), 1, 1, 1)
-reshape4d_l{T}(x::CuArray{T,2}) = reshape(x, size(x,1), size(x,2), 1, 1)
-reshape4d_l{T}(x::CuArray{T,3}) = reshape(x, size(x,1), size(x,2), size(x,3), 1)
-reshape4d_l{T}(x::CuArray{T,4}) = x
-
-reshape4d_r{T}(x::CuArray{T,1}) = reshape(x, 1, 1, 1, size(x,1))
-reshape4d_r{T}(x::CuArray{T,2}) = reshape(x, 1, 1, size(x,1), size(x,2))
-reshape4d_r{T}(x::CuArray{T,3}) = reshape(x, 1, size(x,1), size(x,2), size(x,3))
-reshape4d_r{T}(x::CuArray{T,4}) = x
-
 type TensorDesc
     ptr::Ptr{Void}
 
-    function TensorDesc(x::CuArray)
-        c_size = Cint[size(a,i) for i=ndims(a):-1:1]
-        c_strides = Cint[stride(a,i) for i=ndims(a):-1:1]
+    function TensorDesc{T,N}(x::CuArray{T,N})
+        c_size = Cint[size(x,i) for i=ndims(x):-1:1]
+        c_strides = Cint[stride(x,i) for i=ndims(x):-1:1]
         p = Ptr{Void}[0]
         cudnnCreateTensorDescriptor(p)
-        cudnnSetTensorNdDescriptor(p[1], datatype(T), ndims(a), csize, cstrides)
+        cudnnSetTensorNdDescriptor(p[1], datatype(T), N, c_size, c_strides)
         desc = new(p[1])
         finalizer(desc, cudnnDestroyTensorDescriptor)
         desc
@@ -38,20 +28,19 @@ type ActivationDesc
     end
 end
 
+Base.unsafe_convert(::Type{Ptr{Void}}, desc::ActivationDesc) = desc.ptr
+
 type ConvDesc
     ptr::Ptr{Void}
-    padding
-    strides
 
-    function ConvDesc(T::Type, padding, strides; mode=CUDNN_CROSS_CORRELATION)
-        N = length(padding)
+    function ConvDesc{T,N}(::Type{T}, pads::NTuple{N,Int}, strides; mode=CUDNN_CROSS_CORRELATION)
         p = Ptr{Void}[0]
         cudnnCreateConvolutionDescriptor(p)
-        cpadding = Cint[padding[i] for i=N:-1:1]
-        cstrides = Cint[stride[i] for i=N:-1:1]
-        cupscale = fill(Cint(1), N)
-        cudnnSetConvolutionNdDescriptor(p[1], N, cpadding, cstrides, cupscale, mode, datatype(T))
-        desc = new(p[1], padding, strides)
+        c_pads = Cint[pads[i] for i=N:-1:1]
+        c_strides = Cint[strides[i] for i=N:-1:1]
+        c_upscale = fill(Cint(1), N)
+        cudnnSetConvolutionNdDescriptor(p[1], N, c_pads, c_strides, c_upscale, mode, datatype(T))
+        desc = new(p[1])
         finalizer(desc, cudnnDestroyConvolutionDescriptor)
         desc
     end

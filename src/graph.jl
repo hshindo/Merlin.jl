@@ -12,7 +12,7 @@ Base.getindex(g::Graph, key::Int) = g.nodes[key]
 Base.setindex!(g::Graph, value::Var, key::Int) = g.nodes[key] = value
 
 function compile(output::Var, inputs::Var...)
-    @assert isvoid(output.data)
+    @assert isa(output.data, Void)
     all(v -> isempty(v.args) && v.data == nothing, inputs) || throw("Invalid inputs.")
     nodes = topsort(output)
     #count(n -> isempty(n.args), nodes) == length(inputs) || throw("Wrong number of inputs.")
@@ -34,7 +34,7 @@ function compile!(g::Graph)
     calls = []
     for node in g.nodes
         if isempty(node.args)
-            push!(calls, isvoid(node.data) ? gensym() : node)
+            push!(calls, isa(node.data,Void) ? gensym() : node)
         else
             args = map(node.args) do arg
                 typeof(arg) <: Var ? calls[arg.data] : arg

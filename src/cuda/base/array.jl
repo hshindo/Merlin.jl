@@ -101,6 +101,13 @@ Base.fill{T}(::Type{CuArray}, value::T, dims::NTuple) = fill!(CuArray{T}(dims), 
 Base.reshape{T,N}(x::CuArray{T}, dims::NTuple{N,Int}) = CuArray{T,N}(x.ptr, dims)
 Base.reshape{T}(x::CuArray{T}, dims::Int...) = reshape(x, dims)
 
+function redim{T,N}(x::CuArray{T,N}, n::Int; pad=0)
+    dims = ntuple(n) do i
+        1 <= i-pad <= N ? size(x,i-pad) : 1
+    end
+    reshape(x, dims)
+end
+
 Base.getindex(x::CuArray, indexes...) = CuArray(view(x,indexes))
 
 Base.setindex!{T,N}(y::CuArray{T,N}, x::CuArray{T,N}, indexes...) = copy!(view(y,indexes),x)

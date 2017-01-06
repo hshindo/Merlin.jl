@@ -24,6 +24,12 @@ x = Var(rand(T,5,4,3,2))
 f = Conv(T, (2,2,3,4), pads=(0,0), strides=(1,1))
 y = f(x)
 ```
+```julia
+w = zerograd(uniform(T,-0.01,0.01,2,2,3,4))
+b = zerograd(zeros(T,4))
+f = Conv(w, b, pads=(0,0), strides=(1,1))
+y = f(x)
+```
 """
 type Conv{N}
     w::Var
@@ -41,10 +47,11 @@ function Conv{N}(T::Type, dims::NTuple{N,Int}; pads=nothing, strides=nothing)
 end
 
 function (f::Conv)(x::Var)
-    w, b, pads, strides = f.w, f.b, f.pads, f.strides
-    isvoid(x.data) && return Var(nothing, f, (x,))
-    iscuda(x.data) && return CUDA.conv(x, w, b, pads, strides)
+    #f.w = set(f.w)
+    conv(x, f.w, f.b, f.pads, f.strides)
+end
 
+function conv{X<:Array}(x::Var{X}, w::Var, b::Var, pads, strides)
     y, work = conv(x.data, w.data, b.data, pads, strides)
     function df{T}(gy::Array{T})
         gy = permutedims(gy, [1,2,4,3])
@@ -55,6 +62,7 @@ function (f::Conv)(x::Var)
     end
     Var(y, df, (x,w,b))
 end
+conv(x::Var{Void}, w::Var, b::Var, pads, strides) = Var(nothing, conv, (x,w,b,pads,strides))
 
 function conv{T}(x::Array{T}, w::Array{T,4}, b::Vector{T}, pads::NTuple{2,Int}, strides::NTuple{2,Int})
     ndims(x) == 3 && (x = reshape(x, size(x)..., 1))

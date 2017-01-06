@@ -1,6 +1,7 @@
 module CUDNN
 
 using ..CUDA
+import ..CUDA: redim
 
 if is_windows()
     const libcudnn = Libdl.find_library(["cudnn64_5","cudnn64_4"])

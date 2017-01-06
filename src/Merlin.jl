@@ -14,34 +14,34 @@ end
 
 #include("mkl/MKL.jl")
 
+include("check.jl")
 include("util.jl")
 include("var.jl")
 include("graph.jl")
 include("fit.jl")
 include("native.jl")
 include("hdf5.jl")
-include("gradient.jl")
 
 abstract Functor
 for name in [
     "activation",
     "argmax",
-    "blas",
-    "concat",
-    "conv",
-    "crossentropy",
-    "dropout",
-    "getindex",
-    "gru",
+    #"blas",
+    #"concat",
+    #"conv",
+    #"crossentropy",
+    #"dropout",
+    #"getindex",
+    #"gru",
     "linear",
-    "lookup",
-    "math",
-    "pairwise",
-    "pooling",
-    "reduce",
-    "reshape",
-    "softmax",
-    "view",
+    #"lookup",
+    #"math",
+    #"pairwise",
+    #"pooling",
+    #"reduce",
+    #"reshape",
+    #"softmax",
+    #"view",
     #"window",
     ]
     include("functions/$(name).jl")
