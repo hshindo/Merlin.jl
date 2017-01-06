@@ -29,7 +29,7 @@ y = f(x)
 function Linear{T}(::Type{T}, indim::Int, outdim::Int)
     r = sqrt(6 / (indim+outdim))
     w = uniform(T, -r, r, outdim, indim)
-    b = fill(T(0), outdim)
+    b = fill(T(0), outdim, 1)
     Linear(zerograd(w), zerograd(b))
 end
 

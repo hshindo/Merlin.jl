@@ -1,6 +1,3 @@
-import Base.LinAlg.BLAS: axpy!
-import Base.broadcast!
-
 abstract AbstractCuArray{T,N}
 export AbstractCuArray
 

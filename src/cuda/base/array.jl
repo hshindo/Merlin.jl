@@ -66,7 +66,6 @@ Base.ones{T}(x::CuArray{T}) = ones(CuArray{T}, x.dims)
 Base.ones{T}(::Type{CuArray{T}}, dims::Int...) = ones(CuArray{T}, dims)
 Base.ones{T}(::Type{CuArray{T}}, dims) = fill(CuArray, T(1), dims)
 
-##### copy #####
 function cucopy!(f::Function, dest, src, n::Int, stream)
     nbytes = n * sizeof(eltype(src))
     f(dest, src, nbytes, stream)

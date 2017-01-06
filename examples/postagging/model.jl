@@ -4,12 +4,10 @@ type Model
     sentfun
 end
 
-function Model(wordembeds, charembeds, ntags::Int)
-    T = Float32
-
+function Model{T}(wordembeds::Vector{Vector{T}}, charembeds::Vector{Vector{T}}, ntags::Int)
     x = Var()
     y = charembeds(x)
-    y = window(y, (50,), strides=(10,), pads=(20,))
+    y = window(y, (50,), pads=(20,), strides=(10,))
     y = Linear(T,50,50)(y)
     y = max(y, 2)
     charfun = compile(y, x)
@@ -17,7 +15,7 @@ function Model(wordembeds, charembeds, ntags::Int)
     w = Var() # word vector
     c = Var() # chars vector
     y = concat(1, w, c)
-    y = window(y, (750,), strides=(150,), pads=(300,))
+    y = window(y, (750,), pads=(300,), strides=(150,))
     y = Linear(T,750,300)(y)
     y = relu(y)
     y = Linear(T,300,ntags)(y)

@@ -22,11 +22,15 @@ type Var{T}
 end
 
 Var(data=nothing, f=nothing, args=()) = Var(data, f, args, nothing)
-#function Var{T<:Array}(v::Var{T}, backend::Symbol)
-#    backend == :cpu && return v
-#    backend == :cuda && return Var(CuArray(v.data), v.f, v.args, v.grad)
-#    throw("Invalid backend: $backend")
-#end
+
+function Var{T<:Array}(v::Var{T}, backend::Symbol)
+    backend == :cpu && return v
+    if backend == :cuda
+        grad = isa(v.grad, Void) ? nothing : CuArray(v.grad)
+        return Var(CuArray(v.data), v.f, v.args, grad)
+    end
+    throw("Invalid backend: $backend")
+end
 
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value

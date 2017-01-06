@@ -40,6 +40,7 @@ include("base/pointer.jl")
 include("base/abstractarray.jl")
 include("base/array.jl")
 include("base/arraymath.jl")
+include("base/broadcast.jl")
 include("base/headers.jl")
 include("base/reducedim.jl")
 include("base/subarray.jl")
@@ -62,5 +63,8 @@ for name in [
 end
 include("cudnn/CUDNN.jl")
 using .CUDNN
+
+import Merlin.add!
+add!{T}(y::CuArray{T}, x::CuArray{T}) = CUBLAS.axpy!(T(1), x, y)
 
 end

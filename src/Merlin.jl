@@ -57,7 +57,8 @@ for name in [
     include("optimizers/$(name).jl")
 end
 
-if !isempty(Libdl.find_library(["nvcuda","libcuda"]))
+const use_cuda = !isempty(Libdl.find_library(["nvcuda","libcuda"]))
+if use_cuda
     include("cuda/CUDA.jl")
     using .CUDA
 end

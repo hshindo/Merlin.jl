@@ -32,6 +32,7 @@ q = zerograd(rand(T,10,5))
 x = zerograd(rand(T,10,5))
 f = Linear(T, 10, 7)
 f.b = zerograd(rand(T,size(f.b.data)))
+#f.b = Var(zeros(T,7,1))
 @test checkgrad(linear, x, f.w, f.b)
 
 end

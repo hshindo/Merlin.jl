@@ -1,8 +1,5 @@
 using HDF5
 
-type Dataset
-end
-
 function setup_data()
     #h5file = "wordembeds_nyt100.h5"
     #isfile(h5file) || download("https://cl.naist.jp/~shindo/wordembeds_nyt100.h5", h5file)

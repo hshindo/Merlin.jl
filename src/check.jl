@@ -1,4 +1,4 @@
-export checkgrad
+export checkgrad, checkcuda
 
 function checkgrad(f, args...; eps=1e-3)
     vars = filter(a -> isa(a,Var) && !isa(a.grad,Void), args)
@@ -20,55 +20,33 @@ function checkgrad(f, args...; eps=1e-3)
         end
         gx
     end
-    for i = 1:length(gxs1)
-        diff = gxs1[i] - gxs2[i]
-        all(d -> abs(d) < eps, diff) && continue
-        println(diff)
-        return false
+    foreach(zip(gxs1,gxs2)) do g
+        diff = g[1] - g[2]
+        all(d -> abs(d) < eps, diff) || throw(diff)
     end
+    use_cuda && checkcuda(f, args..., eps=eps)
     true
 end
 
-function checkgrad2(f::Function, args::Tuple; eps=1e-3)
-    args = map(a -> Var(a,:cpu), args)
-    foreach(zerograd!, args)
-    y = f()
-    gradient!(y)
-    gxs1 = map(x -> x.grad, args)
-    gxs2 = map(args) do arg
-        x = arg.data
-        gx = similar(x)
-        for k = 1:length(x)
-            xk = x[k]
-            x[k] = xk + eps
-            y1 = f().data
-            x[k] = xk - eps
-            y2 = f().data
-            x[k] = xk
-            gx[k] = sum(y1 - y2) / 2eps
-        end
-        gx
-    end
-    all(1:length(gxs1)) do i
-        checkdiff(gxs1[i], gxs2[i], eps)
-    end
-end
-
-function testcuda(f::Function, args::Tuple; eps=1e-3)
-    args = map(a -> Var(a,:cpu), args)
-    foreach(zerograd!, args)
-    y1 = f()
+function checkcuda(f::Function, args...; eps=1e-3)
+    args = map(a -> isa(a,Var) ? Var(a,:cpu) : a, args)
+    vars = filter(a -> isa(a,Var) && !isa(a.grad,Void), args)
+    foreach(zerograd!, vars)
+    y1 = f(args...)
     gradient!(y1)
-    gxs1 = map(x -> x.grad, args)
+    gxs1 = map(x -> x.grad, vars)
 
-    args = map(a -> Var(a,:cuda), args)
-    foreach(zerograd!, args)
-    y2 = f()
+    args = map(a -> isa(a,Var) ? Var(a,:cuda) : a, args)
+    vars = filter(a -> isa(a,Var) && !isa(a.grad,Void), args)
+    foreach(zerograd!, vars)
+    y2 = f(args...)
     gradient!(y2)
-    gxs2 = map(x -> Array(x.grad), args)
+    gxs2 = map(x -> Array(x.grad), vars)
 
-    testdiff(y1.data, Array(y2.data), eps)
-    all(1:length(gxs1)) do i
-        testdiff(gxs1[i], gxs2[i], eps)
+    all(d -> abs(d) < eps, y1.data - Array(y2.data)) || throw("output of CPU and CUDA mismatch")
+    foreach(zip(gxs1, gxs2)) do g
+        diff = g[1] - g[2]
+        all(d -> abs(d) < eps, diff) || throw(diff)
     end
+    true
 end
