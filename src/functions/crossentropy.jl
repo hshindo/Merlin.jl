@@ -14,10 +14,10 @@ y = crossentropy(p, q)
 ```
 """
 function crossentropy(p::Var, q::Var)
-    (isvoid(p.data) || isvoid(q.data)) && return Var(nothing, crossentropy, (p,q))
+    (isa(p.data,Void) || isa(q.data,Void)) && return Var(nothing, crossentropy, (p,q))
     logq = logsoftmax(q.data)
     y = crossentropy(p.data, logq)
-    df(gy) = isvoid(q.grad) || ∇crossentropy!(gy, p.data, logq, q.grad)
+    df(gy) = isa(q.grad, Void) || ∇crossentropy!(gy, p.data, logq, q.grad)
     Var(y, df, (q,))
 end
 

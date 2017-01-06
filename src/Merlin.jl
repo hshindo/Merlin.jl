@@ -26,10 +26,10 @@ abstract Functor
 for name in [
     "activation",
     "argmax",
-    #"blas",
+    "blas",
     #"concat",
     #"conv",
-    #"crossentropy",
+    "crossentropy",
     #"dropout",
     #"getindex",
     #"gru",
@@ -40,7 +40,7 @@ for name in [
     #"pooling",
     #"reduce",
     #"reshape",
-    #"softmax",
+    "softmax",
     #"view",
     #"window",
     ]

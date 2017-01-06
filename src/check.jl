@@ -1,7 +1,7 @@
 export checkgrad
 
 function checkgrad(f, args...; eps=1e-3)
-    vars = filter(a -> isa(a,Var), args)
+    vars = filter(a -> isa(a,Var) && !isa(a.grad,Void), args)
     foreach(zerograd!, vars)
     y = f(args...)
     gradient!(y)

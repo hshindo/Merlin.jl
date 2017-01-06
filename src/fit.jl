@@ -1,6 +1,9 @@
 export fit
 using ProgressMeter
 
+function fit2()
+end
+
 """
     fit(xs, ys, decode, lossfun, opt, [progress=true])
 """

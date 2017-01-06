@@ -22,10 +22,9 @@ f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
 function softmax(x::Var)
-    isvoid(x.data) && return Var(nothing, softmax, (x,))
-    iscuda(x.data) && return CUDA.softmax(x)
+    isa(x.data, Void) && return Var(nothing, softmax, (x,))
     y = softmax(x.data)
-    df(gy) = isvoid(x.grad) || ∇softmax!(y, gy, x.grad)
+    df(gy) = isa(x.grad, Void) || ∇softmax!(y, gy, x.grad)
     Var(y, df, (x,))
 end
 
@@ -49,10 +48,9 @@ end
 Returns a logarithm of softmax function.
 """
 function logsoftmax(x::Var)
-    isvoid(x.data) && return Var(nothing, logsoftmax, (x,))
-    iscuda(x.data) && return CUDA.logsoftmax(x)
+    isa(x.data, Void) && return Var(nothing, logsoftmax, (x,))
     y = logsoftmax(x.data)
-    df(gy) = isvoid(x.grad) || ∇logsoftmax!(y, gy, x.grad)
+    df(gy) = isa(x.grad, Void) || ∇logsoftmax!(y, gy, x.grad)
     Var(y, df, (x,))
 end
 
