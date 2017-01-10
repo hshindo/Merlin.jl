@@ -4,11 +4,13 @@ export crossentropy
     crossentropy(p::Var, q::Var)
 
 Returns cross-entropy between p and q.
+When p[i] == 0, returns 0.
+
 * p: Var of Vector{Int} or Matrix{Float}
 * q: Var of Matrix{Float}
 
 ```julia
-p = Var([1:5;])
+p = Var(rand(0:10,5))
 q = Var(rand(Float32,10,5))
 y = crossentropy(p, q)
 ```
@@ -37,7 +39,7 @@ function crossentropy{T}(p::Vector{Int}, logq::Matrix{T})
     length(p) == size(logq,2) || throw(DimensionMismatch())
     y = Array(T, 1, length(p))
     @inbounds @simd for j = 1:length(p)
-        y[j] = -logq[p[j],j]
+        y[j] = p[j] > 0 ? -logq[p[j],j] : T(0)
     end
     y
 end
@@ -55,8 +57,10 @@ function ∇crossentropy!{T}(gy::Matrix{T}, p::Vector{Int}, logq::Matrix{T}, gq:
     for j = 1:length(p)
         g = gy[j]
         @inbounds @simd for i = 1:size(logq,1)
-            delta = ifelse(i == p[j], T(1), T(0))
-            gq[i,j] += g * (exp(logq[i,j]) - delta)
+            if p[j] > 0
+                delta = ifelse(i == p[j], T(1), T(0))
+                gq[i,j] += g * (exp(logq[i,j]) - delta)
+            end
         end
     end
 end

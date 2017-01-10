@@ -5,9 +5,9 @@ import Base: +, -, *, .*
     exp(x::Var)
 """
 function exp(x::Var)
-    isvoid(x.data) && return Var(nothing, exp, (x,))
+    isa(x.data, Void) && return Var(nothing, exp, (x,))
     y = exp(x.data)
-    df(gy) = isvoid(x.grad) || ∇exp!(y, gy, x.grad)
+    df(gy) = isa(x.grad, Void) || ∇exp!(y, gy, x.grad)
     Var(y, df, (x,))
 end
 
@@ -21,9 +21,9 @@ end
     log(x::Var)
 """
 function log(x::Var)
-    isvoid(x.data) && return Var(nothing, log, (x,))
+    isa(x.data, Void) && return Var(nothing, log, (x,))
     y = log(x.data)
-    df(gy) = isvoid(x.grad) || ∇log!(gy, x.data, x.grad)
+    df(gy) = isa(x.grad, Void) || ∇log!(gy, x.data, x.grad)
     Var(y, df, (x,))
 end
 
@@ -37,9 +37,9 @@ end
     transpose(x::Var)
 """
 function transpose(x::Var)
-    isvoid(x.data) && return Var(nothing, transpose, (x,))
+    isa(x.data, Void) && return Var(nothing, transpose, (x,))
     y = transpose(x.data)
-    df(gy) = isvoid(x.grad) || BLAS.axpy!(eltype(gy)(1), transpose(gy), x.grad)
+    df(gy) = isa(x.grad, Void) || BLAS.axpy!(eltype(gy)(1), transpose(gy), x.grad)
     Var(y, df, (x,))
 end
 
@@ -47,11 +47,11 @@ end
     +(x1::Var, x2::Var)
 """
 function +(x1::Var, x2::Var)
-    (isvoid(x1.data) || isvoid(x2.data)) && return Var(nothing, +, (x1,x2))
+    (isa(x1.data,Void) || isa(x2.data,Void)) && return Var(nothing, +, (x1,x2))
     y = x1.data + x2.data
     function df(gy)
-        isvoid(x1.grad) || broadcast!(+, x1.grad, x1.grad, gy)
-        isvoid(x2.grad) || broadcast!(+, x2.grad, x2.grad, gy)
+        isa(x1.grad, Void) || add!(x1.grad, gy)
+        isa(x2.grad, Void) || add!(x2.grad, gy)
     end
     Var(y, df, (x1,x2))
 end
@@ -65,11 +65,11 @@ end
 Automatically broadcasted.
 """
 function -(x1::Var, x2::Var)
-    (isvoid(x1.data) || isvoid(x2.data)) && return Var(nothing, -, (x1,x2))
+    (isa(x1.data,Void) || isa(x2.data,Void)) && return Var(nothing, -, (x1,x2))
     y = x1.data - x2.data
     df(gy) = begin
-        isvoid(x1.grad) || broadcast!(+, x1.grad, x1.grad, gy)
-        isvoid(x2.grad) || broadcast!(-, x2.grad, x2.grad, gy)
+        isa(x1.grad, Void) || add!(x1.grad, gy)
+        isa(x2.grad, Void) || broadcast!(-, x2.grad, x2.grad, gy)
     end
     Var(y, df, (x1,x2))
 end
@@ -77,9 +77,9 @@ end
 -(x::Var, a::Number) = x - Var([a])
 
 function -(x::Var)
-    isvoid(x.data) && return Var(nothing, -, (x,))
+    isa(x.data, Void) && return Var(nothing, -, (x,))
     y = -x.data
-    df(gy) = isvoid(x.grad) || broadcast!(-, x.grad, x.grad, gy)
+    df(gy) = isa(x.grad, Void) || broadcast!(-, x.grad, x.grad, gy)
     Var(y, df, (x,))
 end
 
@@ -87,7 +87,7 @@ end
     \*(x1::Var, x2::Var)
 """
 function *(x1::Var, x2::Var)
-    (isvoid(x1.data) || isvoid(x2.data)) && return Var(nothing, *, (x1,x2))
+    (isa(x1.data,Void) || isa(x2.data,Void)) && return Var(nothing, *, (x1,x2))
     ndims(x2.data) == 1 && return gemv(x1, x2)
     ndims(x2.data) == 2 && size(x2.data,2) == 1 && return gemv(x1, Var(x2,data=vec(x2.data)))
     gemm(x1, x2)
@@ -97,12 +97,12 @@ end
     \.\*(x1::Var, x2::Var)
 """
 function .*(x1::Var, x2::Var)
-    (isvoid(x1.data) || isvoid(x2.data)) && return Var(nothing, .*, (x1,x2))
-    length(x1) == length(x2) || throw(DimensionMismatch())
+    (isa(x1.data,Void) || isa(x2.data,Void)) && return Var(nothing, .*, (x1,x2))
+    length(x1.data) == length(x2.data) || throw(DimensionMismatch())
     y = x1.data .* x2.data
     function df(gy)
-        isvoid(x1.grad) || ∇elemtimes!(gy, x2.data, x1.grad)
-        isvoid(x2.grad) || ∇elemtimes!(gy, x1.data, x2.grad)
+        isa(x1.grad, Void) || ∇elemtimes!(gy, x2.data, x1.grad)
+        isa(x2.grad, Void) || ∇elemtimes!(gy, x1.data, x2.grad)
     end
     Var(y, df, (x1,x2))
 end

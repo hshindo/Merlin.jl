@@ -10,12 +10,12 @@ y = \alpha \times \textrm{tA}(A) \times x
 ```
 """
 function gemv{T}(tA::Char, alpha::T, A::Var, x::Var)
-    (isvoid(A.data) || isvoid(x.data)) && return Var(nothing, gemv, (tA,A,x))
+    (isa(A.data,Void) || isa(x.data,Void)) && return Var(nothing, gemv, (tA,A,x))
 
     y = BLAS.gemv(tA, alpha, A.data, x.data)
     function df(gy)
-        isvoid(A.grad) || BLAS.gemm!('N', 'N', alpha, gy, redim(x.data,2,pad=1), T(1), A.grad)
-        isvoid(x.grad) || BLAS.gemv!('T', alpha, A.data, gy, T(1), x.grad)
+        isa(A.grad, Void) || BLAS.gemm!('N', 'N', alpha, gy, redim(x.data,2,pad=1), T(1), A.grad)
+        isa(x.grad, Void) || BLAS.gemv!('T', alpha, A.data, gy, T(1), x.grad)
     end
     Var(y, df, (A,x))
 end
@@ -33,7 +33,7 @@ C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
 ```
 """
 function gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)
-    (isvoid(A.data) || isvoid(B.data)) && return Var(nothing, gemm, (tA,tB,alpha,A,B))
+    (isa(A.data,Void) || isa(B.data,Void)) && return Var(nothing, gemm, (tA,tB,alpha,A,B))
     T = eltype(A.data)
     C = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
     function df(gC)

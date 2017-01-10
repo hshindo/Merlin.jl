@@ -12,9 +12,9 @@ function checkgrad(f, args...; eps=1e-3)
         for k = 1:length(x)
             xk = x[k]
             x[k] = xk + eps
-            y1 = f(args...).data
+            y1 = copy(f(args...).data)
             x[k] = xk - eps
-            y2 = f(args...).data
+            y2 = copy(f(args...).data)
             x[k] = xk
             gx[k] = sum(y1 - y2) / 2eps
         end

@@ -1,6 +1,44 @@
 export pairwise
 
 function pairwise(x1::Var, x2::Var)
+    (isa(x1.data,Void) || isa(x2.data,Void)) && return Var(nothing, pairwise, (x1,x2))
+    y = pairwise(x1.data, x2.data)
+    df(gy) = isa(x1.grad, Void) || isa(x2.grad, Void) || ∇pairwise!(gy, x1.grad, x2.grad)
+    Var(y, df, (x1,x2))
+end
+
+function pairwise{T}(x1::Matrix{T}, x2::Matrix{T})
+    m1, n1 = size(x1)
+    m2, n2 = size(x2)
+    y = Array{T}(m1+m2, n1, n2)
+    offset = 1
+    for i = 1:n1
+        for j = 1:n2
+            copy!(y, offset, x1, (i-1)*m1+1, m1)
+            offset += m1
+            copy!(y, offset, x2, (j-1)*m2+1, m2)
+            offset += m2
+        end
+    end
+    y
+end
+
+function ∇pairwise!{T}(gy::Array{T,3}, gx1::Matrix{T}, gx2::Matrix{T})
+    m1, n1 = size(gx1)
+    m2, n2 = size(gx2)
+    offset = 1
+    for i = 1:n1
+        for j = 1:n2
+            add!(gx1, (i-1)*m1+1, gy, offset, m1)
+            offset += m1
+            add!(gx2, (j-1)*m2+1, gy, offset, m2)
+            offset += m2
+        end
+    end
+end
+
+#=
+function pairwise(x1::Var, x2::Var)
     (isvoid(x1.data) || isvoid(x2.data)) && return Var(nothing, pairwise, (x1,x2))
     y = pairwise(x1.data, x2.data)
     df(gy) = isvoid(x1.grad) || isvoid(x2.grad) || ∇pairwise!(gy, x1.grad, x2.grad)
@@ -36,3 +74,4 @@ function ∇pairwise!{T}(gy::Array{T,3}, gx1::Matrix{T}, gx2::Matrix{T})
         end
     end
 end
+=#

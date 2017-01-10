@@ -25,7 +25,10 @@ function minibatch(data::Vector, size::Int)
     Vector{T}(batches)
 end
 
-add!{T}(y::Array{T}, x::Array{T}) = BLAS.axpy!(T(1), x, y)
-function add!(a, x::SubArray, y)
-    throw("Not implemented yet.")
+function add!{T}(y::Array{T}, yo::Int, x::Array{T}, xo::Int, n::Int)
+    @inbounds @simd for i = 0:n-1
+        y[i+yo] += x[i+xo]
+    end
+    y
 end
+add!{T}(y::Array{T}, x::Array{T}) = add!(y, 1, x, 1, length(x))

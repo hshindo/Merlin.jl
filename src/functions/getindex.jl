@@ -12,10 +12,10 @@ Note that `y = x[i]` throws an error since `y` is not a vector but a scholar.
 Instead, use `y = x[i:i]`.
 """
 function getindex(x::Var, inds::Tuple)
-    isvoid(x.data) && return Var(nothing, getindex, (x,inds))
+    isa(x.data, Void) && return Var(nothing, getindex, (x,inds))
     y = x.data[inds...]
     function df(gy)
-        isvoid(x.grad) && return
+        isa(x.grad, Void) && return
         gx = view(x.grad, inds...)
         broadcast!(+, gx, gx, gy)
     end

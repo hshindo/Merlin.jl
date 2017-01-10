@@ -32,13 +32,14 @@ function main()
             foreach(v -> opt(v.data,v.grad), vars)
             next!(prog)
         end
-        println("loss: $(loss)")
+        loss /= length(traindata)
+        println("loss: $loss")
 
         # predict
         ys = cat(1, map(x -> x[2].data, testdata)...)
         zs = cat(1, map(x -> model(x[1]), testdata)...)
         acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))
-        println("test accuracy: $(acc)")
+        println("test accuracy: $acc")
         println()
         #write_model && Merlin.save("mnist.h5", epoch==1 ? "w" : "r+", string(epoch), nn)
     end

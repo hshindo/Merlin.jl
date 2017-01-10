@@ -35,19 +35,3 @@ function (m::Model)(w::Var, cs::Vector{Var}, y=nothing)
         crossentropy(y, x)
     end
 end
-
-#=
-function (m::Model)(tokens::Vector{Token})
-    wordvec = map(t -> t.word, tokens)
-    wordvec = reshape(wordvec, 1, length(wordvec))
-    wordmat = m.wordfun(Var(wordvec))
-
-    charvecs = map(tokens) do t
-        #Var(zeros(Float32,50,1))
-        charvec = reshape(t.chars, 1, length(t.chars))
-        m.charfun(Var(charvec))
-    end
-    charmat = concat(2, charvecs)
-    m.sentfun(wordmat, charmat)
-end
-=#

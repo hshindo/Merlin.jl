@@ -1,14 +1,10 @@
 export window
 
 const WINDOW1D_F32 = Libdl.dlsym(libmerlin, :window1d_f32)
-const WINDOW1D_I64 = Libdl.dlsym(libmerlin, :window1d_i64)
 const ∇WINDOW1D_F32 = Libdl.dlsym(libmerlin, :window1d_f32_grad)
-const ∇WINDOW1D_I64 = Libdl.dlsym(libmerlin, :window1d_i64_grad)
 
 window1d_handle(::Type{Float32}) = WINDOW1D_F32
-window1d_handle(::Type{Int64}) = WINDOW1D_I64
 ∇window1d_handle(::Type{Float32}) = ∇WINDOW1D_F32
-∇window1d_handle(::Type{Int64}) = ∇WINDOW1D_I64
 
 """
     window(x::Var, dims, [pads, strides])
@@ -32,7 +28,7 @@ function window{N}(x::Var, dims::NTuple{N,Int}, pads::NTuple{N,Int}, strides::NT
     Var(y, df, (x,))
 end
 
-function window(x, dims; pads=nothing, strides=nothing)
+function window{N}(x, dims::NTuple{N,Int}; pads=nothing, strides=nothing)
     pads == nothing && (pads = ntuple(_ -> 0, N))
     strides == nothing && (strides = ntuple(_ -> 1, N))
     window(x, dims, pads, strides)
@@ -48,5 +44,5 @@ end
 
 function ∇window!{T}(gy::Array{T}, gx::Array{T}, dims::NTuple{1,Int}, pads, strides)
     ccall(∇window1d_handle(T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
-        gx, gy, length(gx), dims[1], pads[1], strides[1])
+        gy, gx, length(gx), dims[1], pads[1], strides[1])
 end
