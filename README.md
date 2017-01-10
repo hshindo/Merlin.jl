@@ -1,6 +1,6 @@
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/Merlin.png" width="150"></p>
 
-This is alpha version.
+This is alpha version, but the [`examples`](examples/) are working.
 
 # Merlin: deep learning framework in Julia
 
@@ -102,11 +102,13 @@ end
 ```
 -->
 
+<!---
 ### Training
 Merlin provides a `fit` function to train your model.
 ```julia
+traindata = []
 train_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
-train_y = [[1,2,3] for i=1:100] # correct labels
+train_y = [Var([1,2,3]) for i=1:100] # correct labels
 
 f = begin
     T = Float32
@@ -119,22 +121,25 @@ end
 
 opt = SGD(0.0001)
 for epoch = 1:10
+    println("epoch: $epoch")
+    loss = 0.0
+    for (w,cs,y) in shuffle(traindata)
+        z = model(w, cs, y)
+        loss += sum(z.data)
+        vars = gradient!(z)
+        foreach(v -> opt(v.data,v.grad), vars)
+        next!(prog)
+    end
+    loss /= length(traindata)
+    println("loss: $loss")
+end
+for epoch = 1:10
   println("epoch: $(epoch)")
   loss = fit(train_x, train_y, f, crossentropy, opt)
   println("loss: $(loss)")
 end
 ```
+-->
 
 ## Datasets
 Common datasets are available via [MLDatasets.jl](https://github.com/JuliaML/MLDatasets.jl).
-
-## [Experimental] CUDA GPU
-### Under Development...
-If you use CUDA GPU, the following is required.
-- [cuDNN](https://developer.nvidia.com/cudnn) v5 or later
-- [JuCUDA.jl](https://github.com/hshindo/JuCUDA.jl.git) (CUDA bindings for Julia)
-
-Install the following packages:
-```julia
-julia> Pkg.clone("https://github.com/hshindo/JuCUDA.jl.git")
-```

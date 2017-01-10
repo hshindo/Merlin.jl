@@ -7,7 +7,7 @@ void maxpooling2d(const T *x, T *y, int *inds,
     const int size_h = (height + 2*pad_h - dim_h) / stride_h + 1;
     const int size_w = (width + 2*pad_w - dim_w) / stride_w + 1;
 
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int n = 0; n < num; n++) {
         for (int yw = 0; yw < size_w; yw++) {
             for (int yh = 0; yh < size_h; yh++) {
@@ -44,7 +44,7 @@ void avgpooling2d(const T *x, T *y,
     const int size_h = (height + 2*pad_h - dim_h) / stride_h + 1;
     const int size_w = (width + 2*pad_w - dim_w) / stride_w + 1;
 
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int n = 0; n < num; n++) {
         for (int yw = 0; yw < size_w; yw++) {
             for (int yh = 0; yh < size_h; yh++) {
@@ -75,7 +75,7 @@ void avgpooling2d_grad(const T *gy, T *gx,
     const int size_h = (height + 2*pad_h - dim_h) / stride_h + 1;
     const int size_w = (width + 2*pad_w - dim_w) / stride_w + 1;
 
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int n = 0; n < num; n++) {
         for (int yw = 0; yw < size_w; yw++) {
             for (int yh = 0; yh < size_h; yh++) {
