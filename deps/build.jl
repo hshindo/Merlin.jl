@@ -23,11 +23,11 @@ if is_windows()
     ENV["PATH"] = ENV["PATH"] * ";" * RPMbindir
 
     run(`$gpp --version`)
-    cmd = `$gpp -fPIC -Wall -O3 -shared -fopenmp -static -I $incdir -o libmerlin.dll $sources`
+    cmd = `$gpp -fPIC -Wall -O3 -shared -static -I $incdir -o libmerlin.dll $sources`
 elseif is_apple()
-    cmd = `g++ -fPIC -Wall -O3 -shared -fopenmp -static -o libmerlin.so $sources`
+    cmd = `g++ -fPIC -Wall -O3 -shared -static -o libmerlin.so $sources`
 elseif is_linux()
-    cmd = `g++ -fPIC -Wall -O3 -shared -fopenmp -static -o libmerlin.so $sources`
+    cmd = `g++ -fPIC -Wall -O3 -shared -static -o libmerlin.so $sources`
 else
     throw("Unknown OS.")
 end
