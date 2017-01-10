@@ -1,7 +1,6 @@
 module Merlin
 
 using Base.LinAlg.BLAS
-using HDF5
 
 if is_windows()
     const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.dll"))
@@ -11,57 +10,43 @@ else
     throw("Unsupported OS.")
 end
 
-if Pkg.installed("CUDA") != nothing
-    using CUDA
-    using CUDA.CUDNN
-else
-    type CuArray{T,N}
-    end
-    typealias CuVector{T} CuArray{T,1}
-    typealias CuMatrix{T} CuArray{T,2}
-    macro nvrtc(ex...)
-    end
-end
+#typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
 
-typealias UniArray{T,N} Union{Array{T,N},SubArray{T,N},CuArray{T,N}}
+#include("mkl/MKL.jl")
 
-#include("interop/c/carray.jl")
-
+include("check.jl")
+include("util.jl")
 include("var.jl")
 include("graph.jl")
 include("fit.jl")
 include("native.jl")
 include("hdf5.jl")
-include("check.jl")
 
 abstract Functor
 for name in [
+    "activation",
     "argmax",
+    "blas",
     "concat",
+    #"conv",
     "crossentropy",
     #"dropout",
-    #"exp",
-    "gemm",
-    #"getindex",
+    "getindex",
     #"gru",
     "linear",
     "lookup",
-    #"log",
     "math",
-    "max",
+    "pairwise",
     #"pooling",
-    #"reduce",
-    "relu",
-    #"reshape",
-    "sigmoid",
+    "reduce",
+    "reshape",
     "softmax",
-    "tanh",
-    #"transpose",
     #"view",
     "window",
-    "conv",
     ]
     include("functions/$(name).jl")
+    #path = "cuda/functions/$(name).jl"
+    #isfile(path) && include(path)
 end
 
 export update!
@@ -70,6 +55,12 @@ for name in [
     "adam",
     "sgd"]
     include("optimizers/$(name).jl")
+end
+
+const use_cuda = !isempty(Libdl.find_library(["nvcuda","libcuda"]))
+if use_cuda
+    include("cuda/CUDA.jl")
+    using .CUDA
 end
 
 #include("caffe/Caffe.jl")

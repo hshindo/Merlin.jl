@@ -31,7 +31,7 @@ void softmax(T *x, T *y, int dim1, int dim2, int dim3) {
 }
 
 template<typename T>
-void softmax_grad(T *gx, T *y, T *gy, int dim1, int dim2, int dim3) {
+void softmax_grad(T *y, T *gy, T *gx, int dim1, int dim2, int dim3) {
     for (int i = 0; i < dim1; i++) {
         for (int j = 0; j < dim3; j++) {
             T sum = 0;
@@ -74,7 +74,7 @@ void logsoftmax(T *x, T *y, int dim1, int dim2, int dim3) {
 }
 
 template<typename T>
-void logsoftmax_grad(T *gx, T *y, T *gy, int dim1, int dim2, int dim3) {
+void logsoftmax_grad(T *y, T *gy, T *gx, int dim1, int dim2, int dim3) {
     for (int i = 0; i < dim1; i++) {
         for (int j = 0; j < dim3; j++) {
             T sum = 0;
@@ -93,7 +93,9 @@ void logsoftmax_grad(T *gx, T *y, T *gy, int dim1, int dim2, int dim3) {
 
 #define SOFTMAX_CAPI(NAME, T, FUNC) \
 void NAME(T *x, T *y, int dim1, int dim2, int dim3) { FUNC(x, y, dim1, dim2, dim3); } \
-void NAME ## _ ## grad(T *gx, T *y, T *gy, int dim1, int dim2, int dim3) { FUNC ## _ ## grad(gx, y, gy, dim1, dim2, dim3); }
+void NAME ## _ ## grad(T *y, T *gy, T *gx, int dim1, int dim2, int dim3) { \
+    FUNC ## _ ## grad(y, gy, gx, dim1, dim2, dim3); \
+}
 
 extern "C" {
     SOFTMAX_CAPI(softmax_f32, float, softmax)

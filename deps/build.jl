@@ -1,6 +1,6 @@
 const sources = [
     "im2col.cpp",
-    "maxpool.cpp",
+    "pooling.cpp",
     "softmax.cpp",
     "window.cpp"]
 
@@ -23,17 +23,16 @@ if is_windows()
     ENV["PATH"] = ENV["PATH"] * ";" * RPMbindir
 
     run(`$gpp --version`)
-    cmd = `$gpp -Wall -shared -O3 -I $incdir -o libmerlin.dll $sources`
+    cmd = `$gpp -fPIC -Wall -O3 -shared -fopenmp -static -I $incdir -o libmerlin.dll $sources`
 elseif is_apple()
-    cmd = `g++ -fPIC -Wall -O3 -shared -o libmerlin.so $sources`
+    cmd = `g++ -fPIC -Wall -O3 -shared -fopenmp -static -o libmerlin.so $sources`
 elseif is_linux()
-    cmd = `g++ -fPIC -Wall -O3 -shared -o libmerlin.so $sources`
+    cmd = `g++ -fPIC -Wall -O3 -shared -fopenmp -static -o libmerlin.so $sources`
 else
     throw("Unknown OS.")
 end
-println("Running...")
+
 println(cmd)
 run(cmd)
-
 println()
 println("Build success.")

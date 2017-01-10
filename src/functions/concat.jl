@@ -4,12 +4,13 @@ export concat
     concat(dim::Int, xs::Var...)
     concat(dim::Int, xs::Vector{Var})
 
-Concatenate arrays along the given dimension.
+Concatenate arrays over the given dimension.
 
 ```julia
 x1 = Var(rand(Float32,4,3))
 x2 = Var(rand(Float32,4,5))
 y = concat(2, x1, x2)
+y = concat(2, Var[x1,x2])
 ```
 """
 function concat(dim::Int, xs::Vector{Var})
@@ -29,21 +30,19 @@ function concat(dim::Int, xs::Vector{Var})
         offset += s
     end
     df(gy) = ∇concat!(gy, dim, xs)
-    Var(y, concat, xs, df)
+    Var(y, df, xs)
 end
 
 function concat(dim::Int, xs::Var...)
-    for x in xs
-        x.data == nothing && return Var(nothing, concat, (dim,xs...))
-    end
-    concat(dim, [xs...])
+    any(x -> isa(x.data, Void), xs) && return Var(nothing, concat, (dim,xs...))
+    concat(dim, Var[xs...])
 end
 
-function ∇concat!(gy::UniArray, dim::Int, xs::Vector{Var})
+function ∇concat!(gy, dim::Int, xs::Vector{Var})
     range = [1:size(gy,i) for i=1:ndims(gy)]
     offset = 1
     for x in xs
-        isconst(x) && continue
+        isa(x.grad, Void) && continue
         s = size(x.data, dim)
         range[dim] = offset:(offset+s-1)
         broadcast!(+, x.grad, x.grad, view(gy,range...))

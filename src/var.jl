@@ -7,39 +7,37 @@ export
     Var
 
 `Var` is a type of variable.
+It contains the following members:
 
-```julia
-Var(data, [args=()])
-```
+* data
+* f: forward or backward function
+* args: arguments of `f`
+* grad: gradient
 """
-type Var
-    data
+type Var{T}
+    data::T
     f
     args
-    df
     grad
 end
 
-Var() = Var(nothing)
-Var(data) = Var(data, nothing, ())
-Var(data, f, args) = Var(data, f, args, nothing, nothing)
-Var(data, f, args, df) = Var(data, f, args, df, nothing)
+Var(data=nothing, f=nothing, args=()) = Var(data, f, args, nothing)
 
-Base.isconst(v::Var) = v.grad == nothing
+function Var{T<:Array}(v::Var{T}, backend::Symbol)
+    backend == :cpu && return v
+    if backend == :cuda
+        grad = isa(v.grad, Void) ? nothing : CuArray(v.grad)
+        return Var(CuArray(v.data), v.f, v.args, grad)
+    end
+    throw("Invalid backend: $backend")
+end
+
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
-Base.eltype(v::Var) = eltype(v.data)
-Base.size(v::Var) = size(v.data)
-Base.size(v::Var, dim::Int) = size(v.data, dim)
-Base.length(v::Var) = length(v.data)
-Base.ndims(v::Var) = ndims(v.data)
 
 function zerograd!(v::Var)
-    if v.grad == nothing
-        v.grad = zeros(v.data)
-    else
-        fill!(v.grad, 0)
-    end
+    isa(v.grad, Void) && (v.grad = similar(v.data))
+    fill!(v.grad, 0)
     v
 end
 zerograd(x) = zerograd!(Var(x))
@@ -51,7 +49,7 @@ function topsort(top::Var)
         haskey(dict, var) && return
         dict[var] = var
         for arg in var.args
-            typeof(arg) == Var && visit(arg)
+            typeof(arg) <: Var && visit(arg)
         end
         push!(sorted, var)
     end
@@ -61,20 +59,14 @@ end
 
 function gradient!(top::Var)
     sorted = topsort(top)
-    isconst(top) && (top.grad = ones(top.data))
+    isa(top.grad, Void) && (top.grad = ones(top.data))
     for i = 1:length(sorted)
         v = sorted[i]
-        isconst(v) && !isempty(v.args) && zerograd!(v)
+        isa(v.grad, Void) && !isempty(v.args) && zerograd!(v)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
-        v.df == nothing || v.df(v.grad)
+        isa(v.f, Void) || v.f(v.grad)
     end
-    sorted
-end
-
-function setbackend!{T}(v::Var, ::Type{T})
-    typeof(v.data) <: T && return v
-    v.data = T(v.data)
-    v.grad == nothing || (v.grad = T(v.grad))
+    filter(v -> isempty(v.args) && !isa(v.grad,Void), sorted)
 end

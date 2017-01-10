@@ -1,6 +1,9 @@
 export fit
 using ProgressMeter
 
+function fit2()
+end
+
 """
     fit(xs, ys, decode, lossfun, opt, [progress=true])
 """
@@ -17,7 +20,7 @@ function fit(xs::Vector, ys::Vector, decode, lossfun, opt; progress=true)
         loss += sum(l.data)
         vars = gradient!(l)
         for v in vars
-            if isempty(v.args) && !isconst(v)
+            if isempty(v.args) && !isvoid(v.grad)
                 haskey(dict, v) && continue
                 dict[v] = v
                 opt(v.data, v.grad)

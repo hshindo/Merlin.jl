@@ -3,9 +3,13 @@ import Base.view
 """
     view(x::Var, inds...)
 """
-@graph function view(x::Var, inds::Tuple{Vararg{Int}})
+function view(x::Var, inds::Tuple)
+    isvoid(x.data) && return Var(nothing, view, (x,inds))
     y = view(x.data, inds...)
-    df(gy) = isconst(x) || (x.grad[inds...] += gy)
-    Var(y, [x], view, df)
+    function df(gy)
+        isvoid(x.grad) && return
+        x.grad[inds...] = x.grad[inds...] + gy
+    end
+    Var(y, df, (x,))
 end
-view(x::Var, inds::Int...) = view(x, inds)
+view(x::Var, inds...) = view(x, inds)

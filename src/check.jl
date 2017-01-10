@@ -1,59 +1,56 @@
 export checkgrad, checkcuda
 
-function checkgrad(f, args::Var...; eps=1e-2)
-    foreach(zerograd!, args)
-    y = f()
+function checkgrad(f, args...; eps=1e-3)
+    vars = collect(filter(a -> isa(a,Var) && !isa(a.grad,Void), args))
+    foreach(zerograd!, vars)
+    y = f(args...)
     gradient!(y)
-    gxs1 = map(x -> x.grad, args)
-    gxs2 = map(args) do arg
-        x = arg.data
+    gxs1 = map(x -> x.grad, vars)
+    gxs2 = map(vars) do v
+        x = v.data
         gx = similar(x)
         for k = 1:length(x)
             xk = x[k]
             x[k] = xk + eps
-            y1 = f().data
+            y1 = copy(f(args...).data)
             x[k] = xk - eps
-            y2 = f().data
+            y2 = copy(f(args...).data)
             x[k] = xk
             gx[k] = sum(y1 - y2) / 2eps
         end
         gx
     end
-    foreach(i -> checkdiff(gxs1[i],gxs2[i],eps), 1:length(gxs1))
+    foreach(zip(gxs1,gxs2)) do g
+        diff = g[1] - g[2]
+        all(d -> abs(d) < eps, diff) || throw(diff)
+    end
+    #use_cuda && checkcuda(f, args..., eps=eps)
     true
 end
 
-function checkcuda(f, args::Var...; eps=1e-2)
-    Pkg.installed("CUDA") == nothing && return true
-    for x in args
-        x.data = Array(x.data)
-        x.grad = zeros(x.data)
-    end
-    y = f()
-    gradient!(y)
-    gxs = map(x -> x.grad, args)
+function checkcuda(f::Function, args...; eps=1e-3)
+    args1 = map(a -> isa(a,Var) ? Var(a,:cpu) : a, args)
+    vars1 = collect(filter(a -> isa(a,Var) && !isa(a.grad,Void), args1))
+    foreach(zerograd!, vars1)
+    y1 = f(args1...)
+    gradient!(y1)
+    gxs1 = map(x -> x.grad, vars1)
 
-    for x in args
-        x.data = CuArray(x.data)
-        x.grad = zeros(x.data)
-    end
-    cuy = f()
-    gradient!(cuy)
-    cugxs = map(x -> Array(x.grad), args)
-    checkdiff(y.data, Array(cuy.data), eps)
-    for i = 1:length(gxs)
-        checkdiff(gxs[i],cugxs[i],eps)
-    end
+    args2 = map(a -> isa(a,Var) ? Var(a,:cuda) : a, args)
+    vars2 = collect(filter(a -> isa(a,Var) && !isa(a.grad,Void), args2))
+    foreach(zerograd!, vars2)
+    y2 = f(args2...)
+    gradient!(y2)
+    gxs2 = map(x -> Array(x.grad), vars2)
 
-    for x in args
-        x.data = Array(x.data)
-        x.grad = zeros(x.data)
+    all(d -> abs(d) < eps, y1.data - Array(y2.data)) || throw("output of CPU and CUDA mismatch")
+    foreach(zip(gxs1, gxs2)) do g
+        diff = g[1] - g[2]
+        if !all(d -> abs(d) < eps, diff)
+            #println(g[1])
+            #println(g[2])
+            throw(diff)
+        end
     end
     true
-end
-
-function checkdiff{T}(x1::Array{T}, x2::Array{T}, eps)
-    all(d -> abs(d) < T(eps), x1 - x2) && return nothing
-    println(x1 - x2)
-    throw("Check failed.")
 end

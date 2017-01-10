@@ -3,9 +3,10 @@ import Base.reshape
 """
     reshape(x::Var, dims::Int...)
 """
-@graph function reshape(x::Var, dims::Tuple{Vararg{Int}})
+function reshape(x::Var, dims::Tuple)
+    isa(x.data, Void) && return Var(nothing, reshape, (x,dims))
     y = reshape(x.data, dims)
-    df{T}(gy::UniArray{T}) = isconst(x) || BLAS.axpy!(T(1), gy, x.grad)
-    Var(y, [x], reshape, df)
+    df(gy) = isa(x.grad, Void) || add!(x.grad, gy)
+    Var(y, df, (x,))
 end
 reshape(x::Var, dims::Int...) = reshape(x, dims)

@@ -9,44 +9,46 @@ end
     Linear(w::Var, b::Var)
     Linear(T::Type, indim::Int, outdim::Int)
 
-Compute linear function (a.k.a. affine transformation).
+Computes linear function (a.k.a. affine transformation).
+
+* indim: size of inout dimension
+* outdim: size of output dimension
 
 ```math
 f(x) = W^{T}x + b
 ```
 where ``W`` is a weight matrix and ``b`` is a bias vector.
 
-### 👉 Example
 ```julia
-x = Var(rand(Float32,10,5))
-f = Linear(Float32,10,7)
+T = Float32
+x = Var(rand(T,10,5))
+f = Linear(T,10,7)
 y = f(x)
 ```
 """
-function Linear(T::Type, indim::Int, outdim::Int)
-    r = T(sqrt(6 / (indim+outdim)))
-    w = rand(T, outdim, indim)
-    w .*= 2r
-    w .-= r
+function Linear{T}(::Type{T}, indim::Int, outdim::Int)
+    r = sqrt(6 / (indim+outdim))
+    w = uniform(T, -r, r, outdim, indim)
     b = fill(T(0), outdim, 1)
     Linear(zerograd(w), zerograd(b))
 end
-(f::Linear)(x::Var) = linear(f.w, x, f.b)
 
-function linear(w::Var, x::Var, b::Var)
-    x.data == nothing && return Var(nothing, linear, (w,x,b))
-    setbackend!(w, typeof(x.data))
-    setbackend!(b, typeof(x.data))
-    y = w.data * x.data
-    broadcast!(+, y, y, b.data)
-    df(gy) = ∇linear!(y, gy, w, x, b)
-    Var(y, linear, (w,x,b), df)
+function (f::Linear)(x::Var)
+    # setbackend
+    linear(x, f.w, f.b)
 end
 
-function ∇linear!(y::UniArray, gy::UniArray, w::Var, x::Var, b::Var)
-    T = eltype(y)
-    isconst(w) || BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
-    isconst(x) || BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
-    g = sum(gy, 2)
-    broadcast!(+, b.grad, b.grad, g)
+function linear(x::Var, w::Var, b::Var)
+    isa(x.data, Void) && return Var(nothing, linear, (x,w,b))
+    y = w.data * x.data
+    #y = similar(x.data, size(w.data,1), size(x.data,2))
+    #fill!(y, 0)
+    broadcast!(+, y, y, b.data)
+    function df(gy)
+        T = eltype(gy)
+        isa(x.grad, Void) || BLAS.gemm!('T', 'N', T(1), w.data, gy, T(1), x.grad)
+        isa(w.grad, Void) || BLAS.gemm!('N', 'T', T(1), gy, x.data, T(1), w.grad)
+        isa(b.grad, Void) || add!(b.grad, sum(gy,2))
+    end
+    Var(y, df, (x,w,b))
 end

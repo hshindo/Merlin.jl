@@ -1,34 +1,10 @@
-export window, Window
-
-immutable Window{N}
-    dims::NTuple{N,Int}
-    pads::NTuple{N,Int}
-    strides::NTuple{N,Int}
-end
-
-Window(dim, pad, stride) = Window((dim,), (pad,), (stride,))
-Window(dim1, dim2, pad1, pad2, stride1, stride2) = Window((dim1,dim2), (pad1,pad2), (stride1,stride2))
-function Window(dim1, dim2, dim3, pad1, pad2, pad3, stride1, stride2, stride3)
-    Window((dim1,dim2,dim3), (pad1,pad2,pad3), (strde1,stride2,stride3))
-end
-
-Base.size(w::Window) = w.dims
-Base.size(w::Window, d::Int) = w.dims[d]
-Base.size(x::AbstractArray, w::Window, i::Int) = (size(x,i) + 2*pad(w,i) - size(w,i)) ÷ stride(w,i) + 1
-Base.strides(w::Window) = w.strides
-Base.stride(w::Window, i::Int) = w.strides[i]
-pads(w::Window) = w.pads
-pad(w::Window, i::Int) = w.pads[i]
+export window
 
 const WINDOW1D_F32 = Libdl.dlsym(libmerlin, :window1d_f32)
-const WINDOW1D_I64 = Libdl.dlsym(libmerlin, :window1d_i64)
 const ∇WINDOW1D_F32 = Libdl.dlsym(libmerlin, :window1d_f32_grad)
-const ∇WINDOW1D_I64 = Libdl.dlsym(libmerlin, :window1d_i64_grad)
 
-chandle(w::Window{1}, ::Type{Float32}) = WINDOW1D_F32
-chandle(w::Window{1}, ::Type{Int64}) = WINDOW1D_I64
-∇chandle(w::Window{1}, ::Type{Float32}) = ∇WINDOW1D_F32
-∇chandle(w::Window{1}, ::Type{Int64}) = ∇WINDOW1D_I64
+window1d_handle(::Type{Float32}) = WINDOW1D_F32
+∇window1d_handle(::Type{Float32}) = ∇WINDOW1D_F32
 
 """
     window(x::Var, dims, [pads, strides])
@@ -44,25 +20,29 @@ x = Var(rand(Float32,10,5))
 y = window(x, (10,), pads=(0,), strides=(1,))
 ```
 """
-window(x, dims::Tuple{Int}; pads=(0,), strides=(1,)) = window(x, Window(dims,pads,strides))
-window(x, dims::Tuple{Int,Int}; pads=(0,0), strides=(1,1)) = window(x, Window(dims,pads,strides))
-window(x, dims::Tuple{Int,Int,Int}; pads=(0,0,0), strides=(1,1,1)) = window(x, Window(dims,pads,strides))
+function window{N}(x::Var, dims::NTuple{N,Int}, pads::NTuple{N,Int}, strides::NTuple{N,Int})
+    isa(x.data, Void) && return Var(nothing, window, (x,dims,pads,strides))
 
-function window(x::Var, w::Window)
-    x.data == nothing && return Var(nothing, window, (x,w))
-    y = window(x.data, w)
-    df(gy) = isconst(x) || ∇window!(gy, x.grad, w)
-    Var(y, window, (x,), df)
+    y = window(x.data, dims, pads, strides)
+    df(gy) = isa(x.grad, Void) || ∇window!(gy, x.grad, dims, pads, strides)
+    Var(y, df, (x,))
 end
 
-function window{T}(x::Array{T}, w::Window{1})
-    y = Array{T}(size(w,1), size(vec(x),w,1))
-    ccall(chandle(w,T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
-        x, y, length(x), size(w,1), pad(w,1), stride(w,1))
+function window{N}(x, dims::NTuple{N,Int}; pads=nothing, strides=nothing)
+    pads == nothing && (pads = ntuple(_ -> 0, N))
+    strides == nothing && (strides = ntuple(_ -> 1, N))
+    window(x, dims, pads, strides)
+end
+
+function window{T}(x::Array{T}, dims::NTuple{1,Int}, pads, strides)
+    c = (length(x) + 2pads[1] - dims[1]) ÷ strides[1] + 1
+    y = Array{T}(dims[1], c)
+    ccall(window1d_handle(T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
+        x, y, length(x), dims[1], pads[1], strides[1])
     y
 end
 
-function ∇window!{T}(gy::Array{T}, gx::Array{T}, w::Window{1})
-    ccall(∇chandle(w,T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
-        gx, gy, length(gx), size(w,1), pad(w,1), stride(w,1))
+function ∇window!{T}(gy::Array{T}, gx::Array{T}, dims::NTuple{1,Int}, pads, strides)
+    ccall(∇window1d_handle(T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
+        gy, gx, length(gx), dims[1], pads[1], strides[1])
 end
