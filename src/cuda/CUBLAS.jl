@@ -26,12 +26,12 @@ handle(x::CuArray) = handles[device(x)+1]
 atexit(() -> foreach(cublasDestroy,handles))
 
 function init()
-    empty!(handles)
+    isempty(handles) || throw("Handle is not empty.")
     for dev = 0:devcount()-1
         setdevice(dev)
-        ref = Ptr{Void}[0]
-        cublasCreate(ref)
-        push!(handles, ref[1])
+        p = Ptr{Void}[0]
+        cublasCreate(p)
+        push!(handles, p[1])
     end
     setdevice(0)
 end

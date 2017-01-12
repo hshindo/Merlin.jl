@@ -5,11 +5,12 @@ export
 const contexts = Ptr{Void}[]
 
 function initctx()
+    isempty(contexts) || throw("Context is not empty.")
     cuInit(0)
     for dev = 0:devcount()-1
-        ref = Ptr{Void}[0]
-        cuCtxCreate(ref, 0, dev)
-        push!(contexts, ref[1])
+        p = Ptr{Void}[0]
+        cuCtxCreate(p, 0, dev)
+        push!(contexts, p[1])
     end
     setdevice(0)
 end
