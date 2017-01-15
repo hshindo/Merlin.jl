@@ -59,7 +59,7 @@ end
 gemm_batch(tA, tB, alpha, As::Vector{Var}, Bs::Vector{Var}) = forward(tA, tB, alpha, As, Bs)
 gemm_batch(As, Bs; tA='N', tB='N', alpha=1.0) = gemm_batch(tA, tB, alpha, As, Bs)
 
-function forward{T}(::typeof(gemm_batch), tA::Char, tB::Char, alpha, As::Vector{Matrix{T}}, Bs::Vector{Matrix{T}})
+function forward(::typeof(gemm_batch), tA::Char, tB::Char, alpha, As::Vector{Matrix}, Bs::Vector{Matrix})
     length(As) == length(Bs) || throw(DimensionMismatch("Length of As and Bs must be the same."))
 
     rowC = tA == 'N' ? size(As[1],1) : size(As[1],2)

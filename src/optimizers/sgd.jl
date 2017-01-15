@@ -7,32 +7,32 @@ Stochastic Gradient Descent.
 
 ## Arguments
 * rate: learning rate
-* [momentum]: momentum coefficient
+* [momentum::Float64]: momentum coefficient
+* [nesterov::Bool]: us nesterov acceleration or not
 """
 type SGD
     rate::Float64
     momentum::Float64
+    nesterov::Bool
     states::ObjectIdDict
 end
 
-function SGD(rate=0.0; momentum=0.0)
-    SGD(rate, momentum, ObjectIdDict())
+function SGD(rate=0.0; momentum=0.0, nesterov=false)
+    SGD(rate, momentum, nesterov, ObjectIdDict())
 end
 
-function (opt::SGD){T}(data::AbstractArray{T}, grad::AbstractArray{T})
-    if opt.momentum != 0.0
-        state = get!(opt.states, data, nothing)
-        if state == nothing
-            v = zeros(data)
-            opt.states[data] = v
-        else
-            v = state::Array{T}
-        end
+function (opt::SGD){T,N}(x::Array{T,N}, gx::Array{T,N})
+    if opt.momentum > 0.0
+        v = get!(()->zeros(x), opt.states, x)
         BLAS.scal!(length(v), T(opt.momentum), v, 1)
-        BLAS.axpy!(T(opt.rate), grad, v)
-        broadcast!(-, data, data, v)
+        BLAS.axpy!(T(-opt.rate), gx, v)
+        if nesterov
+            BLAS.scal!(length(v), T(opt.momentum), v, 1)
+            BLAS.axpy!(T(-opt.rate), gx, v)
+        end
+        add!(x, v)
     else
-        BLAS.axpy!(-T(opt.rate), grad, data)
+        BLAS.axpy!(T(-opt.rate), gx, x)
     end
-    fill!(grad, T(0))
+    fill!(gx, T(0))
 end

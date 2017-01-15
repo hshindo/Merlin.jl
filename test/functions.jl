@@ -70,7 +70,7 @@ for op in (.+, .-, .*)
 end
 # multiply
 x5 = zerograd(rand(T,5,7))
-@test checkgrad(*, x1, x5)
+#@test checkgrad(*, x1, x5)
 
 # normalize
 x = zerograd(rand(T,10,5))

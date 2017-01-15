@@ -47,3 +47,32 @@ function forward{T}(::typeof(linear), x::Matrix{T}, w::Matrix{T}, b::Matrix{T})
     end
     y, backward!
 end
+
+export NormLinear
+type NormLinear
+    v::Var
+    g::Var
+    b::Var
+end
+
+function NormLinear{T}(::Type{T}, indim::Int, outdim::Int)
+    row = outdim
+    col = indim
+    v = randn(T, row, col) * 0.05
+    g = ones(T, col)
+    b = fill(T(0), outdim, 1)
+    NormLinear(zerograd(v), zerograd(g), zerograd(b))
+end
+
+(f::NormLinear)(x::Var) = normlinear(x, f.v, f.g, f.b)
+
+function normlinear(x::Var, v::Var, g::Var, b::Var)
+    w = normalize(v,g)
+    linear(x, w, b)
+end
+
+function normweight{T}(::Type{T}, row::Int, col::Int)
+    v = randn(T, row, col) * 0.05
+    g = ones(T, row, 1)
+    normalize(zerograd(v)) * zerograd(g)
+end
