@@ -13,10 +13,10 @@ function forward{T}(::typeof(normalize), x::Matrix{T})
 end
 
 function ∇normalize!{T}(gy::Matrix{T}, x::Matrix{T}, gx::Matrix{T}, z::Matrix{T})
+    s = sum(x, 1)
     for j = 1:size(x,2)
         @inbounds @simd for i = 1:size(x,1)
-            g = z[j] - x[i,j]*x[i,j] * (z[j]*z[j]*z[j])
-            gx[i,j] += gy[i,j] * g
+            gx[i,j] += gy[i,j] * (z[j] - z[j]*z[j]*z[j]*s[j]*x[i,j])
         end
     end
 end

@@ -11,14 +11,15 @@ y = x[2:2]
 Note that `y = x[i]` throws an error since `y` is not a vector but a scholar.
 Instead, use `y = x[i:i]`.
 """
-function getindex(x::Var, inds::Tuple)
-    isa(x.data, Void) && return Var(nothing, getindex, (x,inds))
-    y = x.data[inds...]
-    function df(gy)
-        isa(x.grad, Void) && return
-        gx = view(x.grad, inds...)
+getindex(x::Var, inds::Tuple) = forward(getindex, x, inds)
+getindex(x::Var, inds...) = getindex(x, inds)
+
+function forward(::typeof(getindex), x::Array, inds::Tuple)
+    y = x[inds...]
+    function backward!(gy, gx, inds)
+        isvoid(gx) && return
+        gx = view(gx, inds...)
         broadcast!(+, gx, gx, gy)
     end
-    Var(y, df, (x,))
+    y, backward!
 end
-getindex(x::Var, inds...) = getindex(x, inds)

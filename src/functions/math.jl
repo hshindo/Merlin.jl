@@ -1,14 +1,15 @@
 import Base: exp, log, transpose
-import Base: +, -, *, .*
+import Base: +, .+, -, .-, .*, *
 
 """
     exp(x::Var)
 """
-function exp(x::Var)
-    isa(x.data, Void) && return Var(nothing, exp, (x,))
-    y = exp(x.data)
-    df(gy) = isa(x.grad, Void) || ∇exp!(y, gy, x.grad)
-    Var(y, df, (x,))
+exp(x::Var) = forward(exp, x)
+
+function forward(::typeof(exp), x::Array)
+    y = exp(x)
+    backward!(gy, gx) = isvoid(gx) || ∇exp!(y, gy, gx)
+    y, backward!
 end
 
 function ∇exp!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
@@ -20,11 +21,12 @@ end
 """
     log(x::Var)
 """
-function log(x::Var)
-    isa(x.data, Void) && return Var(nothing, log, (x,))
-    y = log(x.data)
-    df(gy) = isa(x.grad, Void) || ∇log!(gy, x.data, x.grad)
-    Var(y, df, (x,))
+log(x::Var) = forward(log, x)
+
+function forward(::typeof(log), x::Array)
+    y = log(x)
+    backward!(gy, gx) = isvoid(gx) || ∇log!(gy, x, gx)
+    y, backward!
 end
 
 function ∇log!{T}(gy::Array{T}, x::Array{T}, gx::Array{T})
@@ -36,95 +38,127 @@ end
 """
     transpose(x::Var)
 """
-function transpose(x::Var)
-    isa(x.data, Void) && return Var(nothing, transpose, (x,))
-    y = transpose(x.data)
-    df(gy) = isa(x.grad, Void) || BLAS.axpy!(eltype(gy)(1), transpose(gy), x.grad)
-    Var(y, df, (x,))
+transpose(x::Var) = forward(transpose, x)
+
+function forward{T}(::typeof(transpose), x::Array{T})
+    y = transpose(x)
+    backward!(gy, gx) = isvoid(gx) || BLAS.axpy!(T(1), transpose(gy), gx)
+    y, backward!
 end
 
 """
     +(x1::Var, x2::Var)
 """
-function +(x1::Var, x2::Var)
-    (isa(x1.data,Void) || isa(x2.data,Void)) && return Var(nothing, +, (x1,x2))
-    y = x1.data + x2.data
-    function df(gy)
-        isa(x1.grad, Void) || add!(x1.grad, gy)
-        isa(x2.grad, Void) || add!(x2.grad, gy)
-    end
-    Var(y, df, (x1,x2))
-end
++(x1::Var, x2::Var) = forward(+, x1, x2)
 +(a::Number, x::Var) = Var([a]) + x
 +(x::Var, a::Number) = x + Var([a])
+
+function forward(::typeof(+), x1::Array, x2::Array)
+    y = x1 + x2
+    function backward!(gy, gx1, gx2)
+        isvoid(gx1) || add!(gx1, gy)
+        isvoid(gx2) || add!(gx2, gy)
+    end
+    y, backward!
+end
+
+"""
+    .+(x1::Var, x2::Var)
+"""
+.+(x1::Var, x2::Var) = forward(.+, x1, x2)
+
+function forward(::typeof(.+), x1::Array, x2::Array)
+    y = x1 .+ x2
+    function backward!(gy, gx1, gx2)
+        isvoid(gx1) || ∇elemplus!(gy, gx1)
+        isvoid(gx2) || ∇elemplus!(gy, gx2)
+    end
+    y, backward!
+end
+
+function ∇elemplus!{T}(gy::Array{T}, gx::Array{T})
+    ind_gx = CartesianIndex(size(gx))
+    @inbounds @simd for I in CartesianRange(size(gy))
+        gx[min(ind_gx,I)] += gy[I]
+    end
+end
 
 """
     -(x1::Var, x2::Var)
     -(x::Var)
-
-Automatically broadcasted.
 """
-function -(x1::Var, x2::Var)
-    (isa(x1.data,Void) || isa(x2.data,Void)) && return Var(nothing, -, (x1,x2))
-    y = x1.data - x2.data
-    df(gy) = begin
-        isa(x1.grad, Void) || add!(x1.grad, gy)
-        isa(x2.grad, Void) || broadcast!(-, x2.grad, x2.grad, gy)
-    end
-    Var(y, df, (x1,x2))
-end
+-(x1::Var, x2::Var) = forward(-, x1, x2)
 -(a::Number, x::Var) = Var([a]) - x
 -(x::Var, a::Number) = x - Var([a])
+-(x::Var) = forward(-, x)
 
-function -(x::Var)
-    isa(x.data, Void) && return Var(nothing, -, (x,))
-    y = -x.data
-    df(gy) = isa(x.grad, Void) || broadcast!(-, x.grad, x.grad, gy)
-    Var(y, df, (x,))
+function forward(::typeof(-), x1::Array, x2::Array)
+    y = x1 - x2
+    function backward!(gy, gx1, gx2)
+        isvoid(gx1) || add!(gx1, gy)
+        isvoid(gx2) || BLAS.axpy!(eltype(gy)(-1), gy, gx2)
+    end
+    y, backward!
+end
+
+function forward(::typeof(-), x::Array)
+    y = -x
+    backward!(gy, gx) = isvoid(gx) || BLAS.axpy!(eltype(gy)(-1), gy, gx)
+    y, backward!
 end
 
 """
-    \*(x1::Var, x2::Var)
+    .-(x1::Var, x2::Var)
 """
-function *(x1::Var, x2::Var)
-    (isa(x1.data,Void) || isa(x2.data,Void)) && return Var(nothing, *, (x1,x2))
-    ndims(x2.data) == 1 && return gemv(x1, x2)
-    ndims(x2.data) == 2 && size(x2.data,2) == 1 && return gemv(x1, Var(x2,data=vec(x2.data)))
-    gemm(x1, x2)
+.-(x1::Var, x2::Var) = forward(.-, x1, x2)
+
+function forward(::typeof(.-), x1::Array, x2::Array)
+    y = x1 .- x2
+    function backward!(gy, gx1, gx2)
+        isvoid(gx1) || ∇elemplus!(gy, gx1)
+        isvoid(gx2) || ∇elemminus!(gy, gx2)
+    end
+    y, backward!
+end
+
+function ∇elemminus!{T}(gy::Array{T}, gx::Array{T})
+    ind_gx = CartesianIndex(size(gx))
+    @inbounds @simd for I in CartesianRange(size(gy))
+        gx[min(ind_gx,I)] -= gy[I]
+    end
 end
 
 """
     \.\*(x1::Var, x2::Var)
 """
-function .*(x1::Var, x2::Var)
-    (isa(x1.data,Void) || isa(x2.data,Void)) && return Var(nothing, .*, (x1,x2))
-    length(x1.data) == length(x2.data) || throw(DimensionMismatch())
-    y = x1.data .* x2.data
-    function df(gy)
-        isa(x1.grad, Void) || ∇elemtimes!(gy, x2.data, x1.grad)
-        isa(x2.grad, Void) || ∇elemtimes!(gy, x1.data, x2.grad)
+.*(x1::Var, x2::Var) = forward(.*, x1, x2)
+
+function forward(::typeof(.*), x1::Array, x2::Array)
+    y = x1 .* x2
+    function backward!(gy, gx1, gx2)
+        isvoid(gx1) || ∇elemtimes!(gy, x2, gx1)
+        isvoid(gx2) || ∇elemtimes!(gy, x1, gx2)
     end
-    Var(y, df, (x1,x2))
+    y, backward!
 end
 
 function ∇elemtimes!{T}(gy::Array{T}, x2::Array{T}, gx1::Array{T})
-    @inbounds @simd for i = 1:length(gy)
-        gx1[i] += gy[i] * x2[i]
+    ind_x2 = CartesianIndex(size(x2))
+    ind_gx1 = CartesianIndex(size(gx1))
+    @inbounds @simd for I in CartesianRange(size(gy))
+        gx1[min(ind_gx1,I)] += gy[I] * x2[min(ind_x2,I)]
     end
 end
 
-function ∇elemtimes2!(x2, gx1, gy)
-    if length(gx1) < length(gy)
-        @inbounds for k = 0:length(gx1):length(gy)-1
-            @simd for i = 1:length(gx1)
-                gx1[i] += gy[i+k] * x2[i+k]
-            end
-        end
-    else
-        @inbounds for k = 0:length(x2):length(gy)-1
-            @simd for i = 1:length(x2)
-                gx1[i+k] += gy[i+k] * x2[i]
-            end
-        end
-    end
+"""
+    \*(x1::Var, x2::Var)
+"""
+*(x1::Var, x2::Var) = forward(*, x1, x2)
+
+forward(::typeof(*), x1::Matrix, x2::Vector) = forward(gemv, 'N', 1, x1, x2)
+function forward(::typeof(*), x1::Matrix, x2::Matrix)
+    size(x2,2) == 1 && return forward(*, x1, vec(x2))
+    y, _backward! = forward(gemm, 'N', 'N', 1, x1, x2)
+    backward!(gy, gx1, gx2) = _backward!(gy, 'N', 'N', 1, gx1, gx2)
+    y, backward!
 end

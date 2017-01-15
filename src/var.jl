@@ -24,16 +24,6 @@ end
 Var(data=nothing, f=nothing, args=()) = Var(data, f, args, nothing)
 
 isvoid(x) = x == nothing
-#=
-function Var{T<:Array}(v::Var{T}, backend::Symbol)
-    backend == :cpu && return v
-    if backend == :cuda
-        grad = isa(v.grad, Void) ? nothing : CudaArray(v.grad)
-        return Var(CudaArray(v.data), v.f, v.args, grad)
-    end
-    throw("Invalid backend: $backend")
-end
-=#
 
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
@@ -50,20 +40,16 @@ function forward(f::Function, args...)::Var
     xs = map(args) do a
         isa(a, Var) ? a.data : a
     end
-    y, df = forward(f, xs...)
-    Var(y, df, args)
+    y, backward! = forward(f, xs...)
+    Var(y, backward!, args)
 end
 
-#=
-function setbackend{T1<:Array,T2}(v::Var{T1}, ::Type{T2})
-    T2 <: Array && return v
-    if T2 <: CudaArray
-        grad = isa(v.grad, Void) ? v.grad : CudaArray(v.grad)
-        return Var(CudaArray(v.data), v.f, v.args, grad)
-    end
-    throw("Invalid type: $T2")
+function setbackend!(v::Var, ::Type{Array})
+    isa(v.data, Array) && return v
+    v.data = Array(v.data)
+    v.grad = isvoid(v.grad) ? v.grad : Array(v.grad)
+    v
 end
-=#
 
 function topsort(top::Var)
     sorted = Var[]

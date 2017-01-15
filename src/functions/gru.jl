@@ -11,7 +11,7 @@ See: Chung et al. "Empirical Evaluation of Gated Recurrent Neural Networks on Se
 ```julia
 T = Float32
 gru = GRU(T, 100)
-x = constant(rand(T,100))
+x = Var(rand(T,100))
 h = Var(rand(T,100))
 y = gru(x, h)
 ```
@@ -25,5 +25,5 @@ function GRU{T}(::Type{T}, xsize::Int)
     z = sigmoid(ws[2]*x + us[2]*h)
     h_ = tanh(ws[3]*x + us[3]*(r.*h))
     h_next = (Var(ones(T,xsize)) - z) .* h + z .* h_
-    compile(h_next, x, h)
+    Graph(h_next, x, h)
 end
