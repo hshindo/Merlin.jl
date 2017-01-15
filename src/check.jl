@@ -1,7 +1,7 @@
 export checkgrad, checkcuda
 
 function checkgrad(f, args...; eps=1e-3)
-    vars = collect(filter(a -> isa(a,Var) && !isa(a.grad,Void), args))
+    vars = collect(filter(a -> isa(a,Var) && !isvoid(a.grad), args))
     foreach(zerograd!, vars)
     y = f(args...)
     gradient!(y)
@@ -22,13 +22,13 @@ function checkgrad(f, args...; eps=1e-3)
     end
     foreach(zip(gxs1,gxs2)) do g
         diff = g[1] - g[2]
-        all(d -> abs(d) < eps, diff) || throw(diff)
+        all(d -> abs(d) < eps, diff) || throw((g[1],g[2]))
     end
     #use_cuda && checkcuda(f, args..., eps=eps)
     true
 end
 
-function checkcuda(f::Function, args...; eps=1e-3)
+function checkcuda(f::Function, args...; eps=1e-2)
     args1 = map(a -> isa(a,Var) ? Var(a,:cpu) : a, args)
     vars1 = collect(filter(a -> isa(a,Var) && !isa(a.grad,Void), args1))
     foreach(zerograd!, vars1)
@@ -47,8 +47,6 @@ function checkcuda(f::Function, args...; eps=1e-3)
     foreach(zip(gxs1, gxs2)) do g
         diff = g[1] - g[2]
         if !all(d -> abs(d) < eps, diff)
-            #println(g[1])
-            #println(g[2])
             throw(diff)
         end
     end

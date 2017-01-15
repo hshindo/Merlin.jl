@@ -59,10 +59,10 @@ macro reducedim(op, x, dim)
     end
 end
 
-maximum{T,N}(x::CudaArray{T,N}, dim::Int) = @reducedim "a > b ? a : b" x dim
-sum{T,N}(x::CudaArray{T,N}, dim::Int) = @reducedim "a + b" x dim
+maximum{T,N}(x::CuArray{T,N}, dim::Int) = @reducedim "a > b ? a : b" x dim
+sum{T,N}(x::CuArray{T,N}, dim::Int) = @reducedim "a + b" x dim
 
-function reshape3d(x::CudaArray, dim::Int)
+function reshape3d(x::CuArray, dim::Int)
     dim1, dim2, dim3 = 1, size(x,dim), 1
     for i = 1:dim-1
         dim1 *= size(x,i)

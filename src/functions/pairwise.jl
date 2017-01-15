@@ -1,13 +1,8 @@
 export pairwise
 
-function pairwise(x1::Var, x2::Var)
-    (isa(x1.data,Void) || isa(x2.data,Void)) && return Var(nothing, pairwise, (x1,x2))
-    y = pairwise(x1.data, x2.data)
-    df(gy) = isa(x1.grad, Void) || isa(x2.grad, Void) || ∇pairwise!(gy, x1.grad, x2.grad)
-    Var(y, df, (x1,x2))
-end
+pairwise(x1::Var, x2::Var) = forward(pairwise, x1, x2)
 
-function pairwise{T}(x1::Matrix{T}, x2::Matrix{T})
+function forward{T}(::typeof(pairwise), x1::Matrix{T}, x2::Matrix{T})
     m1, n1 = size(x1)
     m2, n2 = size(x2)
     y = Array{T}(m1+m2, n1, n2)
@@ -20,7 +15,8 @@ function pairwise{T}(x1::Matrix{T}, x2::Matrix{T})
             offset += m2
         end
     end
-    y
+    backward!(gy, gx1, gx2) = ∇pairwise!(gy, gx1, gx2)
+    y, backward!
 end
 
 function ∇pairwise!{T}(gy::Array{T,3}, gx1::Matrix{T}, gx2::Matrix{T})

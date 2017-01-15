@@ -1,7 +1,8 @@
 module CUBLAS
 
 using ..CUDA
-importall Base.LinAlg.BLAS
+import ..CUDA: devcount, setdevice
+import Base.LinAlg.BLAS: axpy!, gemv, gemv!, gemm, gemm!
 
 if is_windows()
     const libcublas = Libdl.find_library(["cublas64_80","cublas64_75"])
@@ -22,7 +23,7 @@ end
 
 ##### Initialization #####
 const handles = Ptr{Void}[]
-handle(x::CuArray) = handles[device(x)+1]
+handle(x::CudaArray) = handles[device(x)+1]
 atexit(() -> foreach(cublasDestroy,handles))
 
 function init()
@@ -59,32 +60,30 @@ function cublasop(t::Char)
 end
 
 ##### level1 #####
-# blascopy!
 for (fname,elty) in ((:cublasDcopy,:Float64), (:cublasScopy,:Float32))
     @eval begin
-        function blascopy!(n::Int, x::AbstractCuArray{$elty}, incx::Int,
-            y::AbstractCuArray{$elty}, incy::Int)
+        function blascopy!(n::Int, x::AbstractCudaArray{$elty}, incx::Int,
+            y::AbstractCudaArray{$elty}, incy::Int)
             $fname(handle(x), n, x, incx, y, incy)
             y
         end
     end
 end
 
-# axpy!
 for (fname,elty) in ((:cublasDaxpy,:Float64), (:cublasSaxpy,:Float32))
     @eval begin
-        function axpy!(n::Int, alpha::$elty, dx::AbstractCuArray{$elty}, incx::Int,
-            dy::AbstractCuArray{$elty}, incy::Int)
+        function axpy!(n::Int, alpha::$elty, dx::AbstractCudaArray{$elty}, incx::Int,
+            dy::AbstractCudaArray{$elty}, incy::Int)
             $fname(handle(dx), n, [alpha], dx, incx, dy, incy)
             dy
         end
     end
 end
-function axpy!{T}(alpha::T, x::CuArray{T}, y::CuArray{T})
+function axpy!{T}(alpha::T, x::CudaArray{T}, y::CudaArray{T})
     length(x) == length(y) || throw(DimensionMismatch())
     axpy!(length(x), alpha, x, 1, y, 1)
 end
-function axpy!{T}(alpha::T, x::CuArray{T}, rx::Range{Int}, y::CuArray{T}, ry::Range{Int})
+function axpy!{T}(alpha::T, x::CudaArray{T}, rx::Range{Int}, y::CudaArray{T}, ry::Range{Int})
     length(rx) == length(ry) || throw(DimensionMismatch())
     (minimum(rx) < 1 || maximum(rx) > length(x)) && throw(BoundsError())
     (minimum(ry) < 1 || maximum(ry) > length(y)) && throw(BoundsError())
@@ -94,12 +93,11 @@ end
 ##### level2 #####
 
 ##### level3 #####
-# gemm
 for (fname, elty) in ((:cublasDgemm,:Float64), (:cublasSgemm,:Float32))
     @eval begin
         function gemm!(tA::Char, tB::Char,
-            alpha::$elty, A::CuVecOrMat{$elty}, B::CuVecOrMat{$elty},
-            beta::$elty, C::CuVecOrMat{$elty})
+            alpha::$elty, A::CudaVecOrMat{$elty}, B::CudaVecOrMat{$elty},
+            beta::$elty, C::CudaVecOrMat{$elty})
 
             @assert device(A) == device(B) == device(C)
             m = size(A, tA == 'N' ? 1 : 2)
@@ -114,21 +112,20 @@ for (fname, elty) in ((:cublasDgemm,:Float64), (:cublasSgemm,:Float32))
         end
     end
 end
-function gemm{T}(tA::Char, tB::Char, alpha::T, A::CuVecOrMat{T}, B::CuVecOrMat{T})
+function gemm{T}(tA::Char, tB::Char, alpha::T, A::CudaVecOrMat{T}, B::CudaVecOrMat{T})
     C = similar(B, size(A, tA=='N' ? 1 : 2), size(B, tB=='N' ? 2 : 1))
     gemm!(tA, tB, alpha, A, B, T(0), C)
 end
-function gemm{T}(tA::Char, tB::Char, A::CuVecOrMat{T}, B::CuVecOrMat{T})
+function gemm{T}(tA::Char, tB::Char, A::CudaVecOrMat{T}, B::CudaVecOrMat{T})
     gemm(tA, tB, T(1), A, B)
 end
-gemm{T}(A::CuVecOrMat{T}, B::CuVecOrMat{T}; tA='N', tB='N') = gemm(tA, tB, A, B)
+gemm{T}(A::CudaVecOrMat{T}, B::CudaVecOrMat{T}; tA='N', tB='N') = gemm(tA, tB, A, B)
 
-# gemm_batched
 for (fname,elty) in [(:cublasDgemmBatched,:Float64), (:cublasSgemmBatched,:Float32)]
     @eval begin
         function gemm_batched!(tA::Char, tB::Char,
-            alpha::$elty, As::Vector{CuMatrix{$elty}}, Bs::Vector{CuMatrix{$elty}},
-            beta::$elty, Cs::Vector{CuMatrix{$elty}})
+            alpha::$elty, As::Vector{CudaMatrix{$elty}}, Bs::Vector{CudaMatrix{$elty}},
+            beta::$elty, Cs::Vector{CudaMatrix{$elty}})
 
             if (length(As) != length(Bs) || length(As) != length(Cs))
                 throw(DimensionMismatch(""))
@@ -158,12 +155,12 @@ for (fname,elty) in [(:cublasDgemmBatched,:Float64), (:cublasSgemmBatched,:Float
     end
 end
 function gemm_batched{T}(tA::Char, tB::Char,
-    alpha::T, A::Vector{CuVecOrMat{T}}, B::Vector{CuVecOrMat{T}})
-    C = CuMatrix{T}[similar(B[1], (size(A[1], tA=='N' ? 1 : 2), size(B[1], tB=='N' ? 2 : 1))) for i in 1:length(A)]
+    alpha::T, A::Vector{CudaVecOrMat{T}}, B::Vector{CudaVecOrMat{T}})
+    C = CudaMatrix{T}[similar(B[1], (size(A[1], tA=='N' ? 1 : 2), size(B[1], tB=='N' ? 2 : 1))) for i in 1:length(A)]
     gemm_batched!(tA, tB, alpha, A, B, T(0), C)
 end
 function gemm_batched{T}(tA::Char, tB::Char,
-    A::Vector{CuVecOrMat{T}}, B::Vector{CuVecOrMat{T}})
+    A::Vector{CudaVecOrMat{T}}, B::Vector{CudaVecOrMat{T}})
     gemm_batched(tA, tB, T(1), A, B)
 end
 

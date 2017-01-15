@@ -1,26 +1,20 @@
 export relu, clipped_relu, sigmoid
 import Base.tanh
 
-function activation{X<:Array}(x::Var{X}, f, ∇)
-    y = f(x.data)
-    df(gy) = isa(x.grad, Void) || ∇(y, gy, x.data, x.grad)
-    Var(y, df, (x,))
-end
-
 """
     relu(x::Var)
 
 Rectifier linear unit.
 """
-relu(x::Var) = activation(x, relu, ∇relu!)
-relu(x::Var{Void}) = Var(nothing, relu, (x,))
+relu(x::Var) = forward(relu, x)
 
-function relu{T}(x::Array{T})
+function forward{T}(::typeof(relu), x::Array{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
         y[i] = max(x[i], T(0))
     end
-    y
+    backward!(gy, gx) = isvoid(gx) || ∇relu!(y, gy, x, gx)
+    y, backward!
 end
 
 function ∇relu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
@@ -32,15 +26,15 @@ end
 """
     clipped_relu(x::Var)
 """
-clipped_relu(x::Var) = activation(x, clipped_relu, ∇clipped_relu!)
-clipped_relu(x::Var{Void}) = Var(nothing, clipped_relu, (x,))
+clipped_relu(x::Var) = forward(clipped_relu, x)
 
-function clipped_relu{T}(x::Array{T})
+function forward{T}(::typeof(clipped_relu), x::Array{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
         y[i] = min(max(x[i],T(0)), T(20))
     end
-    y
+    backward!(gy, gx) = isvoid(gx) || ∇clipped_relu!(y, gy, x, gx)
+    y, backward!
 end
 
 function ∇clipped_relu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
@@ -52,15 +46,15 @@ end
 """
     sigmoid(x::Var)
 """
-sigmoid(x::Var) = activation(x, sigmoid, ∇sigmoid!)
-sigmoid(x::Var{Void}) = Var(nothing, sigmoid, (x,))
+sigmoid(x::Var) = forward(sigmoid, x)
 
-function sigmoid{T}(x::Array{T})
+function forward{T}(::typeof(sigmoid), x::Array{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
         y[i] = 1 / (1 + exp(-x[i]))
     end
-    y
+    backward!(gy, gx) = isvoid(gx) || ∇sigmoid!(y, gy, x, gx)
+    y, backward!
 end
 
 function ∇sigmoid!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
@@ -72,8 +66,13 @@ end
 """
     tanh(x::Var)
 """
-tanh(x::Var) = activation(x, tanh, ∇tanh!)
-tanh(x::Var{Void}) = Var(nothing, tanh, (x,))
+tanh(x::Var) = forward(tanh, x)
+
+function forward{T}(::typeof(tanh), x::Array{T})
+    y = tanh(x)
+    backward!(gy, gx) = isvoid(gx) || ∇tanh!(y, gy, x, gx)
+    y, backward!
+end
 
 function ∇tanh!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
     @inbounds @simd for i = 1:length(gx)

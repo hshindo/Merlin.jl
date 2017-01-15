@@ -7,10 +7,11 @@ using Clang
 
 includes = ["/usr/local/include",
             "/usr/include",
+            "/home/shindo/local-lemon/cuda-7.5/include",
             "/usr/lib/gcc/x86_64-linux-gnu/4.8/include",
             "/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed"]
 headers = ["cuda_runtime_api.h", "driver_types.h", "vector_types.h"]
-headers = [joinpath("/home/cuda/include/",h) for h in headers]
+headers = [joinpath("/home/shindo/cuda/include/",h) for h in headers]
 
 # Customize how functions, constants, and structs are written
 const skip_expr = [:(const CUDART_DEVICE = __device__)]

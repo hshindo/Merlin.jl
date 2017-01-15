@@ -21,11 +21,12 @@ Returns a softmax over the `ndims(x)-1`-th dimension.
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
-function softmax(x::Var)
-    isa(x.data, Void) && return Var(nothing, softmax, (x,))
-    y = softmax(x.data)
-    df(gy) = isa(x.grad, Void) || ∇softmax!(y, gy, x.grad)
-    Var(y, df, (x,))
+softmax(x::Var) = forward(softmax, x)
+
+function forward(::typeof(softmax), x::Array)
+    y = softmax(x)
+    backward!(gy, gx) = isvoid(gx) || ∇softmax!(y, gy, gx)
+    y, backward!
 end
 
 function softmax{T}(x::Array{T})
@@ -47,11 +48,12 @@ end
 
 Returns a logarithm of softmax function.
 """
-function logsoftmax(x::Var)
-    isa(x.data, Void) && return Var(nothing, logsoftmax, (x,))
-    y = logsoftmax(x.data)
-    df(gy) = isa(x.grad, Void) || ∇logsoftmax!(y, gy, x.grad)
-    Var(y, df, (x,))
+logsoftmax(x::Var) = forward(logsoftmax, x)
+
+function forward(::typeof(logsoftmax), x::Array)
+    y = logsoftmax(x)
+    backward!(gy, gx) = isvoid(gx) || ∇logsoftmax!(y, gy, gx)
+    y, backward!
 end
 
 function logsoftmax{T}(x::Array{T})

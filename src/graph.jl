@@ -1,63 +1,56 @@
-export compile
+export Graph
 
 type Graph
     nodes::Vector{Var}
-    args::Tuple
+    args::Tuple{Vararg{Int}}
     f
 end
 
-Graph(nodes, args) = compile!(Graph(nodes,args,nothing))
-
-Base.getindex(g::Graph, key::Int) = g.nodes[key]
-Base.setindex!(g::Graph, value::Var, key::Int) = g.nodes[key] = value
-
-function compile(output::Var, inputs::Var...)
-    @assert isa(output.data, Void)
-    all(v -> isempty(v.args) && v.data == nothing, inputs) || throw("Invalid inputs.")
-    nodes = topsort(output)
-    #count(n -> isempty(n.args), nodes) == length(inputs) || throw("Wrong number of inputs.")
-
-    # convert Var arg to index (for saving object)
+function Graph(top::Var, args::Var...)
+    nodes = topsort(top)
     node2id = Dict(nodes[i]=>i for i=1:length(nodes))
     nodes = map(nodes) do node
         isempty(node.args) && return node
-        args = map(node.args) do arg
-            typeof(arg) <: Var ? Var(node2id[arg]) : arg
+        nargs = map(node.args) do arg
+            isa(arg, Var) ? Var(node2id[arg]) : arg
         end
-        Var(node.data, node.f, args)
+        Var(node.data, node.f, nargs)
     end
-    args = map(x -> node2id[x], inputs)
-    Graph(nodes, args)
+    args = map(x -> node2id[x], args)
+    Graph(nodes, args, nothing)
 end
 
-function compile!(g::Graph)
+function (g::Graph)(args::Var...)
+    g.f == nothing && (g.f = compile(g))
+    g.f(args...)
+end
+
+function compile(g::Graph)
     calls = []
     for node in g.nodes
         if isempty(node.args)
-            push!(calls, isa(node.data,Void) ? gensym() : node)
+            push!(calls, isvoid(node.data) ? gensym() : node)
         else
             args = map(node.args) do arg
-                typeof(arg) <: Var ? calls[arg.data] : arg
+                isa(arg, Var) ? calls[arg.data] : arg
             end
             push!(calls, Expr(:call, node.f, args...))
         end
     end
     syms = map(a -> calls[a], g.args)
     expr = Expr(:->, Expr(:tuple, syms...), calls[end])
-    g.f = eval(expr)
-    g
+    eval(expr)
 end
-
-(g::Graph)(xs::Var...) = g.f(xs...)
 
 h5convert(g::Graph) = Dict("nodes"=>g.nodes, "args"=>g.args)
 h5convert(::Type{Graph}, x) = Graph(x["nodes"], x["args"])
 
+#=
 macro graph(expr)
     (expr.head == :function || expr.head == :(=)) || throw("Invalid @graph.")
     args, vars = [], []
     for arg in expr.args[1].args
-        if typeof(arg) == Expr
+        if isa(arg, Expr)
             aname, atype = arg.args[1], arg.args[2]
             atype == :Var && push!(vars, aname)
             push!(args, aname)
@@ -74,3 +67,4 @@ macro graph(expr)
     end
     :($expr)
 end
+=#

@@ -1,7 +1,5 @@
 # Automatically generated using Clang.jl wrap_c, version 0.0.0
 
-#using Compat
-
 const cuDeviceTotalMem = cuDeviceTotalMem_v2
 const cuCtxCreate = cuCtxCreate_v2
 const cuModuleGetGlobal = cuModuleGetGlobal_v2

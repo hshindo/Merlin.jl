@@ -1,4 +1,4 @@
-export concat
+import Base.cat
 
 """
     concat(dim::Int, xs::Var...)
@@ -13,39 +13,36 @@ y = concat(2, x1, x2)
 y = concat(2, Var[x1,x2])
 ```
 """
-function concat(dim::Int, xs::Vector{Var})
+cat(dim::Int, xs::Var...) = forward(cat, dim, xs...)
+
+function forward(::typeof(cat), dim::Int, xs::Array...)
     cumdim = 0
     for x in xs
-        cumdim += size(x.data, dim)
+        cumdim += size(x, dim)
     end
-    outsize = [size(xs[1].data)...]
+    outsize = [size(xs[1])...]
     outsize[dim] = cumdim
-    y = similar(xs[1].data, outsize...)
+    y = similar(xs[1], outsize...)
     range = map(s -> 1:s, outsize)
     offset = 1
     for x in xs
-        s = size(x.data, dim)
+        s = size(x, dim)
         range[dim] = offset:(offset+s-1)
-        y[range...] = x.data
+        y[range...] = x
         offset += s
     end
-    df(gy) = ∇concat!(gy, dim, xs)
-    Var(y, df, xs)
+    backward!(gy, dim, gxs...) = ∇concat!(gy, dim, gxs...)
+    y, backward!
 end
 
-function concat(dim::Int, xs::Var...)
-    any(x -> isa(x.data, Void), xs) && return Var(nothing, concat, (dim,xs...))
-    concat(dim, Var[xs...])
-end
-
-function ∇concat!(gy, dim::Int, xs::Vector{Var})
+function ∇concat!(gy, dim::Int, gxs...)
     range = [1:size(gy,i) for i=1:ndims(gy)]
     offset = 1
-    for x in xs
-        isa(x.grad, Void) && continue
-        s = size(x.data, dim)
+    for gx in gxs
+        isvoid(gx) && continue
+        s = size(gx, dim)
         range[dim] = offset:(offset+s-1)
-        broadcast!(+, x.grad, x.grad, view(gy,range...))
+        broadcast!(+, gx, gx, view(gy,range...))
         offset += s
     end
 end

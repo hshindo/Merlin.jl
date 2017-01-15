@@ -18,7 +18,7 @@ end
 function main()
     traindata = setup_data(MNIST.traindata()...)
     testdata = setup_data(MNIST.testdata()...)
-    model = Model()
+    model = setup_model()
 
     opt = SGD(0.005)
     for epoch = 1:10

@@ -1,6 +1,6 @@
 module Interop
 
-import ..CUDA: CuArray, CuSubArray, AbstractCuArray
+import ..CUDA: CudaArray, CudaSubArray, AbstractCudaArray
 
 immutable Array{T,N}
     ptr::Ptr{T}
@@ -9,8 +9,8 @@ immutable Array{T,N}
     continuous::Bool
 end
 
-Array{T,N}(x::CuArray{T,N}) = Array(pointer(x),cint(size(x)),cint(strides(x)),true)
-Array{T,N}(x::CuSubArray{T,N}) = Array(pointer(x),cint(size(x)),cint(strides(x)),false)
+Array{T,N}(x::CudaArray{T,N}) = Array(pointer(x),cint(size(x)),cint(strides(x)),true)
+Array{T,N}(x::CudaSubArray{T,N}) = Array(pointer(x),cint(size(x)),cint(strides(x)),false)
 
 immutable Cint1
     i1::Cint

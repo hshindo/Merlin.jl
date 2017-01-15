@@ -1,6 +1,6 @@
 import Base.vecnorm
 
-@graph function vecnorm(x::Var, p=1)
+function vecnorm(x::Var, p=1)
     y = vecnorm(x.data, p)
     df(gy) = isconst(x) || ∇vecnorm!(x, p, x.grad, gy)
     Var(y, [x], df)
