@@ -23,14 +23,22 @@ end
 
 function (opt::SGD){T,N}(x::Array{T,N}, gx::Array{T,N})
     if opt.momentum > 0.0
-        v = get!(()->zeros(x), opt.states, x)
-        BLAS.scal!(length(v), T(opt.momentum), v, 1)
-        BLAS.axpy!(T(-opt.rate), gx, v)
-        if nesterov
-            BLAS.scal!(length(v), T(opt.momentum), v, 1)
-            BLAS.axpy!(T(-opt.rate), gx, v)
+        if haskey(opt.states, x)
+            v = opt.states[x]
+        else
+            v = zeros(x)
+            opt.states[x] = v
         end
-        add!(x, v)
+        m = T(opt.momentum)
+        rate = T(opt.rate)
+        BLAS.scal!(length(v), m, v, 1)
+        BLAS.axpy!(-rate, gx, v)
+        if opt.nesterov
+            v = copy(v)
+            BLAS.scal!(length(v), m, v, 1)
+            BLAS.axpy!(-rate, gx, v)
+        end
+        BLAS.axpy!(T(1), v, x)
     else
         BLAS.axpy!(T(-opt.rate), gx, x)
     end

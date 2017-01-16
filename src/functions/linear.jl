@@ -28,8 +28,8 @@ y = f(x)
 """
 function Linear{T}(::Type{T}, indim::Int, outdim::Int)
     r = sqrt(6 / (indim+outdim))
-    w = uniform(T, -r, r, outdim, indim)
-    b = fill(T(0), outdim, 1)
+    w = uniform(T, -r, r, indim, outdim)
+    b = fill(T(0), outdim)
     Linear(zerograd(w), zerograd(b))
 end
 
@@ -37,15 +37,34 @@ end
 
 linear(x::Var, w::Var, b::Var) = forward(linear, x, w, b)
 
-function forward{T}(::typeof(linear), x::Matrix{T}, w::Matrix{T}, b::Matrix{T})
-    y = w * x
-    broadcast!(+, y, y, b)
+function forward{T}(::typeof(linear), x::Matrix{T}, w::Matrix{T}, b::Vector{T})
+    y = BLAS.gemm('T', 'N', T(1), w, x)
+    broadcast!(.+, y, y, b)
     function backward!{T}(gy::Matrix{T}, gx, gw, gb)
-        isvoid(gx) || BLAS.gemm!('T', 'N', T(1), w, gy, T(1), gx)
-        isvoid(gw) || BLAS.gemm!('N', 'T', T(1), gy, x, T(1), gw)
+        isvoid(gx) || BLAS.gemm!('N', 'N', T(1), w, gy, T(1), gx)
+        isvoid(gw) || BLAS.gemm!('N', 'T', T(1), x, gy, T(1), gw)
         isvoid(gb) || add!(gb, sum(gy,2))
     end
     y, backward!
+end
+
+export GatedLinear
+function GatedLinear{T}(::Type{T}, indim::Int, outdim::Int)
+    x = Var()
+    v1 = zerograd(randn(T,indim,outdim) * 0.05)
+    g1 = zerograd(ones(T,1,outdim))
+    w1 = normalize(v1) .* g1
+    b1 = zerograd(zeros(T,outdim))
+    y1 = linear(x, w1, b1)
+
+    v2 = zerograd(randn(T,indim,outdim) * 0.05)
+    g2 = zerograd(ones(T,1,outdim))
+    w2 = normalize(v1) .* g2
+    b2 = zerograd(zeros(T,outdim))
+    y2 = linear(x, w2, b2)
+
+    h = y1 .* sigmoid(y2)
+    Graph(h, x)
 end
 
 export NormLinear
@@ -56,23 +75,15 @@ type NormLinear
 end
 
 function NormLinear{T}(::Type{T}, indim::Int, outdim::Int)
-    row = outdim
-    col = indim
-    v = randn(T, row, col) * 0.05
-    g = ones(T, col)
-    b = fill(T(0), outdim, 1)
-    NormLinear(zerograd(v), zerograd(g), zerograd(b))
+    v = zerograd(randn(T,indim,outdim) * 0.05)
+    g = zerograd(ones(T,1,outdim))
+    b = zerograd(zeros(T,outdim))
+    NormLinear(v, g, b)
 end
 
 (f::NormLinear)(x::Var) = normlinear(x, f.v, f.g, f.b)
 
 function normlinear(x::Var, v::Var, g::Var, b::Var)
-    w = normalize(v,g)
+    w = normalize(v) .* g
     linear(x, w, b)
-end
-
-function normweight{T}(::Type{T}, row::Int, col::Int)
-    v = randn(T, row, col) * 0.05
-    g = ones(T, row, 1)
-    normalize(zerograd(v)) * zerograd(g)
 end

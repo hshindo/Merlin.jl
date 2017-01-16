@@ -26,9 +26,5 @@ function (m::Model)(x::Var, y=nothing)
     x = tanh(x)
     x = m.ls[2](x)
     x = reshape(x, n, n)
-    if y == nothing
-        argmax(x.data, 1)
-    else
-        crossentropy(y, x)
-    end
+    y == nothing ? argmax(x.data,1) : crossentropy(y, x)
 end

@@ -20,8 +20,9 @@ function main()
     testdata = setup_data(MNIST.testdata()...)
     model = setup_model()
 
-    opt = SGD(0.005)
-    for epoch = 1:10
+    #opt = SGD(0.001, momentum=0.99, nesterov=true)
+    opt = SGD(0.0001, momentum=0.99, nesterov=true)
+    for epoch = 1:5
         println("epoch: $epoch")
         prog = Progress(length(traindata))
         loss = 0.0
