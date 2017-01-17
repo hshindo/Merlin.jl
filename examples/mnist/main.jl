@@ -20,7 +20,6 @@ function main()
     testdata = setup_data(MNIST.testdata()...)
     model = setup_model()
 
-    #opt = SGD(0.001, momentum=0.99, nesterov=true)
     opt = SGD(0.0001, momentum=0.99, nesterov=true)
     for epoch = 1:5
         println("epoch: $epoch")
@@ -30,7 +29,10 @@ function main()
             z = model(x, y)
             loss += sum(z.data)
             vars = gradient!(z)
-            foreach(v -> opt(v.data,v.grad), vars)
+            for v in vars
+                clipnorm!(v.grad, 0.1)
+                opt(v.data, v.grad)
+            end
             next!(prog)
         end
         loss /= length(traindata)

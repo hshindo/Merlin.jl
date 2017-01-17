@@ -1,10 +1,10 @@
 export clipnorm!, clipvalue!
 
-function clipnorm!{T}(x::Matrix{T}, threshold::T)
+function clipnorm!{T}(x::Array{T}, threshold)
     z = mapreducedim(v -> v*v, +, x, 1)
     for j = 1:length(z)
         norm = sqrt(z[j])
-        z[j] = norm <= threshold ? 1 : threshold/norm
+        z[j] = norm <= T(threshold) ? 1 : T(threshold)/norm
     end
     x .*= z
 end
