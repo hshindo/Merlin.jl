@@ -51,17 +51,19 @@ end
 export GatedLinear
 function GatedLinear{T}(::Type{T}, indim::Int, outdim::Int)
     x = Var()
-    v1 = zerograd(randn(T,indim,outdim) * 0.05)
-    g1 = zerograd(ones(T,1,outdim))
-    w1 = normalize(v1) .* g1
-    b1 = zerograd(zeros(T,outdim))
-    y1 = linear(x, w1, b1)
+    #v1 = zerograd(randn(T,indim,outdim) * 0.05)
+    #g1 = zerograd(ones(T,1,outdim))
+    #w1 = normalize(v1) .* g1
+    #b1 = zerograd(zeros(T,outdim))
+    #y1 = linear(x, w1, b1)
+    y1 = Linear(T,indim,outdim)(x)
 
-    v2 = zerograd(randn(T,indim,outdim) * 0.05)
-    g2 = zerograd(ones(T,1,outdim))
-    w2 = normalize(v1) .* g2
-    b2 = zerograd(zeros(T,outdim))
-    y2 = linear(x, w2, b2)
+    #v2 = zerograd(randn(T,indim,outdim) * 0.05)
+    #g2 = zerograd(ones(T,1,outdim))
+    #w2 = normalize(v1) .* g2
+    #b2 = zerograd(zeros(T,outdim))
+    #y2 = linear(x, w2, b2)
+    y2 = Linear(T,indim,outdim)(x)
 
     h = y1 .* sigmoid(y2)
     Graph(h, x)

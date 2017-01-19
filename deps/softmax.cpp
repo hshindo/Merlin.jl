@@ -58,7 +58,7 @@ void logsoftmax(T *x, T *y, int dim1, int dim2, int dim3) {
                 if (x[idx] > maxv) maxv = x[idx];
             }
 
-            T z = 0;
+            T z = 1e-10;
             for (int k = 0; k < dim2; k++) {
                 int idx = getindex(i, j, k, dim1, dim2);
                 z += exp(x[idx] - maxv);

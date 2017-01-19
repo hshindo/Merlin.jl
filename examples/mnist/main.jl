@@ -30,7 +30,7 @@ function main()
             loss += sum(z.data)
             vars = gradient!(z)
             for v in vars
-                clipnorm!(v.grad, 0.1)
+                #clipnorm!(v.grad, 0.1)
                 opt(v.data, v.grad)
             end
             next!(prog)

@@ -8,13 +8,13 @@ end
 
 function Graph(top::Var, args::Var...)
     nodes = topsort(top)
-    node2id = Dict(nodes[i]=>i for i=1:length(nodes))
+    node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
     nodes = map(nodes) do node
         isempty(node.args) && return node
         nargs = map(node.args) do arg
             isa(arg, Var) ? Var(node2id[arg]) : arg
         end
-        Var(node.data, node.f, nargs)
+        Var(node.data, node.f, nargs, node.grad)
     end
     args = map(x -> node2id[x], args)
     Graph(nodes, args, nothing)

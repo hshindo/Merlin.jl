@@ -30,7 +30,7 @@ for name in [
     "cat",
     #"conv",
     "crossentropy",
-    #"dropout",
+    "dropout",
     "getindex",
     #"gru",
     "linear",

@@ -1,6 +1,6 @@
 export
     Var,
-    zerograd, zerograd!, setbackend,
+    zerograd, zerograd!, setbackend!,
     topsort, gradient!
 
 """
@@ -10,20 +10,23 @@ export
 It contains the following members:
 
 * data
-* f: forward or backward function
+* f: forward function
 * args: arguments of `f`
+* df!: backward function
 * grad: gradient
 """
 type Var
     data
     f
     args
+    df
     grad
 end
 
-Var(data=nothing, f=nothing, args=()) = Var(data, f, args, nothing)
+Var(data=nothing, f=nothing, args=(), df=nothing) = Var(data, f, args, df, nothing)
 
 isvoid(x) = x == nothing
+isparam(v::Var) = isempty(v.args) && !isvoid(v.grad)
 
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
@@ -36,12 +39,12 @@ end
 zerograd(x) = zerograd!(Var(x))
 
 function forward(f::Function, args...)::Var
-    any(a -> isa(a, Var) && isvoid(a.data), args) && return Var(nothing, f, args)
+    any(a -> isa(a,Var) && isvoid(a.data), args) && return Var(nothing, f, args)
     xs = map(args) do a
         isa(a, Var) ? a.data : a
     end
-    y, backward! = forward(f, xs...)
-    Var(y, backward!, args)
+    y, df = forward(f, xs...)
+    Var(y, f, args, df)
 end
 
 function setbackend!(v::Var, ::Type{Array})
@@ -75,11 +78,16 @@ function gradient!(top::Var)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
-        isvoid(v.f) && continue
+        isvoid(v.df) && continue
         args = map(v.args) do a
             isa(a, Var) ? a.grad : a
         end
-        v.f(v.grad, args...)
+        v.df(v.grad, args...)
     end
-    filter(v -> isempty(v.args) && !isvoid(v.grad), sorted)
+    dict = ObjectIdDict()
+    params = Var[]
+    for v in sorted
+        
+    end
+    filter!(isparam, sorted)
 end
