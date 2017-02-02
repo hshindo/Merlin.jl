@@ -34,7 +34,7 @@ function forward{T,N}(::typeof(window), x::Array{T}, dims::NTuple{N,Int}, pads::
     ccall(window1d_handle(T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
         x, y, length(x), dims[1], pads[1], strides[1])
 
-    backward!(gy, gx, gdims, gpads, gstrides) = isvoid(gx) || ∇window!(gy, gx, dims, pads, strides)
+    backward!(gy, gx) = isvoid(gx) || ∇window!(gy, gx, dims, pads, strides)
     y, backward!
 end
 
