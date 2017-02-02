@@ -1,6 +1,7 @@
 module Merlin
 
 using Base.LinAlg.BLAS
+#BLAS.set_num_threads(1)
 
 if is_windows()
     const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.dll"))
