@@ -37,7 +37,8 @@ function setup_data(doc::Vector, worddict, chardict, tagdict)
             push!(cs, Var(charids))
             push!(t, tagid)
         end
-        push!(data, (Var(w),cs,Var(t)))
+        x = (Var(w), cs)
+        push!(data, (x,Var(t)))
     end
     data
 end

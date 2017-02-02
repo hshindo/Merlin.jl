@@ -66,7 +66,7 @@ function forward{T}(f::Lookup, x::Array{T})
     end
     function backward!(gy, gx)
         ∇lookup!(gy, f.ws, x)
-        for id in x.data
+        for id in x
             id > 0 && push!(f.idset, id)
         end
     end

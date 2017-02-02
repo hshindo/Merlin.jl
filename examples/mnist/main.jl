@@ -1,6 +1,5 @@
 using Merlin
 using MLDatasets
-using ProgressMeter
 
 const load_model = false
 const write_model = false
