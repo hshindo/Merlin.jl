@@ -9,7 +9,7 @@ max(x::Var, dim::Int) = forward(max, x, dim)
 
 function forward(::typeof(max), x::Array, dim::Int)
     y, idx = findmax(x, dim)
-    backward!(gy, gx, dim) = isvoid(gx) || ∇max!(gy, gx, idx)
+    backward!(gy, gx) = isvoid(gx) || ∇max!(gy, gx, idx)
     y, backward!
 end
 
@@ -28,6 +28,6 @@ sum(x::Var, dim::Int) = forward(sum, x, dim)
 
 function forward(::typeof(sum), x::Array, dim::Int)
     y = sum(x, dim)
-    backward!(gy, gx, dim) = isvoid(gx) || broadcast!(+, gx, gx, gy)
+    backward!(gy, gx) = isvoid(gx) || broadcast!(+, gx, gx, gy)
     y, backward!
 end

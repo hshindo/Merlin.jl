@@ -2,6 +2,9 @@ export dropout
 
 """
     dropout(x::Var, rate::Float64)
+
+This is inteded to be used only for training.
+For testing, omit the dropout function.
 """
 dropout(x::Var, rate::Float64) = forward(dropout, x, rate)
 
@@ -12,7 +15,7 @@ function forward{T}(::typeof(dropout), x::Array{T}, rate::Float64)
     @inbounds @simd for i = 1:length(x)
         y[i] = ifelse(rx[i] <= T(rate), T(0), scale*x[i])
     end
-    backward!(gy, gx, rate) = isvoid(gx) || ∇dropout!(gy, gx, rate, rx)
+    backward!(gy, gx) = isvoid(gx) || ∇dropout!(gy, gx, rate, rx)
     y, backward!
 end
 

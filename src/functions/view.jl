@@ -8,9 +8,6 @@ view(x::Var, inds...) = view(x, inds)
 
 function forward(::typeof(view), x::Array, inds::Tuple)
     y = view(x, inds...)
-    function backward!(gy, gx, inds)
-        isvoid(gx) && return
-        gx[inds...] += gy
-    end
+    backward!(gy, gx) = isvoid(gx) || (gx[inds...] += gy)
     y, backward!
 end

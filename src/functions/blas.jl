@@ -10,13 +10,17 @@ y = \alpha \times \textrm{tA}(A) \times x
 ```
 """
 gemv(tA, alpha, A::Var, x::Var) = forward(gemv, tA, alpha, A, x)
-gemv(A::Var, x::Var; tA='N', alpha=1) = gemv(tA, alpha, A, x)
+gemv(A, x; tA='N', alpha=1) = gemv(tA, alpha, A, x)
 
-function forward{T}(::typeof(gemv), tA::Char, alpha, A::Matrix{T}, x::Vector{T})
+function forward{T}(::typeof(gemv), tA::Char, alpha, A::Array{T}, x::Array{T})
     y = BLAS.gemv(tA, T(alpha), A, x)
-    function backward!(gy, tA, alpha, gA, gx)
-        isvoid(gA) || BLAS.gemm!('N', 'N', T(alpha), gy, redim(x,2,pad=1), T(1), gA)
-        isvoid(gx) || BLAS.gemv!('T', T(alpha), A, gy, T(1), gx)
+    function backward!(gy, gA, gx)
+        if !isvoid(gA)
+            tA == 'N' ?
+            BLAS.gemm!('N', 'T', T(alpha), redim(gy,2), redim(x,2), T(1), gA) :
+            BLAS.gemm!('N', 'T', T(alpha), redim(x,2), redim(gy,2), T(1), gA)
+        end
+        isvoid(gx) || BLAS.gemv!(tA=='N'?'T':'N', T(alpha), A, gy, T(1), gx)
     end
     y, backward!
 end
@@ -33,11 +37,11 @@ C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
 ```
 """
 gemm(tA, tB, alpha, A::Var, B::Var) = forward(gemm, tA, tB, alpha, A, B)
-gemm(A::Var, B::Var; tA='N', tB='N', alpha=1) = gemm(tA, tB, alpha, A, B)
+gemm(A, B; tA='N', tB='N', alpha=1) = gemm(tA, tB, alpha, A, B)
 
 function forward{T}(::typeof(gemm), tA::Char, tB::Char, alpha, A::Matrix{T}, B::Matrix{T})
     C = BLAS.gemm(tA, tB, T(alpha), A, B)
-    function backward!(gC, tA, tB, alpha, gA, gB)
+    function backward!(gC, gA, gB)
         if !isvoid(gA)
             tA == 'N' ?
             BLAS.gemm!('N', tB=='N'?'T':'N', T(alpha), gC, B, T(1), gA) :
@@ -57,7 +61,7 @@ end
     gemm_batch(As::Vector{Var}, B::Vector{Var}, [tA='N'], [tB='N'], [alpha=1])
 """
 gemm_batch(tA, tB, alpha, As::Vector{Var}, Bs::Vector{Var}) = forward(tA, tB, alpha, As, Bs)
-gemm_batch(As, Bs; tA='N', tB='N', alpha=1.0) = gemm_batch(tA, tB, alpha, As, Bs)
+gemm_batch(As, Bs; tA='N', tB='N', alpha=1) = gemm_batch(tA, tB, alpha, As, Bs)
 
 function forward(::typeof(gemm_batch), tA::Char, tB::Char, alpha, As::Vector{Matrix}, Bs::Vector{Matrix})
     length(As) == length(Bs) || throw(DimensionMismatch("Length of As and Bs must be the same."))

@@ -16,7 +16,7 @@ getindex(x::Var, inds...) = getindex(x, inds)
 
 function forward(::typeof(getindex), x::Array, inds::Tuple)
     y = x[inds...]
-    function backward!(gy, gx, inds)
+    function backward!(gy, gx)
         isvoid(gx) && return
         gx = view(gx, inds...)
         broadcast!(+, gx, gx, gy)

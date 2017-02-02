@@ -12,7 +12,7 @@ It contains the following members:
 * data
 * f: forward function
 * args: arguments of `f`
-* df!: backward function
+* df: backward function
 * grad: gradient
 """
 type Var
@@ -26,7 +26,6 @@ end
 Var(data=nothing, f=nothing, args=(), df=nothing) = Var(data, f, args, df, nothing)
 
 isvoid(x) = x == nothing
-isparam(v::Var) = isempty(v.args) && !isvoid(v.grad)
 
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
@@ -38,8 +37,7 @@ function zerograd!(v::Var)
 end
 zerograd(x) = zerograd!(Var(x))
 
-function forward(f::Function, args...)::Var
-    any(a -> isa(a,Var) && isvoid(a.data), args) && return Var(nothing, f, args)
+function forward(f, args...)
     xs = map(args) do a
         isa(a, Var) ? a.data : a
     end
@@ -79,15 +77,11 @@ function gradient!(top::Var)
     for i = length(sorted):-1:1
         v = sorted[i]
         isvoid(v.df) && continue
-        args = map(v.args) do a
-            isa(a, Var) ? a.grad : a
+        args = Any[v.grad]
+        for a in v.args
+            isa(a, Var) && push!(args, a.grad)
         end
-        v.df(v.grad, args...)
+        v.df(args...)
     end
-    dict = ObjectIdDict()
-    params = Var[]
-    for v in sorted
-        
-    end
-    filter!(isparam, sorted)
+    filter!(v -> isempty(v.args) && !isvoid(v.grad), sorted)
 end

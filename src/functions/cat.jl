@@ -31,7 +31,7 @@ function forward(::typeof(cat), dim::Int, xs::Array...)
         y[range...] = x
         offset += s
     end
-    backward!(gy, dim, gxs...) = ∇concat!(gy, dim, gxs...)
+    backward!(gy, gxs...) = ∇concat!(gy, dim, gxs...)
     y, backward!
 end
 

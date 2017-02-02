@@ -16,6 +16,7 @@ h = Var(rand(T,100))
 y = gru(x, h)
 ```
 """
+
 function GRU{T}(::Type{T}, xsize::Int)
     ws = [zerograd(rand(T,xsize,xsize)) for i=1:3]
     us = [zerograd(rand(T,xsize,xsize)) for i=1:3]

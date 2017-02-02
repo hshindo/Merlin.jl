@@ -155,12 +155,5 @@ end
 """
 *(x1::Var, x2::Var) = forward(*, x1, x2)
 
-function forward(::typeof(*), x1::Matrix, x2::Matrix)
-    throw("Not implemented yet.")
-    y = x1 * x2
-
-    size(x2,2) == 1 && return forward(*, x1, vec(x2))
-    y, _backward! = forward(gemm, 'N', 'N', 1, x1, x2)
-    backward!(gy, gx1, gx2) = _backward!(gy, 'N', 'N', 1, gx1, gx2)
-    y, backward!
-end
+forward(::typeof(*), x1::Matrix, x2::Vector) = forward(gemv, 'N', 1, x1, x2)
+forward(::typeof(*), x1::Matrix, x2::Matrix) = forward(gemm, 'N', 'N', 1, x1, x2)

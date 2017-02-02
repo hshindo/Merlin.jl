@@ -8,7 +8,7 @@ Stochastic Gradient Descent.
 ## Arguments
 * rate: learning rate
 * [momentum::Float64]: momentum coefficient
-* [nesterov::Bool]: us nesterov acceleration or not
+* [nesterov::Bool]: use nesterov acceleration or not
 """
 type SGD
     rate::Float64

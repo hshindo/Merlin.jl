@@ -49,12 +49,9 @@ function Lookup(path::String, T::Type)
     Lookup(ws)
 end
 
-function (f::Lookup)(x::Var)
-    isvoid(x.data) && return Var(nothing, f, (x,))
-    f(x.data)
-end
+(f::Lookup)(x::Var) = forward(f, x)
 
-function (f::Lookup){T}(x::Array{T})
+function forward{T}(f::Lookup, x::Array{T})
     ws = f.ws
     n = length(ws[1].data)
     dims = [n, size(x)...]
@@ -67,34 +64,14 @@ function (f::Lookup){T}(x::Array{T})
             copy!(y, yi, ws[x[i]].data, 1, n)
         end
     end
-    function backward!(gy, gx...)
+    function backward!(gy, gx)
         ∇lookup!(gy, f.ws, x)
-        #for id in x.data
-        #    id > 0 && push!(f.idset, id)
-        #end
-    end
-    args = Var[]
-    foreach(id -> id > 0 && push!(args,f.ws[id]), Set(x))
-    Var(y, backward!, args)
-end
-
-#=
-function lookup(ws::Vector{Var}, x::Array{Int})
-    T = eltype(ws[1].data)
-    n = length(ws[1].data)
-    dims = [n, size(x)...]
-    y = similar(ws[1].data, dims...)
-    for i = 1:length(x)
-        yi = (i-1) * n + 1
-        if x[i] == 0
-            y[yi:yi+n-1] = T(0)
-        else
-            copy!(y, yi, ws[x[i]].data, 1, n)
+        for id in x.data
+            id > 0 && push!(f.idset, id)
         end
     end
-    y
+    y, backward!
 end
-=#
 
 function ∇lookup!{T}(gy::Array{T}, ws::Vector{Var}, x::Array{Int})
     n = length(ws[1].data)

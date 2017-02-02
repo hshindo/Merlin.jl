@@ -1,5 +1,6 @@
 export checkgrad, checkcuda
 
+# TODO: check functor
 function checkgrad(f, args...; eps=1e-3)
     vars = collect(filter(a -> isa(a,Var) && !isvoid(a.grad), args))
     foreach(zerograd!, vars)
