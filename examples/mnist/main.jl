@@ -23,19 +23,7 @@ function main()
     opt = SGD(0.0001, momentum=0.99, nesterov=true)
     for epoch = 1:5
         println("epoch: $epoch")
-        prog = Progress(length(traindata))
-        loss = 0.0
-        for (x,y) in shuffle(traindata)
-            z = model(x, y)
-            loss += sum(z.data)
-            vars = gradient!(z)
-            for v in vars
-                #clipnorm!(v.grad, 0.1)
-                opt(v.data, v.grad)
-            end
-            next!(prog)
-        end
-        loss /= length(traindata)
+        loss = fit(traindata, model, opt)
         println("loss: $loss")
 
         # predict

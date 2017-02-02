@@ -26,6 +26,7 @@ end
 Var(data=nothing, f=nothing, args=(), df=nothing) = Var(data, f, args, df, nothing)
 
 isvoid(x) = x == nothing
+isparam(v) = isempty(v.args) && !isvoid(v.grad)
 
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
@@ -83,5 +84,5 @@ function gradient!(top::Var)
         end
         v.df(args...)
     end
-    filter!(v -> isempty(v.args) && !isvoid(v.grad), sorted)
+    sorted
 end

@@ -18,7 +18,7 @@ include("check.jl")
 include("util.jl")
 include("var.jl")
 include("graph.jl")
-#include("fit.jl")
+include("fit.jl")
 #include("native.jl")
 #include("hdf5.jl")
 
