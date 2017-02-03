@@ -42,6 +42,12 @@ function forward(f, args...)
     xs = map(args) do a
         isa(a, Var) ? a.data : a
     end
+    if isa(a, Array)
+        
+    elseif isa(a, CuArray)
+    else
+        throw("")
+    end
     y, df = forward(f, xs...)
     Var(y, f, args, df)
 end

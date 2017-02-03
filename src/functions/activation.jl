@@ -6,7 +6,7 @@ import Base.tanh
 
 Rectifier linear unit.
 """
-relu(x::Var) = forward(relu, x)
+relu(x::Var) = forward(relu, x.data)
 
 function forward{T}(::typeof(relu), x::Array{T})
     y = similar(x)
@@ -14,7 +14,7 @@ function forward{T}(::typeof(relu), x::Array{T})
         y[i] = max(x[i], T(0))
     end
     backward!(gy, gx) = isvoid(gx) || ∇relu!(y, gy, x, gx)
-    y, backward!
+    Var(y, (x,), backward!)
 end
 
 function ∇relu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
