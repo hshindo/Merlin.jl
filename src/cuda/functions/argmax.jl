@@ -2,7 +2,7 @@ import ..Merlin: argmax
 
 function argmax{T,N}(x::CuArray{T,N}, dim::Int)
     t = ctype(T)
-    f = @nvrtc """
+    f = @compile """
     $array_h
     template<typename T>
     __inline__ __device__ T warpReduce(T a, int *maxId) {

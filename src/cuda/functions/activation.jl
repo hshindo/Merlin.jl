@@ -1,17 +1,22 @@
 import ..Merlin: relu, clipped_relu, sigmoid
 import Base.tanh
 
-function activation(x::Var, mode)
+function activation{T}(x::CuArray{T}, mode)
+    h = CUDNN.handle(x)
     desc = CUDNN.ActivationDesc(mode)
-    y = CUDNN.activation(desc, x.data)
-    df(gy) = CUDNN.∇activation!(desc, y, gy, x.data, x.grad, beta=1.0)
-    Var(y, df, (x,))
+    y = similar(x)
+    xdesc = CUDNN.TensorDesc(x)
+    cudnnActivationForward(h, desc, T[1], xdesc, x, T[0], xdesc, y)
+    function backward!(dy, dx)
+        cudnnActivationBackward(h, desc, T[1], xdesc, y, xdesc, dy, xdesc, x, T[1], xdesc, dx)
+    end
+    y, backward!
 end
 
-relu{X<:CuArray}(x::Var{X}) = activation(x, CUDNN_ACTIVATION_RELU)
+forward(::typeof(relu), x::CuArray) = activation(x, CUDNN_ACTIVATION_RELU)
 
-clipped_relu{X<:CuArray}(x::Var{X}) = activation(x, CUDNN_ACTIVATION_CLIPPED_RELU)
+forward(::typeof(clipped_relu), x::CuArray) = activation(x, CUDNN_ACTIVATION_CLIPPED_RELU)
 
-sigmoid{X<:CuArray}(x::Var{X}) = activation(x, CUDNN_ACTIVATION_SIGMOID)
+forward(::typeof(sigmoid), x::CuArray) = activation(x, CUDNN_ACTIVATION_SIGMOID)
 
-tanh{X<:CuArray}(x::Var{X}) = activation(x, CUDNN_ACTIVATION_TANH)
+forward(::typeof(tanh), x::CuArray) = activation(x, CUDNN_ACTIVATION_TANH)

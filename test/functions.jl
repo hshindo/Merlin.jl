@@ -7,7 +7,9 @@ x = zerograd(rand(T,10,5))
 relu(x)
 clipped_relu(x)
 @test checkgrad(sigmoid, x)
+@test checkcuda(sigmoid, x)
 @test checkgrad(tanh, x)
+@test checkcuda(tanh, x)
 
 # argmax
 x = rand(T,10,7,5,3)
@@ -104,6 +106,7 @@ x = zerograd(rand(T,5,4,3))
 # softmax
 x = zerograd(rand(T,10,5))
 @test checkgrad(softmax, x)
+@test checkcuda(softmax, x)
 @test checkgrad(logsoftmax, x, eps=1e-2)
 
 # view

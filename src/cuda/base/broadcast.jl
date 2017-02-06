@@ -1,5 +1,29 @@
 import Base: broadcast, broadcast!
 
+@generated function broadcast!{T}(::typeof(+), y::CuArray{T,N}, x1::CuArray{T,N}, x2::CuArray{T,N})
+    n = N
+    f = CuFunction("""
+    template<int N, typename T>
+    struct NTuple {
+        const T data[N];
+    public:
+        __device__ T& operator[](const int idx) { return data[idx]; }
+    };
+
+    __global__ void f($T *y, $T *x1, $T *x2, NTuple<$n,int> dims_x, NTuple<$n,int> dims_y) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < 10) {
+
+        }
+    }
+    """)
+    quote
+        $f(y.ptr, x1.ptr, x2.ptr, size(x1), size(x2))
+        y
+    end
+end
+
+#=
 for op in (:+, :-, :*)
     @eval begin
         function broadcast!{T,N}(::typeof($op), y::AbstractCudaArray{T,N},
@@ -43,3 +67,4 @@ for op in (:+, :-, :*)
         end
     end
 end
+=#
