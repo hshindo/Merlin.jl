@@ -1,7 +1,6 @@
 import Base: broadcast, broadcast!
 
-@generated function broadcast!{T}(::typeof(+), y::CuArray{T,N}, x1::CuArray{T,N}, x2::CuArray{T,N})
-    n = N
+@generated function broadcast!{T,N}(::typeof(+), y::CuArray{T,N}, x1::CuArray{T,N}, x2::CuArray{T,N})
     f = CuFunction("""
     template<int N, typename T>
     struct NTuple {
@@ -10,10 +9,10 @@ import Base: broadcast, broadcast!
         __device__ T& operator[](const int idx) { return data[idx]; }
     };
 
-    __global__ void f($T *y, $T *x1, $T *x2, NTuple<$n,int> dims_x, NTuple<$n,int> dims_y) {
+    __global__ void f($T *y, $T *x1, $T *x2, NTuple<$N,int> dims_x, NTuple<$N,int> dims_y) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx < 10) {
-
+            
         }
     }
     """)

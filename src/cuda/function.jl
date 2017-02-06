@@ -107,10 +107,26 @@ box(x::Float32) = pointer_from_objref(x)
 box(t::NTuple{2,Int}) = pointer_from_objref(Cint2(t[1],t[2]))
 box(t::NTuple{3,Int}) = pointer_from_objref(Cint3(t[1],t[2],t[3]))
 box(t::NTuple{4,Int}) = pointer_from_objref(Cint4(t[1],t[2],t[3],t[4]))
-#box(x::CuArray) = box(Interop.Array(x))
+
+function aaa_h(x::NTuple)
+    """
+    template<int N, typename T>
+    struct NTuple {
+        const T data[N];
+    public:
+        __device__ T& operator[](const int idx) { return data[idx]; }
+    };
+    """
+end
 
 function (f::CuFunction)(args...;
     dx=1, dy=1, dz=1, bx=128, by=1, bz=1, sharedmem=0, stream=C_NULL)
+
+    for arg in args
+        aaa(arg)
+        b = cubox(arg)
+        p = pointer_from_objref(cubox(arg))
+    end
 
     argptrs = Ptr{Void}[box(a) for a in args]
     gx = ceil(dx / bx)
