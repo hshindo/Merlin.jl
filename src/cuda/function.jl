@@ -101,36 +101,83 @@ immutable Cint4
     i4::Cint
 end
 
-box(x) = pointer_from_objref(x)
-box(x::Int) = pointer_from_objref(Cint(x))
-box(x::Float32) = pointer_from_objref(x)
-box(t::NTuple{2,Int}) = pointer_from_objref(Cint2(t[1],t[2]))
-box(t::NTuple{3,Int}) = pointer_from_objref(Cint3(t[1],t[2],t[3]))
-box(t::NTuple{4,Int}) = pointer_from_objref(Cint4(t[1],t[2],t[3],t[4]))
-
-function aaa_h(x::NTuple)
-    """
-    template<int N, typename T>
-    struct NTuple {
-        const T data[N];
-    public:
-        __device__ T& operator[](const int idx) { return data[idx]; }
-    };
-    """
-end
+box(x) = x
+box(x::Int) = Cint(x)
+box(t::NTuple{2,Int}) = Cint2(t[1],t[2])
+box(t::NTuple{3,Int}) = Cint3(t[1],t[2],t[3])
+box(t::NTuple{4,Int}) = Cint4(t[1],t[2],t[3],t[4])
 
 function (f::CuFunction)(args...;
     dx=1, dy=1, dz=1, bx=128, by=1, bz=1, sharedmem=0, stream=C_NULL)
-
-    for arg in args
-        aaa(arg)
-        b = cubox(arg)
-        p = pointer_from_objref(cubox(arg))
-    end
-
-    argptrs = Ptr{Void}[box(a) for a in args]
+    argptrs = Ptr{Void}[pointer_from_objref(box(a)) for a in args]
     gx = ceil(dx / bx)
     gy = ceil(dy / by)
     gz = ceil(dz / bz)
     cuLaunchKernel(f, gx, gy, gz, bx, by, bz, sharedmem, stream, argptrs, stream)
 end
+
+const ntuple_h = """
+template<int N>
+struct NTuple {
+    const int data[N];
+public:
+    __device__ int& operator[](const int idx) { return data[idx]; }
+};
+"""
+
+const array_h = """
+template<typename T, int N>
+struct Array {
+    T *data;
+    const int dims[N];
+public:
+    __device__ int length() {
+        int n = dims[0];
+        for (int i = 1; i < N; i++) n *= dims[i];
+        return n;
+    }
+    __device__ T& operator[](const int idx) { return data[idx]; }
+    __device__ T& operator()(int idx0, int idx1) {
+        return data[idx0 + idx1*dims[0]];
+    }
+    __device__ T& operator()(int idx0, int idx1, int idx2) {
+        return data[idx0 + idx1*dims[0] + idx2*dims[0]*dims[1]];
+    }
+    __device__ T& operator()(int idx0, int idx1, int idx2, int idx3) {
+        return data[idx0 + idx1*dims[0] + idx2*dims[0]*dims[1] + idx3*dims[0]*dims[1]*dims[2]];
+    }
+    __device__ void idx2sub2(const int idx, const int *cumdims, int *subs) {
+        int temp = idx;
+        for (int i = N-1; i >= 1; i--) {
+            int k = temp / cumdims[i];
+            subs[i] = k;
+            temp -= k * cumdims[i];
+        }
+        subs[0] = temp;
+        return;
+    }
+    __device__ void idx2sub(const int idx, int *subs) {
+        int cumdims[N];
+        cumdims[0] = 1;
+        for (int i = 1; i < N; i++) cumdims[i] = cumdims[i-1] * dims[i-1];
+
+        int temp = idx;
+        for (int i = N-1; i >= 1; i--) {
+            int k = temp / cumdims[i];
+            subs[i] = k;
+            temp -= k * cumdims[i];
+        }
+        subs[0] = temp;
+        return;
+    }
+    __device__ T& operator()(int *subs) {
+        int idx = 0;
+        int stride = 1;
+        for (int i = 0; i < N; i++) {
+            if (dims[i] > 1) idx += subs[i] * stride;
+            stride *= dims[i];
+        }
+        return data[idx];
+    }
+};
+"""

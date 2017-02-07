@@ -1,23 +1,25 @@
 import Base: broadcast, broadcast!
 
-@generated function broadcast!{T,N}(::typeof(+), y::CuArray{T,N}, x1::CuArray{T,N}, x2::CuArray{T,N})
-    f = CuFunction("""
-    template<int N, typename T>
-    struct NTuple {
-        const T data[N];
-    public:
-        __device__ T& operator[](const int idx) { return data[idx]; }
-    };
+immutable CArray{T,N}
+    ptr::Ptr{T}
+    dims::N
+end
 
-    __global__ void f($T *y, $T *x1, $T *x2, NTuple<$N,int> dims_x, NTuple<$N,int> dims_y) {
+CArray{T,N}(x::CuArray{T,N}) = CArray(pointer(x),box(size(x)))
+
+@generated function broadcast!{T,N}(::typeof(.+), y::CuArray{T,N}, x1::CuArray{T,N}, x2::CuArray{T,N})
+    f = CuFunction("""
+    $array_h
+    __global__ void f(Array<$T,$N> y, Array<$T,$N> x1, Array<$T,$N> x2) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx < 10) {
-            
+        if (idx < y.length()) {
+            int subs[$N];
+            y.idx2sub(idx, subs);
+            y[idx] = x1(subs) + x2(subs);
         }
-    }
-    """)
+    }""")
     quote
-        $f(y.ptr, x1.ptr, x2.ptr, size(x1), size(x2))
+        $f(CArray(y), CArray(x1), CArray(x2), dx=length(y))
         y
     end
 end

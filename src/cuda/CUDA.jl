@@ -55,15 +55,6 @@ include("functions/softmax.jl")
 
 #=
 
-include("base/pointer.jl")
-include("base/abstractarray.jl")
-include("base/array.jl")
-include("base/arraymath.jl")
-include("base/broadcast.jl")
-include("base/headers.jl")
-include("base/reducedim.jl")
-include("base/subarray.jl")
-
 include("Interop.jl")
 
 ##### NVRTC #####
