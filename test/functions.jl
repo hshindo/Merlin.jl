@@ -53,6 +53,12 @@ x = zerograd(rand(T,10,5))
 @test checkgrad(getindex, x, 1:3)
 @test checkgrad(getindex, x, 10:10)
 
+# gru
+x = zerograd(rand(T,100))
+h = zerograd(rand(T,100))
+f = GRU(T,100)
+@test checkgrad(f, x, h)
+
 # linear
 x = zerograd(rand(T,10,1))
 f = Linear(T, 10, 7)

@@ -88,8 +88,8 @@ end
     -(x::Var)
 """
 -(x1::Var, x2::Var) = forward(-, x1, x2)
--(a::Number, x::Var) = Var([a]) - x
--(x::Var, a::Number) = x - Var([a])
+-(a::Number, x::Var) = Var([a]) .- x
+-(x::Var, a::Number) = x .- Var([a])
 -(x::Var) = forward(-, x)
 
 function forward(::typeof(-), x1::Array, x2::Array)

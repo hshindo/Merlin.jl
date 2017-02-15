@@ -32,7 +32,7 @@ for name in [
     "crossentropy",
     "dropout",
     "getindex",
-    #"gru",
+    "gru",
     "linear",
     "lookup",
     "math",
