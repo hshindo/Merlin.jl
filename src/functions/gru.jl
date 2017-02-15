@@ -1,12 +1,12 @@
 export GRU
 
 """
-    GRU(T::Type, xsize::Int)
+    GRU(T::Type, size::Int)
 
 Gated Recurrent Unit (GRU).
 See: Chung et al. "Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling", 2014
 
-* xsize: size of input vector (= size of hidden vector)
+* size: size of input vector (= size of hidden vector)
 
 ```julia
 T = Float32
