@@ -10,10 +10,10 @@ See: Chung et al. "Empirical Evaluation of Gated Recurrent Neural Networks on Se
 
 ```julia
 T = Float32
-gru = GRU(T, 100)
+f = GRU(T, 100)
 x = Var(rand(T,100))
 h = Var(rand(T,100))
-y = gru(x, h)
+y = f(x, h)
 ```
 """
 type GRU
