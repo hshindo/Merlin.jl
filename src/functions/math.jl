@@ -84,6 +84,13 @@ function ∇elemplus!{T}(gy::Array{T}, gx::Array{T})
 end
 
 """
+    in-place add
+"""
+function inadd!(x1::Array, x2::Array)
+    broadcast!(+, x1, x1, x2)
+end
+
+"""
     -(x1::Var, x2::Var)
     -(x::Var)
 """
