@@ -1,16 +1,16 @@
 import Base.cat
 
 """
-    concat(dim::Int, xs::Var...)
-    concat(dim::Int, xs::Vector{Var})
+    cat(dim::Int, xs::Var...)
+    cat(dim::Int, xs::Vector{Var})
 
 Concatenate arrays over the given dimension.
 
 ```julia
 x1 = Var(rand(Float32,4,3))
 x2 = Var(rand(Float32,4,5))
-y = concat(2, x1, x2)
-y = concat(2, Var[x1,x2])
+y = cat(2, x1, x2)
+y = cat(2, Var[x1,x2])
 ```
 """
 cat(dim::Int, xs::Var...) = forward(cat, dim, xs...)
@@ -31,11 +31,11 @@ function forward(::typeof(cat), dim::Int, xs::Array...)
         y[range...] = x
         offset += s
     end
-    backward!(gy, gxs...) = ∇concat!(gy, dim, gxs...)
+    backward!(gy, gxs...) = ∇cat!(gy, dim, gxs...)
     y, backward!
 end
 
-function ∇concat!(gy, dim::Int, gxs...)
+function ∇cat!(gy, dim::Int, gxs...)
     range = [1:size(gy,i) for i=1:ndims(gy)]
     offset = 1
     for gx in gxs

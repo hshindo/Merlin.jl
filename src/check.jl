@@ -30,6 +30,7 @@ function checkgrad(f, args...; eps=1e-3)
 end
 
 function checkcuda(f, args...; eps=1e-3)
+    use_cuda || return true
     vars = collect(filter(a -> isa(a,Var) && !isvoid(a.grad), args))
     foreach(zerograd!, vars)
     y1 = f(args...)

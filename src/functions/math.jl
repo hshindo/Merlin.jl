@@ -76,19 +76,13 @@ function forward(::typeof(.+), x1::Array, x2::Array)
     y, backward!
 end
 
-function ∇elemplus!{T}(gy::Array{T}, gx::Array{T})
+function ∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T,N})
     ind_gx = CartesianIndex(size(gx))
     @inbounds @simd for I in CartesianRange(size(gy))
         gx[min(ind_gx,I)] += gy[I]
     end
 end
-
-"""
-    in-place add
-"""
-function inadd!(x1::Array, x2::Array)
-    broadcast!(+, x1, x1, x2)
-end
+∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T}) = ∇elemplus!(gy, redim(gx,N))
 
 """
     -(x1::Var, x2::Var)

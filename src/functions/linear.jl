@@ -29,15 +29,11 @@ y = f(x)
 function Linear{T}(::Type{T}, indim::Int, outdim::Int)
     r = sqrt(6 / (indim+outdim))
     w = uniform(T, -r, r, indim, outdim)
-    b = fill(T(0), outdim)
+    b = fill(T(0), outdim, 1)
     Linear(zerograd(w), zerograd(b))
 end
 
 (f::Linear)(x::Var) = linear(x, f.w, f.b)
-
-function linear2(x::Var, w::Var, b::Var)
-    forward(linear, x, w, b)
-end
 
 linear(x::Var, w::Var, b::Var) = gemm('T', 'N', 1, w, x) .+ b
 
