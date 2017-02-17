@@ -35,6 +35,7 @@ for name in [
     "gru",
     "linear",
     "lookup",
+    "lstm",
     "math",
     "normalize",
     "pairwise",
