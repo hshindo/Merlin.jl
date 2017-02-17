@@ -156,5 +156,5 @@ end
 """
 *(x1::Var, x2::Var) = forward(*, x1, x2)
 
-forward(::typeof(*), x1::Matrix, x2::Vector) = forward(gemv, x1, x2)
-forward(::typeof(*), x1::Matrix, x2::Matrix) = forward(gemm, sx1, x2)
+forward(::typeof(*), x1::Matrix, x2::Vector) = forward(gemv, 'N', 1, x1, x2)
+forward(::typeof(*), x1::Matrix, x2::Matrix) = forward(gemm, 'N', 'N', 1, x1, x2)

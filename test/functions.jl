@@ -70,6 +70,11 @@ x = Var(rand(1:10000,10,5))
 f = Lookup(T, 10000, 100)
 y = f(x)
 
+# lstm
+lstm = LSTM(T, 100)
+x = zerograd(rand(T,100,10))
+@test checkgrad(lstm, x)
+
 # math
 x1 = zerograd(rand(T,10,5))
 x2 = zerograd(rand(T,10,5))

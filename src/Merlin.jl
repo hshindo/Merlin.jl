@@ -19,6 +19,7 @@ include("util.jl")
 include("var.jl")
 include("graph.jl")
 include("fit.jl")
+include("rand.jl")
 #include("native.jl")
 #include("hdf5.jl")
 

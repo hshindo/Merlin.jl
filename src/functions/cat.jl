@@ -21,6 +21,9 @@ function forward(::typeof(cat), dim::Int, xs::Array...)
         cumdim += size(x, dim)
     end
     outsize = [size(xs[1])...]
+    while length(outsize) < dim
+        push!(outsize, 1)
+    end
     outsize[dim] = cumdim
     y = similar(xs[1], outsize...)
     range = map(s -> 1:s, outsize)
@@ -42,6 +45,7 @@ function ∇cat!(gy, dim::Int, gxs...)
         isvoid(gx) && continue
         s = size(gx, dim)
         range[dim] = offset:(offset+s-1)
+        gx = reshape(gx, range...)
         broadcast!(+, gx, gx, view(gy,range...))
         offset += s
     end
