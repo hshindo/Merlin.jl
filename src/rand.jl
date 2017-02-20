@@ -1,12 +1,10 @@
 """
-Saxe et al., http://arxiv.org/abs/1312.6120
+Saxe et al., Exact solutions to the nonlinear dynamics of learning in deep linear neural networks.
+http://arxiv.org/abs/1312.6120
 """
-function orthogonal{T}(::Type{T}, dims::Tuple; scale=1.1)
-    length(dims) <= 1 && throw("dims must be 2 or more dimension.")
-    dim1, dim2 = dims[1], prod(dims[2:end])
-    a = randn(T,dim1,dim2)
+function orthogonal{T}(::Type{T}, dim1::Int, dim2::Int; scale=1.1)
+    a = randn(T, dim1, dim2)
     u, _, v = svd(a)
-    q = size(u) == dims ? u : v
-    reshape(q*scale, dims)
+    q = size(u) == (dim1,dim2) ? u : v
+    q * scale
 end
-orthogonal{T}(::Type{T}, dims::Int...; scale=1.1) = orthogonal(T, dims, scale=scale)
