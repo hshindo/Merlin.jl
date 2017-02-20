@@ -19,13 +19,13 @@ type LSTM
     h0
 end
 
-function LSTM{T}(::Type{T}, size::Int)
+function LSTM{T}(::Type{T}, size::Int; h0=nothing)
     W = zerograd(uniform(T,-0.001,0.001,size*4,size*2))
     #U = zerograd(orthogonal(T,))
     b = zerograd(zeros(T,size*4))
     b.data[1:size] = ones(T, size) # forget gate initializes to 1
-    c0 = Var(rand(T,size))
-    h0 = Var(rand(T,size))
+    c0 = Var(zeros(T,size))
+    h0 == nothing && (h0 = Var(zeros(T,size)))
     LSTM(W, b, c0, h0)
 end
 
