@@ -19,7 +19,7 @@ end
 
 function ∇relu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
     @inbounds @simd for i = 1:length(x)
-        gx[i] += ifelse(x[i]>T(0), gy[i], T(0))
+        gx[i] += ifelse(x[i] > T(0), gy[i], T(0))
     end
 end
 
@@ -39,7 +39,7 @@ end
 
 function ∇clipped_relu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
     @inbounds @simd for i = 1:length(x)
-        gx[i] += ifelse(T(0)<x[i]<T(20), gy[i], T(0))
+        gx[i] += ifelse(T(0) < x[i] < T(20), gy[i], T(0))
     end
 end
 

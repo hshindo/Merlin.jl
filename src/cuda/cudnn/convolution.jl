@@ -1,5 +1,23 @@
 export CUDNN_CONVOLUTION, CUDNN_CROSS_CORRELATION
 
+type ConvDesc
+    ptr::Ptr{Void}
+
+    function ConvDesc{T,N}(::Type{T}, pads::NTuple{N,Int}, strides; mode=CUDNN_CROSS_CORRELATION)
+        p = Ptr{Void}[0]
+        cudnnCreateConvolutionDescriptor(p)
+        c_pads = Cint[pads[i] for i=N:-1:1]
+        c_strides = Cint[strides[i] for i=N:-1:1]
+        c_upscale = fill(Cint(1), N)
+        cudnnSetConvolutionNdDescriptor(p[1], N, c_pads, c_strides, c_upscale, mode, datatype(T))
+        desc = new(p[1])
+        finalizer(desc, cudnnDestroyConvolutionDescriptor)
+        desc
+    end
+end
+
+Base.unsafe_convert(::Type{Ptr{Void}}, desc::ConvDesc) = desc.ptr
+
 function convolution!(x, w, desc, y; alpha=1.0, beta=0.0)
     xdesc = TensorDesc(x)
     wdesc = TensorDesc(w)

@@ -19,6 +19,7 @@ include("util.jl")
 include("var.jl")
 include("graph.jl")
 include("fit.jl")
+include("rand.jl")
 #include("native.jl")
 #include("hdf5.jl")
 
@@ -32,9 +33,10 @@ for name in [
     "crossentropy",
     "dropout",
     "getindex",
-    #"gru",
+    "gru",
     "linear",
     "lookup",
+    "lstm",
     "math",
     "normalize",
     "pairwise",
@@ -59,8 +61,8 @@ end
 
 const use_cuda = !isempty(Libdl.find_library(["nvcuda","libcuda"]))
 if use_cuda
-    #include("cuda/CUDA.jl")
-    #using .CUDA
+    include("cuda/CUDA.jl")
+    using .CUDA
 end
 
 #include("caffe/Caffe.jl")

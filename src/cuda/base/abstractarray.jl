@@ -1,2 +1,2 @@
-abstract AbstractCudaArray{T,N}
-export AbstractCudaArray
+abstract AbstractCuArray{T,N}
+export AbstractCuArray

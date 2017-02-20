@@ -23,7 +23,7 @@ type Var
     grad
 end
 
-Var(data=nothing, f=nothing, args=(), df=nothing) = Var(data, f, args, df, nothing)
+Var(data, f=nothing, args=(), df=nothing) = Var(data, f, args, df, nothing)
 
 isvoid(x) = x == nothing
 isparam(v) = isempty(v.args) && !isvoid(v.grad)

@@ -29,7 +29,7 @@ datatype(::Type{Float64}) = CUDNN_DATA_DOUBLE
 datatype(::Type{Float16}) = CUDNN_DATA_HALF
 
 const handles = Ptr{Void}[]
-function handle(x::CuArray)
+function handle(x)
     dev = device(x) + 1
     while dev > length(handles)
         p = Ptr{Void}[0]
@@ -40,13 +40,13 @@ function handle(x::CuArray)
 end
 atexit(() -> foreach(cudnnDestroy, handles))
 
-include("descriptors.jl")
+include("tensor.jl")
 include("activation.jl")
 #include("batchnorm.jl")
-include("convolution.jl")
-include("dropout.jl")
+#include("convolution.jl")
+#include("dropout.jl")
 ##include("lrn.jl")
-include("pooling.jl")
+#include("pooling.jl")
 include("softmax.jl")
 ##include("rnn.jl")
 

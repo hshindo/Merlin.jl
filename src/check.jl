@@ -29,27 +29,37 @@ function checkgrad(f, args...; eps=1e-3)
     true
 end
 
-function checkcuda(f::Function, args...; eps=1e-2)
-    args1 = map(a -> isa(a,Var) ? Var(a,:cpu) : a, args)
-    vars1 = collect(filter(a -> isa(a,Var) && !isa(a.grad,Void), args1))
-    foreach(zerograd!, vars1)
-    y1 = f(args1...)
+function checkcuda(f, args...; eps=1e-3)
+    use_cuda || return true
+    vars = collect(filter(a -> isa(a,Var) && !isvoid(a.grad), args))
+    foreach(zerograd!, vars)
+    y1 = f(args...)
     gradient!(y1)
-    gxs1 = map(x -> x.grad, vars1)
+    gxs1 = map(x -> x.grad, vars)
+    y1 = y1.data
 
-    args2 = map(a -> isa(a,Var) ? Var(a,:cuda) : a, args)
-    vars2 = collect(filter(a -> isa(a,Var) && !isa(a.grad,Void), args2))
-    foreach(zerograd!, vars2)
-    y2 = f(args2...)
+    for v in vars
+        v.data = CuArray(v.data)
+        v.grad = zeros(v.data)
+    end
+    y2 = f(args...)
     gradient!(y2)
-    gxs2 = map(x -> Array(x.grad), vars2)
+    gxs2 = map(x -> Array(x.grad), vars)
+    y2 = Array(y2.data)
 
-    all(d -> abs(d) < eps, y1.data - Array(y2.data)) || throw("output of CPU and CUDA mismatch")
+    if !all(d -> abs(d) < eps, y1 - y2)
+        throw("output of CPU and CUDA mismatch")
+    end
     foreach(zip(gxs1, gxs2)) do g
         diff = g[1] - g[2]
         if !all(d -> abs(d) < eps, diff)
             throw(diff)
         end
+    end
+
+    for v in vars
+        v.data = Array(v.data)
+        v.grad = zeros(v.data)
     end
     true
 end

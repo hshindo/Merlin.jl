@@ -12,7 +12,7 @@ y = \alpha \times \textrm{tA}(A) \times x
 gemv(tA, alpha, A::Var, x::Var) = forward(gemv, tA, alpha, A, x)
 gemv(A, x; tA='N', alpha=1) = gemv(tA, alpha, A, x)
 
-function forward{T}(::typeof(gemv), tA::Char, alpha, A::Array{T}, x::Array{T})
+function forward{T}(::typeof(gemv), tA::Char, alpha, A::Matrix{T}, x::Vector{T})
     y = BLAS.gemv(tA, T(alpha), A, x)
     function backward!(gy, gA, gx)
         if !isvoid(gA)

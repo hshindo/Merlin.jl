@@ -1,19 +1,21 @@
-const freeptrs = [Dict{Int,Vector{Ptr{Void}}}() for i=1:devcount()]
+const freeptrs = [Dict{Int,Vector{CUdeviceptr}}() for i=1:devcount()]
 
-type CudaPtr{T}
-    ptr::Ptr{T}
+type CuPtr
+    ptr::CUdeviceptr
     bytelen::Int
     dev::Int
 
-    function CudaPtr(ptr, bytelen, dev)
+    function CuPtr(ptr, bytelen, dev)
         p = new(ptr, bytelen, dev)
         finalizer(p, free)
         p
     end
 end
 
-Base.convert{T}(::Type{Ptr{T}}, p::CudaPtr) = Ptr{T}(p.ptr)
-Base.unsafe_convert{T}(::Type{Ptr{T}}, p::CudaPtr) = Ptr{T}(p.ptr)
+Base.convert{T}(::Type{Ptr{T}}, p::CuPtr) = Ptr{T}(p.ptr)
+Base.convert(::Type{CUdeviceptr}, p::CuPtr) = p.ptr
+Base.unsafe_convert{T}(::Type{Ptr{T}}, p::CuPtr) = Ptr{T}(p.ptr)
+Base.unsafe_convert(::Type{CUdeviceptr}, p::CuPtr) = p.ptr
 
 function alloc{T}(::Type{T}, len::Int)
     dev = device()
@@ -25,14 +27,14 @@ function alloc{T}(::Type{T}, len::Int)
         ptr = pop!(dict[bytelen])
     else
         dict[bytelen] = Ptr{Void}[]
-        p = Ptr{Void}[0]
-        cudaMalloc(p, bytelen)
+        p = CUdeviceptr[0]
+        cuMemAlloc(p, bytelen)
         ptr = p[1]
     end
-    CudaPtr{T}(Ptr{T}(ptr), bytelen, dev)
+    CuPtr(ptr, bytelen, dev)
 end
 
-free(p::CudaPtr) = push!(freeptrs[p.dev+1][p.bytelen], Ptr{Void}(p.ptr))
+free(p::CuPtr) = push!(freeptrs[p.dev+1][p.bytelen], p.ptr)
 
 # not tested
 function devicegc()
