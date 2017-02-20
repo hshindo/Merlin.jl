@@ -7,46 +7,52 @@ Long short-term memory (LSTM).
 
 ```julia
 T = Float32
-lstm = LSTM(T, 100)
-x = Var(rand(T,100,30))
-lstm(x)
+lstm = LSTM(T, 100, ()->rand()*0.02-0.01)
+# one-step
+c = Var(zeros(T,n))
+h = Var(zeros(T,n))
+c, h = lstm(x, c, h)
+# n-step
+h = lstm(x)
 ```
 """
 type LSTM
     W
     b
-    c0
-    h0
 end
 
-function LSTM{T}(::Type{T}, size::Int; h0=nothing)
-    W = zerograd(uniform(T,-0.001,0.001,size*4,size*2))
-    #U = zerograd(orthogonal(T,))
+function LSTM{T}(::Type{T}, size::Int, init::Function)
+    w = reshape(T[init() for i=1:size*4*size], size*4, size)
+    u = orthogonal(T, size*4, size)
+    w = zerograd(cat(2,w,u))
     b = zerograd(zeros(T,size*4))
     b.data[1:size] = ones(T, size) # forget gate initializes to 1
-    c0 = Var(zeros(T,size))
-    h0 == nothing && (h0 = Var(zeros(T,size)))
-    LSTM(W, b, c0, h0)
+    LSTM(w, b)
 end
 
-function (lstm::LSTM)(x::Var)
-    ndims(x.data) == 2 || throw("x must be matrix.")
-    s = size(x.data, 1)
-    s*4 == length(lstm.b.data) || throw("Length mismatch.")
+function (lstm::LSTM)(x::Var, c=nothing, h=nothing)
+    T = eltype(lstm.b.data)
+    n = Int(length(lstm.b.data)/4)
+    size(x.data,1) == n || throw("Length of x is invalid.")
+    isvoid(c) && (c = Var(zeros(T,n)))
+    isvoid(h) && (h = Var(zeros(T,n)))
 
-    T = eltype(lstm.W.data)
+    ndims(x.data) == 1 && return onestep(lstm, x, c, h)
     hs = Var[]
-    c = lstm.c0
-    h = lstm.h0
     for i = 1:size(x.data,2)
-        xi = x[:,i]
-        a = lstm.W * cat(1,xi,h) + lstm.b
-        f = sigmoid(a[1:s])
-        i = sigmoid(a[s+1:2s])
-        o = sigmoid(a[2s+1:3s])
-        c = f .* c + i .* tanh(a[3s+1:4s])
-        h = o .* tanh(c)
+        c, h = onestep(lstm, x[:,i], c, h)
         push!(hs, h)
     end
     cat(2, hs...)
+end
+
+function onestep(lstm::LSTM, x::Var, c::Var, h::Var)
+    n = size(x.data, 1)
+    a = lstm.W * cat(1,x,h) + lstm.b
+    f = sigmoid(a[1:n])
+    i = sigmoid(a[n+1:2n])
+    o = sigmoid(a[2n+1:3n])
+    c = f .* c + i .* tanh(a[3n+1:4n])
+    h = o .* tanh(c)
+    c, h
 end
