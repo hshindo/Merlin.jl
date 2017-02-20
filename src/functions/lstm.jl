@@ -39,7 +39,6 @@ function (lstm::LSTM)(x::Var)
     c = lstm.c0
     h = lstm.h0
     for i = 1:size(x.data,2)
-        #xi = x[(i-1)*s+1:i*s]
         xi = x[:,i]
         a = lstm.W * cat(1,xi,h) + lstm.b
         f = sigmoid(a[1:s])
@@ -51,27 +50,3 @@ function (lstm::LSTM)(x::Var)
     end
     cat(2, hs...)
 end
-
-#=
-function (lstm::LSTM)(x::Var)
-    ndims(x.data) == 2 || throw("")
-    s = size(x.data, 1)
-    s*4 == length(lstm.b.data) || throw("")
-
-    T = eltype(lstm.W.data)
-    cs = [Var(rand(T,s))]
-    hs = [Var(rand(T,s))]
-    for i = 1:size(x.data,2)
-        xx = x[(i-1)*s+1:i*s]
-        a = lstm.W * cat(1,xx,hs[end]) + lstm.b
-        f = sigmoid(a[1:s])
-        i = sigmoid(a[s+1:2s])
-        o = sigmoid(a[2s+1:3s])
-        c = f .* cs[end] + i .* tanh(a[3s+1:4s])
-        h = o .* tanh(c)
-        push!(cs, c)
-        push!(hs, h)
-    end
-    cat(2, hs...)
-end
-=#
