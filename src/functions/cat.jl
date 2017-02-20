@@ -34,19 +34,26 @@ function forward(::typeof(cat), dim::Int, xs::Array...)
         y[range...] = x
         offset += s
     end
-    backward!(gy, gxs...) = ∇cat!(gy, dim, gxs...)
+    backward!(gy, gxs...) = ∇cat!(gy, dim, xs, gxs)
     y, backward!
 end
 
-function ∇cat!(gy, dim::Int, gxs...)
-    range = [1:size(gy,i) for i=1:ndims(gy)]
+function ∇cat!(gy, dim::Int, xs, gxs)
+    range = Any[1:size(gy,i) for i=1:ndims(gy)]
     offset = 1
-    for gx in gxs
-        isvoid(gx) && continue
-        s = size(gx, dim)
-        range[dim] = offset:(offset+s-1)
-        gx = reshape(gx, range...)
-        broadcast!(+, gx, gx, view(gy,range...))
-        offset += s
+    for i = 1:length(xs)
+        x, gx = xs[i], gxs[i]
+        s = size(x, dim)
+        if isvoid(gx)
+            offset += s
+        else
+            if dim > ndims(gx)
+                range[dim] = offset
+            else
+                range[dim] = offset:(offset+s-1)
+            end
+            broadcast!(+, gx, gx, view(gy,range...))
+            offset += s
+        end
     end
 end

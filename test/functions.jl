@@ -71,8 +71,8 @@ f = Lookup(T, 10000, 100)
 y = f(x)
 
 # lstm
-lstm = LSTM(T, 100)
-x = zerograd(rand(T,100,10))
+lstm = LSTM(T, 10)
+x = zerograd(rand(T,10,10))
 @test checkgrad(lstm, x)
 
 # math
