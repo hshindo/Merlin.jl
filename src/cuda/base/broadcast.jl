@@ -1,5 +1,30 @@
 import Base: broadcast, broadcast!
 
+immutable CArray{T,N}
+    ptr::Ptr{T}
+    dims::N
+end
+
+CArray{T,N}(x::CuArray{T,N}) = CArray(pointer(x),box(size(x)))
+
+@generated function broadcast!{T,N}(::typeof(.+), y::CuArray{T,N}, x1::CuArray{T,N}, x2::CuArray{T,N})
+    f = CuFunction("""
+    $array_h
+    __global__ void f(Array<$T,$N> y, Array<$T,$N> x1, Array<$T,$N> x2) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < y.length()) {
+            int subs[$N];
+            y.idx2sub(idx, subs);
+            y[idx] = x1(subs) + x2(subs);
+        }
+    }""")
+    quote
+        $f(CArray(y), CArray(x1), CArray(x2), dx=length(y))
+        y
+    end
+end
+
+#=
 for op in (:+, :-, :*)
     @eval begin
         function broadcast!{T,N}(::typeof($op), y::AbstractCudaArray{T,N},
@@ -43,3 +68,4 @@ for op in (:+, :-, :*)
         end
     end
 end
+=#

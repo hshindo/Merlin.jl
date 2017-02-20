@@ -7,7 +7,9 @@ x = zerograd(rand(T,10,5))
 relu(x)
 clipped_relu(x)
 @test checkgrad(sigmoid, x)
+@test checkcuda(sigmoid, x)
 @test checkgrad(tanh, x)
+@test checkcuda(tanh, x)
 
 # argmax
 x = rand(T,10,7,5,3)
@@ -51,6 +53,12 @@ x = zerograd(rand(T,10,5))
 @test checkgrad(getindex, x, 1:3)
 @test checkgrad(getindex, x, 10:10)
 
+# gru
+x = zerograd(rand(T,100))
+h = zerograd(rand(T,100))
+f = GRU(T,100)
+@test checkgrad(f, x, h)
+
 # linear
 x = zerograd(rand(T,10,1))
 f = Linear(T, 10, 7)
@@ -61,6 +69,11 @@ f = Linear(T, 10, 7)
 x = Var(rand(1:10000,10,5))
 f = Lookup(T, 10000, 100)
 y = f(x)
+
+# lstm
+lstm = LSTM(T, 10)
+x = zerograd(rand(T,10,10))
+@test checkgrad(lstm, x)
 
 # math
 x1 = zerograd(rand(T,10,5))
@@ -104,6 +117,7 @@ x = zerograd(rand(T,5,4,3))
 # softmax
 x = zerograd(rand(T,10,5))
 @test checkgrad(softmax, x)
+@test checkcuda(softmax, x)
 @test checkgrad(logsoftmax, x, eps=1e-2)
 
 # view

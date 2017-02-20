@@ -1,3 +1,12 @@
+const ntuple_h = """
+template<int N, typename T>
+struct NTuple {
+    const T data[N];
+public:
+    __device__ T& operator[](const int idx) { return data[idx]; }
+};
+"""
+
 const array_h = """
 template<typename T, int N>
 struct Array {

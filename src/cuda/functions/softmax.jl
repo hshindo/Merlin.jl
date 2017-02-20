@@ -1,13 +1,17 @@
-import Merlin: softmax, logsoftmax, ∇softmax!, ∇logsoftmax!
+import Merlin: softmax, logsoftmax
 
-softmax(x::CuArray) = CUDNN.softmax(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, x)
-
-function ∇softmax!(y::CuArray, gy::CuArray, gx::CuArray)
-    CUDNN.∇softmax!(CUDNN_SOFTMAX_ACCURATE, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
+function forward{T,N}(::typeof(softmax), x::CuArray{T,N}; algo=CUDNN_SOFTMAX_ACCURATE)
+    @assert 1 < N <= 4
+    h = CUDNN.handle(x)
+    pad = 4 - N
+    xdesc = CUDNN.TensorDesc(x, pad=pad)
+    y = similar(x)
+    mode = CUDNN_SOFTMAX_MODE_CHANNEL
+    cudnnSoftmaxForward(h, algo, mode, T[1], xdesc, x, T[0], xdesc, y)
+    function backward!(dy, dx)
+        cudnnSoftmaxBackward(h, algo, mode, T[1], xdesc, y, xdesc, dy, T[1], xdesc, dx)
+    end
+    y, backward!
 end
 
-logsoftmax(x::CuArray) = CUDNN.softmax(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, x)
-
-function ∇logsoftmax!(y::CuArray, gy::CuArray, gx::CuArray)
-    CUDNN.∇logsoftmax!(CUDNN_SOFTMAX_LOG, CUDNN_SOFTMAX_MODE_CHANNEL, y, gy, gx; beta=1.0)
-end
+forward(::typeof(logsoftmax), x::CuArray) = forward(softmax, x, algo=CUDNN_SOFTMAX_LOG)
