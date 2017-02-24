@@ -179,7 +179,14 @@ function forward(::typeof(.*), x1::UniArray, x2::UniArray)
     y, backward!
 end
 
-function ∇elemtimes!{T,N}(gy::UniArray{T,N}, x2::UniArray{T,N}, gx1::UniArray{T,N})
+function ∇elemtimes!{T,N}(gy::Array{T,N}, x2::Array{T,N}, gx1::Array{T,N})
+    if size(x2) == size(gx1)
+        @inbounds @simd for i = 1:length(gy)
+            gx[i] += gy[i] * x2[i]
+        end
+    else
+        
+    end
     for i = 1:N
         size(gx,i) == 1 && size(gy,i) > 1 && (gy = sum(gy,i))
     end
