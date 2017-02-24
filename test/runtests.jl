@@ -1,5 +1,6 @@
 using Base.Test
 using Merlin
+using CUJulia
 
 tests = ["functions"]
 

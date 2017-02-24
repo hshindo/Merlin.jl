@@ -1,6 +1,6 @@
 export
     Var,
-    zerograd, zerograd!, setbackend!,
+    zerograd, zerograd!, isvoid,
     topsort, gradient!
 
 """
@@ -11,19 +11,18 @@ It contains the following members:
 
 * data
 * f: forward function
-* args: arguments of `f`
+* args: arguments
 * df: backward function
 * grad: gradient
 """
 type Var
     data
-    f
     args
     df
     grad
 end
 
-Var(data, f=nothing, args=(), df=nothing) = Var(data, f, args, df, nothing)
+Var(data, args=(), df=nothing) = Var(data, args, df, nothing)
 
 isvoid(x) = x == nothing
 isparam(v) = isempty(v.args) && !isvoid(v.grad)
@@ -38,18 +37,32 @@ function zerograd!(v::Var)
 end
 zerograd(x) = zerograd!(Var(x))
 
-function forward(f, args...)
-    xs = map(args) do a
-        isa(a, Var) ? a.data : a
-    end
-    y, df = forward(f, xs...)
-    Var(y, f, args, df)
+macro forward(expr)
+    args = map(a -> isa(a,Expr) ? a.args[1] : a, expr.args)
+    Expr(:(=), expr, Expr(:call, :forward0, args...))
 end
 
-function setbackend!(v::Var, ::Type{Array})
+function forward0(args...)
+    xs = map(args) do arg
+        isa(arg, Var) && return arg.data
+        isa(arg, Vector{Var}) && return map(a -> a.data, arg)
+        arg
+    end
+    y, backward! = forward(xs...)
+    Var(y, args, backward!)
+end
+
+function setbackend!{T<:Array}(v::Var, ::Type{T})
     isa(v.data, Array) && return v
     v.data = Array(v.data)
     v.grad = isvoid(v.grad) ? v.grad : Array(v.grad)
+    v
+end
+
+function setbackend!{T<:CuArray}(v::Var, ::Type{T})
+    isa(v.data, CuArray) && return v
+    v.data = CuArray(v.data)
+    v.grad = isvoid(v.grad) ? v.grad : CuArray(v.grad)
     v
 end
 
@@ -60,7 +73,11 @@ function topsort(top::Var)
         haskey(dict, var) && return
         dict[var] = var
         for arg in var.args
-            isa(arg, Var) && visit(arg)
+            if isa(arg, Var)
+                visit(arg)
+            elseif isa(arg, Vector{Var})
+                foreach(visit, arg)
+            end
         end
         push!(sorted, var)
     end
@@ -79,8 +96,9 @@ function gradient!(top::Var)
         v = sorted[i]
         isvoid(v.df) && continue
         args = Any[v.grad]
-        for a in v.args
-            isa(a, Var) && push!(args, a.grad)
+        for arg in v.args
+            isa(arg, Var) && push!(args, arg.grad)
+            isa(arg, Vector{Var}) && push!(args, map(a -> a.grad, arg))
         end
         v.df(args...)
     end

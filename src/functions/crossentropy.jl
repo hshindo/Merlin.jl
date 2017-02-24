@@ -15,13 +15,10 @@ q = Var(rand(Float32,10,5))
 y = crossentropy(p, q)
 ```
 """
-crossentropy(p::Var, q::Var) = forward(crossentropy, p, q)
-
-function forward(::typeof(crossentropy), p::Array, q::Array)
-    logq = logsoftmax(q)
-    y = crossentropy(p, logq)
-    backward!(gy, gp, gq) = isvoid(gq) || ∇crossentropy!(gy, p, logq, gq)
-    y, backward!
+function crossentropy(p::Var, q::Var)
+    logq = logsoftmax(q.data)
+    y = crossentropy(p.data, logq)
+    df(v::Var) = isvoid(v[2].grad) || ∇crossentropy!(v.grad, p.data, logq, v[2].grad)
 end
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})

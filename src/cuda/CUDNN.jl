@@ -1,7 +1,6 @@
 module CUDNN
 
-using ..CUDA
-import ..CUDA: redim
+using CUJulia
 
 if is_windows()
     const libcudnn = Libdl.find_library(["cudnn64_5","cudnn64_4"])
@@ -15,12 +14,11 @@ const major = div(version, 1000)
 const minor = div(version - major*1000, 100)
 
 info("CUDNN version: $(version)")
-include("lib/$(CUDA.major).$(CUDA.minor)/libcudnn$(major)$(minor).jl")
-include("lib/$(CUDA.major).$(CUDA.minor)/libcudnn$(major)$(minor)_types.jl")
+include("lib/$(CUJulia.major).$(CUJulia.minor)/libcudnn$(major)$(minor).jl")
+include("lib/$(CUJulia.major).$(CUJulia.minor)/libcudnn$(major)$(minor)_types.jl")
 
 function checkstatus(status)
     status == CUDNN_STATUS_SUCCESS && return
-    Base.show_backtrace(STDOUT, backtrace())
     throw(bytestring(cudnnGetErrorString(status)))
 end
 

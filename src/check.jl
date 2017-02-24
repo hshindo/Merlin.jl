@@ -23,14 +23,18 @@ function checkgrad(f, args...; eps=1e-3)
     end
     foreach(zip(gxs1,gxs2)) do g
         diff = g[1] - g[2]
-        all(d -> abs(d) < eps, diff) || throw((g[1],g[2]))
+        if any(d -> abs(d) >= eps, diff)
+            println(maximum(d -> abs(d), diff))
+            println(diff)
+            #println(g[2])
+            throw("")
+        end
     end
-    #use_cuda && checkcuda(f, args..., eps=eps)
+    usecuda && checkcuda(f, args..., eps=eps)
     true
 end
 
 function checkcuda(f, args...; eps=1e-3)
-    use_cuda || return true
     vars = collect(filter(a -> isa(a,Var) && !isvoid(a.grad), args))
     foreach(zerograd!, vars)
     y1 = f(args...)
@@ -48,11 +52,13 @@ function checkcuda(f, args...; eps=1e-3)
     y2 = Array(y2.data)
 
     if !all(d -> abs(d) < eps, y1 - y2)
-        throw("output of CPU and CUDA mismatch")
+        throw("Output of CPU and CUDA mismatch.")
     end
-    foreach(zip(gxs1, gxs2)) do g
+    foreach(zip(gxs1,gxs2)) do g
         diff = g[1] - g[2]
         if !all(d -> abs(d) < eps, diff)
+            println(g[1])
+            println(g[2])
             throw(diff)
         end
     end

@@ -10,9 +10,18 @@ else
     throw("Unsupported OS.")
 end
 
-#typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
-
-#include("mkl/MKL.jl")
+const usecuda = Pkg.installed("CUJulia") != nothing
+if usecuda
+    using CUJulia
+    using CUJulia.CUDNN
+else
+    type CuArray{T,N}; end
+    typealias CuVector{T} CuArray{T,1}
+    typealias CuMatrix{T} CuArray{T,2}
+end
+typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
+typealias UniVector{T} Union{Vector{T},CuVector{T}}
+typealias UniMatrix{T} Union{Matrix{T},CuMatrix{T}}
 
 include("check.jl")
 include("util.jl")
@@ -44,7 +53,6 @@ for name in [
     "reduce",
     "reshape",
     "softmax",
-    "view",
     "window",
     ]
     include("functions/$(name).jl")
@@ -57,12 +65,6 @@ for name in [
     "clipping",
     "sgd"]
     include("optimizers/$(name).jl")
-end
-
-const use_cuda = !isempty(Libdl.find_library(["nvcuda","libcuda"]))
-if use_cuda
-    include("cuda/CUDA.jl")
-    using .CUDA
 end
 
 #include("caffe/Caffe.jl")

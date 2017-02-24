@@ -28,31 +28,32 @@ y = f(x)
 """
 function Linear{T}(::Type{T}, indim::Int, outdim::Int)
     r = sqrt(6 / (indim+outdim))
-    w = uniform(T, -r, r, indim, outdim)
+    w = uniform(T, -r, r, outdim, indim)
     b = fill(T(0), outdim, 1)
     Linear(zerograd(w), zerograd(b))
 end
 
 (f::Linear)(x::Var) = linear(x, f.w, f.b)
 
-linear(x::Var, w::Var, b::Var) = gemm('T', 'N', 1, w, x) .+ b
-
-#=
-function forward{T}(::typeof(linear), x::Array{T}, w::Matrix{T}, b::Matrix{T})
-    if ndims(x) == 1
-        y = BLAS.gemv('T', T(1), w, x)
-    elseif ndims(x) == 2
-        y = BLAS.gemm('T', 'N', T(1), w, x)
-    end
-    broadcast!(.+, y, y, b)
-    function backward!(gy, gx, gw, gb)
-        isvoid(gx) || BLAS.gemm!('N', 'N', T(1), w, gy, T(1), gx)
-        isvoid(gw) || BLAS.gemm!('N', 'T', T(1), x, gy, T(1), gw)
-        isvoid(gb) || add!(gb, sum(gy,2))
-    end
-    y, backward!
+function linear(x::Var, w::Var, b::Var)
+    setbackend!(w, typeof(x.data))
+    setbackend!(b, typeof(x.data))
+    w * x .+ b
 end
-=#
+
+function linear2(x::Var, w::Var, b::Var)
+    setbackend!(w, typeof(x.data))
+    setbackend!(b, typeof(x.data))
+    y = w.data * x.data
+    #broadcast!(.+, y, y, b.data)
+    function df(v::Var)
+        T = eltype(v.data)
+        #isvoid(v[3].grad) || ∇elemplus!(v.grad, v[3].grad)
+        isvoid(v[1].grad) || BLAS.gemm!('T', 'N', T(1), w.data, v.grad, T(1), v[1].grad)
+        isvoid(v[2].grad) || BLAS.gemm!('N', 'T', T(1), v.grad, x.data, T(1), v[2].grad)
+    end
+    Var(y, linear, (x,w,b), df)
+end
 
 export GatedLinear
 function GatedLinear{T}(::Type{T}, indim::Int, outdim::Int)

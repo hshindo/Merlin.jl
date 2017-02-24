@@ -4,9 +4,9 @@ import Base: +, .+, -, .-, .*, *
 """
     exp(x::Var)
 """
-exp(x::Var) = forward(exp, x)
+@forward exp(x::Var)
 
-function forward(::typeof(exp), x::Array)
+function forward(::typeof(exp), x::UniArray)
     y = exp(x)
     backward!(gy, gx) = isvoid(gx) || ∇exp!(y, gy, gx)
     y, backward!
@@ -18,14 +18,27 @@ function ∇exp!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     end
 end
 
+@generated function ∇exp!{T}(y::CuArray{T}, gy::CuArray{T}, gx::CuArray{T})
+    f = CuFunction("""
+    __global__ void f($T *y, $T *gy, $T *gx, int length) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < length) {
+            gx[idx] += gy[idx] * y[idx];
+        }
+    }""")
+    quote
+        $f(y.ptr, gy.ptr, gx.ptr, length(y), dx=length(y))
+    end
+end
+
 """
     log(x::Var)
 """
-log(x::Var) = forward(log, x)
+@forward log(x::Var)
 
-function forward(::typeof(log), x::Array)
+function forward(::typeof(log), x::UniArray)
     y = log(x)
-    backward!(gy, gx) = isvoid(gx) || ∇log!(gy, x, gx)
+    backward!(gy, gx) = isvoid(gx) || ∇log!(y, x, gx)
     y, backward!
 end
 
@@ -35,12 +48,25 @@ function ∇log!{T}(gy::Array{T}, x::Array{T}, gx::Array{T})
     end
 end
 
+@generated function ∇log!{T}(gy::CuArray{T}, x::CuArray{T}, gx::CuArray{T})
+    f = CuFunction("""
+    __global__ void f($T *gy, $T *x, $T *gx, int length) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < length) {
+            gx[idx] += gy[idx] / x[idx];
+        }
+    }""")
+    quote
+        $f(gy.ptr, x.ptr, gx.ptr, length(gy), dx=length(gy))
+    end
+end
+
 """
     transpose(x::Var)
 """
-transpose(x::Var) = forward(transpose, x)
+@forward transpose(x::Var)
 
-function forward{T}(::typeof(transpose), x::Array{T})
+function forward{T}(::typeof(transpose), x::UniArray{T})
     y = transpose(x)
     backward!(gy, gx) = isvoid(gx) || BLAS.axpy!(T(1), transpose(gy), gx)
     y, backward!
@@ -49,25 +75,25 @@ end
 """
     +(x1::Var, x2::Var)
 """
-+(x1::Var, x2::Var) = forward(+, x1, x2)
-+(a::Number, x::Var) = Var([a]) + x
-+(x::Var, a::Number) = x + Var([a])
+@forward +(x1::Var, x2::Var)
 
-function forward(::typeof(+), x1::Array, x2::Array)
+function forward{T}(::typeof(+), x1::UniArray{T}, x2::UniArray{T})
     y = x1 + x2
     function backward!(gy, gx1, gx2)
-        isvoid(gx1) || add!(gx1, gy)
-        isvoid(gx2) || add!(gx2, gy)
+        isvoid(gx1) || BLAS.axpy!(T(1), gy, gx1)
+        isvoid(gx2) || BLAS.axpy!(T(1), gy, gx2)
     end
     y, backward!
 end
++(a::Number, x::Var) = Var(a) + x
++(x::Var, a::Number) = x + Var(a)
 
 """
     .+(x1::Var, x2::Var)
 """
-.+(x1::Var, x2::Var) = forward(.+, x1, x2)
+@forward .+(x1::Var, x2::Var)
 
-function forward(::typeof(.+), x1::Array, x2::Array)
+function forward(::typeof(.+), x1::UniArray, x2::UniArray)
     y = x1 .+ x2
     function backward!(gy, gx1, gx2)
         isvoid(gx1) || ∇elemplus!(gy, gx1)
@@ -76,11 +102,11 @@ function forward(::typeof(.+), x1::Array, x2::Array)
     y, backward!
 end
 
-function ∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T,N})
-    ind_gx = CartesianIndex(size(gx))
-    @inbounds @simd for I in CartesianRange(size(gy))
-        gx[min(ind_gx,I)] += gy[I]
+function ∇elemplus!{T,N}(gy::UniArray{T,N}, gx::UniArray{T,N})
+    for i = 1:N
+        size(gx,i) == 1 && size(gy,i) > 1 && (gy = sum(gy,i))
     end
+    BLAS.axpy!(T(1), gy, gx)
 end
 ∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T}) = ∇elemplus!(gy, redim(gx,N))
 
@@ -88,16 +114,14 @@ end
     -(x1::Var, x2::Var)
     -(x::Var)
 """
--(x1::Var, x2::Var) = forward(-, x1, x2)
--(a::Number, x::Var) = Var([a]) .- x
--(x::Var, a::Number) = x .- Var([a])
--(x::Var) = forward(-, x)
+@forward -(x1::Var, x2::Var)
+@forward -(x::Var)
 
-function forward(::typeof(-), x1::Array, x2::Array)
+function forward{T}(::typeof(-), x1::UniArray{T}, x2::UniArray{T})
     y = x1 - x2
     function backward!(gy, gx1, gx2)
-        isvoid(gx1) || add!(gx1, gy)
-        isvoid(gx2) || BLAS.axpy!(eltype(gy)(-1), gy, gx2)
+        isvoid(gx1) || BLAS.axpy!(T(1), gy, gx1)
+        isvoid(gx2) || BLAS.axpy!(T(-1), gy, gx2)
     end
     y, backward!
 end
@@ -108,12 +132,15 @@ function forward(::typeof(-), x::Array)
     y, backward!
 end
 
+-(a::Number, x::Var) = Var(a) - x
+-(x::Var, a::Number) = x - Var(a)
+
 """
     .-(x1::Var, x2::Var)
 """
-.-(x1::Var, x2::Var) = forward(.-, x1, x2)
+@forward .-(x1::Var, x2::Var)
 
-function forward(::typeof(.-), x1::Array, x2::Array)
+function forward(::typeof(.-), x1::UniArray, x2::UniArray)
     y = x1 .- x2
     function backward!(gy, gx1, gx2)
         isvoid(gx1) || ∇elemplus!(gy, gx1)
@@ -132,9 +159,9 @@ end
 """
     \.\*(x1::Var, x2::Var)
 """
-.*(x1::Var, x2::Var) = forward(.*, x1, x2)
+@forward .*(x1::Var, x2::Var)
 
-function forward(::typeof(.*), x1::Array, x2::Array)
+function forward(::typeof(.*), x1::UniArray, x2::UniArray)
     y = x1 .* x2
     function backward!(gy, gx1, gx2)
         isvoid(gx1) || ∇elemtimes!(gy, x2, gx1)
@@ -154,7 +181,4 @@ end
 """
     \*(x1::Var, x2::Var)
 """
-*(x1::Var, x2::Var) = forward(*, x1, x2)
-
-forward(::typeof(*), x1::Matrix, x2::Vector) = forward(gemv, 'N', 1, x1, x2)
-forward(::typeof(*), x1::Matrix, x2::Matrix) = forward(gemm, 'N', 'N', 1, x1, x2)
+*(x1::Var, x2::Var) = gemm(x1, x2)
