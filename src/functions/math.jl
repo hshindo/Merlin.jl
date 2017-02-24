@@ -149,12 +149,21 @@ function forward(::typeof(.-), x1::UniArray, x2::UniArray)
     y, backward!
 end
 
+function ∇elemminus!{T,N}(gy::UniArray{T,N}, gx::UniArray{T,N})
+    for i = 1:N
+        size(gx,i) == 1 && size(gy,i) > 1 && (gy = sum(gy,i))
+    end
+    BLAS.axpy!(T(-1), gy, gx)
+end
+
+#=
 function ∇elemminus!{T}(gy::Array{T}, gx::Array{T})
     ind_gx = CartesianIndex(size(gx))
     @inbounds @simd for I in CartesianRange(size(gy))
         gx[min(ind_gx,I)] -= gy[I]
     end
 end
+=#
 
 """
     \.\*(x1::Var, x2::Var)
@@ -168,6 +177,13 @@ function forward(::typeof(.*), x1::UniArray, x2::UniArray)
         isvoid(gx2) || ∇elemtimes!(gy, x1, gx2)
     end
     y, backward!
+end
+
+function ∇elemtimes!{T,N}(gy::UniArray{T,N}, x2::UniArray{T,N}, gx1::UniArray{T,N})
+    for i = 1:N
+        size(gx,i) == 1 && size(gy,i) > 1 && (gy = sum(gy,i))
+    end
+    BLAS.axpy!(T(-1), gy, gx)
 end
 
 function ∇elemtimes!{T}(gy::Array{T}, x2::Array{T}, gx1::Array{T})

@@ -41,20 +41,6 @@ function linear(x::Var, w::Var, b::Var)
     w * x .+ b
 end
 
-function linear2(x::Var, w::Var, b::Var)
-    setbackend!(w, typeof(x.data))
-    setbackend!(b, typeof(x.data))
-    y = w.data * x.data
-    #broadcast!(.+, y, y, b.data)
-    function df(v::Var)
-        T = eltype(v.data)
-        #isvoid(v[3].grad) || ∇elemplus!(v.grad, v[3].grad)
-        isvoid(v[1].grad) || BLAS.gemm!('T', 'N', T(1), w.data, v.grad, T(1), v[1].grad)
-        isvoid(v[2].grad) || BLAS.gemm!('N', 'T', T(1), v.grad, x.data, T(1), v[2].grad)
-    end
-    Var(y, linear, (x,w,b), df)
-end
-
 export GatedLinear
 function GatedLinear{T}(::Type{T}, indim::Int, outdim::Int)
     x = Var()
