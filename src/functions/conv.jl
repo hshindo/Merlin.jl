@@ -47,24 +47,14 @@ function Conv{N}(T::Type, dims::NTuple{N,Int}; pads=nothing, strides=nothing)
 end
 
 function (f::Conv)(x::Var)
-    #f.w = set(f.w)
+    setbackend!(f.w, typeof(x.data))
+    setbackend!(f.b, typeof(x.data))
     conv(x, f.w, f.b, f.pads, f.strides)
 end
 
-function conv{X<:Array}(x::Var{X}, w::Var, b::Var, pads, strides)
-    y, work = conv(x.data, w.data, b.data, pads, strides)
-    function df{T}(gy::Array{T})
-        gy = permutedims(gy, [1,2,4,3])
-        gy_mat = reshape(gy, size(gy,1)*size(gy,2)*size(gy,3), size(gy,4))
-        isvoid(x.grad) || ∇conv_x!(gy_mat, x.grad, w.data, work, pads, strides)
-        isvoid(w.grad) || ∇conv_w!(gy_mat, w.grad, work)
-        isvoid(b.grad) || BLAS.axpy!(T(1), sum(gy_mat,1), b.grad)
-    end
-    Var(y, df, (x,w,b))
-end
-conv(x::Var{Void}, w::Var, b::Var, pads, strides) = Var(nothing, conv, (x,w,b,pads,strides))
+function forward{T}(::typeof(conv), x::Array{T}, w::Array{T,4}, b::Vector{T},
+    pads::NTuple{2,Int}, strides::NTuple{2,Int})
 
-function conv{T}(x::Array{T}, w::Array{T,4}, b::Vector{T}, pads::NTuple{2,Int}, strides::NTuple{2,Int})
     ndims(x) == 3 && (x = reshape(x, size(x)..., 1))
     size(x,3) == size(w,3) || throw("Input channel size mismatch.")
 
@@ -79,7 +69,42 @@ function conv{T}(x::Array{T}, w::Array{T,4}, b::Vector{T}, pads::NTuple{2,Int}, 
     broadcast!(.+, y, y, reshape(b,1,length(b)))
     y = reshape(y, outsize..., size(x,4), size(w,4))
     y = permutedims(y, [1,2,4,3])
-    y, work
+
+    function backward!(gy, gx, gw, gb)
+        gy = permutedims(gy, [1,2,4,3])
+        gy_mat = reshape(gy, size(gy,1)*size(gy,2)*size(gy,3), size(gy,4))
+        isvoid(gx) || ∇conv_x!(gy_mat, gx, w, work, pads, strides)
+        isvoid(gw) || ∇conv_w!(gy_mat, gw, work)
+        isvoid(gb) || BLAS.axpy!(T(1), sum(gy_mat,1), gb)
+    end
+    y, backward!
+end
+
+function forward{T}(::typeof(conv), x::CuArray{T}, w::CuArray{T,4}, b::CuVector{T},
+    pads::NTuple{2,Int}, strides::NTuple{2,Int})
+
+    h = handle(x)
+    xdesc = CUDNN.TensorDesc(x)
+    wdesc = CUDNN.TensorDesc(w)
+    ydesc = CUDNN.TensorDesc(y)
+
+    p = cudnnConvolutionFwdAlgo_t[0]
+    cudnnGetConvolutionForwardAlgorithm(handle(x), xdesc, wdesc, desc, ydesc,
+        CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, p)
+    algo = p[1]
+
+    p = Cint[0]
+    cudnnGetConvolutionForwardWorkspaceSize(handle(x), xdesc, wdesc, desc, ydesc, algo, p)
+    worksize = p[1]
+    workspace = CuArray{Int8}(Int(worksize))
+
+    cudnnConvolutionForward(handle(x), T[alpha], xdesc, x, wdesc, w, desc,
+        algo, workspace, worksize, T[beta], ydesc, y)
+
+    function backward!(gy, gx, gw, gb)
+        isvoid(gb) || cudnnConvolutionBackwardBias(h, T[1], dydesc, dy, T[0], dbdesc, gb)
+    end
+    y, backward!
 end
 
 function ∇conv_x!{T}(gy_mat::Matrix{T}, gx::Array{T,4}, w::Array{T,4}, work::Matrix{T}, pads, strides)
@@ -94,4 +119,10 @@ end
 function ∇conv_w!{T}(gy_mat::Matrix{T}, gw::Array{T,4}, work::Matrix{T})
     gw_mat = reshape(gw, size(work,2), size(gw,4))
     BLAS.gemm!('T', 'N', T(1), work, gy_mat, T(1), gw_mat)
+end
+
+function ∇conv_b!{T}(dy::CuArray{T}, db::CuArray{T})
+    dydesc = TensorDesc(dy)
+    dbdesc = TensorDesc(db)
+    cudnnConvolutionBackwardBias(handle(dy), T[1], dydesc, dy, T[0], dbdesc, db)
 end
