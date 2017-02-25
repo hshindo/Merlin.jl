@@ -20,20 +20,20 @@ x2 = zerograd(rand(T,10,5))
 @test checkgrad(exp, x1)
 #@test checkgrad(log, x1)
 for op in (+, -, .*)
-    #@test checkgrad(op, x1, x2)
+    @test checkgrad(op, x1, x2)
 end
-#@test checkgrad(-, x1)
+@test checkgrad(-, x1)
 x3 = zerograd(rand(T,10,1))
 x4 = zerograd(rand(T,1,5))
 for op in (.+, .-, .*)
-    #@test checkgrad(op, x1, x3)
-    #@test checkgrad(op, x1, x4)
+    @test checkgrad(op, x1, x3)
+    @test checkgrad(op, x1, x4)
 end
-#x5 = zerograd(rand(T,5,7))
-#@test checkgrad(*, x1, x5)
+x5 = zerograd(rand(T,5,7))
+@test checkgrad(*, x1, x5)
 
 x1 = zerograd(rand(T,7,2))
 x2 = zerograd(rand(T,7,2))
-#@test checkgrad(.+, x1, x2)
+@test checkgrad(.+, x1, x2)
 
 end

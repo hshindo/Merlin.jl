@@ -10,7 +10,11 @@ else
     throw("Unsupported OS.")
 end
 
-const usecuda = Pkg.installed("CUJulia") != nothing
+const usecuda = begin
+    libname = is_windows() ? "nvcuda" : "libcuda"
+    !isempty(Libdl.find_library([libname]))
+end
+#Pkg.installed("CUJulia") != nothing
 if usecuda
     using CUJulia
     using CUJulia.CUDNN

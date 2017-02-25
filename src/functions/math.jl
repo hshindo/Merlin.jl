@@ -180,20 +180,20 @@ function forward(::typeof(.*), x1::UniArray, x2::UniArray)
 end
 
 function ∇elemtimes!{T,N}(gy::Array{T,N}, x2::Array{T,N}, gx1::Array{T,N})
-    if size(gy) == size(gx1)
+    if size(x2) == size(gx1)
         @inbounds @simd for i = 1:length(gy)
-            gx[i] += gy[i] * x2[i]
+            gx1[i] += gy[i] * x2[i]
         end
     else
-        gx = gy[i] .* x2[i]
+        gx = gy .* x2
         for i = 1:N
             size(gx1,i) == 1 && size(gx,i) > 1 && (gx = sum(gx,i))
         end
-        BLAS.axpy!(T(1), gx1, gx)
+        BLAS.axpy!(T(1), gx, gx1)
     end
 end
 
-@generated function ∇elemtimes!{T,N}(gy::Array{T,N}, x2::Array{T,N}, gx1::Array{T,N})
+@generated function ∇elemtimes!{T,N}(gy::CuArray{T,N}, x2::CuArray{T,N}, gx1::CuArray{T,N})
     f1 = CuFunction("""
     __global__ void f(Array<$T,$N> gy, Array<$T,$N> x2, Array<$T,$N> gx1) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
