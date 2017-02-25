@@ -180,19 +180,43 @@ function forward(::typeof(.*), x1::UniArray, x2::UniArray)
 end
 
 function ∇elemtimes!{T,N}(gy::Array{T,N}, x2::Array{T,N}, gx1::Array{T,N})
-    if size(x2) == size(gx1)
+    if size(gy) == size(gx1)
         @inbounds @simd for i = 1:length(gy)
             gx[i] += gy[i] * x2[i]
         end
     else
-        
+        gx = gy[i] .* x2[i]
+        for i = 1:N
+            size(gx1,i) == 1 && size(gx,i) > 1 && (gx = sum(gx,i))
+        end
+        BLAS.axpy!(T(1), gx1, gx)
     end
-    for i = 1:N
-        size(gx,i) == 1 && size(gy,i) > 1 && (gy = sum(gy,i))
-    end
-    BLAS.axpy!(T(-1), gy, gx)
 end
 
+@generated function ∇elemtimes!{T,N}(gy::Array{T,N}, x2::Array{T,N}, gx1::Array{T,N})
+    f1 = CuFunction("""
+    __global__ void f(Array<$T,$N> gy, Array<$T,$N> x2, Array<$T,$N> gx1) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < gy.length()) {
+            gx[idx] += gy[idx] * x2[idx];
+        }
+    }""")
+    f2 = CuFunction("""
+    __global__ void f(Array<$T,$N> gy, Array<$T,$N> x2, Array<$T,$N> gx1) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < gy.length()) {
+            int subs[$N];
+            gy.idx2sub(idx, subs);
+            gx(subs) += gy[idx] * x2(subs);
+        }
+    }""")
+    quote
+        f = size(x2) == size(gx1) ? $f1 : $f2
+        f(gy, x2, gx1, dx=length(gy))
+    end
+end
+
+#=
 function ∇elemtimes!{T}(gy::Array{T}, x2::Array{T}, gx1::Array{T})
     ind_x2 = CartesianIndex(size(x2))
     ind_gx1 = CartesianIndex(size(gx1))
@@ -200,6 +224,7 @@ function ∇elemtimes!{T}(gy::Array{T}, x2::Array{T}, gx1::Array{T})
         gx1[min(ind_gx1,I)] += gy[I] * x2[min(ind_x2,I)]
     end
 end
+=#
 
 """
     \*(x1::Var, x2::Var)
