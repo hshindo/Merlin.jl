@@ -126,9 +126,9 @@ function forward{T}(::typeof(-), x1::UniArray{T}, x2::UniArray{T})
     y, backward!
 end
 
-function forward(::typeof(-), x::Array)
+function forward{T}(::typeof(-), x::UniArray{T})
     y = -x
-    backward!(gy, gx) = isvoid(gx) || BLAS.axpy!(eltype(gy)(-1), gy, gx)
+    backward!(gy, gx) = isvoid(gx) || BLAS.axpy!(T(-1), gy, gx)
     y, backward!
 end
 
@@ -194,25 +194,23 @@ function ∇elemtimes!{T,N}(gy::Array{T,N}, x2::Array{T,N}, gx1::Array{T,N})
 end
 
 @generated function ∇elemtimes!{T,N}(gy::CuArray{T,N}, x2::CuArray{T,N}, gx1::CuArray{T,N})
-    f1 = CuFunction("""
+    f = CuFunction("""
     __global__ void f(Array<$T,$N> gy, Array<$T,$N> x2, Array<$T,$N> gx1) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx < gy.length()) {
-            gx[idx] += gy[idx] * x2[idx];
-        }
-    }""")
-    f2 = CuFunction("""
-    __global__ void f(Array<$T,$N> gy, Array<$T,$N> x2, Array<$T,$N> gx1) {
-        int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx < gy.length()) {
-            int subs[$N];
-            gy.idx2sub(idx, subs);
-            gx(subs) += gy[idx] * x2(subs);
+            gx1[idx] += gy[idx] * x2[idx];
         }
     }""")
     quote
-        f = size(x2) == size(gx1) ? $f1 : $f2
-        f(gy, x2, gx1, dx=length(gy))
+        if size(x2) == size(gx1)
+            $f(gy, x2, gx1, dx=length(gy))
+        else
+            gx = gy .* x2
+            for i = 1:N
+                size(gx1,i) == 1 && size(gx,i) > 1 && (gx = sum(gx,i))
+            end
+            BLAS.axpy!(T(1), gx, gx1)
+        end
     end
 end
 
@@ -229,4 +227,6 @@ end
 """
     \*(x1::Var, x2::Var)
 """
-*(x1::Var, x2::Var) = gemm(x1, x2)
+function *(x1::Var, x2::Var)
+    ndims(x2.data) == 1 ? gemv(x1,x2) : gemm(x1, x2)
+end

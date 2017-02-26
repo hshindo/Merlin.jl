@@ -29,7 +29,7 @@ end
 """
     redim(x, n, [pad])
 """
-function redim{T,N}(x::Array{T,N}, n::Int; pad=0)
+function redim{T,N}(x::UniArray{T,N}, n::Int; pad=0)
     n == N && return x
     dims = ntuple(n) do i
         1 <= i-pad <= N ? size(x,i-pad) : 1

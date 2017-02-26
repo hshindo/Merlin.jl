@@ -13,7 +13,9 @@ y = cat(2, x1, x2)
 y = cat(2, Var[x1,x2])
 ```
 """
-function cat{T<:UniArray}(dim::Int, xs::Vector{T})
+@forward cat(dim::Int, xs::Vector{Var})
+
+function forward{T<:UniArray}(::typeof(cat), dim::Int, xs::Vector{T})
     cumdim = 0
     for x in xs
         cumdim += size(x, dim)
@@ -32,8 +34,8 @@ function cat{T<:UniArray}(dim::Int, xs::Vector{T})
         y[range...] = x
         offset += s
     end
-    backward!(gy, gxs) = ∇cat!(gy, dim, gxs)
-    Var(y, cat, (dim,xs), df)
+    backward!(gy, gxs) = ∇cat!(gy, dim, xs, gxs)
+    y, backward!
 end
 cat(dim::Int, xs::Var...) = cat(dim, Var[xs...])
 
