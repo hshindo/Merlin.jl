@@ -42,10 +42,9 @@ function checkcuda(f, args...; eps=1e-3)
     gxs1 = map(x -> x.grad, vars)
     y1 = y1.data
 
-    for v in vars
-        v.data = CuArray(v.data)
-        v.grad = zeros(v.data)
-    end
+    foreach(v -> setbackend!(v,CuArray), vars)
+    foreach(zerograd!, vars)
+
     y2 = f(args...)
     gradient!(y2)
     gxs2 = map(x -> Array(x.grad), vars)
@@ -63,9 +62,7 @@ function checkcuda(f, args...; eps=1e-3)
         end
     end
 
-    for v in vars
-        v.data = Array(v.data)
-        v.grad = zeros(v.data)
-    end
+    foreach(v -> setbackend!(v,Array), vars)
+    foreach(zerograd!, vars)
     true
 end

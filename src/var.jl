@@ -61,8 +61,12 @@ end
 
 function setbackend!{T<:CuArray}(v::Var, ::Type{T})
     isa(v.data, CuArray) && return v
-    v.data = CuArray(v.data)
-    v.grad = isvoid(v.grad) ? v.grad : CuArray(v.grad)
+    if eltype(v.data) == Int
+        v.data = CuArray(Array{Cint}(v.data))
+    else
+        v.data = CuArray(v.data)
+        v.grad = isvoid(v.grad) ? v.grad : CuArray(v.grad)
+    end
     v
 end
 

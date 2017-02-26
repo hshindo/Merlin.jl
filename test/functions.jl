@@ -19,7 +19,9 @@ end
 A = zerograd(rand(T,10,5))
 x = zerograd(rand(T,5))
 @test checkgrad(gemv, 'N', 0.3, A, x)
-#@test checkgrad(gemv, 'T', 0.3, transpose(A), x)
+A.data = transpose(A.data)
+A.grad = transpose(A.grad)
+@test checkgrad(gemv, 'T', 0.3, A, x)
 
 x1 = zerograd(rand(T,10,5))
 x2 = zerograd(rand(T,5,10))
@@ -36,6 +38,11 @@ x3 = zerograd(rand(T,10,5,2))
 for dim = 1:3
     @test checkgrad(cat, dim, x1, x2, x3)
 end
+
+# crossentropy
+p = Var(rand(0:10,5))
+q = zerograd(rand(T,10,5))
+#@test checkgrad(crossentropy, p, q)
 
 # linear
 x = zerograd(rand(T,10,5))
@@ -60,5 +67,9 @@ end
 x5 = zerograd(rand(T,5,7))
 @test checkgrad(*, x1, x5)
 
+# softmax
+x = zerograd(rand(T,10,5))
+@test checkgrad(softmax, x)
+@test checkgrad(logsoftmax, x, eps=1e-2)
 
 end

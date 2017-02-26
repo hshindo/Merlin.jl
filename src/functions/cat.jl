@@ -15,31 +15,15 @@ y = cat(2, Var[x1,x2])
 """
 @forward cat(dim::Int, xs::Vector{Var})
 
+cat(dim::Int, xs::Var...) = cat(dim, Var[xs...])
+
 function forward{T<:UniArray}(::typeof(cat), dim::Int, xs::Vector{T})
-    cumdim = 0
-    for x in xs
-        cumdim += size(x, dim)
-    end
-    outsize = [size(xs[1])...]
-    while length(outsize) < dim
-        push!(outsize, 1)
-    end
-    outsize[dim] = cumdim
-    y = similar(xs[1], outsize...)
-    range = map(s -> 1:s, outsize)
-    offset = 1
-    for x in xs
-        s = size(x, dim)
-        range[dim] = offset:(offset+s-1)
-        y[range...] = x
-        offset += s
-    end
+    y = cat(dim, xs...)
     backward!(gy, gxs) = ∇cat!(gy, dim, xs, gxs)
     y, backward!
 end
-cat(dim::Int, xs::Var...) = cat(dim, Var[xs...])
 
-function ∇cat!{T<:UniArray}(gy, dim::Int, xs::Vector{T}, gxs::Vector)
+function ∇cat!{T}(gy::UniArray{T}, dim::Int, xs::Vector, gxs::Vector)
     range = Any[1:size(gy,i) for i=1:ndims(gy)]
     offset = 1
     for i = 1:length(xs)
@@ -48,12 +32,10 @@ function ∇cat!{T<:UniArray}(gy, dim::Int, xs::Vector{T}, gxs::Vector)
         if isvoid(gx)
             offset += s
         else
-            if dim > ndims(gx)
-                range[dim] = offset
-            else
-                range[dim] = offset:(offset+s-1)
-            end
-            broadcast!(+, gx, gx, view(gy,range...))
+            range[dim] = offset:(offset+s-1)
+            #if dim > ndims(gx)
+            #    range[dim] = offset
+            BLAS.axpy!(T(1), gy[range...], gx)
             offset += s
         end
     end

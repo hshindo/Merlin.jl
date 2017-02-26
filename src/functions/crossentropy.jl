@@ -15,10 +15,13 @@ q = Var(rand(Float32,10,5))
 y = crossentropy(p, q)
 ```
 """
-function crossentropy(p::Var, q::Var)
-    logq = logsoftmax(q.data)
-    y = crossentropy(p.data, logq)
-    df(v::Var) = isvoid(v[2].grad) || ∇crossentropy!(v.grad, p.data, logq, v[2].grad)
+@forward crossentropy(p::Var, q::Var)
+
+function forward(::typeof(crossentropy), p::UniArray, q::UniArray)
+    logq = logsoftmax(q)
+    y = crossentropy(p, logq)
+    backward!(gy, gp, gq) = isvoid(gq) || ∇crossentropy!(gy, p, logq, gq)
+    y, backward!
 end
 
 function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
@@ -35,11 +38,27 @@ end
 
 function crossentropy{T}(p::Vector{Int}, logq::Matrix{T})
     length(p) == size(logq,2) || throw(DimensionMismatch())
-    y = Array(T, 1, length(p))
+    y = Array{T}(1, length(p))
     @inbounds @simd for j = 1:length(p)
         y[j] = p[j] > 0 ? -logq[p[j],j] : T(0)
     end
     y
+end
+
+@generated function crossentropy{T}(p::CuVector{Cint}, logq::CuMatrix{T})
+    f = CuFunction("""
+    __global__ void f($T *y, $int *p, Array<$T,2> logq) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < logq.dims[1]) {
+            y[idx] = p[idx] > 0 ? -logq(p[idx]-1,idx) : 0;
+        }
+    }""")
+    quote
+        length(p) == size(logq,2) || throw(DimensionMismatch())
+        y = CuArray{T}(1, length(p))
+        $f(y.ptr, p.ptr, logq, dx=length(p))
+        y
+    end
 end
 
 function ∇crossentropy!{T}(gy::Matrix{T}, p::Matrix{T}, logq::Matrix{T}, gq::Matrix{T})

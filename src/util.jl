@@ -47,11 +47,3 @@ function minibatch(data::Vector, size::Int)
     T = typeof(batches[1])
     Vector{T}(batches)
 end
-
-function add!{T}(y::Array{T}, yo::Int, x::Array{T}, xo::Int, n::Int)
-    @inbounds @simd for i = 0:n-1
-        y[i+yo] += x[i+xo]
-    end
-    y
-end
-add!{T}(y::Array{T}, x::Array{T}) = add!(y, 1, x, 1, length(x))

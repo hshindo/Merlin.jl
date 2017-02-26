@@ -21,13 +21,40 @@ Returns a softmax over the `ndims(x)-1`-th dimension.
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
-softmax(x::Var) = forward(softmax, x)
+@forward softmax(x::Var)
+
+"""
+    logsoftmax(x::Var)
+
+Returns a logarithm of softmax function.
+"""
+@forward logsoftmax(x::Var)
 
 function forward(::typeof(softmax), x::Array)
     y = softmax(x)
     backward!(gy, gx) = isvoid(gx) || ∇softmax!(y, gy, gx)
     y, backward!
 end
+
+function forward(::typeof(logsoftmax), x::Array)
+    y = logsoftmax(x)
+    backward!(gy, gx) = isvoid(gx) || ∇logsoftmax!(y, gy, gx)
+    y, backward!
+end
+
+function forward{T,N}(::typeof(softmax), x::CuArray{T,N}; algo=CUDNN_SOFTMAX_ACCURATE)
+    @assert 1 < N <= 4
+    h = CUDNN.handle(x)
+    xdesc = CUDNN.TensorDesc(x, pad=4-N)
+    y = similar(x)
+    mode = CUDNN_SOFTMAX_MODE_CHANNEL
+    cudnnSoftmaxForward(h, algo, mode, T[1], xdesc, x, T[0], xdesc, y)
+    function backward!(dy, dx)
+        isvoid(dx) || cudnnSoftmaxBackward(h, algo, mode, T[1], xdesc, y, xdesc, dy, T[1], xdesc, dx)
+    end
+    y, backward!
+end
+forward(::typeof(logsoftmax), x::CuArray) = forward(softmax, x, algo=CUDNN_SOFTMAX_LOG)
 
 function softmax{T}(x::Array{T})
     y = similar(x)
@@ -41,19 +68,6 @@ function ∇softmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     h = ∇softmax_handle(T)
     dims = dim3d(y, ndims(y)-1)
     ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), y, gy, gx, dims[1], dims[2], dims[3])
-end
-
-"""
-    logsoftmax(x::Var)
-
-Returns a logarithm of softmax function.
-"""
-logsoftmax(x::Var) = forward(logsoftmax, x)
-
-function forward(::typeof(logsoftmax), x::Array)
-    y = logsoftmax(x)
-    backward!(gy, gx) = isvoid(gx) || ∇logsoftmax!(y, gy, gx)
-    y, backward!
 end
 
 function logsoftmax{T}(x::Array{T})
