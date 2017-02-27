@@ -6,23 +6,9 @@ export dropout
 This is inteded to be used only for training.
 For testing, omit the dropout function.
 """
-function dropout(x::Var, rate::Float64)
-    y, df = dropout(x.data, rate)
-    Var(y, dropout, (x,rate), df)
-end
+@forward dropout(x::Var, rate::Float64)
 
-function dropout(x::Array, rate::Float64)
-    rx = rand(T, length(x))
-    scale = T(1 / (1-rate))
-    y = similar(x)
-    @inbounds @simd for i = 1:length(x)
-        y[i] = ifelse(rx[i] <= T(rate), T(0), scale*x[i])
-    end
-    df(v::Var) = isvoid(v[1].grad) || ∇dropout!(v.grad, v[1].grad, rate, rx)
-    y, df
-end
-
-function forward{T}(::typeof(dropout), x::Array{T}, rate::Float64)
+function forward(::typeof(dropout), x::Array, rate::Float64)
     rx = rand(T, length(x))
     scale = T(1 / (1-rate))
     y = similar(x)
