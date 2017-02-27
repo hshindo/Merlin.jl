@@ -64,6 +64,17 @@ function softmax{T}(x::Array{T})
     y
 end
 
+function softmax{T,N}(x::CuArray{T,N}; algo=CUDNN_SOFTMAX_ACCURATE)
+    @assert 1 < N <= 4
+    h = CUDNN.handle(x)
+    xdesc = CUDNN.TensorDesc(x, pad=4-N)
+    y = similar(x)
+    mode = CUDNN_SOFTMAX_MODE_CHANNEL
+    cudnnSoftmaxForward(h, algo, mode, T[1], xdesc, x, T[0], xdesc, y)
+    y
+end
+logsoftmax(x::CuArray) = softmax(x, algo=CUDNN_SOFTMAX_LOG)
+
 function ∇softmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     h = ∇softmax_handle(T)
     dims = dim3d(y, ndims(y)-1)
