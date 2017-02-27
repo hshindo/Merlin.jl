@@ -11,7 +11,7 @@ y = x[2:2]
 Note that `y = x[i]` throws an error since `y` is not a vector but a scholar.
 Instead, use `y = x[i:i]`.
 """
-@forward getindex(x::Var, inds::Tuple)
+getindex(x::Var, inds::Tuple) = forward0(getindex, x, inds)
 
 getindex(x::Var, inds...) = getindex(x, inds)
 
