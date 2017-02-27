@@ -17,23 +17,17 @@ y = crossentropy(p, q)
 """
 @forward crossentropy(p::Var, q::Var)
 
-function forward(::typeof(crossentropy), p::UniArray, q::UniArray)
+function forward(::typeof(crossentropy), p::Array, q::Array)
     logq = logsoftmax(q)
     y = crossentropy(p, logq)
     backward!(gy, gp, gq) = isvoid(gq) || ∇crossentropy!(gy, p, logq, gq)
     y, backward!
 end
 
-function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
-    y = Array(T, 1, size(p,2))
-    for j = 1:size(p,2)
-        s = T(0)
-        @inbounds @simd for i = 1:size(p,1)
-            s += -p[i,j] * logq[i,j]
-        end
-        y[j] = s
-    end
-    y
+function forward(::typeof(crossentropy), p::CuVector{Cint}, q::CuMatrix)
+    logq, logq_backward! = forward(logsoftmax, q)
+    y = crossentropy(p, logq)
+    backward!(gy, gp, gq) = isvoid(gq) || ∇crossentropy!(gy, p, logq, gq)
 end
 
 function crossentropy{T}(p::Vector{Int}, logq::Matrix{T})
@@ -61,15 +55,6 @@ end
     end
 end
 
-function ∇crossentropy!{T}(gy::Matrix{T}, p::Matrix{T}, logq::Matrix{T}, gq::Matrix{T})
-    for j = 1:size(p,2)
-        g = gy[j]
-        @inbounds @simd for i = 1:size(p,1)
-            gq[i,j] += g * (exp(logq[i,j]) - p[i,j])
-        end
-    end
-end
-
 function ∇crossentropy!{T}(gy::Matrix{T}, p::Vector{Int}, logq::Matrix{T}, gq::Matrix{T})
     for j = 1:length(p)
         g = gy[j]
@@ -78,6 +63,51 @@ function ∇crossentropy!{T}(gy::Matrix{T}, p::Vector{Int}, logq::Matrix{T}, gq:
                 delta = ifelse(i == p[j], T(1), T(0))
                 gq[i,j] += g * (exp(logq[i,j]) - delta)
             end
+        end
+    end
+end
+
+@generated function ∇crossentropy!{T}(gy::CuMatrix{T}, p::CuVector{Cint}, logq::CuMatrix{T}, gq::CuMatrix{T})
+    f = CuFunction("""
+    __global__ void f($T *gy, $T *p, Array<$T,2> *gq) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        int subs[2];
+        int j;
+        int i;
+
+        if (p[j] > 0) {
+            T delta = (i == p[j]-1) ? 1 : 0;
+            gq(i,j) += gy[j] * (exp(logq(i,j)) - delta);
+        }
+    }""")
+    for j = 1:length(p)
+        g = gy[j]
+        @inbounds @simd for i = 1:size(logq,1)
+            if p[j] > 0
+                delta = ifelse(i == p[j], T(1), T(0))
+                gq[i,j] += g * (exp(logq[i,j]) - delta)
+            end
+        end
+    end
+end
+
+function crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
+    y = Array(T, 1, size(p,2))
+    for j = 1:size(p,2)
+        s = T(0)
+        @inbounds @simd for i = 1:size(p,1)
+            s += -p[i,j] * logq[i,j]
+        end
+        y[j] = s
+    end
+    y
+end
+
+function ∇crossentropy!{T}(gy::Matrix{T}, p::Matrix{T}, logq::Matrix{T}, gq::Matrix{T})
+    for j = 1:size(p,2)
+        g = gy[j]
+        @inbounds @simd for i = 1:size(p,1)
+            gq[i,j] += g * (exp(logq[i,j]) - p[i,j])
         end
     end
 end
