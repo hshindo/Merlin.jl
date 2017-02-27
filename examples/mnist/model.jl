@@ -8,6 +8,13 @@ function setup_model()
         x = fs[2](x)
         x = relu(x)
         x = fs[3](x)
-        y == nothing ? argmax(x.data,1) : crossentropy(y,x)
+        if y == nothing
+            argmax(x.data,1)
+        else
+            x = logsoftmax(x)
+            x.grad = crossentropy(y.data,x.data)
+            x
+        end
+        #y == nothing ? argmax(x.data,1) : crossentropy(y,x)
     end
 end

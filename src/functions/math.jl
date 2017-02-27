@@ -38,7 +38,7 @@ log(x::Var) = forward0(log, x)
 
 function forward(::typeof(log), x::UniArray)
     y = log(x)
-    backward!(gy, gx) = isvoid(gx) || ∇log!(y, x, gx)
+    backward!(gy, gx) = isvoid(gx) || ∇log!(gy, x, gx)
     y, backward!
 end
 
@@ -91,7 +91,7 @@ end
 """
     .+(x1::Var, x2::Var)
 """
-.+(x1::Var, x2::Var) = forward0(+, x1, x2)
+.+(x1::Var, x2::Var) = forward0(.+, x1, x2)
 
 function forward(::typeof(.+), x1::UniArray, x2::UniArray)
     y = x1 .+ x2

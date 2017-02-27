@@ -39,14 +39,14 @@ function forward{T,N}(::typeof(window), x::Array{T},
     y, backward!
 end
 
-@generated function forward{T}(::typeof(window), x::CuArray{T},
+@generated function forward{T,N}(::typeof(window), x::CuArray{T},
     dims::NTuple{N,Int}, pads::NTuple{N,Int}, strides::NTuple{N,Int})
 
     f = CuFunction("""
     __global__ void f($T *y, $T *x) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx < length) {
-            
+
         }
     }
     """)

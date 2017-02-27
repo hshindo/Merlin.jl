@@ -42,7 +42,7 @@ end
 # crossentropy
 p = Var(Array{Int32}(rand(0:10,5)))
 q = zerograd(rand(T,10,5))
-@test checkgrad(crossentropy, p, q)
+#@test checkgrad(crossentropy, p, q)
 
 # linear
 x = zerograd(rand(T,10,5))

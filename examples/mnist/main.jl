@@ -10,6 +10,7 @@ function setup_data(x::Array, y::Vector)
     batchsize = 100
     xs = [Var(x[:,i:i+batchsize-1]) for i=1:batchsize:size(x,2)]
     y += 1 # Change label set: 0..9 -> 1..10
+    y = Array{Int32}(y)
     ys = [Var(y[i:i+batchsize-1]) for i=1:batchsize:length(y)]
     collect(zip(xs,ys))
 end

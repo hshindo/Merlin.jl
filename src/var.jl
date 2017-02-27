@@ -1,5 +1,5 @@
 export
-    Var
+    Var,
     zerograd, zerograd!, isvoid,
     topsort, gradient!
 
@@ -10,7 +10,6 @@ export
 It contains the following members:
 
 * data
-* f: forward function
 * args: arguments
 * df: backward function
 * grad: gradient

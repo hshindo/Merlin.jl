@@ -14,7 +14,7 @@ function fit(data::Vector, model, opt; progress=true)
         vars = gradient!(z)
         for v in vars
             isparam(v) && opt(v.data, v.grad)
-            isa(v.f, Functor) && (dict[v.f] = v.f)
+            !isempty(v.args) && isa(v.args[1], Functor) && (dict[v.args[1]] = v.args[1])
         end
         foreach(f -> update!(f,opt), keys(dict))
         progress && next!(prog)
