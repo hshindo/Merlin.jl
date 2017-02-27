@@ -15,7 +15,7 @@ q = Var(rand(Float32,10,5))
 y = crossentropy(p, q)
 ```
 """
-@forward crossentropy(p::Var, q::Var)
+crossentropy(p::Var, q::Var) = forward0(crossentropy, p, q)
 
 function forward(::typeof(crossentropy), p::Array, q::Array)
     logq = logsoftmax(q)

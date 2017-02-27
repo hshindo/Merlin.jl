@@ -4,7 +4,7 @@ import Base: +, .+, -, .-, .*, *
 """
     exp(x::Var)
 """
-@forward exp(x::Var)
+exp(x::Var) = forward0(exp, x)
 
 function forward(::typeof(exp), x::UniArray)
     y = exp(x)
@@ -34,7 +34,7 @@ end
 """
     log(x::Var)
 """
-@forward log(x::Var)
+log(x::Var) = forward0(log, x)
 
 function forward(::typeof(log), x::UniArray)
     y = log(x)
@@ -64,7 +64,7 @@ end
 """
     transpose(x::Var)
 """
-@forward transpose(x::Var)
+transpose(x::Var) = forward0(transpose, x)
 
 function forward{T}(::typeof(transpose), x::UniArray{T})
     y = transpose(x)
@@ -75,7 +75,7 @@ end
 """
     +(x1::Var, x2::Var)
 """
-@forward +(x1::Var, x2::Var)
++(x1::Var, x2::Var) = forward0(+, x1, x2)
 
 function forward{T}(::typeof(+), x1::UniArray{T}, x2::UniArray{T})
     y = x1 + x2
@@ -91,7 +91,7 @@ end
 """
     .+(x1::Var, x2::Var)
 """
-@forward .+(x1::Var, x2::Var)
+.+(x1::Var, x2::Var) = forward0(+, x1, x2)
 
 function forward(::typeof(.+), x1::UniArray, x2::UniArray)
     y = x1 .+ x2
@@ -114,8 +114,8 @@ end
     -(x1::Var, x2::Var)
     -(x::Var)
 """
-@forward -(x1::Var, x2::Var)
-@forward -(x::Var)
+-(x1::Var, x2::Var) = forward0(-, x1, x2)
+-(x::Var) = forward0(-, x)
 
 function forward{T}(::typeof(-), x1::UniArray{T}, x2::UniArray{T})
     y = x1 - x2
@@ -138,7 +138,7 @@ end
 """
     .-(x1::Var, x2::Var)
 """
-@forward .-(x1::Var, x2::Var)
+.-(x1::Var, x2::Var) = forward0(.-, x1, x2)
 
 function forward(::typeof(.-), x1::UniArray, x2::UniArray)
     y = x1 .- x2
@@ -168,7 +168,7 @@ end
 """
     \.\*(x1::Var, x2::Var)
 """
-@forward .*(x1::Var, x2::Var)
+.*(x1::Var, x2::Var) = forward0(.*, x1, x2)
 
 function forward(::typeof(.*), x1::UniArray, x2::UniArray)
     y = x1 .* x2

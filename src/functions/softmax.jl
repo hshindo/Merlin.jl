@@ -21,14 +21,14 @@ Returns a softmax over the `ndims(x)-1`-th dimension.
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
-@forward softmax(x::Var)
+softmax(x::Var) = forward0(softmax, x)
 
 """
     logsoftmax(x::Var)
 
 Returns a logarithm of softmax function.
 """
-@forward logsoftmax(x::Var)
+logsoftmax(x::Var) = forward0(logsoftmax, x)
 
 function forward(::typeof(softmax), x::Array)
     y = softmax(x)

@@ -6,7 +6,7 @@ export dropout
 This is inteded to be used only for training.
 For testing, omit the dropout function.
 """
-@forward dropout(x::Var, rate::Float64)
+dropout(x::Var, rate::Float64) = forward0(dropout, x, rate)
 
 function forward(::typeof(dropout), x::Array, rate::Float64)
     rx = rand(T, length(x))

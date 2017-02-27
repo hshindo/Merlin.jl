@@ -9,7 +9,7 @@ export gemv, gemm, gemm_batch
 y = \alpha \times \textrm{tA}(A) \times x
 ```
 """
-@forward gemv(tA::Char, alpha, A::Var, x::Var)
+gemv(tA::Char, alpha, A::Var, x::Var) = forward0(gemv, tA, alpha, A, x)
 
 function forward{T}(::typeof(gemv), tA::Char, alpha, A::UniArray{T}, x::UniArray{T})
     y = BLAS.gemv(tA, T(alpha), A, x)
@@ -36,7 +36,7 @@ gemv(A, x; tA='N', alpha=1) = gemv(tA, alpha, A, x)
 C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
 ```
 """
-@forward gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)
+gemm(tA::Char, tB::Char, alpha, A::Var, B::Var) = forward0(gemm, tA, tB, alpha, A, B)
 
 function forward{T}(::typeof(gemm), tA::Char, tB::Char, alpha, A::UniArray{T}, B::UniArray{T})
     C = BLAS.gemm(tA, tB, T(alpha), A, B)

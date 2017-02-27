@@ -49,7 +49,7 @@ function Lookup(path::String, T::Type)
     Lookup(ws)
 end
 
-(f::Lookup)(x::Var) = forward(f, x)
+(f::Lookup)(x::Var) = forward0(f, x)
 
 function forward{T}(f::Lookup, x::Array{T})
     ws = f.ws

@@ -12,7 +12,6 @@ Note that `y = x[i]` throws an error since `y` is not a vector but a scholar.
 Instead, use `y = x[i:i]`.
 """
 getindex(x::Var, inds::Tuple) = forward0(getindex, x, inds)
-
 getindex(x::Var, inds...) = getindex(x, inds)
 
 function forward{T}(::typeof(getindex), x::Array{T}, inds::Tuple)

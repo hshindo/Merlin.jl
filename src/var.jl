@@ -1,5 +1,5 @@
 export
-    Var,
+    Var
     zerograd, zerograd!, isvoid,
     topsort, gradient!
 
@@ -36,11 +36,6 @@ function zerograd!(v::Var)
     v
 end
 zerograd(x) = zerograd!(Var(x))
-
-macro forward(expr)
-    args = map(a -> isa(a,Expr) ? a.args[1] : a, expr.args)
-    Expr(:(=), expr, Expr(:call, :forward0, args...))
-end
 
 function forward0(args...)
     xs = map(args) do arg

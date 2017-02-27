@@ -13,8 +13,7 @@ y = cat(2, x1, x2)
 y = cat(2, Var[x1,x2])
 ```
 """
-@forward cat(dim::Int, xs::Vector{Var})
-
+cat(dim::Int, xs::Vector{Var}) = forward0(dim, xs)
 cat(dim::Int, xs::Var...) = cat(dim, Var[xs...])
 
 function forward{T<:UniArray}(::typeof(cat), dim::Int, xs::Vector{T})

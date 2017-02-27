@@ -5,7 +5,7 @@ import Base: max, sum
 
 Returns the maximum value over the given dimensions.
 """
-max(x::Var, dim::Int) = forward(max, x, dim)
+max(x::Var, dim::Int) = forward0(max, x, dim)
 
 function forward(::typeof(max), x::Array, dim::Int)
     y, idx = findmax(x, dim)
@@ -24,7 +24,7 @@ end
 
 Returns the sum over the given dimension.
 """
-sum(x::Var, dim::Int) = forward(sum, x, dim)
+sum(x::Var, dim::Int) = forward0(sum, x, dim)
 
 function forward(::typeof(sum), x::Array, dim::Int)
     y = sum(x, dim)
