@@ -43,7 +43,7 @@ function (lstm::LSTM)(x::Var, c=nothing, h=nothing)
         c, h = onestep(lstm, x[:,i], c, h)
         push!(hs, h)
     end
-    cat(2, hs...)
+    hs
 end
 
 function onestep(lstm::LSTM, x::Var, c::Var, h::Var)
