@@ -1,10 +1,14 @@
-function rnn{T}(x::CuArray{T}, hsize::Int, nlayers::Int)
+type RNN
+    w
+end
+
+function (rnn::RNN){T}(x::CuArray{T}, hsize::Int, nlayers::Int)
     h = CUDNN.handle(x)
-    desc = CUDNN.RNNDesc()
+    desc = CUDNN.RNNDesc(h, seqlength)
 
-    dropoutdesc
-    cudnnSetRNNDescriptor(desc, hsize, nlayers, dropoutdesc)
 
-    cudnnRNNForwardInference(h, desc, seqLength,xDesc,x,hxDesc,hx,cxDesc,cx,
-    wDesc,w,yDesc,y,hyDesc,hy,cyDesc,cy,workspace,workSpaceSizeInBytes)
+
+    cudnnRNNForwardInference(h, desc, seqlength, xdesc, x, hxdesc, hx, cxdesc,cx,
+        wdesc, w, ydesc, y, hydesc, hy, cydesc, cy, desc.workspace, length(desc.workspace))
+    y
 end
