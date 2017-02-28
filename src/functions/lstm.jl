@@ -1,41 +1,42 @@
 export LSTM
 
 """
-    LSTM(T::Type, size::Int)
+    LSTM(T::Type, xsize::Int, hsize::Int)
 
 Long short-term memory (LSTM).
 
 ```julia
 T = Float32
-lstm = LSTM(T, 100, ()->rand()*0.02-0.01)
+lstm = LSTM(T, 100, 100)
 # one-step
-c = Var(zeros(T,n))
-h = Var(zeros(T,n))
+c = Var(zeros(T,100))
+h = Var(zeros(T,100))
 c, h = lstm(x, c, h)
 # n-step
 h = lstm(x)
 ```
 """
 type LSTM
-    W
-    b
+    w::Var
+    b::Var
 end
 
-function LSTM{T}(::Type{T}, size::Int, init::Function)
-    w = reshape(T[init() for i=1:size*4*size], size*4, size)
-    u = orthogonal(T, size*4, size)
-    w = zerograd(cat(2,w,u))
-    b = zerograd(zeros(T,size*4))
-    b.data[1:size] = ones(T, size) # forget gate initializes to 1
-    LSTM(w, b)
+function LSTM{T}(::Type{T}, xsize::Int, hsize::Int)
+    w = uniform(T, -0.001, 0.001, hsize*4, xsize+hsize)
+    u = orthogonal(T, hsize*4, xsize+hsize)
+    w = cat(2, w, u)
+    b = zeros(T,size(w,1))
+    b[1:hsize] = ones(T, hsize) # forget gate initializes to 1
+    LSTM(zeerograd(w), zerograd(b))
 end
 
 function (lstm::LSTM)(x::Var, c=nothing, h=nothing)
     T = eltype(lstm.b.data)
-    n = Int(length(lstm.b.data)/4)
-    size(x.data,1) == n || throw("Length of x is invalid.")
-    isvoid(c) && (c = Var(zeros(T,n)))
-    isvoid(h) && (h = Var(zeros(T,n)))
+    hsize = Int(length(lstm.b.data)/4)
+    xsize = size(lstm.w.data,2) - hsize
+    size(x.data,1) == xsize || throw("Length of x is invalid.")
+    isvoid(c) && (c = Var(zeros(T,hsize)))
+    isvoid(h) && (h = Var(zeros(T,hsize)))
 
     ndims(x.data) == 1 && return onestep(lstm, x, c, h)
     hs = Var[]
@@ -48,7 +49,7 @@ end
 
 function onestep(lstm::LSTM, x::Var, c::Var, h::Var)
     n = size(x.data, 1)
-    a = lstm.W * cat(1,x,h) + lstm.b
+    a = lstm.w * cat(1,x,h) + lstm.b
     f = sigmoid(a[1:n])
     i = sigmoid(a[n+1:2n])
     o = sigmoid(a[2n+1:3n])
