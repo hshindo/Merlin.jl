@@ -4,10 +4,10 @@ function activation{T}(x::CuArray{T}, mode)
     y = similar(x)
     xdesc = CUDNN.TensorDesc(x)
     cudnnActivationForward(h, desc, T[1], xdesc, x, T[0], xdesc, y)
-    function backward!(v::Var)
-        isvoid(v[1].grad) && return
-        y, dy, x, dx = v.data, v.grad, v[1].data, v[1].grad
-        cudnnActivationBackward(h, desc, T[1], xdesc, y, xdesc, dy, xdesc, x, T[1], xdesc, dx)
+    function backward!(gy, gx)
+        if !isvoid(gx)
+            cudnnActivationBackward(h, desc, T[1], xdesc, y, xdesc, gy, xdesc, x, T[1], xdesc, gx)
+        end
     end
     y, backward!
 end

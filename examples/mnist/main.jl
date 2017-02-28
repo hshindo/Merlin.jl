@@ -18,7 +18,7 @@ end
 function main()
     traindata = setup_data(MNIST.traindata()...)
     testdata = setup_data(MNIST.testdata()...)
-    model = setup_model()
+    model = Model(Float32, 1000)
 
     opt = SGD(0.0001, momentum=0.99, nesterov=true)
     for epoch = 1:5

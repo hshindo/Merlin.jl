@@ -83,26 +83,27 @@ end
 function forward{T}(::typeof(conv), x::CuArray{T}, w::CuArray{T,4}, b::CuVector{T},
     pads::NTuple{2,Int}, strides::NTuple{2,Int})
 
-    h = handle(x)
+    h = CUDNN.handle(x)
     xdesc = CUDNN.TensorDesc(x)
     wdesc = CUDNN.TensorDesc(w)
     ydesc = CUDNN.TensorDesc(y)
 
-    p = cudnnConvolutionFwdAlgo_t[0]
-    cudnnGetConvolutionForwardAlgorithm(handle(x), xdesc, wdesc, desc, ydesc,
+    p = Ptr{Void}[0]
+    cudnnGetConvolutionForwardAlgorithm(h, xdesc, wdesc, desc, ydesc,
         CUDNN_CONVOLUTION_FWD_PREFER_FASTEST, 0, p)
     algo = p[1]
 
     p = Cint[0]
-    cudnnGetConvolutionForwardWorkspaceSize(handle(x), xdesc, wdesc, desc, ydesc, algo, p)
+    cudnnGetConvolutionForwardWorkspaceSize(h, xdesc, wdesc, desc, ydesc, algo, p)
     worksize = p[1]
     workspace = CuArray{Int8}(Int(worksize))
 
-    cudnnConvolutionForward(handle(x), T[alpha], xdesc, x, wdesc, w, desc,
+    cudnnConvolutionForward(h, T[alpha], xdesc, x, wdesc, w, desc,
         algo, workspace, worksize, T[beta], ydesc, y)
 
     function backward!(gy, gx, gw, gb)
-        isvoid(gb) || cudnnConvolutionBackwardBias(h, T[1], dydesc, dy, T[0], dbdesc, gb)
+        isvoid(gb) || cudnnConvolutionBackwardBias(h, T[1], dydesc, dy, T[0], dbdesc, gb
+        #isvoid(gx) ||
     end
     y, backward!
 end
@@ -121,8 +122,18 @@ function ∇conv_w!{T}(gy_mat::Matrix{T}, gw::Array{T,4}, work::Matrix{T})
     BLAS.gemm!('T', 'N', T(1), work, gy_mat, T(1), gw_mat)
 end
 
-function ∇conv_b!{T}(dy::CuArray{T}, db::CuArray{T})
-    dydesc = TensorDesc(dy)
-    dbdesc = TensorDesc(db)
-    cudnnConvolutionBackwardBias(handle(dy), T[1], dydesc, dy, T[0], dbdesc, db)
+function ∇conv_filter!{T}(x::CuArray{T}, dy, desc::ConvDesc, dw)
+    h = handle(x)
+    p = Ptr{Void}[0]
+    cudnnGetConvolutionBackwardFilterAlgorithm(h, xdesc, dydesc, desc, dwdesc,
+        CUDNN_CONVOLUTION_BWD_FILTER_PREFER_FASTEST, 0, p)
+    algo = p[1]
+
+    p = Cint[0]
+    cudnnGetConvolutionBackwardFilterWorkspaceSize(h, xdesc, dydesc, desc, dwdesc, algo, p)
+    worksize = p[1]
+    workspace = CuArray{Int8}(Int(p[1]))
+
+    cudnnConvolutionBackwardFilter(h, T[1], xdesc, x, dydesc, dy, desc,
+        algo, workspace, worksize, T[0], dwdesc, dw)
 end

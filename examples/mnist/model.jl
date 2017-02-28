@@ -1,20 +1,17 @@
-function setup_model()
-    T = Float32
-    h = 1000
-    fs = [Linear(T,784,h), Linear(T,h,h), Linear(T,h,10)]
-    (x::Var, y=nothing) -> begin
-        x = fs[1](x)
-        x = relu(x)
-        x = fs[2](x)
-        x = relu(x)
-        x = fs[3](x)
-        if y == nothing
-            argmax(x.data,1)
-        else
-            x = logsoftmax(x)
-            x.grad = crossentropy(y.data,x.data)
-            x
-        end
-        #y == nothing ? argmax(x.data,1) : crossentropy(y,x)
-    end
+type Model
+    funs::Vector
+end
+
+function Model{T}(::Type{T}, hsize::Int)
+    funs = [Linear(T,784,hsize), Linear(T,hsize,hsize), Linear(T,hsize,10)]
+    Model(funs)
+end
+
+function (m::Model)(x::Var, y=nothing)
+    x = m.funs[1](x)
+    x = relu(x)
+    x = m.funs[2](x)
+    x = relu(x)
+    x = m.funs[3](x)
+    y == nothing ? argmax(x.data,1) : crossentropy(y,x)
 end
