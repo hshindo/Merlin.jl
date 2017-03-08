@@ -47,6 +47,7 @@ for name in [
     "dropout",
     "getindex",
     "gru",
+    "ifelse",
     "linear",
     "lookup",
     "lstm",

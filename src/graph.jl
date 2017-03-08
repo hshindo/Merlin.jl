@@ -1,5 +1,9 @@
 export Graph
 
+type VarId
+    value::Int
+end
+
 type Graph
     nodes::Vector{Var}
     args::Tuple{Vararg{Int}}
@@ -11,10 +15,21 @@ function Graph(top::Var, args::Var...)
     node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
     nodes = map(nodes) do node
         isempty(node.args) && return node
+        nargs = varargs(node.args)
+
         nargs = map(node.args) do arg
-            isa(arg, Var) ? Var(node2id[arg]) : arg
+            if isa(arg, Var)
+                Var(node2id[arg])
+            elseif isa(arg, Vector{Var})
+
+            elseif isa(arg, Tuple)
+                for a in arg
+                end
+            else
+                arg
+            end
         end
-        Var(node.data, node.f, nargs, node.grad)
+        Var(node.data, nargs, nothing, node.grad)
     end
     args = map(x -> node2id[x], args)
     Graph(nodes, args, nothing)
@@ -32,9 +47,9 @@ function compile(g::Graph)
             push!(calls, isvoid(node.data) ? gensym() : node)
         else
             args = map(node.args) do arg
-                isa(arg, Var) ? calls[arg.data] : arg
+                isa(arg,Var) ? calls[arg.data] : arg
             end
-            push!(calls, Expr(:call, node.f, args...))
+            push!(calls, Expr(:call, args...))
         end
     end
     syms = map(a -> calls[a], g.args)

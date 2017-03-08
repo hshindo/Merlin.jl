@@ -21,13 +21,29 @@ type Var
     grad
 end
 
-Var(data, args=(), df=nothing) = Var(data, args, df, nothing)
+Var(data=nothing, args=(), df=nothing) = Var(data, args, df, nothing)
 
 isvoid(x) = x == nothing
 isparam(v) = isempty(v.args) && !isvoid(v.grad)
 
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
+
+function varargs(v::Var)
+    vars = Var[]
+    for arg in v.args
+        if isa(arg, Var)
+            push!(vars, arg)
+        elseif isa(arg, Vector{Var})
+            append!(vars, arg)
+        elseif isa(arg, Tuple)
+            for a in arg
+                isa(a,Var) && push!(vars,a)
+            end
+        end
+    end
+    vars
+end
 
 function zerograd!(v::Var)
     isvoid(v.grad) && (v.grad = similar(v.data))
@@ -37,6 +53,9 @@ end
 zerograd(x) = zerograd!(Var(x))
 
 function forward0(args...)
+    for arg in args
+        isa(arg,Var) && isvoid(arg.data) && return Var(nothing,args)
+    end
     xs = map(args) do arg
         isa(arg, Var) && return arg.data
         isa(arg, Vector{Var}) && return map(a -> a.data, arg)
