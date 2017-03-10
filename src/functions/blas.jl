@@ -36,7 +36,9 @@ gemv(A, x; tA='N', alpha=1) = gemv(tA, alpha, A, x)
 C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
 ```
 """
-gemm(tA::Char, tB::Char, alpha, A::Var, B::Var) = forward0(gemm, tA, tB, alpha, A, B)
+function gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)
+    forward0(gemm, tA, tB, alpha, A, B)
+end
 
 function forward{T}(::typeof(gemm), tA::Char, tB::Char, alpha, A::UniArray{T}, B::UniArray{T})
     C = BLAS.gemm(tA, tB, T(alpha), A, B)

@@ -6,33 +6,22 @@ end
 
 type Graph
     nodes::Vector{Var}
-    args::Tuple{Vararg{Int}}
+    inputs::Vector{Int}
     f
 end
 
-function Graph(top::Var, args::Var...)
-    nodes = topsort(top)
+function Graph(output::Var, inputs::Tuple{Vararg{Var}})
+    nodes = topsort(output)
     node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
     nodes = map(nodes) do node
         isempty(node.args) && return node
-        nargs = varargs(node.args)
-
-        nargs = map(node.args) do arg
-            if isa(arg, Var)
-                Var(node2id[arg])
-            elseif isa(arg, Vector{Var})
-
-            elseif isa(arg, Tuple)
-                for a in arg
-                end
-            else
-                arg
-            end
+        args = map(node.args) do arg
+            isa(arg, Var) ? VarId(node2id[arg]) : arg
         end
-        Var(node.data, nargs, nothing, node.grad)
+        Var(nothing, node.f, args)
     end
-    args = map(x -> node2id[x], args)
-    Graph(nodes, args, nothing)
+    inputs = Int[node2id[x] for x in inputs]
+    Graph(nodes, inputs, nothing)
 end
 
 function (g::Graph)(args::Var...)
@@ -47,13 +36,13 @@ function compile(g::Graph)
             push!(calls, isvoid(node.data) ? gensym() : node)
         else
             args = map(node.args) do arg
-                isa(arg,Var) ? calls[arg.data] : arg
+                isa(arg,VarId) ? calls[arg.value] : arg
             end
-            push!(calls, Expr(:call, args...))
+            push!(calls, Expr(:call, node.f, args...))
         end
     end
-    syms = map(a -> calls[a], g.args)
-    expr = Expr(:->, Expr(:tuple, syms...), calls[end])
+    inputs = map(x -> calls[x], g.inputs)
+    expr = Expr(:->, Expr(:tuple, inputs...), calls[end])
     eval(expr)
 end
 

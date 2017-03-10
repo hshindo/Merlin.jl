@@ -21,29 +21,13 @@ type Var
     grad
 end
 
-Var(data=nothing, args=(), df=nothing) = Var(data, args, df, nothing)
+Var(data=nothing, f=nothing, args=()) = Var(data, f, args, nothing)
 
 isvoid(x) = x == nothing
 isparam(v) = isempty(v.args) && !isvoid(v.grad)
 
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
-
-function varargs(v::Var)
-    vars = Var[]
-    for arg in v.args
-        if isa(arg, Var)
-            push!(vars, arg)
-        elseif isa(arg, Vector{Var})
-            append!(vars, arg)
-        elseif isa(arg, Tuple)
-            for a in arg
-                isa(a,Var) && push!(vars,a)
-            end
-        end
-    end
-    vars
-end
 
 function zerograd!(v::Var)
     isvoid(v.grad) && (v.grad = similar(v.data))
@@ -52,17 +36,23 @@ function zerograd!(v::Var)
 end
 zerograd(x) = zerograd!(Var(x))
 
-function forward0(args...)
+macro graph(args...)
     for arg in args
         isa(arg,Var) && isvoid(arg.data) && return Var(nothing,args)
     end
+end
+
+function forward0(args...)
+    #for arg in args
+    #    isa(arg,Var) && isvoid(arg.data) && return Var(nothing,args)
+    #end
     xs = map(args) do arg
-        isa(arg, Var) && return arg.data
-        isa(arg, Vector{Var}) && return map(a -> a.data, arg)
+        isa(arg,Var) && return arg.data
+        isa(arg,Vector{Var}) && return map(a -> a.data, arg)
         arg
     end
-    y, backward! = forward(xs...)
-    Var(y, args, backward!)
+    y, backward! = forward(f,xs...)
+    Var(y, backward!, args)
 end
 
 function setbackend!{T<:Array}(v::Var, ::Type{T})
@@ -107,13 +97,13 @@ function gradient!(top::Var)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
-        isvoid(v.df) && continue
+        isvoid(v.f) && continue
         args = Any[v.grad]
         for arg in v.args
             isa(arg, Var) && push!(args, arg.grad)
             isa(arg, Vector{Var}) && push!(args, map(a -> a.grad, arg))
         end
-        v.df(args...)
+        v.f(args...)
     end
     sorted
 end

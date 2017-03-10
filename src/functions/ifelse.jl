@@ -1,5 +1,18 @@
 import Base.ifelse
 
+"""
+    ifelse(cond::Var, x::Tuple, y::Tuple)
+
+If cond is true, apply x, otherwise apply y.
+
+```julia
+T = Float32
+cond = Var(true)
+f = Linear(T,10,7)
+x = Var(rand(T,10,5))
+y = ifelse(cond, f, (,x), identity (y,))
+```
+"""
 function ifelse(cond::Var, x::Tuple, y::Tuple)
     isvoid(cond.data) && return Var(nothing,(ifelse,cond,x,y))
     isa(cond.data, Bool) || throw("Condition is not bool.")

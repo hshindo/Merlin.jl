@@ -6,7 +6,13 @@ import Base.tanh
 
 Rectifier linear unit.
 """
-relu(x::Var) = forward0(relu, x)
+function relu(x::Var)
+    y, backward! = forward0(relu, x)
+    Var(y, (relu,x), backward!)
+
+    isvoid(x.data) && return Var(nothing, (relu,x))
+    
+end
 
 function forward{T}(::typeof(relu), x::Array{T})
     y = similar(x)
