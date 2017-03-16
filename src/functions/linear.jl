@@ -35,11 +35,7 @@ end
 
 (f::Linear)(x::Var) = linear(x, f.w, f.b)
 
-function linear(x::Var, w::Var, b::Var)
-    setbackend!(w, typeof(x.data))
-    setbackend!(b, typeof(x.data))
-    w * x .+ b
-end
+linear(x::Var, w::Var, b::Var) = w * x .+ b
 
 export GatedLinear
 function GatedLinear{T}(::Type{T}, indim::Int, outdim::Int)

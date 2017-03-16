@@ -1,5 +1,4 @@
-import Base: size, ndim, length
-export equals
+import Base: size, ndims, length
 
 for f in (:size,:ndims,:length,:eltype)
     @eval begin
@@ -7,7 +6,3 @@ for f in (:size,:ndims,:length,:eltype)
         forward(::typeof($f), x) = $f(x), nothing
     end
 end
-
-equals(x::Var, y) = forward0(equals, x, y)
-equals(x, y::Var) = forward0(equals, x, y)
-forward(::typeof(equals), x, y) = x == y, nothing

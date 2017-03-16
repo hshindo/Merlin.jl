@@ -34,12 +34,13 @@ include("graph.jl")
 include("fit.jl")
 include("rand.jl")
 #include("native.jl")
-#include("hdf5.jl")
+include("hdf5.jl")
 
 abstract Functor
 for name in [
     "activation",
     "argmax",
+    "array",
     "blas",
     "cat",
     #"conv",
@@ -47,7 +48,6 @@ for name in [
     "dropout",
     "getindex",
     "gru",
-    "ifelse",
     "linear",
     "lookup",
     "lstm",

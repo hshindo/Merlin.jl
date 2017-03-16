@@ -36,7 +36,7 @@ gemv(A, x; tA='N', alpha=1) = gemv(tA, alpha, A, x)
 C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
 ```
 """
-function gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)
+function gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
     forward0(gemm, tA, tB, alpha, A, B)
 end
 
@@ -56,7 +56,6 @@ function forward{T}(::typeof(gemm), tA::Char, tB::Char, alpha, A::UniArray{T}, B
     end
     C, backward!
 end
-gemm(A, B; tA='N', tB='N', alpha=1) = gemm(tA, tB, alpha, A, B)
 
 """
     gemm_batch(tA::Char, tB::Char, alpha, As::Vector{Var}, B::Vector{Var})

@@ -16,8 +16,8 @@ It contains the following members:
 """
 type Var
     data
+    f
     args
-    df
     grad
 end
 
@@ -36,25 +36,6 @@ function zerograd!(v::Var)
 end
 zerograd(x) = zerograd!(Var(x))
 
-macro graph(args...)
-    for arg in args
-        isa(arg,Var) && isvoid(arg.data) && return Var(nothing,args)
-    end
-end
-
-function forward0(args...)
-    #for arg in args
-    #    isa(arg,Var) && isvoid(arg.data) && return Var(nothing,args)
-    #end
-    xs = map(args) do arg
-        isa(arg,Var) && return arg.data
-        isa(arg,Vector{Var}) && return map(a -> a.data, arg)
-        arg
-    end
-    y, backward! = forward(f,xs...)
-    Var(y, backward!, args)
-end
-
 function setbackend!{T<:Array}(v::Var, ::Type{T})
     isa(v.data, Array) && return v
     v.data = Array(v.data)
@@ -69,7 +50,20 @@ function setbackend!{T<:CuArray}(v::Var, ::Type{T})
     v
 end
 
-function topsort(top::Var)
+function forward0(f, args...)
+    for arg in args
+        isa(arg,Var) && isvoid(arg.data) && return Var(nothing,f,args)
+    end
+    xs = map(args) do arg
+        isa(arg,Var) && return arg.data
+        isa(arg,Vector{Var}) && return map(a -> a.data, arg)
+        arg
+    end
+    y, backward! = forward(f, xs...)
+    Var(y, backward!, args)
+end
+
+function topsort(top::Var...)
     sorted = Var[]
     dict = ObjectIdDict()
     function visit(var::Var)
@@ -84,13 +78,15 @@ function topsort(top::Var)
         end
         push!(sorted, var)
     end
-    visit(top)
+    foreach(visit, top)
     sorted
 end
 
-function gradient!(top::Var)
-    sorted = topsort(top)
-    isvoid(top.grad) && (top.grad = ones(top.data))
+function gradient!(top::Var...)
+    sorted = topsort(top...)
+    for v in top
+        isvoid(v.grad) && (v.grad = ones(v.data))
+    end
     for i = 1:length(sorted)
         v = sorted[i]
         isvoid(v.grad) && !isempty(v.args) && zerograd!(v)
@@ -107,3 +103,6 @@ function gradient!(top::Var)
     end
     sorted
 end
+
+h5convert(v::Var) = Dict("data"=>v.data, "f"=>v.f, "args"=>v.args)
+h5convert(::Type{Var}, x) = Var(x["data"], x["f"], x["args"])

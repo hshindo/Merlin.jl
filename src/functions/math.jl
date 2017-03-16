@@ -228,6 +228,7 @@ end
     \*(x1::Var, x2::Var)
 """
 function *(x1::Var, x2::Var)
-    (isvoid(x1) || isvoid(x2)) && return Var(nothing, (*,x1,x2))
-    ndims(x2.data) == 1 ? gemv(x1,x2) : gemm(x1,x2)
+    gemm('N', 'N', 1, x1, x2)
+    #(isvoid(x1) || isvoid(x2)) && return Var(nothing, (*,x1,x2))
+    #ndims(x2.data) == 1 ? gemv(x1,x2) : gemm(x1,x2)
 end

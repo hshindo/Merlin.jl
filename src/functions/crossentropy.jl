@@ -10,14 +10,14 @@ When p[i] == 0, returns 0.
 * q: Var of Matrix{Float}
 
 ```julia
-p = Var(Array{Int32}(rand(0:10,5)))
+p = Var(rand(0:10,5))
 q = Var(rand(Float32,10,5))
 y = crossentropy(p, q)
 ```
 """
 crossentropy(p::Var, q::Var) = forward0(crossentropy, p, q)
 
-function forward(::typeof(crossentropy), p::Array{Int32}, q::Array)
+function forward(::typeof(crossentropy), p::Array{Int}, q::Array)
     logq = logsoftmax(q)
     y = crossentropy(p, logq)
     backward!(gy, gp, gq) = isvoid(gq) || ∇crossentropy!(gy, p, logq, gq)
@@ -31,7 +31,7 @@ function forward(::typeof(crossentropy), p::CuVector{Int32}, q::CuMatrix)
     y, backward!
 end
 
-function crossentropy{T}(p::Vector{Int32}, logq::Matrix{T})
+function crossentropy{T}(p::Vector{Int}, logq::Matrix{T})
     length(p) == size(logq,2) || throw(DimensionMismatch())
     y = Array{T}(1, length(p))
     @inbounds @simd for j = 1:length(p)
@@ -56,7 +56,7 @@ end
     end
 end
 
-function ∇crossentropy!{T}(gy::Matrix{T}, p::Vector{Int32}, logq::Matrix{T}, gq::Matrix{T})
+function ∇crossentropy!{T}(gy::Matrix{T}, p::Vector{Int}, logq::Matrix{T}, gq::Matrix{T})
     for j = 1:length(p)
         g = gy[j]
         @inbounds @simd for i = 1:size(logq,1)
