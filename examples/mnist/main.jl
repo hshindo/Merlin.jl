@@ -1,7 +1,7 @@
 using Merlin
 using MLDatasets
 
-const write_model = true
+const save_model = true
 
 function setup_data(x::Array, y::Vector)
     x = reshape(x, size(x,1)*size(x,2), size(x,3))
@@ -13,13 +13,13 @@ function setup_data(x::Array, y::Vector)
     collect(zip(xs,ys))
 end
 
-function main()
+function main(nepochs::Int)
     traindata = setup_data(MNIST.traindata()...)
     testdata = setup_data(MNIST.testdata()...)
     model = Model(Float32,1000)
 
     opt = SGD(0.0001, momentum=0.99, nesterov=true)
-    for epoch = 1:10
+    for epoch = 1:nepochs
         println("epoch: $epoch")
         loss = fit(traindata, model, opt)
         println("loss: $loss")
@@ -30,9 +30,11 @@ function main()
         acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))
         println("test accuracy: $acc")
         println()
-        write_model && epoch == 1 && Merlin.save("mnist_epoch$(epoch).h5", model)
+        if save_model && epoch == nepochs
+            Merlin.save("mnist_epoch$(nepochs).h5", "g"=>model.g)
+        end
     end
 end
 
 include("model.jl")
-main()
+main(10)

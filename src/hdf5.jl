@@ -6,20 +6,20 @@ using HDF5
 Save an object in Merlin HDF5 format.
 * mode: "w" (overrite) or "r+" (append)
 """
-function save(path::String, dict::Dict{String}; mode="w")
+function save(path::String, data::Pair{String}...; mode="w")
     mkpath(dirname(path))
     h5open(path, mode) do h
-        for (k,v) in dict
+        for (k,v) in data
             h5save(h, k, v)
         end
     end
     nothing
 end
-save(path::String, name::String, g::Graph; mode="w") = save(path, Dict(name=>g), mode=mode)
-function save(path::String, obj; mode="w")
-    dict = Dict(name=>string(getfield(obj,name)) for name in fieldnames(obj))
-    save(path, dict, mode=mode)
-end
+#save(path::String, name::String, g::Graph; mode="w") = save(path, Dict(name=>g), mode=mode)
+#function save(path::String, obj; mode="w")
+#    dict = Dict(name=>string(getfield(obj,name)) for name in fieldnames(obj))
+#    save(path, dict, mode=mode)
+#end
 
 """
     load(path::String, name::String)
