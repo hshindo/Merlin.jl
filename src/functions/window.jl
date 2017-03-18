@@ -22,7 +22,7 @@ y = window(x, (10,), pads=(0,), strides=(1,))
 """
 window(x::Var, dims, pads, strides) = forward0(window, x, dims, pads, strides)
 
-function window{N}(x, dims::NTuple{N,Int}; pads=nothing, strides=nothing)
+function window{N}(x::Var, dims::NTuple{N,Int}; pads=nothing, strides=nothing)
     pads == nothing && (pads = ntuple(_ -> 0, N))
     strides == nothing && (strides = ntuple(_ -> 1, N))
     window(x, dims, pads, strides)

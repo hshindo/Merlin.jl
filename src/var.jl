@@ -18,10 +18,11 @@ type Var
     data
     f
     args
+    df
     grad
 end
 
-Var(data=nothing, f=nothing, args=()) = Var(data, f, args, nothing)
+Var(data=nothing, f=nothing, args=(), df=nothing) = Var(data, f, args, df, nothing)
 
 isvoid(x) = x == nothing
 isparam(v) = isempty(v.args) && !isvoid(v.grad)
@@ -53,14 +54,17 @@ end
 function forward0(f, args...)
     for arg in args
         isa(arg,Var) && isvoid(arg.data) && return Var(nothing,f,args)
+        if isa(arg,Vector{Var})
+            any(x -> isvoid(x.data), arg) && return Var(nothing,f,args)
+        end
     end
     xs = map(args) do arg
         isa(arg,Var) && return arg.data
         isa(arg,Vector{Var}) && return map(a -> a.data, arg)
         arg
     end
-    y, backward! = forward(f, xs...)
-    Var(y, backward!, args)
+    y, df = forward(f, xs...)
+    Var(y, f, args, df)
 end
 
 function topsort(top::Var...)
@@ -93,13 +97,13 @@ function gradient!(top::Var...)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
-        isvoid(v.f) && continue
+        isvoid(v.df) && continue
         args = Any[v.grad]
         for arg in v.args
             isa(arg, Var) && push!(args, arg.grad)
             isa(arg, Vector{Var}) && push!(args, map(a -> a.grad, arg))
         end
-        v.f(args...)
+        v.df(args...)
     end
     sorted
 end

@@ -15,22 +15,26 @@ type Graph
 end
 Graph(nodes, inputs, outputs) = Graph(nodes, inputs, outputs, compile(nodes,inputs,outputs))
 
-function Graph(inputs, outputs)
+function Graph(inputs::Tuple, outputs::Tuple)
     all(v -> isvoid(v.data), inputs) || throw("all input data must be Var().")
     nodes = topsort(outputs...)
     node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
     nodes = map(nodes) do node
         isempty(node.args) && return node
         args = map(node.args) do arg
-            isa(arg,Var) ? NodeId(node2id[arg]) : arg
+            isa(arg, Var) && return NodeId(node2id[arg])
+            isa(arg, Vector{Var}) && return map(x -> NodeId(node2id[x]), arg)
+            arg
         end
         Var(nothing, node.f, args)
     end
     inputs = Int[node2id[x] for x in inputs]
     outputs = Int[node2id[x] for x in outputs]
-    f = compile(nodes, inputs, outputs)
     Graph(nodes, inputs, outputs)
 end
+Graph(input::Var, output::Var) = Graph((input,), (output,))
+Graph(input::Var, outputs) = Graph((input,), outputs)
+Graph(inputs, output::Var) = Graph(inputs, (output,))
 
 function compile(nodes, inputs, outputs)
     calls = []
@@ -39,7 +43,9 @@ function compile(nodes, inputs, outputs)
             push!(calls, isvoid(node.data) ? gensym() : node)
         else
             nargs = map(node.args) do arg
-                isa(arg, NodeId) ? calls[arg.value] : arg
+                isa(arg, NodeId) && return calls[arg.value]
+                isa(arg, Vector{NodeId}) && return Expr(:vect, map(x->calls[x.value],arg)...)
+                arg
             end
             push!(calls, Expr(:call, node.f, nargs...))
         end

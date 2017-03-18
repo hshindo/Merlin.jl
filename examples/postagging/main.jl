@@ -1,7 +1,6 @@
 using Merlin
 using MLDatasets
 using HDF5
-using ProgressMeter
 
 const h5file = "wordembeds_nyt100.h5"
 

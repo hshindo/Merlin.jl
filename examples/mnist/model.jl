@@ -10,7 +10,7 @@ function Model{T}(::Type{T}, hsize::Int)
     h = Linear(T,hsize,hsize)(h)
     h = relu(h)
     h = Linear(T,hsize,10)(h)
-    g = Graph((x,), (h,))
+    g = Graph(x, h)
     Model(g)
 end
 
