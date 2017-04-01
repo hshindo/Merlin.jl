@@ -27,7 +27,7 @@ function LSTM{T}(::Type{T}, xsize::Int, hsize::Int)
     w = cat(2, w, u)
     b = zeros(T,size(w,1))
     b[1:hsize] = ones(T, hsize) # forget gate initializes to 1
-    LSTM(zeerograd(w), zerograd(b))
+    LSTM(zerograd(w), zerograd(b))
 end
 
 function (lstm::LSTM)(x::Var, c=nothing, h=nothing)

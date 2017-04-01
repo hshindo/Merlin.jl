@@ -14,7 +14,7 @@ function TensorDesc{T,N}(x::CuArray{T,N}; pad=0)
     p = Ptr{Void}[0]
     cudnnCreateTensorDescriptor(p)
     cudnnSetTensorNdDescriptor(p[1], datatype(T), 4, csize, cstrides)
-    desc = TensorDesc(p[1])
+    desc = new(p[1])
     finalizer(desc, cudnnDestroyTensorDescriptor)
     desc
 end

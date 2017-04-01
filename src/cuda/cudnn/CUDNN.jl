@@ -1,10 +1,9 @@
 module CUDNN
 
-using ..CUDA
-import ..CUDA: redim
+using ..CUJulia
 
 if is_windows()
-    const libcudnn = Libdl.find_library(["cudnn64_5","cudnn64_4"])
+    const libcudnn = Libdl.find_library(["cudnn64_5"])
 else
     const libcudnn = Libdl.find_library(["libcudnn"])
 end
@@ -15,12 +14,11 @@ const major = div(version, 1000)
 const minor = div(version - major*1000, 100)
 
 info("CUDNN version: $(version)")
-include("../lib/$(CUDA.major).$(CUDA.minor)/libcudnn$(major)$(minor).jl")
-include("../lib/$(CUDA.major).$(CUDA.minor)/libcudnn$(major)$(minor)_types.jl")
+include("lib/libcudnn$(major)$(minor).jl")
+include("lib/libcudnn$(major)$(minor)_types.jl")
 
 function checkstatus(status)
     status == CUDNN_STATUS_SUCCESS && return
-    Base.show_backtrace(STDOUT, backtrace())
     throw(bytestring(cudnnGetErrorString(status)))
 end
 
@@ -40,14 +38,13 @@ function handle(x)
 end
 atexit(() -> foreach(cudnnDestroy, handles))
 
-include("tensor.jl")
 include("activation.jl")
 #include("batchnorm.jl")
 #include("convolution.jl")
 #include("dropout.jl")
-##include("lrn.jl")
-#include("pooling.jl")
-include("softmax.jl")
-##include("rnn.jl")
+#include("filter.jl")
+#include("rnn.jl")
+#include("softmax.jl")
+include("tensor.jl")
 
 end

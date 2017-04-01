@@ -1,6 +1,6 @@
 export
     Var,
-    zerograd, zerograd!, isvoid,
+    zerograd, zerograd!, isvoid, data,
     topsort, gradient!
 
 """
@@ -10,6 +10,7 @@ export
 It contains the following members:
 
 * data
+* f: forward function
 * args: arguments
 * df: backward function
 * grad: gradient
@@ -24,6 +25,7 @@ end
 
 Var(data=nothing, f=nothing, args=(), df=nothing) = Var(data, f, args, df, nothing)
 
+data(v::Var) = v.data
 isvoid(x) = x == nothing
 isparam(v) = isempty(v.args) && !isvoid(v.grad)
 

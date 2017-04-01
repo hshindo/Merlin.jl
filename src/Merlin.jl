@@ -17,7 +17,8 @@ end
 #Pkg.installed("CUJulia") != nothing
 if usecuda
     using CUJulia
-    using CUJulia.CUDNN
+    include("cuda/cudnn/CUDNN.jl")
+    using .CUDNN
 else
     type CuArray{T,N}; end
     typealias CuVector{T} CuArray{T,1}
@@ -40,7 +41,6 @@ abstract Functor
 for name in [
     "activation",
     "argmax",
-    "array",
     "blas",
     "cat",
     #"conv",
@@ -61,6 +61,8 @@ for name in [
     "window",
     ]
     include("functions/$(name).jl")
+    cudafile = "cuda/functions/$(name).jl"
+    isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)
 end
 
 export update!

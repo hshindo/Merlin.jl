@@ -1,6 +1,5 @@
 export checkgrad, checkcuda
 
-# TODO: check functor
 function checkgrad(f, args...; eps=1e-3)
     vars = collect(filter(a -> isa(a,Var) && !isvoid(a.grad), args))
     foreach(zerograd!, vars)
@@ -26,15 +25,14 @@ function checkgrad(f, args...; eps=1e-3)
         if any(d -> abs(d) >= eps, diff)
             println(maximum(d -> abs(d), diff))
             println(diff)
-            #println(g[2])
             throw("")
         end
     end
-    usecuda && checkcuda(f, args..., eps=eps)
     true
 end
 
 function checkcuda(f, args...; eps=1e-3)
+    usecuda || return true
     vars = collect(filter(a -> isa(a,Var) && !isvoid(a.grad), args))
     foreach(zerograd!, vars)
     y1 = f(args...)

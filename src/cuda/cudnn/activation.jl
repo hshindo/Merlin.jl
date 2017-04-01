@@ -1,5 +1,12 @@
-export cudnnActivationForward, cudnnActivationBackward
-export CUDNN_ACTIVATION_SIGMOID, CUDNN_ACTIVATION_RELU, CUDNN_ACTIVATION_TANH, CUDNN_ACTIVATION_CLIPPED_RELU
+export
+    # cudnnActivationMode_t
+    CUDNN_ACTIVATION_SIGMOID,
+    CUDNN_ACTIVATION_RELU,
+    CUDNN_ACTIVATION_TANH,
+    CUDNN_ACTIVATION_CLIPPED_RELU,
+
+    cudnnActivationForward,
+    cudnnActivationBackward
 
 type ActivationDesc
     ptr::Ptr{Void}
@@ -9,7 +16,7 @@ function ActivationDesc(mode::UInt32; relu_nanopt=CUDNN_NOT_PROPAGATE_NAN, relu_
     p = Ptr{Void}[0]
     cudnnCreateActivationDescriptor(p)
     cudnnSetActivationDescriptor(p[1], mode, relu_nanopt, relu_ceiling)
-    desc = ActivationDesc(p[1])
+    desc = new(p[1])
     finalizer(desc, cudnnDestroyActivationDescriptor)
     desc
 end
