@@ -1,6 +1,8 @@
 export batchnorm
 
-@forward batchnorm(x::Var)
+function batchnorm(x::Var, scale::Var, bias::Var, mean, var, istrain; epsilon=0.001)
+    forward0(batchnorm, x, scale, bias, mean, var)
+end
 
 function batchnorm_training(x::Array, scale::Array, bias::Array, decay; epsilon=0.001, momentum=0.99)
     runmean = zeros(scale)

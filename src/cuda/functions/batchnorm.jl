@@ -1,5 +1,5 @@
 function forward{T}(::typeof(batchnorm), x::CuArray{T}, scale::CuArray, bias,
-    estimated_mean, estimated_var; epsilon=0.001)
+    mean, var; epsilon=0.001)
 
     h = CUDNN.handle(x)
     y = similar(x)
