@@ -31,8 +31,9 @@ function forward(::typeof(crossentropy), p::CuVector{Int32}, q::CuMatrix)
     y, backward!
 end
 
-function crossentropy{T}(p::Vector{Int}, logq::Matrix{T})
-    length(p) == size(logq,2) || throw(DimensionMismatch())
+function crossentropy{T}(p::Matrix{Int}, logq::Matrix{T})
+    size(p,1) == 1 || throw(DimensionMismatch("size(p,1) != 1"))
+    size(p,2) == size(logq,2) || throw(DimensionMismatch("size of p: $(size(p)), size of logq: $(size(logq))"))
     y = Array{T}(1, length(p))
     @inbounds @simd for j = 1:length(p)
         y[j] = p[j] > 0 ? -logq[p[j],j] : T(0)
@@ -56,7 +57,7 @@ end
     end
 end
 
-function ∇crossentropy!{T}(gy::Matrix{T}, p::Vector{Int}, logq::Matrix{T}, gq::Matrix{T})
+function ∇crossentropy!{T}(gy::Matrix{T}, p::Matrix{Int}, logq::Matrix{T}, gq::Matrix{T})
     for j = 1:length(p)
         g = gy[j]
         @inbounds @simd for i = 1:size(logq,1)
