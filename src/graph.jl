@@ -1,7 +1,7 @@
 export Graph
 
 type Graph
-    nodes::Vector{Var} # topdown order
+    nodes::Vector{Var} # bottomup order
     inids::Vector{Int}
     outids::Vector{Int}
     f
