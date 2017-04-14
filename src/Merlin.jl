@@ -14,7 +14,7 @@ const usecuda = begin
     libname = is_windows() ? "nvcuda" : "libcuda"
     !isempty(Libdl.find_library([libname]))
 end
-#Pkg.installed("CUJulia") != nothing
+
 if usecuda
     using CUJulia
     include("cuda/cudnn/CUDNN.jl")
@@ -28,6 +28,8 @@ typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
 typealias UniVector{T} Union{Vector{T},CuVector{T}}
 typealias UniMatrix{T} Union{Matrix{T},CuMatrix{T}}
 
+abstract Functor
+
 include("check.jl")
 include("util.jl")
 include("var.jl")
@@ -37,7 +39,6 @@ include("rand.jl")
 #include("native.jl")
 include("hdf5.jl")
 
-abstract Functor
 for name in [
     "activation",
     "argmax",
