@@ -1,5 +1,5 @@
 export fit
-using ProgressMeter
+import ProgressMeter: Progress, next!
 
 """
     fit(data_x, data_y, model, opt, [progress=true])
