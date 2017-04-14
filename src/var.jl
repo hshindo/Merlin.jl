@@ -54,12 +54,6 @@ function setbackend!{T<:CuArray}(v::Var, ::Type{T})
 end
 
 function forward0(f, args...)
-    for arg in args
-        isa(arg,Var) && isvoid(arg.data) && return Var(nothing,f,args)
-        if isa(arg,Vector{Var})
-            any(x -> isvoid(x.data), arg) && return Var(nothing,f,args)
-        end
-    end
     xs = map(args) do arg
         isa(arg,Var) && return arg.data
         isa(arg,Vector{Var}) && return map(a -> a.data, arg)
