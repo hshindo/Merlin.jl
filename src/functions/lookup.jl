@@ -54,7 +54,8 @@ end
 function forward{T}(f::Lookup, x::Array{T})
     ws = f.ws
     n = length(ws[1].data)
-    dims = [n, size(x)...]
+    dims = [size(x)...]
+    dims[1] *= n
     y = similar(ws[1].data, dims...)
     for i = 1:length(x)
         yi = (i-1) * n + 1
@@ -90,8 +91,8 @@ function update!(f::Lookup, opt)
     empty!(f.idset)
 end
 
-function h5convert(f::Lookup)
+readas(::Type{Lookup}, w) = Lookup(w)
+function writeas(f::Lookup)
     data = map(w -> w.data, f.ws)
     hcat(data...)
 end
-h5convert(::Type{Lookup}, w) = Lookup(w)
