@@ -1,15 +1,18 @@
 using HDF5
 
 """
-    save(path::String, mode::String, name::String, obj)
+    save(path::String, name::String, obj, [mode="w"])
 
 Save an object in Merlin HDF5 format.
 * mode: "w" (overrite) or "r+" (append)
 """
-function save(path::String, mode::String, name::String, obj)
+function save(path::String, data::Pair{String}...; mode="w")
+    info("Saving objects...")
     mkpath(dirname(path))
     h5open(path, mode) do h
-        h5save(h, name, obj)
+        for (k,v) in data
+            h5save(h, k, v)
+        end
     end
     nothing
 end
@@ -25,53 +28,95 @@ function load(path::String, name::String)
     end
 end
 
-h5convert(x::Symbol) = string(x)
-h5convert(::Type{Symbol}, x) = parse(x)
+readas(::Type{Void}, x) = nothing
+writeas(x::Void) = string(x)
 
-h5convert(x::Void) = string(x)
-h5convert(::Type{Void}, x) = nothing
+readas(::Type{Char}, x) = x[1]
+writeas(x::Char) = string(x)
 
-h5convert(x::DataType) = string(x)
-h5convert(::Type{DataType}, x) = eval(parse(x))
+readas(::Type{Symbol}, x) = parse(x)
+writeas(x::Symbol) = string(x)
 
-h5convert(x::Vector) = Dict(i=>x[i] for i=1:length(x))
-function h5convert{T<:Vector}(::Type{T}, x::Dict)
-    vec = Array(eltype(T), length(x))
-    for (k,v) in x
-        vec[parse(Int,k)] = v
+readas(::Type{DataType}, x) = eval(parse(x))
+writeas(x::DataType) = string(x)
+
+readas(::Type{Function}, x) = eval(parse(x))
+writeas(x::Function) = string(x)
+
+readas{T<:HDF5.BitsKindOrString}(::Type{T}, x) = x
+writeas(x::HDF5.BitsKindOrString) = x
+
+function readas{T,N}(::Type{Array{T,N}}, x)
+    if T <: HDF5.BitsKindOrString
+        x
+    elseif N == 1
+        data = Array(T, length(x))
+        for (k,v) in x
+            data[parse(Int,k)] = v
+        end
+        data
+    else
+        throw("Invalid data: $x")
     end
-    vec
+end
+function writeas{T,N}(x::Array{T,N})
+    if T <: HDF5.BitsKindOrString
+        x
+    elseif N == 1
+        Dict(i=>x[i] for i=1:length(x))
+    else
+        throw("x::$(typeof(x)) is not supported.")
+    end
 end
 
-h5convert(x::Tuple) = h5convert([x...])
-h5convert{T<:Tuple}(::Type{T}, x) = tuple(h5convert(Vector,x)...)
+function readas{K<:HDF5.BitsKindOrString,V<:HDF5.BitsKindOrString}(::Type{Dict{K,V}}, x)
+    dict = Dict{K,V}()
+    for line in split(x, "\n")
+        items = split(chomp(line), "\t")
+        k = K <: String ? String(items[1]) : parse(K,items[1])
+        v = V <: String ? String(items[2]) : parse(V,items[2])
+        dict[k] = v
+    end
+    dict
+end
+function writeas{K<:HDF5.BitsKindOrString,V<:HDF5.BitsKindOrString}(x::Dict{K,V})
+    lines = String[]
+    for (k,v) in x
+        push!(lines, "$k\t$v")
+    end
+    join(lines, "\n")
+end
 
-h5convert(x::Function) = throw("Saving a function object is not supported. Override `h5convert`.")
+function readas{T<:Tuple}(::Type{T}, x)
+    data = Array(Any, length(x))
+    for (k,v) in x
+        data[parse(Int,k)] = v
+    end
+    tuple(data...)
+end
+writeas(x::Tuple) = Dict(i=>x[i] for i=1:length(x))
 
-h5convert(x) = Dict(name=>getfield(x, name) for name in fieldnames(x))
-function h5convert(T, x)
+function readas(T::Type, x)
     values = map(name -> x[string(name)], fieldnames(T))
     T(values...)
 end
+writeas(x) = Dict(name=>getfield(x,name) for name in fieldnames(x))
 
-function h5save{T}(group, key::String, obj::T)
-    if T <: HDF5.BitsKindOrString ||
-        (T <: Array && eltype(obj) <: HDF5.BitsKindOrString)
-        group[key] = obj
-    elseif T <: Function
-        h5save(group, key, Symbol(obj))
-    else
-        h5obj = h5convert(obj)
-        if typeof(h5obj) <: Dict
-            g = g_create(group, key)
-            attrs(g)["#JULIA_TYPE"] = string(T)
-            for (k,v) in h5obj
-                h5save(g, string(k), v)
-            end
-        else
-            group[key] = h5obj
-            attrs(group[key])["#JULIA_TYPE"] = string(T)
+h5type{T<:Function}(::Type{T}) = "Function"
+h5type(T) = string(T)
+
+function h5save(group, key::String, obj)
+    T = typeof(obj)
+    h5obj = writeas(obj)
+    if isa(h5obj, Dict)
+        g = g_create(group, key)
+        attrs(g)["#JULIA_TYPE"] = h5type(T)
+        for (k,v) in h5obj
+            h5save(g, string(k), v)
         end
+    else
+        group[key] = h5obj
+        attrs(group[key])["#JULIA_TYPE"] = h5type(T)
     end
 end
 
@@ -82,7 +127,7 @@ function h5load(group::HDF5Group)
     end
     attr = read(attrs(group), "#JULIA_TYPE")
     T = eval(current_module(), parse(attr))
-    h5convert(T, dict)
+    readas(T, dict)
 end
 
 function h5load(dataset::HDF5Dataset)
@@ -90,7 +135,7 @@ function h5load(dataset::HDF5Dataset)
     if exists(attrs(dataset), "#JULIA_TYPE")
         attr = read(attrs(dataset), "#JULIA_TYPE")
         T = eval(current_module(), parse(attr))
-        h5convert(T, data)
+        readas(T, data)
     else
         data
     end

@@ -1,6 +1,6 @@
 import Base.normalize
 
-normalize(x::Var) = forward(normalize, x)
+normalize(x::Var) = forward0(normalize, x)
 
 function forward{T}(::typeof(normalize), x::Matrix{T})
     z = mapreducedim(v -> v*v, +, x, 1)
@@ -10,6 +10,17 @@ function forward{T}(::typeof(normalize), x::Matrix{T})
     y = x .* z
     backward!(gy, gx) = isvoid(gx) || ∇normalize!(gy, x, gx, z)
     y, backward!
+end
+
+@generated function normalize{T}(x::CuMatrix{T})
+    f = CuFunction("""
+    __global__ void f($T *y, $U *x, int length) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        
+    }
+    """)
+    quote
+    end
 end
 
 function ∇normalize!{T}(gy::Matrix{T}, x::Matrix{T}, gx::Matrix{T}, z::Matrix{T})

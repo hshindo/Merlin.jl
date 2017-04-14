@@ -1,13 +1,20 @@
-function setup_model()
-    T = Float32
-    h = 1000
-    fs = [Linear(T,784,h), Linear(T,h,h), Linear(T,h,10)]
-    (x::Var, y=nothing) -> begin
-        x = fs[1](x)
-        x = relu(x)
-        x = fs[2](x)
-        x = relu(x)
-        x = fs[3](x)
-        y == nothing ? argmax(x.data,1) : crossentropy(y,x)
-    end
+type Model
+    g::Graph
+end
+
+function Model{T}(::Type{T}, hsize::Int)
+    x = Var(rand(T,784,10))
+    y = Var(rand(1:1,1,10))
+    h = Linear(T,784,hsize)(x)
+    h = relu(h)
+    h = Linear(T,hsize,hsize)(h)
+    h = relu(h)
+    h = Linear(T,hsize,10)(h)
+    g = Graph([x], [h])
+    Model(g)
+end
+
+function (m::Model)(x::Var, y=nothing)
+    z = m.g(x)
+    y == nothing ? argmax(z,1) : crossentropy(y,z)
 end

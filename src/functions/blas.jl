@@ -9,10 +9,9 @@ export gemv, gemm, gemm_batch
 y = \alpha \times \textrm{tA}(A) \times x
 ```
 """
-gemv(tA, alpha, A::Var, x::Var) = forward(gemv, tA, alpha, A, x)
-gemv(A, x; tA='N', alpha=1) = gemv(tA, alpha, A, x)
+gemv(tA::Char, alpha, A::Var, x::Var) = forward0(gemv, tA, alpha, A, x)
 
-function forward{T}(::typeof(gemv), tA::Char, alpha, A::Matrix{T}, x::Vector{T})
+function forward{T}(::typeof(gemv), tA::Char, alpha, A::UniArray{T}, x::UniArray{T})
     y = BLAS.gemv(tA, T(alpha), A, x)
     function backward!(gy, gA, gx)
         if !isvoid(gA)
@@ -24,6 +23,7 @@ function forward{T}(::typeof(gemv), tA::Char, alpha, A::Matrix{T}, x::Vector{T})
     end
     y, backward!
 end
+gemv(A, x; tA='N', alpha=1) = gemv(tA, alpha, A, x)
 
 """
     gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)
@@ -36,10 +36,11 @@ end
 C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
 ```
 """
-gemm(tA, tB, alpha, A::Var, B::Var) = forward(gemm, tA, tB, alpha, A, B)
-gemm(A, B; tA='N', tB='N', alpha=1) = gemm(tA, tB, alpha, A, B)
+function gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
+    forward0(gemm, tA, tB, alpha, A, B)
+end
 
-function forward{T}(::typeof(gemm), tA::Char, tB::Char, alpha, A::Matrix{T}, B::Matrix{T})
+function forward{T}(::typeof(gemm), tA::Char, tB::Char, alpha, A::UniArray{T}, B::UniArray{T})
     C = BLAS.gemm(tA, tB, T(alpha), A, B)
     function backward!(gC, gA, gB)
         if !isvoid(gA)

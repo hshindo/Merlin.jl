@@ -3,10 +3,8 @@ import Base.tanh
 
 """
     relu(x::Var)
-
-Rectifier linear unit.
 """
-relu(x::Var) = forward(relu, x)
+relu(x::Var) = forward0(relu, x)
 
 function forward{T}(::typeof(relu), x::Array{T})
     y = similar(x)
@@ -26,7 +24,7 @@ end
 """
     clipped_relu(x::Var)
 """
-clipped_relu(x::Var) = forward(clipped_relu, x)
+clipped_relu(x::Var) = forward0(clipped_relu, x)
 
 function forward{T}(::typeof(clipped_relu), x::Array{T})
     y = similar(x)
@@ -46,7 +44,7 @@ end
 """
     sigmoid(x::Var)
 """
-sigmoid(x::Var) = forward(sigmoid, x)
+sigmoid(x::Var) = forward0(sigmoid, x)
 
 function forward{T}(::typeof(sigmoid), x::Array{T})
     y = similar(x)
@@ -66,7 +64,7 @@ end
 """
     tanh(x::Var)
 """
-tanh(x::Var) = forward(tanh, x)
+tanh(x::Var) = forward0(tanh, x)
 
 function forward{T}(::typeof(tanh), x::Array{T})
     y = tanh(x)

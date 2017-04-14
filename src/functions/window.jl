@@ -20,9 +20,9 @@ x = Var(rand(Float32,10,5))
 y = window(x, (10,), pads=(0,), strides=(1,))
 ```
 """
-window(x::Var, dims, pads, strides) = forward(window, x, dims, pads, strides)
+window(x::Var, dims, pads, strides) = forward0(window, x, dims, pads, strides)
 
-function window{N}(x, dims::NTuple{N,Int}; pads=nothing, strides=nothing)
+function window{N}(x::Var, dims::NTuple{N,Int}; pads=nothing, strides=nothing)
     pads == nothing && (pads = ntuple(_ -> 0, N))
     strides == nothing && (strides = ntuple(_ -> 1, N))
     window(x, dims, pads, strides)
@@ -37,6 +37,22 @@ function forward{T,N}(::typeof(window), x::Array{T},
 
     backward!(gy, gx) = isvoid(gx) || ∇window!(gy, gx, dims, pads, strides)
     y, backward!
+end
+
+@generated function forward{T,N}(::typeof(window), x::CuArray{T},
+    dims::NTuple{N,Int}, pads::NTuple{N,Int}, strides::NTuple{N,Int})
+
+    f = CuFunction("""
+    __global__ void f($T *y, $T *x) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < length) {
+
+        }
+    }
+    """)
+    quote
+
+    end
 end
 
 function ∇window!{T}(gy::Array{T}, gx::Array{T}, dims::NTuple{1,Int}, pads, strides)

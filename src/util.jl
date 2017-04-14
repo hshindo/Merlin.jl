@@ -29,7 +29,7 @@ end
 """
     redim(x, n, [pad])
 """
-function redim{T,N}(x::Array{T,N}, n::Int; pad=0)
+function redim{T,N}(x::UniArray{T,N}, n::Int; pad=0)
     n == N && return x
     dims = ntuple(n) do i
         1 <= i-pad <= N ? size(x,i-pad) : 1
@@ -47,11 +47,3 @@ function minibatch(data::Vector, size::Int)
     T = typeof(batches[1])
     Vector{T}(batches)
 end
-
-function add!{T}(y::Array{T}, yo::Int, x::Array{T}, xo::Int, n::Int)
-    @inbounds @simd for i = 0:n-1
-        y[i+yo] += x[i+xo]
-    end
-    y
-end
-add!{T}(y::Array{T}, x::Array{T}) = add!(y, 1, x, 1, length(x))
