@@ -104,5 +104,5 @@ function gradient!(top::Var...)
     sorted
 end
 
-h5convert(v::Var) = Dict("data"=>v.data, "f"=>v.f, "args"=>v.args)
-h5convert(::Type{Var}, x) = Var(x["data"], x["f"], x["args"])
+readas(::Type{Var}, x) = Var(x["data"], x["f"], x["args"])
+writeas(v::Var) = Dict("data"=>v.data, "f"=>v.f, "args"=>v.args)

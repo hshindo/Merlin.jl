@@ -6,6 +6,16 @@ import Base.tanh
 """
 relu(x::Var) = forward0(relu, x)
 
+function forward!(::typeof(relu), v::Var)
+    v.data = similar(v[1].data)
+    v.data, v.df = relu(v[1].data)
+end
+
+function backward!(::typeof(relu), v::Var)
+    isvoid(v[1].grad) && return
+    ∇relu!(v.data, v.grad, v[1].data, v[1].grad)
+end
+
 function forward{T}(::typeof(relu), x::Array{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
