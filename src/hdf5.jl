@@ -1,4 +1,5 @@
 using HDF5
+import HDF5.BitsKindOrString
 
 """
     save(path::String, name::String, obj, [mode="w"])
@@ -43,11 +44,11 @@ writeas(x::DataType) = string(x)
 readas(::Type{Function}, x) = eval(parse(x))
 writeas(x::Function) = string(x)
 
-readas{T<:HDF5.BitsKindOrString}(::Type{T}, x) = x
-writeas(x::HDF5.BitsKindOrString) = x
+readas{T<:BitsKindOrString}(::Type{T}, x) = x
+writeas(x::BitsKindOrString) = x
 
 function readas{T,N}(::Type{Array{T,N}}, x)
-    if T <: HDF5.BitsKindOrString
+    if T <: BitsKindOrString
         x
     elseif N == 1
         data = Array(T, length(x))
@@ -60,7 +61,7 @@ function readas{T,N}(::Type{Array{T,N}}, x)
     end
 end
 function writeas{T,N}(x::Array{T,N})
-    if T <: HDF5.BitsKindOrString
+    if T <: BitsKindOrString
         x
     elseif N == 1
         Dict(i=>x[i] for i=1:length(x))
@@ -69,7 +70,7 @@ function writeas{T,N}(x::Array{T,N})
     end
 end
 
-function readas{K<:HDF5.BitsKindOrString,V<:HDF5.BitsKindOrString}(::Type{Dict{K,V}}, x)
+function readas{K<:BitsKindOrString,V<:BitsKindOrString}(::Type{Dict{K,V}}, x)
     dict = Dict{K,V}()
     for line in split(x, "\n")
         items = split(chomp(line), "\t")
@@ -79,7 +80,7 @@ function readas{K<:HDF5.BitsKindOrString,V<:HDF5.BitsKindOrString}(::Type{Dict{K
     end
     dict
 end
-function writeas{K<:HDF5.BitsKindOrString,V<:HDF5.BitsKindOrString}(x::Dict{K,V})
+function writeas{K<:BitsKindOrString,V<:BitsKindOrString}(x::Dict{K,V})
     lines = String[]
     for (k,v) in x
         push!(lines, "$k\t$v")
