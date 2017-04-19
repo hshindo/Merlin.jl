@@ -1,5 +1,5 @@
 using HDF5
-import HDF5.BitsKindOrString
+typealias BitsKindOrString HDF5.BitsKindOrString
 
 """
     save(path::String, name::String, obj, [mode="w"])
