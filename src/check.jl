@@ -1,7 +1,16 @@
 export checkgrad, checkcuda
 
 function checkgrad(f, args...; eps=1e-3)
-    vars = collect(filter(a -> isa(a,Var) && !isvoid(a.grad), args))
+    vars = Var[]
+    for arg in args
+        if isa(arg,Var)
+            !isvoid(arg.grad) && push!(vars, arg)
+        elseif isa(arg,Vector{Var})
+            for v in arg
+                !isvoid(v.grad) && push!(vars, v)
+            end
+        end
+    end
     foreach(zerograd!, vars)
     y = f(args...)
     gradient!(y)
