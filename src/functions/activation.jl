@@ -1,28 +1,32 @@
 export relu, clipped_relu, sigmoid
 import Base.tanh
 
+type ActivationVar
+    data
+    args
+    mode
+end
+
+function backward!(var::ReluVar)
+end
+
 """
     relu(x::Var)
 """
-relu(x::Var) = forward0(relu, x)
+function relu(x::Var)
+    
 
-function forward!(::typeof(relu), v::Var)
-    v.data = similar(v[1].data)
-    v.data, v.df = relu(v[1].data)
+    y, df = relu(x.data)
+    Var(y, relu, (x,), df)
 end
 
-function backward!(::typeof(relu), v::Var)
-    isvoid(v[1].grad) && return
-    ∇relu!(v.data, v.grad, v[1].data, v[1].grad)
-end
-
-function forward{T}(::typeof(relu), x::Array{T})
+function _relu{T}(x::Array{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
         y[i] = max(x[i], T(0))
     end
-    backward!(gy, gx) = isvoid(gx) || ∇relu!(y, gy, x, gx)
-    y, backward!
+    df(v::Var) = isvoid(gx) || ∇relu!(y, gy, x, gx)
+    y, df
 end
 
 function ∇relu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
