@@ -11,16 +11,24 @@ y = x[2:2]
 Note that `y = x[i]` throws an error since `y` is not a vector but a scholar.
 Instead, use `y = x[i:i]`.
 """
-getindex(x::Var, inds::Tuple) = forward0(getindex, x, inds)
+getindex(x::Var, inds::Tuple) = GetIndex(inds)(x)
 getindex(x::Var, inds...) = getindex(x, inds)
 
-function forward{T}(::typeof(getindex), x::UniArray{T}, inds::Tuple)
-    y = x[inds...]
-    function backward!(gy, gx)
-        isvoid(gx) && return
-        #BLAS.axpy!(T(1), gx[inds...])
-        gx = view(gx, inds...)
-        broadcast!(+, gx, gx, gy)
+#islinear{T,N,P,I,L}(x::SubArray{T,N,P,I,L}) = L
+
+type GetIndex
+    inds::Tuple
+end
+
+function (f::GetIndex)(x::Var)
+    #v = view(x.data, f.inds...)
+    #data = islinear(v) ? unsafe_wrap(Array,pointer(v),size(v)) : x.data[f.inds...]
+    data = x.data[f.inds...]
+    y = Var(data, f, (x,))
+    y.df! = function df!()
+        isvoid(x.grad) && return
+        gx = view(x.grad, f.inds...)
+        broadcast!(+, gx, gx, y.grad)
     end
-    y, backward!
+    y
 end

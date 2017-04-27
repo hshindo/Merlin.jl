@@ -1,4 +1,4 @@
-export LSTM
+export LSTM, BiLSTM
 
 """
     LSTM(T::Type, xsize::Int, hsize::Int)
@@ -21,39 +21,52 @@ type LSTM
     b::Var
 end
 
-function LSTM{T}(::Type{T}, xsize::Int, hsize::Int)
-    w = uniform(T, -0.001, 0.001, hsize*4, xsize+hsize)
-    u = orthogonal(T, hsize*4, xsize+hsize)
+function LSTM{T}(::Type{T}, insize::Int, hsize::Int)
+    w = uniform(T, -0.001, 0.001, hsize*4, insize)
+    u = orthogonal(T, hsize*4, hsize)
     w = cat(2, w, u)
-    b = zeros(T,size(w,1))
+    b = zeros(T, size(w,1))
     b[1:hsize] = ones(T, hsize) # forget gate initializes to 1
     LSTM(zerograd(w), zerograd(b))
 end
 
-function (lstm::LSTM)(x::Var, c=nothing, h=nothing)
-    T = eltype(lstm.b.data)
-    hsize = Int(length(lstm.b.data)/4)
-    xsize = size(lstm.w.data,2) - hsize
-    size(x.data,1) == xsize || throw("Length of x is invalid.")
-    isvoid(c) && (c = Var(zeros(T,hsize)))
-    isvoid(h) && (h = Var(zeros(T,hsize)))
-
-    ndims(x.data) == 1 && return onestep(lstm, x, c, h)
-    hs = Var[]
+function (f::LSTM)(x::Var, h::Var, c::Var)
+    ys = Var[]
     for i = 1:size(x.data,2)
-        c, h = onestep(lstm, x[:,i], c, h)
-        push!(hs, h)
+        h, c = onestep(f, x[:,i], h, c)
+        push!(ys, h)
     end
-    hs
+    y = cat(2, ys...)
+    y
 end
 
-function onestep(lstm::LSTM, x::Var, c::Var, h::Var)
-    n = size(x.data, 1)
+function (f::LSTM)(x::Var)
+    T = eltype(x.data)
+    n = size(f.w.data,1) ÷ 4
+    h = Var(zeros(T,n))
+    c = Var(zeros(T,n))
+    f(x, h, c)
+end
+
+function onestep(lstm::LSTM, x::Var, h::Var, c::Var)
+    n = size(h.data, 1)
     a = lstm.w * cat(1,x,h) + lstm.b
     f = sigmoid(a[1:n])
     i = sigmoid(a[n+1:2n])
     o = sigmoid(a[2n+1:3n])
     c = f .* c + i .* tanh(a[3n+1:4n])
     h = o .* tanh(c)
-    c, h
+    h, c
+end
+
+type BiLSTM
+    fw
+    bw
+end
+
+function BiLSTM{T}(::Type{T}, insize::Int, hsize::Int)
+    BiLSTM(LSTM(T,insize,hsize), LSTM(T,insize,hsize))
+end
+
+function (f::BiLSTM)(x::Var)
 end
