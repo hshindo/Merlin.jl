@@ -45,7 +45,6 @@ function logsoftmax(x::Var)
     y
 end
 
-
 function logsoftmax!(out::Var, x::Array)
     out.data = logsoftmax(x)
     out.df! = function df!()
@@ -82,6 +81,7 @@ function ∇logsoftmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
 end
 
 function dim3d(x::Array, dim::Int)
+    dim == 0 && return (1, length(x), 1)
     dim1, dim2, dim3 = 1, size(x,dim), 1
     for i = 1:dim-1
         dim1 *= size(x, i)
