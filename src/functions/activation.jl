@@ -4,15 +4,21 @@ import Base.tanh
 """
     relu(x::Var)
 """
-relu(x::Var) = forward0(relu, x)
+function relu(x::Var)
+    y = Var(nothing, relu, (x,))
+    relu!(y, x.data)
+    y
+end
 
-function forward{T}(::typeof(relu), x::Array{T})
+function relu!{T}(out::Var, x::Array{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
         y[i] = max(x[i], T(0))
     end
-    backward!(gy, gx) = isvoid(gx) || ∇relu!(y, gy, x, gx)
-    y, backward!
+    out.data = y
+    out.df! = function df!()
+        isvoid(out[1].grad) || ∇relu!(out.data, out.grad, out[1].data, out[1].grad)
+    end
 end
 
 function ∇relu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
@@ -24,15 +30,21 @@ end
 """
     clipped_relu(x::Var)
 """
-clipped_relu(x::Var) = forward0(clipped_relu, x)
+function clipped_relu(x::Var)
+    y = Var(nothing, clipped_relu, (x,))
+    clipped_relu!(y, x.data)
+    y
+end
 
-function forward{T}(::typeof(clipped_relu), x::Array{T})
+function clipped_relu!{T}(out::Var, x::Array{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
         y[i] = min(max(x[i],T(0)), T(20))
     end
-    backward!(gy, gx) = isvoid(gx) || ∇clipped_relu!(y, gy, x, gx)
-    y, backward!
+    out.data = y
+    out.df! = function df!()
+        isvoid(out[1].grad) || ∇clipped_relu!(out.data, out.grad, out[1].data, out[1].grad)
+    end
 end
 
 function ∇clipped_relu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
@@ -44,15 +56,21 @@ end
 """
     sigmoid(x::Var)
 """
-sigmoid(x::Var) = forward0(sigmoid, x)
+function sigmoid(x::Var)
+    y = Var(nothing, sigmoid, (x,))
+    sigmoid!(y, x.data)
+    y
+end
 
-function forward{T}(::typeof(sigmoid), x::Array{T})
+function sigmoid!{T}(out::Var, x::Array{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
         y[i] = 1 / (1 + exp(-x[i]))
     end
-    backward!(gy, gx) = isvoid(gx) || ∇sigmoid!(y, gy, x, gx)
-    y, backward!
+    out.data = y
+    out.df! = function df!()
+        isvoid(out[1].grad) || ∇sigmoid!(out.data, out.grad, out[1].data, out[1].grad)
+    end
 end
 
 function ∇sigmoid!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
@@ -64,12 +82,17 @@ end
 """
     tanh(x::Var)
 """
-tanh(x::Var) = forward0(tanh, x)
+function tanh(x::Var)
+    y = Var(nothing, tanh, (x,))
+    tanh!(y, x.data)
+    y
+end
 
-function forward{T}(::typeof(tanh), x::Array{T})
-    y = tanh(x)
-    backward!(gy, gx) = isvoid(gx) || ∇tanh!(y, gy, x, gx)
-    y, backward!
+function tanh!{T}(out::Var, x::Array{T})
+    out.data = tanh(x)
+    out.df! = function df!()
+        isvoid(out[1].grad) || ∇tanh!(out.data, out.grad, out[1].data, out[1].grad)
+    end
 end
 
 function ∇tanh!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})

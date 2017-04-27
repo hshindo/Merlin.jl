@@ -5,12 +5,19 @@ import Base: max, sum
 
 Returns the maximum value over the given dimensions.
 """
-max(x::Var, dim::Int) = forward0(max, x, dim)
+max(x::Var, dim::Int) = Max(dim)(x)
 
-function forward(::typeof(max), x::Array, dim::Int)
-    y, idx = findmax(x, dim)
-    backward!(gy, gx) = isvoid(gx) || ∇max!(gy, gx, idx)
-    y, backward!
+type Max
+    dim::Int
+end
+
+function (f::Max)(x::Var)
+    y = Var(nothing, f, (x,))
+    y.data, idx = findmax(x.data, f.dim)
+    y.df! = function df!()
+        isvoid(x.grad) || ∇max!(y.grad, x.grad, idx)
+    end
+    y
 end
 
 function ∇max!{T}(gy::Array{T}, gx::Array{T}, idx::Array{Int})
@@ -24,10 +31,16 @@ end
 
 Returns the sum over the given dimension.
 """
-sum(x::Var, dim::Int) = forward0(sum, x, dim)
+sum(x::Var, dim::Int) = Sum(dim)(x)
 
-function forward(::typeof(sum), x::Array, dim::Int)
-    y = sum(x, dim)
-    backward!(gy, gx) = isvoid(gx) || broadcast!(+, gx, gx, gy)
-    y, backward!
+type Sum
+    dim::Int
+end
+
+function (f::Sum)(x::Var)
+    y = Var(sum(x.data,f.dim), f, (x,))
+    y.df! = function df!()
+        isvoid(x.grad) || broadcast!(+, x.grad, x.grad, y.grad)
+    end
+    y
 end

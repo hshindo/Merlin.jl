@@ -4,12 +4,12 @@ import Base: +, .+, -, .-, .*, *
 """
     exp(x::Var)
 """
-exp(x::Var) = forward0(exp, x)
-
-function forward(::typeof(exp), x::UniArray)
-    y = exp(x)
-    backward!(gy, gx) = isvoid(gx) || ∇exp!(y, gy, gx)
-    y, backward!
+function exp(x::Var)
+    y = Var(exp(x.data), exp, (x,))
+    y.df! = function df!()
+        isvoid(x.grad) || ∇exp!(y.data, y.grad, x.grad)
+    end
+    y
 end
 
 function ∇exp!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
@@ -34,12 +34,12 @@ end
 """
     log(x::Var)
 """
-log(x::Var) = forward0(log, x)
-
-function forward(::typeof(log), x::UniArray)
-    y = log(x)
-    backward!(gy, gx) = isvoid(gx) || ∇log!(gy, x, gx)
-    y, backward!
+function log(x::Var)
+    y = Var(log(x.data), log, (x,))
+    y.df! = function df!()
+        isvoid(x.grad) || ∇log!(y.grad, x.data, x.grad)
+    end
+    y
 end
 
 function ∇log!{T}(gy::Array{T}, x::Array{T}, gx::Array{T})
@@ -64,26 +64,25 @@ end
 """
     transpose(x::Var)
 """
-transpose(x::Var) = forward0(transpose, x)
-
-function forward{T}(::typeof(transpose), x::UniArray{T})
-    y = transpose(x)
-    backward!(gy, gx) = isvoid(gx) || BLAS.axpy!(T(1), transpose(gy), gx)
-    y, backward!
+function transpose(x::Var)
+    y = Var(transpose(x.data), transpose, (x,))
+    y.df! = function df!()
+        isvoid(x.grad) || BLAS.axpy!(eltype(x.data)(1), transpose(y.grad), x.grad)
+    end
+    y
 end
 
 """
     +(x1::Var, x2::Var)
 """
-+(x1::Var, x2::Var) = forward0(+, x1, x2)
-
-function forward{T}(::typeof(+), x1::UniArray{T}, x2::UniArray{T})
-    y = x1 + x2
-    function backward!(gy, gx1, gx2)
-        isvoid(gx1) || BLAS.axpy!(T(1), gy, gx1)
-        isvoid(gx2) || BLAS.axpy!(T(1), gy, gx2)
+function +(x1::Var, x2::Var)
+    y = Var(x1.data + x2.data, +, (x1,x2))
+    y.df! = function df!()
+        T = eltype(y.grad)
+        isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
+        isvoid(x2.grad) || BLAS.axpy!(T(1), y.grad, x2.grad)
     end
-    y, backward!
+    y
 end
 +(a::Number, x::Var) = Var(a) + x
 +(x::Var, a::Number) = x + Var(a)
@@ -91,15 +90,13 @@ end
 """
     .+(x1::Var, x2::Var)
 """
-.+(x1::Var, x2::Var) = forward0(.+, x1, x2)
-
-function forward(::typeof(.+), x1::UniArray, x2::UniArray)
-    y = x1 .+ x2
-    function backward!(gy, gx1, gx2)
-        isvoid(gx1) || ∇elemplus!(gy, gx1)
-        isvoid(gx2) || ∇elemplus!(gy, gx2)
+function .+(x1::Var, x2::Var)
+    y = Var(x1.data .+ x2.data, .+, (x1,x2))
+    y.df! = function df!()
+        isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
+        isvoid(x2.grad) || ∇elemplus!(y.grad, x2.grad)
     end
-    y, backward!
+    y
 end
 
 function ∇elemplus!{T,N}(gy::UniArray{T,N}, gx::UniArray{T,N})
@@ -114,39 +111,37 @@ end
     -(x1::Var, x2::Var)
     -(x::Var)
 """
--(x1::Var, x2::Var) = forward0(-, x1, x2)
--(x::Var) = forward0(-, x)
-
-function forward{T}(::typeof(-), x1::UniArray{T}, x2::UniArray{T})
-    y = x1 - x2
-    function backward!(gy, gx1, gx2)
-        isvoid(gx1) || BLAS.axpy!(T(1), gy, gx1)
-        isvoid(gx2) || BLAS.axpy!(T(-1), gy, gx2)
+function -(x1::Var, x2::Var)
+    y = Var(x1.data - x2.data, -, (x1,x2))
+    y.df! = function df!()
+        T = eltype(y.grad)
+        isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
+        isvoid(x2.grad) || BLAS.axpy!(T(-1), y.grad, x2.grad)
     end
-    y, backward!
+    y
 end
 
-function forward{T}(::typeof(-), x::UniArray{T})
-    y = -x
-    backward!(gy, gx) = isvoid(gx) || BLAS.axpy!(T(-1), gy, gx)
-    y, backward!
+function -(x::Var)
+    y = Var(-x.data, -, (x,))
+    y.df! = function df!()
+        T = eltype(y.grad)
+        isvoid(x.grad) || BLAS.axpy!(T(-1), y.grad, x.grad)
+    end
+    y
 end
-
 -(a::Number, x::Var) = Var(a) - x
 -(x::Var, a::Number) = x - Var(a)
 
 """
     .-(x1::Var, x2::Var)
 """
-.-(x1::Var, x2::Var) = forward0(.-, x1, x2)
-
-function forward(::typeof(.-), x1::UniArray, x2::UniArray)
-    y = x1 .- x2
-    function backward!(gy, gx1, gx2)
-        isvoid(gx1) || ∇elemplus!(gy, gx1)
-        isvoid(gx2) || ∇elemminus!(gy, gx2)
+function .-(x1::Var, x2::Var)
+    y = Var(x1.data .- x2.data, .-, (x1,x2))
+    y.df! = function df!()
+        isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
+        isvoid(x2.grad) || ∇elemminus!(y.grad, x2.grad)
     end
-    y, backward!
+    y
 end
 
 function ∇elemminus!{T,N}(gy::UniArray{T,N}, gx::UniArray{T,N})
@@ -168,15 +163,13 @@ end
 """
     \.\*(x1::Var, x2::Var)
 """
-.*(x1::Var, x2::Var) = forward0(.*, x1, x2)
-
-function forward(::typeof(.*), x1::UniArray, x2::UniArray)
-    y = x1 .* x2
-    function backward!(gy, gx1, gx2)
-        isvoid(gx1) || ∇elemtimes!(gy, x2, gx1)
-        isvoid(gx2) || ∇elemtimes!(gy, x1, gx2)
+function .*(x1::Var, x2::Var)
+    y = Var(x1.data .* x2.data, .*, (x1,x2))
+    y.df! = function df!()
+        isvoid(x1.grad) || ∇elemtimes!(y.grad, x2.data, x1.grad)
+        isvoid(x2.grad) || ∇elemtimes!(y.grad, x1.data, x2.grad)
     end
-    y, backward!
+    y
 end
 
 function ∇elemtimes!{T,N}(gy::Array{T,N}, x2::Array{T,N}, gx1::Array{T,N})
@@ -228,7 +221,7 @@ end
     \*(x1::Var, x2::Var)
 """
 function *(x1::Var, x2::Var)
-    gemm('N', 'N', 1, x1, x2)
-    #(isvoid(x1) || isvoid(x2)) && return Var(nothing, (*,x1,x2))
-    #ndims(x2.data) == 1 ? gemv(x1,x2) : gemm(x1,x2)
+    y = ndims(x2.data) == 1 ? gemv(x1,x2) : gemm(x1,x2)
+    y.f = *
+    y
 end

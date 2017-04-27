@@ -12,6 +12,10 @@ end
 
 Returns the maximum elements over the given dimension.
 """
-argmax(x::Var, dim::Int) = forward0(argmax, x, dim)
+argmax(x::Var, dim::Int) = ArgMax(dim)(x)
 
-forward(::typeof(argmax), x::UniArray, dim::Int) = argmax(x,dim), nothing
+type ArgMax
+    dim::Int
+end
+
+(f::ArgMax)(x::Var) = Var(argmax(x.data,f.dim), f, (x,))

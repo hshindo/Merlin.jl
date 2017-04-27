@@ -30,7 +30,7 @@ function (m::Model)(input::Tuple{Var,Vector{Var}}, y=nothing)
     w, cs = input
     wmat = m.wordfun(w)
     cvecs = map(m.charfun, cs)
-    cmat = cat(2, cvecs)
+    cmat = cat(2, cvecs...)
     x = m.sentfun(wmat, cmat)
     y == nothing ? argmax(x,1) : crossentropy(y,x)
 end

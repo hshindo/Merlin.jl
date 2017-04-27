@@ -15,7 +15,6 @@ function Graph(inputs::Vector{Var}, outputs::Vector{Var})
         isempty(node.args) && return node
         args = map(node.args) do arg
             isa(arg, Var) && return NodeId(node2id[arg])
-            isa(arg, Vector{Var}) && return map(x -> NodeId(node2id[x]), arg)
             arg
         end
         Var(nothing, node.f, args)

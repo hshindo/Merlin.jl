@@ -5,7 +5,8 @@ function activation{T}(x::CuArray{T}, mode)
     xdesc = CUDNN.TensorDesc(x)
     cudnnActivationForward(h, desc, T[1], xdesc, x, T[0], xdesc, y)
     function backward!(gy, gx)
-        isvoid(gx) || cudnnActivationBackward(h, desc, T[1], xdesc, y, xdesc, gy, xdesc, x, T[1], xdesc, gx)
+        isvoid(gx) && return
+        cudnnActivationBackward(h, desc, T[1], xdesc, y, xdesc, gy, xdesc, x, T[1], xdesc, gx)
     end
     y, backward!
 end
