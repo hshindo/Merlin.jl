@@ -3,6 +3,7 @@ docs/site/
 /dataset
 /dev
 sandbox.jl
+benchmark.jl
 .data
 *.h5
 *.so

@@ -1,18 +1,8 @@
-export checkgrad, checkcuda
+export checkgrad
 
-function checkgrad(f, args...; eps=1e-3)
-    vars = Var[]
-    for arg in args
-        if isa(arg,Var)
-            !isvoid(arg.grad) && push!(vars, arg)
-        elseif isa(arg,Vector{Var})
-            for v in arg
-                !isvoid(v.grad) && push!(vars, v)
-            end
-        end
-    end
+function checkgrad(f, vars::Var...; eps=1e-3)
     foreach(zerograd!, vars)
-    y = f(args...)
+    y = f()
     gradient!(y)
     gxs1 = map(x -> x.grad, vars)
     gxs2 = map(vars) do v
@@ -21,55 +11,22 @@ function checkgrad(f, args...; eps=1e-3)
         for k = 1:length(x)
             xk = x[k]
             x[k] = xk + eps
-            y1 = copy(f(args...).data)
+            y1 = copy(f().data)
             x[k] = xk - eps
-            y2 = copy(f(args...).data)
+            y2 = copy(f().data)
             x[k] = xk
-            gx[k] = sum(y1 - y2) / 2eps
+            gx[k] = sum(y1-y2) / 2eps
         end
         gx
     end
-    foreach(zip(gxs1,gxs2)) do g
-        diff = g[1] - g[2]
-        if any(d -> abs(d) >= eps, diff)
+    for i = 1:length(vars)
+        g1, g2 = gxs1[i], gxs2[i]
+        diff = g1 - g2
+        if any(d -> abs(d) > eps, diff)
             println(maximum(d -> abs(d), diff))
             println(diff)
-            throw("")
+            throw("Gradient error.")
         end
     end
-    true
-end
-
-function checkcuda(f, args...; eps=1e-3)
-    usecuda || return true
-    vars = collect(filter(a -> isa(a,Var) && !isvoid(a.grad), args))
-    foreach(zerograd!, vars)
-    y1 = f(args...)
-    gradient!(y1)
-    gxs1 = map(x -> x.grad, vars)
-    y1 = y1.data
-
-    foreach(v -> setbackend!(v,CuArray), vars)
-    foreach(zerograd!, vars)
-
-    y2 = f(args...)
-    gradient!(y2)
-    gxs2 = map(x -> Array(x.grad), vars)
-    y2 = Array(y2.data)
-
-    if !all(d -> abs(d) < eps, y1 - y2)
-        throw("Output of CPU and CUDA mismatch.")
-    end
-    foreach(zip(gxs1,gxs2)) do g
-        diff = g[1] - g[2]
-        if !all(d -> abs(d) < eps, diff)
-            println(g[1])
-            println(g[2])
-            throw(diff)
-        end
-    end
-
-    foreach(v -> setbackend!(v,Array), vars)
-    foreach(zerograd!, vars)
     true
 end

@@ -1,6 +1,6 @@
 export
     Var,
-    zerograd, zerograd!, isvoid, data,
+    zerograd, zerograd!, isvoid,
     topsort, gradient!
 
 """
@@ -19,15 +19,14 @@ type Var
     data
     f
     args
-    df
+    df!
     grad
 end
 
-Var(data=nothing, f=nothing, args=(), df=nothing) = Var(data, f, args, df, nothing)
+Var(data=nothing, f=nothing, args=(), (df!)=nothing) = Var(data, f, args, df!, nothing)
 
-data(v::Var) = v.data
 isvoid(x) = x == nothing
-isparam(v) = isempty(v.args) && !isvoid(v.grad)
+isparam(v::Var) = isempty(v.args) && !isvoid(v.grad)
 
 Base.getindex(v::Var, key::Int) = v.args[key]
 Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
@@ -53,29 +52,13 @@ function setbackend!{T<:CuArray}(v::Var, ::Type{T})
     v
 end
 
-function forward0(f, args...)
-    xs = map(args) do arg
-        isa(arg,Var) && return arg.data
-        isa(arg,Vector{Var}) && return map(a -> a.data, arg)
-        arg
-    end
-    y, df = forward(f, xs...)
-    Var(y, f, args, df)
-end
-
 function topsort(top::Var...)
     sorted = Var[]
     dict = ObjectIdDict()
     function visit(var::Var)
-        haskey(dict, var) && return
+        haskey(dict,var) && return
         dict[var] = var
-        for arg in var.args
-            if isa(arg, Var)
-                visit(arg)
-            elseif isa(arg, Vector{Var})
-                foreach(visit, arg)
-            end
-        end
+        foreach(visit, var.args)
         push!(sorted, var)
     end
     foreach(visit, top)
@@ -93,16 +76,12 @@ function gradient!(top::Var...)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
-        isvoid(v.df) && continue
-        args = Any[v.grad]
-        for arg in v.args
-            isa(arg, Var) && push!(args, arg.grad)
-            isa(arg, Vector{Var}) && push!(args, map(a -> a.grad, arg))
-        end
-        v.df(args...)
+        isvoid(v.df!) || v.df!()
+        #gs = map(a -> a.grad, v.args)
+        #v.df!(v.grad, gs...)
     end
     sorted
 end
 
-h5convert(v::Var) = Dict("data"=>v.data, "f"=>v.f, "args"=>v.args)
-h5convert(::Type{Var}, x) = Var(x["data"], x["f"], x["args"])
+readas(::Type{Var}, x) = Var(x["data"], x["f"], x["args"])
+writeas(v::Var) = Dict("data"=>v.data, "f"=>v.f, "args"=>v.args)

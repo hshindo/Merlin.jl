@@ -49,9 +49,19 @@ function Lookup(path::String, T::Type)
     Lookup(ws)
 end
 
-(f::Lookup)(x::Var) = forward0(f, x)
+function (f::Lookup)(x::Var)
+    y = Var(nothing, f, (x,))
+    y.data = f(x.data)
+    y.df! = function df!()
+        ∇lookup!(y.grad, f.ws, x.data)
+        for id in x.data
+            id > 0 && push!(f.idset, id)
+        end
+    end
+    y
+end
 
-function forward{T}(f::Lookup, x::Array{T})
+function (f::Lookup){T}(x::Array{T})
     ws = f.ws
     n = length(ws[1].data)
     dims = [size(x)...]
@@ -65,13 +75,7 @@ function forward{T}(f::Lookup, x::Array{T})
             copy!(y, yi, ws[x[i]].data, 1, n)
         end
     end
-    function backward!(gy, gx)
-        ∇lookup!(gy, f.ws, x)
-        for id in x
-            id > 0 && push!(f.idset, id)
-        end
-    end
-    y, backward!
+    y
 end
 
 function ∇lookup!{T}(gy::Array{T}, ws::Vector{Var}, x::Array{Int})
