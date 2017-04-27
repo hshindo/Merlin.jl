@@ -107,9 +107,12 @@ x = Var(rand(T,5,4,3))
 @test checkgrad(()->reshape(x,4,3,5), x)
 
 # softmax
-x = Var(rand(T,10,5)+1)
-@test checkgrad(()->softmax(x), x)
-@test checkgrad(()->logsoftmax(x), x, eps=1e-2)
+x1 = Var(rand(T,10)+1)
+x2 = Var(rand(T,10,5)+1)
+for x in (x1,x2)
+    @test checkgrad(()->softmax(x), x)
+    @test checkgrad(()->logsoftmax(x), x, eps=1e-2)
+end
 
 # window
 x = Var(rand(T,10,5))
