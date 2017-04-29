@@ -52,7 +52,7 @@ function setbackend!{T<:CuArray}(v::Var, ::Type{T})
     v
 end
 
-function topsort(top::Var...)
+function topsort(tops::Var...)
     sorted = Var[]
     dict = ObjectIdDict()
     function visit(var::Var)
@@ -61,24 +61,24 @@ function topsort(top::Var...)
         foreach(visit, var.args)
         push!(sorted, var)
     end
-    foreach(visit, top)
+    foreach(visit, tops)
     sorted
 end
 
-function gradient!(top::Var...)
-    sorted = topsort(top...)
+function gradient!(tops::Var...)
+    sorted = topsort(tops...)
     for v in top
         isvoid(v.grad) && (v.grad = ones(v.data))
     end
     for i = 1:length(sorted)
         v = sorted[i]
-        isvoid(v.grad) && !isempty(v.args) && zerograd!(v)
+        isempty(v.args) && continue
+        all(a -> isvoid(a.grad), v.args) && continue
+        isvoid(v.grad) && zerograd!(v)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
         isvoid(v.df!) || v.df!()
-        #gs = map(a -> a.grad, v.args)
-        #v.df!(v.grad, gs...)
     end
     sorted
 end
