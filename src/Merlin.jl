@@ -17,8 +17,8 @@ end
 
 if usecuda
     using CUJulia
-    include("cuda/cudnn/CUDNN.jl")
-    using .CUDNN
+    #include("cuda/cudnn/CUDNN.jl")
+    #using .CUDNN
 else
     type CuArray{T,N}; end
     typealias CuVector{T} CuArray{T,1}
@@ -58,6 +58,7 @@ for name in [
     #"pooling",
     "reduce",
     "reshape",
+    "slicecat",
     "softmax",
     "window",
     ]

@@ -30,6 +30,11 @@ function LSTM{T}(::Type{T}, insize::Int, hsize::Int)
     LSTM(zerograd(w), zerograd(b))
 end
 
+function (f::LSTM)(x::Var)
+    xs = aaa(dim, xs)
+    
+end
+
 function (f::LSTM)(x::Var, h::Var, c::Var; rev=false)
     ys = Var[]
     if rev == false
