@@ -30,9 +30,45 @@ function LSTM{T}(::Type{T}, insize::Int, hsize::Int)
     LSTM(zerograd(w), zerograd(b))
 end
 
-function (f::LSTM)(x::Var)
-    xs = aaa(dim, xs)
-    
+function (f::LSTM)(x::Var, h::Var, c::Var)
+    a = lstm.w * cat(1,x,h) + lstm.b
+    n = size(h.data, 1)
+    f = sigmoid(a[1:n])
+    i = sigmoid(a[n+1:2n])
+    o = sigmoid(a[2n+1:3n])
+    c = f .* c + i .* tanh(a[3n+1:4n])
+    h = o .* tanh(c)
+    h, c
+end
+
+function lstm{T}(out::Var, x::Matrix{T}, h::Vector{T}, c::Vector{T})
+    fio = lstm.w * cat(1,x,h) + lstm.b
+    n = size(h.data, 1)
+    @inbounds @simd for i = 1:3n
+        a[i] = sigmoid(a[i])
+    end
+    @inbounds @simd for i = 3n+1:4n
+        a[i] = tanh(a[i])
+    end
+    for i = 1:n
+        cc[i] = fio[i] * c[i] + i[i+n] * tanh(fio)
+    end
+end
+
+"""
+Batched LSTM
+"""
+function (f::LSTM)(xs::Vector{Var}, h::Var, c::Var; rev=false)
+    y = Var(nothing, f, (xs,h,c))
+
+    rev && (xs = reverse(xs))
+    ys = Array{Var}(length(xs))
+    for i = 1:length(xs)
+        h, c = f(xs[i], h, c)
+        ys[i] = h
+    end
+    rev && (ys = reverse(ys))
+    cat(2, ys)
 end
 
 function (f::LSTM)(x::Var, h::Var, c::Var; rev=false)
@@ -60,6 +96,7 @@ function (f::LSTM)(x::Var; rev=false)
     f(x, h, c, rev=rev)
 end
 
+#=
 function onestep(lstm::LSTM, x::Var, h::Var, c::Var)
     n = size(h.data, 1)
     a = lstm.w * cat(1,x,h) + lstm.b
@@ -70,6 +107,7 @@ function onestep(lstm::LSTM, x::Var, h::Var, c::Var)
     h = o .* tanh(c)
     h, c
 end
+=#
 
 type BiLSTM
     fw

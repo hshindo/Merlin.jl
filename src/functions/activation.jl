@@ -62,6 +62,8 @@ function sigmoid(x::Var)
     y
 end
 
+@inline sigmoid{T<:AbstractFloat}(x::T) = 1 / (1 + exp(-x))
+
 function sigmoid!{T}(out::Var, x::Array{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)

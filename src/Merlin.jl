@@ -58,7 +58,6 @@ for name in [
     #"pooling",
     "reduce",
     "reshape",
-    "slicecat",
     "softmax",
     "window",
     ]

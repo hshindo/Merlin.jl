@@ -23,7 +23,9 @@ type Var
     grad
 end
 
-Var(data=nothing, f=nothing, args=(), (df!)=nothing) = Var(data, f, args, df!, nothing)
+Var(data=nothing, f=nothing, args=()) = Var(data, f, args, nothing, nothing)
+
+typealias Vars Union{Vector{Var},Tuple{Vararg{Var}}}
 
 isvoid(x) = x == nothing
 isparam(v::Var) = isempty(v.args) && !isvoid(v.grad)
@@ -58,7 +60,13 @@ function topsort(tops::Var...)
     function visit(var::Var)
         haskey(dict,var) && return
         dict[var] = var
-        foreach(visit, var.args)
+        for arg in var.args
+            if isa(arg, Var)
+                visit(arg)
+            elseif isa(arg, Vector{Var})
+                foreach(visit, arg)
+            end
+        end
         push!(sorted, var)
     end
     foreach(visit, tops)
@@ -67,13 +75,13 @@ end
 
 function gradient!(tops::Var...)
     sorted = topsort(tops...)
-    for v in top
+    for v in tops
         isvoid(v.grad) && (v.grad = ones(v.data))
     end
     for i = 1:length(sorted)
         v = sorted[i]
         isempty(v.args) && continue
-        all(a -> isvoid(a.grad), v.args) && continue
+        #all(a -> isvoid(a.grad), v.args) && continue
         isvoid(v.grad) && zerograd!(v)
     end
     for i = length(sorted):-1:1

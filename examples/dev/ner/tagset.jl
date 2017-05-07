@@ -1,14 +1,17 @@
 abstract Tagset
 
 """
-    I: begin or internal, O: outside, E: end
+* I: begin or internal
+* O: outside
+* E: end
 """
 immutable BIO <: Tagset
     B::Int
     I::Int
     O::Int
+
+    BIO() = new(1, 2, 3)
 end
-BIO() = BIO(1,2,3)
 
 function decode(tagset::BIO, tag::String)
     tag == "B" && return tagset.B
@@ -32,7 +35,6 @@ function decode(tagset::BIO, tags::Vector{Int})
     ranges
 end
 
-#=
 function encode(tagset::BIO, ranges::Vector{UnitRange{Int}})
     tags = fill(tagset.O, last(ranges[end]))
     for r in ranges
@@ -41,4 +43,3 @@ function encode(tagset::BIO, ranges::Vector{UnitRange{Int}})
     end
     tags
 end
-=#

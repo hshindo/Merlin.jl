@@ -1,7 +1,6 @@
 docs/build/
 docs/site/
 /dataset
-/dev
 sandbox.jl
 benchmark.jl
 .data
@@ -9,4 +8,3 @@ benchmark.jl
 *.so
 *.dll
 /mkl
-examples/dev

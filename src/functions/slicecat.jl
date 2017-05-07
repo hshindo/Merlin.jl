@@ -1,29 +1,22 @@
 export slicecat
 
-function slicecat{T}(xs::Vector{T}, dim::Int)
-    perm = sortperm(xs, by=x->size(x,dim), rev=true)
-    xs = map(p -> xs[p], perm)
-    dims = Any[Colon() for i=1:ndims(T)]
-    ys = Array{T}(size(xs[1],dim))
+function slicecat(dim::Int, xs::Vector{Var})
+    issorted(xs, by=x->length(x.data), rev=true) || throw("xs must be sorted by length.")
+
+
+
+    ys = Array{Var}(size(xs[1].data,dim))
+    N = ndims(xs[1].data)
+    dims = Any[Colon() for i=1:N]
     for i = 1:length(ys)
-        dims[dim] = i:i
+        dims[N] = i
         subs = []
         for x in xs
-            size(x,dim) < i && break
-            push!(subs, view(x,dims...))
+            size(x.data,dim) < i && break
+            push!(subs, view(x.data,dims...))
         end
-        ys[i] = cat(ndims(T), subs...)
+        y = cat(N, subs...)
+        ys[i] = cat(N, subs...)
     end
     ys
-end
-
-type Arrays{T,N}
-    data::Vector{T}
-    inds::Vector{Int}
-end
-
-function minibatch(data::Vector{Var}, size::Int)
-    for i = 1:size:length(data)
-        
-    end
 end
