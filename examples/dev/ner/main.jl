@@ -1,36 +1,49 @@
+using HDF5
+
 type Segmenter
-    worddict
-    chardict
-    tagdict
+    word2id::Dict
+    char2id::Dict
+    tag2id::Dict
+    id2tag::Dict
+    model
 end
 
 function Segmenter()
+    h5file = "wordembeds_nyt100.h5"
+    words = h5read(h5file, "s")
+    word2id = Dict(words[i] => i for i=1:length(words))
+    char2id = Dict{String,Int}()
+    tag2id = Dict{String,Int}()
+    id2tag = Dict{Int,String}()
     wordembeds = h5read(h5file, "v")
-    charembeds = rand(Float32, 10, length(chardict))
-    model = Model(wordembeds, charembeds, length(tagdict))
+    charembeds = rand(Float32, 10, 100)
+    model = Model(wordembeds, charembeds, 6)
+    Segmenter(word2id, char2id, tag2id, id2tag, model)
 end
 
 function train(seg::Segmenter, trainfile::String, testfile::String)
-    train_x, train_y = read!(seg, trainpath)
-    test_x, test_y = read!(seg, testpath)
+    train_x, train_y = read!(seg, trainfile)
+    #train_x = train_x[1:10]
+    #train_y = train_y[1:10]
+    test_x, test_y = read!(seg, testfile)
     info("# sentences of train data: $(length(train_x))")
     info("# sentences of test data: $(length(test_x))")
-    info("# words: $(length(seg.worddict))")
-    info("# chars: $(length(seg.chardict))")
-    info("# tags: $(length(seg.tagdict))")
+    info("# words: $(length(seg.word2id))")
+    info("# chars: $(length(seg.char2id))")
+    info("# tags: $(length(seg.tag2id))")
 
     opt = SGD()
-    for epoch = 1:10
+    for epoch = 1:20
         println("epoch: $epoch")
-        opt.rate = 0.0075 / epoch
-        loss = fit(train_x, train_y, model, opt)
+        opt.rate = 0.0001
+        loss = fit(train_x, train_y, seg.model, opt)
         println("loss: $loss")
 
         ys = cat(1, map(x -> vec(x.data), test_y)...)
-        zs = cat(1, map(x -> vec(model(x).data), test_x)...)
+        zs = cat(1, map(x -> vec(seg.model(x).data), test_x)...)
         acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))
-        preds = map(id -> tagdict[id], zs)
-        golds = map(id -> tagdict[id], ys)
+        preds = map(id -> seg.id2tag[id], zs)
+        golds = map(id -> seg.id2tag[id], ys)
         f = fscore(preds, golds)
         println("test eval...")
         println("acc: $acc")
@@ -39,12 +52,13 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
         println("fscore: $(f[3])")
         println()
     end
+    println(seg.model.M.data)
 end
 
 function read!(seg::Segmenter, path::String)
     data_x, data_y = Tuple{Var,Vector{Var}}[], Var[]
     w, c, t = Int[], Vector{Int}[], Int[]
-    unkword = worddict["UNKNOWN"]
+    unkword = seg.word2id["UNKNOWN"]
     lines = open(readlines, path)
     for i = 1:length(lines)
         line = chomp(lines[i])
@@ -60,17 +74,25 @@ function read!(seg::Segmenter, path::String)
             items = split(line, "\t")
             word = String(items[1])
             word0 = replace(word, r"[0-9]", '0')
-            wordid = get(worddict, lowercase(word0), unkword)
+            wordid = get(seg.word2id, lowercase(word0), unkword)
             push!(w, wordid)
 
             chars = Vector{Char}(word0)
-            charids = map(c -> get!(chardict,c,length(chardict)+1), chars)
+            charids = map(c -> get!(seg.char2id,string(c),length(seg.char2id)+1), chars)
             push!(c, charids)
 
             tag = String(items[2])
-            tagid = get!(tagdict, tag, length(tagdict)+1)
+            tagid = get!(seg.tag2id, tag, length(seg.tag2id)+1)
+            seg.id2tag[tagid] = tag
             push!(t, tagid)
         end
     end
     data_x, data_y
 end
+
+include("eval.jl")
+include("model2.jl")
+
+seg = Segmenter()
+path = joinpath(dirname(@__FILE__), ".data")
+train(seg, "$(path)/eng.train", "$(path)/eng.testb")

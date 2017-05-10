@@ -1,3 +1,5 @@
+export uniform
+
 function uniform{T}(::Type{T}, a, b, dims::Tuple)
     a < b || throw("Invalid interval: [$a: $b]")
     r = rand(T, dims)

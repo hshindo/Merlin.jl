@@ -1,3 +1,5 @@
+using Merlin
+
 type Model
     wordfun::Lookup
     charfun::Graph

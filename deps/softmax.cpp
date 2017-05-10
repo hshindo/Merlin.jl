@@ -11,7 +11,7 @@ void softmax(T *x, T *y, int dim1, int dim2, int dim3) {
             T maxv = 0;
             for (int k = 0; k < dim2; k++) {
                 int idx = getindex(i, j, k, dim1, dim2);
-                if (x[idx] > maxv) maxv = x[idx];
+                if (k == 0 || x[idx] > maxv) maxv = x[idx];
             }
 
             T z = 0;
@@ -55,7 +55,7 @@ void logsoftmax(T *x, T *y, int dim1, int dim2, int dim3) {
             T maxv = 0;
             for (int k = 0; k < dim2; k++) {
                 int idx = getindex(i, j, k, dim1, dim2);
-                if (x[idx] > maxv) maxv = x[idx];
+                if (k == 0 || x[idx] > maxv) maxv = x[idx];
             }
 
             T z = 1e-10;

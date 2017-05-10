@@ -1,11 +1,11 @@
 function fscore(pred::Vector{String}, gold::Vector{String})
     function f(data::Vector{String})
-        ranges = UnitRange{Int}[]
+        ranges = []
         b = 0
         for i = 1:length(data)
             data[i] == "O" && continue
             data[i] != "_" && (b = i)
-            (i == length(data) || data[i+1] != "_") && push!(ranges, b:i)
+            (i == length(data) || data[i+1] != "_") && push!(ranges, (b,i,data[i]))
         end
         ranges
     end
@@ -14,5 +14,5 @@ function fscore(pred::Vector{String}, gold::Vector{String})
     prec = c / length(rp)
     recall = c / length(rg)
     f1 = 2 * recall * prec / (recall + prec)
-    prec, recall, f1
+    round(prec,5), round(recall,5), round(f1,5)
 end
