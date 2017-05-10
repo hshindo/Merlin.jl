@@ -28,7 +28,7 @@ function Model{T}(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int)
     sentfun = Graph([w,c], [h])
 
     outfun = Linear(T,300,ntags)
-    W = zerograd(fill(T(-0.001),1,600))
+    W = zerograd(uniform(T,-0.001,0.001,1,600))
     M = zerograd(uniform(T,-0.001,0.001,ntags,ntags))
 
     Model(wordfun, charfun, sentfun, outfun, W, M)
@@ -43,7 +43,6 @@ function (m::Model)(input::Tuple{Var,Vector{Var}}, y=nothing)
     U = m.outfun(H)
     Q = softmax(U)
 
-    #=
     Hs = [H[:,i] for i = 1:size(H.data,2)]
     Ks = Var[]
     for j = 1:size(w.data,2)
@@ -54,25 +53,13 @@ function (m::Model)(input::Tuple{Var,Vector{Var}}, y=nothing)
     end
     K = m.W * cat(2, Ks...)
     K = reshape(K, size(w.data,2), size(w.data,2))
-    =#
 
-    K = Var(-ones(Float32,size(w.data,2),size(w.data,2))/100)
-    for i = 1:size(K.data,1)
-        K.data[i,i] = 0
-    end
-
-    for i = 1:1
+    for i = 1:3
         Q1 = Q * K
-        Q2 = -U + Q1
-        Q3 = softmax(Q2)
-        #if any(isnan, Q3.data)
-        #    println("Error")
-        #    println(Q2.data)
-        #    throw("")
-        #end
+        Q2 = U + Q1
+        Q3 = softmax(-Q2)
         Q = Q3
     end
-
     x = Q
     y == nothing ? argmax(x,1) : crossentropy(y,x,false)
 end

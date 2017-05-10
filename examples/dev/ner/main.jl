@@ -35,7 +35,7 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
     opt = SGD()
     for epoch = 1:20
         println("epoch: $epoch")
-        opt.rate = 0.0001
+        opt.rate = 0.0003
         loss = fit(train_x, train_y, seg.model, opt)
         println("loss: $loss")
 
