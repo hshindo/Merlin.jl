@@ -140,3 +140,22 @@ function h5load(dataset::HDF5Dataset)
         data
     end
 end
+
+"""
+Convert plain-text to HDF5 format
+"""
+function text2h5(srcpath::String, destpath::String, delim::Char, T::Type)
+    keys = String[]
+    values = T[]
+    lines = open(readlines, srcpath)
+    for line in lines
+        line = chomp(line)
+        items = split(line, delim)
+        push!(keys, String(items[1]))
+        value = T[parse(T,items[i]) for i=2:length(items)]
+        append!(values, value)
+    end
+    v = reshape(values, length(values)÷length(lines), length(lines))
+    h5write(destpath, "key", keys)
+    h5write(destpath, "value", v)
+end

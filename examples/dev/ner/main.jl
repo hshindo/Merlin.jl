@@ -9,13 +9,15 @@ type Segmenter
 end
 
 function Segmenter()
-    h5file = "wordembeds_nyt100.h5"
-    words = h5read(h5file, "s")
+    h5file = "glove.6B.100d.h5"
+    words = h5read(h5file, "key")
+    push!(words, "UNKNOWN")
     word2id = Dict(words[i] => i for i=1:length(words))
     char2id = Dict{String,Int}()
     tag2id = Dict{String,Int}()
     id2tag = Dict{Int,String}()
-    wordembeds = h5read(h5file, "v")
+    wordembeds = h5read(h5file, "value")
+    wordembeds = cat(2, wordembeds, zeros(Float32,100,1))
     charembeds = rand(Float32, 10, 100)
     model = Model(wordembeds, charembeds, 6)
     Segmenter(word2id, char2id, tag2id, id2tag, model)
@@ -23,8 +25,6 @@ end
 
 function train(seg::Segmenter, trainfile::String, testfile::String)
     train_x, train_y = read!(seg, trainfile)
-    #train_x = train_x[1:10]
-    #train_y = train_y[1:10]
     test_x, test_y = read!(seg, testfile)
     info("# sentences of train data: $(length(train_x))")
     info("# sentences of test data: $(length(test_x))")
@@ -35,13 +35,14 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
     opt = SGD()
     for epoch = 1:20
         println("epoch: $epoch")
-        opt.rate = 0.0003
+        opt.rate = 0.005 / epoch
         loss = fit(train_x, train_y, seg.model, opt)
         println("loss: $loss")
 
         ys = cat(1, map(x -> vec(x.data), test_y)...)
         zs = cat(1, map(x -> vec(seg.model(x).data), test_x)...)
         acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))
+        acc = round(acc, 5)
         preds = map(id -> seg.id2tag[id], zs)
         golds = map(id -> seg.id2tag[id], ys)
         f = fscore(preds, golds)
@@ -73,7 +74,8 @@ function read!(seg::Segmenter, path::String)
         else
             items = split(line, "\t")
             word = String(items[1])
-            word0 = replace(word, r"[0-9]", '0')
+            #word0 = replace(word, r"[0-9]", '0')
+            word0 = word
             wordid = get(seg.word2id, lowercase(word0), unkword)
             push!(w, wordid)
 
