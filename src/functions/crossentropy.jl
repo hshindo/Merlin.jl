@@ -25,7 +25,7 @@ function crossentropy!{T}(out::Var, p::Array{Int}, q::Array{T})
     size(p,1) == 1 || throw(DimensionMismatch("size(p,1) != 1"))
     size(p,2) == size(q,2) || throw(DimensionMismatch("size of p: $(size(p)), size of q: $(size(q))"))
     y = Array{T}(1, length(p))
-    @inbounds @simd for j = 1:length(p)
+    for j = 1:length(p)
         y[j] = p[j] > 0 ? -log(q[p[j],j]) : T(0)
     end
     out.data = y

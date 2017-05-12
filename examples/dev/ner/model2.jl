@@ -7,6 +7,7 @@ type Model
     outfun
     W
     M
+    ntags::Int
 end
 
 function Model{T}(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int)
@@ -14,24 +15,24 @@ function Model{T}(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int)
 
     x = Var([1,2,3])
     h = Lookup(charembeds)(x)
-    h = window(h, (50,), pads=(20,), strides=(10,))
-    h = Linear(T,50,50)(h)
+    h = window(h, (30*5,), pads=(30*2,), strides=(30,))
+    h = Linear(T,150,50)(h)
     h = max(h, 2)
     charfun = Graph([x], [h])
 
     w = Var(rand(T,100,3))
     c = Var(rand(T,50,3))
     h = cat(1, w, c)
-    h = window(h, (750,), pads=(300,), strides=(150,))
+    h = window(h, (150*5,), pads=(150*2,), strides=(150,))
     h = Linear(T,750,300)(h)
     h = relu(h)
     sentfun = Graph([w,c], [h])
 
     outfun = Linear(T,300,ntags)
-    W = zerograd(uniform(T,-0.001,0.001,6,306*5))
+    W = zerograd(uniform(T,-0.001,0.001,ntags,(ntags+300)*7))
     M = zerograd(diagm(ones(T,ntags)))
 
-    Model(wordfun, charfun, sentfun, outfun, W, M)
+    Model(wordfun, charfun, sentfun, outfun, W, M, ntags)
 end
 
 function (m::Model)(input::Tuple{Var,Vector{Var}}, y=nothing)
@@ -62,8 +63,8 @@ function (m::Model)(input::Tuple{Var,Vector{Var}}, y=nothing)
 
     for i = 1:5
         Q = cat(1, Q, H)
-        Q = window(Q, (306*5,), pads=(306*2,), strides=(306,))
-        Q = U + m.M * (m.W * Q)
+        Q = window(Q, ((m.ntags+300)*7,), pads=((m.ntags+300)*3,), strides=((m.ntags+300),))
+        Q = U + m.M * m.W * Q
         Q = softmax(-Q)
     end
     x = Q

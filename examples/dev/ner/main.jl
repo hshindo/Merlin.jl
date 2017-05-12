@@ -17,9 +17,9 @@ function Segmenter()
     tag2id = Dict{String,Int}()
     id2tag = Dict{Int,String}()
     wordembeds = h5read(h5file, "value")
-    wordembeds = cat(2, wordembeds, zeros(Float32,100,1))
-    charembeds = rand(Float32, 10, 100)
-    model = Model(wordembeds, charembeds, 6)
+    wordembeds = cat(2, wordembeds, uniform(Float32,-0.001,0.001,100,1))
+    charembeds = rand(Float32, 50, 100)
+    model = Model(wordembeds, charembeds, 13)
     Segmenter(word2id, char2id, tag2id, id2tag, model)
 end
 
@@ -32,10 +32,10 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
     info("# chars: $(length(seg.char2id))")
     info("# tags: $(length(seg.tag2id))")
 
-    opt = SGD()
+    opt = SGD(0.005)
     for epoch = 1:20
         println("epoch: $epoch")
-        opt.rate = 0.005 / epoch
+        #opt.rate = 0.0075 / epoch
         loss = fit(train_x, train_y, seg.model, opt)
         println("loss: $loss")
 
@@ -53,7 +53,6 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
         println("fscore: $(f[3])")
         println()
     end
-    println(seg.model.M.data)
 end
 
 function read!(seg::Segmenter, path::String)
@@ -83,7 +82,7 @@ function read!(seg::Segmenter, path::String)
             charids = map(c -> get!(seg.char2id,string(c),length(seg.char2id)+1), chars)
             push!(c, charids)
 
-            tag = String(items[2])
+            tag = String(items[3])
             tagid = get!(seg.tag2id, tag, length(seg.tag2id)+1)
             seg.id2tag[tagid] = tag
             push!(t, tagid)
@@ -96,5 +95,9 @@ include("eval.jl")
 include("model2.jl")
 
 seg = Segmenter()
-path = joinpath(dirname(@__FILE__), ".data")
-train(seg, "$(path)/eng.train", "$(path)/eng.testb")
+#path = joinpath(dirname(@__FILE__), ".data")
+#train(seg, "$(path)/eng.train", "$(path)/eng.testb")
+
+# chunking
+path = joinpath(dirname(@__FILE__), ".data/chunking")
+train(seg, "$(path)/train.txt", "$(path)/test.txt")
