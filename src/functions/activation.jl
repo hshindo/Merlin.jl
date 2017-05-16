@@ -1,6 +1,13 @@
 export relu, clipped_relu, sigmoid
 import Base.tanh
 
+function activation{T}(f, x::Array{T}, range::UnitRange{Int})
+    s = start(range)
+    @inbounds @simd for i = range
+        y[i-s] = f(x[i])
+    end
+end
+
 """
     relu(x::Var)
 """
@@ -9,6 +16,8 @@ function relu(x::Var)
     relu!(y, x.data)
     y
 end
+
+relu{T<:AbstractFloat}(x::T) = max(x[i], T(0))
 
 function relu!{T}(out::Var, x::Array{T})
     y = similar(x)
