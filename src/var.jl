@@ -1,22 +1,26 @@
+export Var
+
 type Var
     data
-    args
+    args::Tuple
     df!
     grad
 end
 
-Var(data, args=(), df!=nothing, grad=nothing) = Var(data, args, df!, grad)
+Var(data, args::Tuple=()) = Var(data, args, nothing, nothing)
+param(data) = Var(data, (), nothing, zeros(data))
 
 isvoid(x) = x == nothing
 
 Base.getindex(v::Var, key::Int) = v.args[key]
 
-constant(data) = Var(data)
-param(data) = Var(data, (), nothing)
+function optimize!(top::Var)
+    
+end
 
 function forward!(top::Var)
     vars = topsort(top)
-    
+
 
 end
 

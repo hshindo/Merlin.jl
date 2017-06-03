@@ -4,18 +4,22 @@ import Base.tanh
 """
     relu(x::Var)
 """
-relu(x::Var) = Var(nothing, relu!, (x,))
-relu!(out::Var) = relu!(out, out[1].data)
+relu(x::Var) = Var(nothing, (relu,x))
 
-function relu!{T}(out::Var, x::Array{T})
+function forward!(y::Var, ::typeof(relu), x::Var)
+    y.data = relu(x.data)
+    y.df! = () -> begin
+        isvoid(x.grad) && return
+        ∇relu!(y.data, y.grad, x.data, x.grad)
+    end
+end
+
+function relu{T}(x::Array{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
         y[i] = max(x[i], T(0))
     end
-    out.data = y
-    out.df! = () -> begin
-        isvoid(out[1].grad) || ∇relu!(out.data, out.grad, out[1].data, out[1].grad)
-    end
+    y
 end
 
 function ∇relu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})

@@ -30,10 +30,21 @@ function Linear{T}(::Type{T}, indim::Int, outdim::Int)
     r = sqrt(6 / (indim+outdim))
     w = uniform(T, -r, r, outdim, indim)
     b = fill(T(0), outdim, 1)
-    Linear(zerograd(w), zerograd(b))
+    Linear(param(w), param(b))
 end
 
-(f::Linear)(x::Var) = f.w * x .+ f.b
+(f::Linear)(x::Var) = Var(nothing, (f,x))
+
+function forward!(y::Var, f::Linear, x::Var)
+    y.data = f.w.data * x.data
+    y.df! = () -> begin
+        T = eltype(f.w.data)
+        BLAS.gemm!('N', 'T', T(1), y.grad, x.data, T(1), f.w.grad)
+        isvoid(x.grad) || BLAS.gemm!('T', 'N', T(1), f.w.data, y.grad, T(1), x.grad)
+    end
+end
+
+#(f::Linear)(x::Var) = f.w * x .+ f.b
 
 #=
 (f::Linear)(x::Var) = linear(x, f.w, f.b)
