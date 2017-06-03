@@ -51,6 +51,11 @@ for i in ((1:3,5:5), (Colon(),2:5))
     @test checkgrad(()->x[i...], x)
 end
 
+# glu
+x = Var(rand(T,10,5))
+f = GLU(T, 50, 50)
+@test checkgrad(()->f(x), x)
+
 # linear
 x = Var(rand(T,10,10))
 f = Linear(T, 10, 7)

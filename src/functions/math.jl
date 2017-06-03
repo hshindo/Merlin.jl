@@ -220,6 +220,15 @@ end
 """
     \*(x1::Var, x2::Var)
 """
+*(x1::Var, x2::Var) = Var(nothing, multiply!, (x1,x2))
+
+function multiply!(out::Var)
+    out.data = out[1].data * out[2].data
+    out.df! = () -> begin
+        
+    end
+end
+
 function *(x1::Var, x2::Var)
     y = ndims(x2.data) == 1 ? gemv(x1,x2) : gemm(x1,x2)
     y.f = *

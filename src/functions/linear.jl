@@ -33,10 +33,13 @@ function Linear{T}(::Type{T}, indim::Int, outdim::Int)
     Linear(zerograd(w), zerograd(b))
 end
 
+(f::Linear)(x::Var) = f.w * x .+ f.b
+
+#=
 (f::Linear)(x::Var) = linear(x, f.w, f.b)
 
 linear(x::Var, w::Var, b::Var) = w * x .+ b
-
+=#
 
 
 

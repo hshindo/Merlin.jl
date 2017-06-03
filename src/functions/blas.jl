@@ -43,8 +43,28 @@ end
 C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
 ```
 """
-gemm(tA::Char, tB::Char, alpha, A::Var, B::Var) = GEMM(tA,tB,alpha)(A, B)
+gemm(tA::Char, tB::Char, alpha, A::Var, B::Var) = Var(nothing, (gemm!,tA,tB,alpha,A,B))
 gemm(A, B; tA='N', tB='N', alpha=1) = gemm(tA, tB, alpha, A, B)
+#gemm(tA::Char, tB::Char, alpha, A::Var, B::Var) = GEMM(tA,tB,alpha)(A, B)
+#gemm(A, B; tA='N', tB='N', alpha=1) = gemm(tA, tB, alpha, A, B)
+
+function gemm!(C::Var)
+    tA, tB, alpha, A, B = out.args
+    T = eltype(A.data)
+    C.data = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
+    C.df! = () -> begin
+        if !isvoid(A.grad)
+            tA == 'N' ?
+            BLAS.gemm!('N', tB=='N'?'T':'N', T(alpha), C.grad, B.data, T(1), A.grad) :
+            BLAS.gemm!(tB, 'T', T(alpha), B.data, C.grad, T(1), A.grad)
+        end
+        if !isvoid(B.grad)
+            tB == 'N' ?
+            BLAS.gemm!(tA=='N'?'T':'N', 'N', T(alpha), A.data, C.grad, T(1), B.grad) :
+            BLAS.gemm!('T', tA, T(alpha), C.grad, A.data, T(1), B.grad)
+        end
+    end
+end
 
 type GEMM
     tA::Char

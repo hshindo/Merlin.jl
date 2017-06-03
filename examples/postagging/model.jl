@@ -12,7 +12,7 @@ function Model{T}(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int)
     h = window(h, (50,), pads=(20,), strides=(10,))
     h = Linear(T,50,50)(h)
     h = max(h, 2)
-    charfun = Graph([x], [h])
+    charfun = Graph(x, h)
 
     w = Var(rand(T,100,3))
     c = Var(rand(T,50,3))
@@ -21,7 +21,7 @@ function Model{T}(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int)
     h = Linear(T,750,300)(h)
     h = relu(h)
     h = Linear(T,300,ntags)(h)
-    sentfun = Graph([w,c], [h])
+    sentfun = Graph((w,c), h)
 
     Model(wordfun, charfun, sentfun)
 end

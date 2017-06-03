@@ -1,57 +1,23 @@
-export
-    Var,
-    zerograd, zerograd!, isvoid,
-    topsort, gradient!
-
-"""
-    Var
-
-`Var` is a type of variable.
-It contains the following members:
-
-* data
-* f: forward function
-* args: arguments
-* df: backward function
-* grad: gradient
-"""
 type Var
     data
-    f
     args
     df!
     grad
 end
 
-Var(data=nothing, f=nothing, args=()) = Var(data, f, args, nothing, nothing)
-
-typealias Vars Union{Vector{Var},Tuple{Vararg{Var}}}
+Var(data, args=(), df!=nothing, grad=nothing) = Var(data, args, df!, grad)
 
 isvoid(x) = x == nothing
-isparam(v::Var) = isempty(v.args) && !isvoid(v.grad)
 
 Base.getindex(v::Var, key::Int) = v.args[key]
-Base.setindex!(v::Var, value, key::Int) = v.args[key] = value
 
-function zerograd!(v::Var)
-    isvoid(v.grad) && (v.grad = similar(v.data))
-    fill!(v.grad, 0)
-    v
-end
-zerograd(x) = zerograd!(Var(x))
+constant(data) = Var(data)
+param(data) = Var(data, (), nothing)
 
-function setbackend!{T<:Array}(v::Var, ::Type{T})
-    isa(v.data, Array) && return v
-    v.data = Array(v.data)
-    v.grad = isvoid(v.grad) ? v.grad : Array(v.grad)
-    v
-end
+function forward!(top::Var)
+    vars = topsort(top)
+    
 
-function setbackend!{T<:CuArray}(v::Var, ::Type{T})
-    isa(v.data, CuArray) && return v
-    v.data = CuArray(v.data)
-    v.grad = isvoid(v.grad) ? v.grad : CuArray(v.grad)
-    v
 end
 
 function topsort(tops::Var...)
@@ -61,11 +27,7 @@ function topsort(tops::Var...)
         haskey(dict,var) && return
         dict[var] = var
         for arg in var.args
-            if isa(arg, Var)
-                visit(arg)
-            elseif isa(arg, Vector{Var})
-                foreach(visit, arg)
-            end
+            isa(arg,Var) && visit(arg)
         end
         push!(sorted, var)
     end
@@ -90,6 +52,3 @@ function gradient!(tops::Var...)
     end
     sorted
 end
-
-readas(::Type{Var}, x) = Var(x["data"], x["f"], x["args"])
-writeas(v::Var) = Dict("data"=>v.data, "f"=>v.f, "args"=>v.args)
