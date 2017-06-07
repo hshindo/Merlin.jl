@@ -1,36 +1,17 @@
-type Model
-    wordfun::Lookup
-    charfun::Graph
-    sentfun::Graph
-end
+function create_model(chardim::Int, worddim::Int, numtags::Int)
+    T = Float32
 
-function Model{T}(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int)
-    wordfun = Lookup(wordembeds)
+    w = Lookup()(x)
 
-    x = Var([1,2,3])
-    h = Lookup(charembeds)(x)
-    h = window(h, (50,), pads=(20,), strides=(10,))
-    h = Linear(T,50,50)(h)
-    h = max(h, 2)
-    charfun = Graph(x, h)
+    h = Lookup()(x)
+    h = Conv1D(T,50,20,10))(h)
+    c = max(h, 2)
+    compile(c, x)
 
-    w = Var(rand(T,100,3))
-    c = Var(rand(T,50,3))
     h = cat(1, w, c)
-    h = window(h, (750,), pads=(300,), strides=(150,))
-    h = Linear(T,750,300)(h)
+    h = Conv1D(T,750,300,150)(h)
     h = relu(h)
-    h = Linear(T,300,ntags)(h)
-    sentfun = Graph((w,c), h)
+    h = Linear(T,300,numtags)(h)
 
-    Model(wordfun, charfun, sentfun)
-end
-
-function (m::Model)(input::Tuple{Var,Vector{Var}}, y=nothing)
-    w, cs = input
-    wmat = m.wordfun(w)
-    cvecs = map(m.charfun, cs)
-    cmat = cat(2, cvecs...)
-    x = m.sentfun(wmat, cmat)
-    y == nothing ? argmax(x,1) : crossentropy(y,x)
+    compile(h, x, c)
 end

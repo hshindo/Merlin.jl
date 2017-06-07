@@ -1,5 +1,5 @@
-function recurrent(f, xs::Vector{Var})
-    for i = 1:10
+function recurrent(f, x::Var)
+    for i = 1:size(x)
         
     end
 end

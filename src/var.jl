@@ -1,5 +1,5 @@
 export Var
-export param, isvoid, topsort, zerograd!, zerograd
+export param, isvoid, topsort, zerograd!
 
 type Var
     data
