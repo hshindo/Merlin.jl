@@ -36,7 +36,6 @@ include("graph.jl")
 include("fit.jl")
 include("rand.jl")
 #include("native.jl")
-include("hdf5.jl")
 include("check.jl")
 
 for name in [
@@ -76,6 +75,7 @@ for name in [
     include("optimizers/$(name).jl")
 end
 
+include("hdf5.jl")
 #include("caffe/Caffe.jl")
 
 end

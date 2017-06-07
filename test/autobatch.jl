@@ -10,15 +10,15 @@ const T = Float32
 data_x = [rand(T,300) for i=1:100]
 data_y = [rand(1:5) for i=1:100]
 
-for i = 1:length(data_x)
-    x = Var(data_x[i])
-    x = Linear(T,300,100)(x)
-    x = relu(x)
-    x = Linear(T,100,3)(x)
-    z = softmax(x)
-    y = data_y[i]
-    l = crossentropy(y, z)
-    loss += l
-end
+x = Var(data_x[i])
+h = Linear(T,300,100)(x)
+h = relu(h)
+h = Linear(T,100,3)(h)
+z = softmax(h)
+loss = crossentropy(data_y[i], z)
+nn = compile(loss, x)
+
 opt = SGD(0.001)
-minimize(loss, opt, epoch=10)
+for epoch = 1:10
+    minimize(nn, data_x, data_y, opt, minibatch=32)
+end

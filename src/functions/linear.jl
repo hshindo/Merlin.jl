@@ -1,4 +1,4 @@
-export Linear, linear
+export Linear
 
 type Linear
     w::Var
@@ -6,13 +6,12 @@ type Linear
 end
 
 """
-    Linear(w::Var, b::Var)
-    Linear(T::Type, indim::Int, outdim::Int)
+    Linear(T::Type, insize::Int, outsize::Int)
 
 Computes linear function (a.k.a. affine transformation).
 
-* indim: size of inout dimension
-* outdim: size of output dimension
+* insize: size of input dimension
+* outsize: size of output dimension
 
 ```math
 f(x) = W^{T}x + b
@@ -26,31 +25,16 @@ f = Linear(T,10,7)
 y = f(x)
 ```
 """
-function Linear{T}(::Type{T}, indim::Int, outdim::Int)
-    r = sqrt(6 / (indim+outdim))
-    w = uniform(T, -r, r, outdim, indim)
-    b = fill(T(0), outdim, 1)
+function Linear{T}(::Type{T}, insize::Int, outsize::Int)
+    r = sqrt(6 / (insize+outsize))
+    w = uniform(T, -r, r, outsize, insize)
+    b = fill(T(0), outsize, 1)
     Linear(param(w), param(b))
 end
 
-(f::Linear)(x::Var) = Var(nothing, (f,x))
+(f::Linear)(x::Var) = f.w * x .+ f.b
 
-function forward!(y::Var, f::Linear, x::Var)
-    y.data = f.w.data * x.data
-    y.df! = () -> begin
-        T = eltype(f.w.data)
-        BLAS.gemm!('N', 'T', T(1), y.grad, x.data, T(1), f.w.grad)
-        isvoid(x.grad) || BLAS.gemm!('T', 'N', T(1), f.w.data, y.grad, T(1), x.grad)
-    end
-end
 
-#(f::Linear)(x::Var) = f.w * x .+ f.b
-
-#=
-(f::Linear)(x::Var) = linear(x, f.w, f.b)
-
-linear(x::Var, w::Var, b::Var) = w * x .+ b
-=#
 
 
 

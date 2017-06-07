@@ -1,53 +1,54 @@
 export Var
+export param, isvoid, topsort, zerograd!, zerograd
 
 type Var
     data
+    f
     args::Tuple
     df!
     grad
 end
 
-Var(data, args::Tuple=()) = Var(data, args, nothing, nothing)
-param(data) = Var(data, (), nothing, zeros(data))
+Var(data, f=nothing, args=()) = Var(data, f, args, nothing, nothing)
+param(data) = Var(data, nothing, (), nothing, zeros(data))
 
 isvoid(x) = x == nothing
-
 Base.getindex(v::Var, key::Int) = v.args[key]
 
-function optimize!(top::Var)
-    
+function zerograd!(v::Var)
+    if isvoid(v.grad)
+        v.grad = zeros(v.data)
+    else
+        fill!(v.grad, 0)
+    end
+    v
 end
 
-function forward!(top::Var)
-    vars = topsort(top)
-
-
-end
-
-function topsort(tops::Var...)
+function topsort(top::Var)
     sorted = Var[]
     dict = ObjectIdDict()
-    function visit(var::Var)
-        haskey(dict,var) && return
-        dict[var] = var
-        for arg in var.args
-            isa(arg,Var) && visit(arg)
+    function visit(v::Var)
+        haskey(dict,v) && return
+        dict[v] = v
+        for arg in v.args
+            if isa(arg, Var)
+                visit(arg)
+            elseif isa(arg, Vector{Var})
+                foreach(visit, arg)
+            end
         end
-        push!(sorted, var)
+        push!(sorted, v)
     end
-    foreach(visit, tops)
+    visit(top)
     sorted
 end
 
-function gradient!(tops::Var...)
-    sorted = topsort(tops...)
-    for v in tops
-        isvoid(v.grad) && (v.grad = ones(v.data))
-    end
+function gradient2!(top::Var)
+    sorted = topsort(top)
+    isvoid(top.grad) && (top.grad = ones(top.data))
     for i = 1:length(sorted)
         v = sorted[i]
         isempty(v.args) && continue
-        #all(a -> isvoid(a.grad), v.args) && continue
         isvoid(v.grad) && zerograd!(v)
     end
     for i = length(sorted):-1:1
@@ -56,3 +57,6 @@ function gradient!(tops::Var...)
     end
     sorted
 end
+
+readas(::Type{Var}, x) = Var(x["data"], x["f"], x["args"])
+writeas(v::Var) = Dict("data"=>v.data, "f"=>v.f, "args"=>v.args)

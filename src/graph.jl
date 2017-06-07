@@ -1,25 +1,53 @@
-export Graph
+export Graph, compile
 
-type Graph <: Functor
-    nodes::Vector{Var} # bottomup order
-    input::Tuple
-    output::Tuple
+type Graph
+    nodes::Vector{Var} # topological order
+    inputs::Vector{Int}
+    output::Int
 end
 
-function Graph(input, output)
-    isa(input,Var) && (input = (input,))
-    isa(output,Var) && (output = (output,))
-    nodes = topsort(output...)
+type VarId
+    id::Int
+end
+
+function compile(output::Var, inputs::Var...)
+    nodes = topsort(output)
     node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
     nodes = map(nodes) do node
-        args = map(a -> node2id[a], node.args)
+        args = map(node.args) do arg
+            isa(arg,Var) && return VarId(node2id[arg])
+            isa(arg,Vector{Var}) && return map(x -> VarId(node2id[x]),arg)
+            arg
+        end
         Var(node.data, node.f, args)
     end
-    inids = map(x -> node2id[x], input)
-    outids = map(x -> node2id[x], output)
-    Graph(nodes, inids, outids)
+    inputs = map(x -> node2id[x], inputs)
+    output = node2id[output]
+    Graph(nodes, inputs, output)
 end
 
+function (g::Graph)(inputs::Union{Var,Vector{Var}}...)
+    vars = Array{Var}(length(g.nodes))
+    for i = 1:length(inputs)
+        vars[g.inputs[i]] = inputs[i]
+    end
+    for i = 1:length(g.nodes)
+        node = g.nodes[i]
+        if isempty(node.args)
+            isdefined(vars,i) || (vars[i] = node)
+        else
+            xs = map(node.args) do arg
+                isa(arg,VarId) && return vars[arg.id]
+                isa(arg,Vector{VarId}) && return map(x -> vars[x.id], arg)
+                arg
+            end
+            vars[i] = node.f(xs...)
+        end
+    end
+    vars[end]
+end
+
+#=
 function (g::Graph)(xs...)
     ys = Array{Any}(length(g.nodes))
     for i = 1:length(xs)
@@ -28,10 +56,9 @@ function (g::Graph)(xs...)
     for i = 1:length(g.nodes)
         node = g.nodes[i]
         if isempty(node.args)
-            isdefined(ys, i) || (ys[i] = node)
+            isdefined(ys,i) || (ys[i] = node)
             continue
         end
-        #println(node.args)
         xs = map(x -> ys[x], node.args)
         ys[i] = node.f(xs...)
     end
@@ -52,14 +79,20 @@ function (g::Graph)(xs...)
     end
     y
 end
+=#
 
-function update!(g::Graph, opt)
-    for v in g.nodes
-        if isa(v.f,Functor)
-            update!(v.f,opt)
-        elseif isparam(v)
-            println("update")
-            opt(v.data, v.grad)
-        end
+function compile!(top::Var)
+    nodes = topsort(top)
+
+
+    dict1 = ObjectIdDict()
+    dict2 = ObjectIdDict()
+    for node in nodes
+        isa(node.f,typeof(*)) || continue
+        vars = get!(dict1, node[1], Var[])
+        push!(vars, node[2])
+        vars = get!(dict2, node[2], Var[])
+        push!(vars, node[1])
     end
+
 end

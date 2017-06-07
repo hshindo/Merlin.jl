@@ -1,5 +1,22 @@
-export fit
+export minimize!
 import ProgressMeter: Progress, next!
+
+"""
+    minimize(output::Var, opt, [progress=true])
+
+```julia
+x = Var()
+loss = crossentropy(y, z)
+
+opt = SGD(0.001)
+minimize!(loss, opt, x=x)
+```
+"""
+function minimize!(output::Var, opt; progress=true, kwargs...)
+    kwdict = Dict(kwargs)
+    g = Graph(output)
+    
+end
 
 """
     fit(data_x, data_y, model, opt, [progress=true])

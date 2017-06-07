@@ -1,3 +1,9 @@
+function recurrent(f, xs::Vector{Var})
+    for i = 1:10
+        
+    end
+end
+
 type RNN
     w::Var
     b::Var
@@ -16,7 +22,7 @@ function preprocess(xs::Vector)
     p = sortperm(xs, lt=(x,y)->isless(length(x),length(y)), rev=true)
     permute!(xs, p)
     x = transpose(cat(2,xs...))
-    
+
 end
 
 function forward{T}(rnn::RNN, xs::Vector{CuVector{T}}, nlayers::Int)

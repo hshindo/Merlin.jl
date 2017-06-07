@@ -5,21 +5,18 @@ type Lookup <: Functor
     idset::IntSet
 end
 
-Lookup(ws) = Lookup(ws, IntSet())
+Base.getindex(f::Lookup, key::Int) = f.ws[key]
 
-function Lookup{T}(w::Matrix{T})
-    ws = Array{Var}(size(w,2))
-    for i = 1:length(ws)
-        ws[i] = zerograd(w[:,i])
-    end
-    Lookup(ws)
+function Lookup(mat::Matrix)
+    ws = [parameter(mat[:,i]) for i=1:size(mat,2)]
+    Lookup(ws, IntSet())
 end
 
 """
-    Lookup{T}(::Type{T}, indim::Int, outdim::Int)
+    Lookup{T}(::Type{T}, insize::Int, outsize::Int)
 
-* indim: input dimension
-* outdim: output dimension
+* insize: input size
+* outsize: output size
 
 ```julia
 T = Float32
@@ -28,62 +25,35 @@ x = Var(rand(1:1000,5,3))
 y = f(x)
 ```
 """
-function Lookup{T}(::Type{T}, indim::Int, outdim::Int)
-    ws = Var[zerograd(rand(T,outdim)) for i=1:indim]
-    Lookup(ws)
-end
-
-"""
-    Lookup(path, T)
-
-Construct embeddings from file.
-"""
-function Lookup(path::String, T::Type)
-    lines = open(readlines, path)
-    ws = Array(Var, length(lines))
-    for i = 1:length(lines)
-        items = split(chomp(lines[i]), ' ')
-        w = map(x -> parse(T,x), items)
-        ws[i] = zerograd(w)
-    end
-    Lookup(ws)
+function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
+    ws = Var[parameter(rand(T,outsize)) for i=1:insize]
+    Lookup(ws, IntSet())
 end
 
 function (f::Lookup)(x::Var)
-    y = Var(nothing, f, (x,))
-    y.data = f(x.data)
+    y = Var(f(x.data), f, (x,))
     y.df! = function df!()
-        ∇lookup!(y.grad, f.ws, x.data)
-        for id in x.data
-            id > 0 && push!(f.idset, id)
-        end
+        ∇lookup!(y.grad, f, x.data)
+        append!(f.idset, x.data)
     end
     y
 end
 
-function (f::Lookup){T}(x::Array{T})
-    ws = f.ws
-    n = length(ws[1].data)
-    dims = [size(x)...]
-    dims[1] *= n
-    y = similar(ws[1].data, dims...)
+function lookup{T}(f::Lookup, x::Array{T})
+    w1 = f[1].data
+    y = similar(w1, size(w1)..., size(x)...)
     for i = 1:length(x)
         yi = (i-1) * n + 1
-        if x[i] == 0
-            y[yi:yi+n-1] = T(0)
-        else
-            copy!(y, yi, ws[x[i]].data, 1, n)
-        end
+        copy!(y, yi, f[x[i]].data, 1, length(w1))
     end
     y
 end
 
-function ∇lookup!{T}(gy::Array{T}, ws::Vector{Var}, x::Array{Int})
-    n = length(ws[1].data)
+function ∇lookup!{T}(gy::Array{T}, f::Lookup, x::Array{Int})
+    w1 = f[1].data
     for i = 1:length(x)
-        x[i] == 0 && continue
-        gw = ws[x[i]].grad
-        BLAS.axpy!(n, T(1), pointer(gy,(i-1)*n+1), 1, pointer(gw), 1)
+        gw = f[x[i]].grad
+        BLAS.axpy!(length(w1), T(1), pointer(gy,(i-1)*n+1), 1, pointer(gw), 1)
     end
 end
 

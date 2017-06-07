@@ -91,10 +91,10 @@ end
     .+(x1::Var, x2::Var)
 """
 function .+(x1::Var, x2::Var)
-    y = Var(x1.data .+ x2.data, .+, (x1,x2))
+    y = Var(x1.data.+x2.data, .+, (x1,x2))
     y.df! = function df!()
-        isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
-        isvoid(x2.grad) || ∇elemplus!(y.grad, x2.grad)
+        isconst(x1) || ∇elemplus!(y.grad, x1.grad)
+        isconst(x2) || ∇elemplus!(y.grad, x2.grad)
     end
     y
 end
@@ -220,17 +220,10 @@ end
 """
     \*(x1::Var, x2::Var)
 """
-*(x1::Var, x2::Var) = Var(nothing, multiply!, (x1,x2))
-
-function multiply!(out::Var)
-    out.data = out[1].data * out[2].data
-    out.df! = () -> begin
-        
-    end
-end
-
 function *(x1::Var, x2::Var)
-    y = ndims(x2.data) == 1 ? gemv(x1,x2) : gemm(x1,x2)
-    y.f = *
+    y = Var(x1.data*x2.data, *, (x1,x2))
+    y.df! = () -> begin
+        throw("")
+    end
     y
 end
