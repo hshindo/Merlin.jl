@@ -37,7 +37,6 @@ end
 
 
 
-
 export NormLinear
 type NormLinear
     v::Var

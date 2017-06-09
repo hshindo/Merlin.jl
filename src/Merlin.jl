@@ -30,6 +30,7 @@ typealias UniMatrix{T} Union{Matrix{T},CuMatrix{T}}
 
 abstract Functor
 
+include("arrays.jl")
 include("util.jl")
 include("var.jl")
 include("graph.jl")

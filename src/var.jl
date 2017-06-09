@@ -1,5 +1,5 @@
 export Var
-export param, isvoid, topsort, zerograd!
+export isvoid, topsort, zerograd, zerograd!
 
 type Var
     data
@@ -10,7 +10,7 @@ type Var
 end
 
 Var(data, f=nothing, args=()) = Var(data, f, args, nothing, nothing)
-param(data) = Var(data, nothing, (), nothing, zeros(data))
+zerograd(data) = Var(data, nothing, (), nothing, zeros(data))
 
 isvoid(x) = x == nothing
 Base.getindex(v::Var, key::Int) = v.args[key]

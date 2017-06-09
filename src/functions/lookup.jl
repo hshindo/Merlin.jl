@@ -1,15 +1,13 @@
 export Lookup
 
 type Lookup <: Functor
-    ws::Vector{Var}
+    params::Vector{Var}
     idset::IntSet
 end
 
-Base.getindex(f::Lookup, key::Int) = f.ws[key]
-
 function Lookup(mat::Matrix)
-    ws = [parameter(mat[:,i]) for i=1:size(mat,2)]
-    Lookup(ws, IntSet())
+    params = [zerograd(mat[:,i]) for i=1:size(mat,2)]
+    Lookup(params, IntSet())
 end
 
 """
@@ -26,31 +24,32 @@ y = f(x)
 ```
 """
 function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
-    ws = Var[parameter(rand(T,outsize)) for i=1:insize]
-    Lookup(ws, IntSet())
+    params = Var[zerograd(rand(T,outsize)) for i=1:insize]
+    Lookup(params, IntSet())
 end
 
 function (f::Lookup)(x::Var)
-    y = Var(f(x.data), f, (x,))
+    data = Arrays(f(x.data.array), x.dims)
+    y = Var(data, f, (x,))
     y.df! = function df!()
-        ∇lookup!(y.grad, f, x.data)
+        ∇lookup!(y.grad, f, x.data.array)
         append!(f.idset, x.data)
     end
     y
 end
 
-function lookup{T}(f::Lookup, x::Array{T})
-    w1 = f[1].data
-    y = similar(w1, size(w1)..., size(x)...)
+function (f::Lookup)(x::Arrays)
+    p = f.params[1].data
+    y = similar(p, size(p)..., size(x)...)
     for i = 1:length(x)
         yi = (i-1) * n + 1
-        copy!(y, yi, f[x[i]].data, 1, length(w1))
+        copy!(y, yi, f.params[x[i]].data, 1, length(p))
     end
     y
 end
 
 function ∇lookup!{T}(gy::Array{T}, f::Lookup, x::Array{Int})
-    w1 = f[1].data
+    p = f.params[1].data
     for i = 1:length(x)
         gw = f[x[i]].grad
         BLAS.axpy!(length(w1), T(1), pointer(gy,(i-1)*n+1), 1, pointer(gw), 1)
