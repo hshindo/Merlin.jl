@@ -227,3 +227,9 @@ function *(x1::Var, x2::Var)
     end
     y
 end
+
+*(x1::Array, x2::Arrays) = Arrays(x1*x2.array, x2.sizes)
+
+function ∇multiply!(gy::Arrays, x1::Array, x2::Arrays)
+
+end

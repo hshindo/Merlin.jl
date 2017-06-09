@@ -13,7 +13,7 @@ function relu(x::Var)
     y
 end
 
-function relu{T}(x::Array{T})
+function relu{T}(x::BatchedArray{T})
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
         y[i] = max(x[i], T(0))
@@ -21,7 +21,7 @@ function relu{T}(x::Array{T})
     y
 end
 
-function ∇relu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
+function ∇relu!{T}(y, gy::BatchedArray{T}, x::BatchedArray{T}, gx::BatchedArray{T})
     @inbounds @simd for i = 1:length(x)
         gx[i] += ifelse(x[i] > T(0), gy[i], T(0))
     end
