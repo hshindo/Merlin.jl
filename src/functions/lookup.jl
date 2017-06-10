@@ -37,21 +37,21 @@ function (f::Lookup)(x::Var)
     y
 end
 
-function (f::Lookup)(x::Arrays{Int})
+function (f::Lookup)(x::BatchedArray{Int})
     p = f.params[1].data
     y = similar(p, size(p)..., size(x)...)
     for i = 1:length(x)
         yi = (i-1) * n + 1
-        copy!(y.array, yi, f.params[x[i]].data, 1, length(p))
+        copy!(y.data, yi, f.params[x[i]].data, 1, length(p))
     end
     y
 end
 
-function ∇lookup!{T}(gy::Array{T}, f::Lookup, x::Arrays{Int})
+function ∇lookup!{T}(gy::BatchedArray{T}, f::Lookup, x::BatchedArray{Int})
     p = f.params[1].data
     for i = 1:length(x)
         gw = f.params[x[i]].grad
-        BLAS.axpy!(length(p), T(1), pointer(gy,(i-1)*n+1), 1, pointer(gw), 1)
+        BLAS.axpy!(length(p), T(1), pointer(gy.data,(i-1)*n+1), 1, pointer(gw), 1)
     end
 end
 

@@ -17,4 +17,4 @@ Base.size(x::BatchedArray) = size(x.data)
 Base.size(x::BatchedArray, dim::Int) = size(x.data, dim)
 
 Base.similar(x::BatchedArray) = BatchedArray(similar(x.data), x.size)
-Base.similar(x::BaatchedArray, dims::Tuple) = BatchedArray(similar(x.data,dims), x.size)
+Base.similar(x::BatchedArray, dims::Tuple) = BatchedArray(similar(x.data,dims), x.size)

@@ -91,21 +91,26 @@ end
     .+(x1::Var, x2::Var)
 """
 function .+(x1::Var, x2::Var)
-    y = Var(x1.data.+x2.data, .+, (x1,x2))
-    y.df! = function df!()
+    y = Var(x1.data .+ x2.data, .+, (x1,x2))
+    y.df! = () -> begin
         isconst(x1) || ∇elemplus!(y.grad, x1.grad)
         isconst(x2) || ∇elemplus!(y.grad, x2.grad)
     end
     y
 end
+.+(x1::Array, x2::BatchedArray) = BatchedArray(x1 .+ x2.data, x2.size)
+.+(x1::BatchedArray, x2::Array) = BatchedArray(x1.data .+ x2, x1.size)
+.+(x1::BatchedArray, x2::BatchedArray) = throw("Not implemented yet.")
 
-function ∇elemplus!{T,N}(gy::UniArray{T,N}, gx::UniArray{T,N})
+function ∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T,N})
     for i = 1:N
         size(gx,i) == 1 && size(gy,i) > 1 && (gy = sum(gy,i))
     end
     BLAS.axpy!(T(1), gy, gx)
 end
-∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T}) = ∇elemplus!(gy, redim(gx,N))
+∇elemplus!(gy::BatchedArray, gx::Array) = ∇elemplus!(gy.data, gx)
+∇elemplus!(gy::BatchedArray, gx::BatchedArray) = ∇elemplus!(gy.data, gx.data)
+#∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T}) = ∇elemplus!(gy, redim(gx,N))
 
 """
     -(x1::Var, x2::Var)
@@ -221,15 +226,5 @@ end
     \*(x1::Var, x2::Var)
 """
 function *(x1::Var, x2::Var)
-    y = Var(x1.data*x2.data, *, (x1,x2))
-    y.df! = () -> begin
-        throw("")
-    end
-    y
-end
-
-*(x1::Array, x2::Arrays) = Arrays(x1*x2.array, x2.sizes)
-
-function ∇multiply!(gy::Arrays, x1::Array, x2::Arrays)
-
+    gemm('N', 'N', 1, x1, x2)
 end

@@ -1,4 +1,5 @@
-export gemv, gemm, gemm_batch
+import Base.LinAlg.BLAS: gemv, gemm
+export gemm_batch
 
 """
     gemv(tA::Char, alpha, A::Var, x::Var)
@@ -9,25 +10,17 @@ export gemv, gemm, gemm_batch
 y = \alpha \times \textrm{tA}(A) \times x
 ```
 """
-gemv(tA::Char, alpha, A::Var, x::Var) = GEMV(tA,alpha)(A, x)
-gemv(A, x; tA='N', alpha=1) = gemv(tA, alpha, A, x)
-
-type GEMV
-    tA::Char
-    alpha
-end
-
-function (f::GEMV)(A::Var, x::Var)
+function gemv(tA::Char, alpha::Number, A::Var, x::Var)
     T = eltype(A.data)
-    y = Var(nothing, f, (A,x))
-    y.data = BLAS.gemv(f.tA, T(f.alpha), A.data, x.data)
-    y.df! = function df!()
+    data = BLAS.gemv(tA, T(alpha), A.data, x.data)
+    y = Var(data, gemv, (tA,alpha,A,x))
+    y.df! = () -> begin
         if !isvoid(A.grad)
-            f.tA == 'N' ?
-            BLAS.gemm!('N', 'T', T(f.alpha), redim(y.grad,2), redim(x.data,2), T(1), A.grad) :
-            BLAS.gemm!('N', 'T', T(f.alpha), redim(x.data,2), redim(y.grad,2), T(1), A.grad)
+            tA == 'N' ?
+            BLAS.gemm!('N', 'T', T(alpha), redim(y.grad,2), redim(x.data,2), T(1), A.grad) :
+            BLAS.gemm!('N', 'T', T(alpha), redim(x.data,2), redim(y.grad,2), T(1), A.grad)
         end
-        isvoid(x.grad) || BLAS.gemv!(f.tA=='N'?'T':'N', T(f.alpha), A.data, y.grad, T(1), x.grad)
+        isvoid(x.grad) || BLAS.gemv!(tA=='N'?'T':'N', T(alpha), A.data, y.grad, T(1), x.grad)
     end
     y
 end
@@ -43,53 +36,26 @@ end
 C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
 ```
 """
-gemm(tA::Char, tB::Char, alpha, A::Var, B::Var) = Var(nothing, (gemm!,tA,tB,alpha,A,B))
-gemm(A, B; tA='N', tB='N', alpha=1) = gemm(tA, tB, alpha, A, B)
-#gemm(tA::Char, tB::Char, alpha, A::Var, B::Var) = GEMM(tA,tB,alpha)(A, B)
-#gemm(A, B; tA='N', tB='N', alpha=1) = gemm(tA, tB, alpha, A, B)
-
-function gemm!(C::Var)
-    tA, tB, alpha, A, B = out.args
+function gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
     T = eltype(A.data)
-    C.data = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
+    data = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
+    C = Var(data, gemm, (tA,tB,alpha,A,B))
     C.df! = () -> begin
-        if !isvoid(A.grad)
+        if !isconst(A)
             tA == 'N' ?
             BLAS.gemm!('N', tB=='N'?'T':'N', T(alpha), C.grad, B.data, T(1), A.grad) :
             BLAS.gemm!(tB, 'T', T(alpha), B.data, C.grad, T(1), A.grad)
         end
-        if !isvoid(B.grad)
+        if !isconst(B)
             tB == 'N' ?
             BLAS.gemm!(tA=='N'?'T':'N', 'N', T(alpha), A.data, C.grad, T(1), B.grad) :
             BLAS.gemm!('T', tA, T(alpha), C.grad, A.data, T(1), B.grad)
         end
     end
-end
-
-type GEMM
-    tA::Char
-    tB::Char
-    alpha
-end
-
-function (f::GEMM)(A::Var, B::Var)
-    T = eltype(A.data)
-    C = Var(nothing, f, (A,B))
-    C.data = BLAS.gemm(f.tA, f.tB, T(f.alpha), A.data, B.data)
-    C.df! = function df!()
-        if !isvoid(A.grad)
-            f.tA == 'N' ?
-            BLAS.gemm!('N', f.tB=='N'?'T':'N', T(f.alpha), C.grad, B.data, T(1), A.grad) :
-            BLAS.gemm!(f.tB, 'T', T(f.alpha), B.data, C.grad, T(1), A.grad)
-        end
-        if !isvoid(B.grad)
-            f.tB == 'N' ?
-            BLAS.gemm!(f.tA=='N'?'T':'N', 'N', T(f.alpha), A.data, C.grad, T(1), B.grad) :
-            BLAS.gemm!('T', f.tA, T(f.alpha), C.grad, A.data, T(1), B.grad)
-        end
-    end
     C
 end
+
+gemm(tA, tB, alpha, A::Array, B::BatchedArray) = gemm(tA, tB, alpha, A, B.data)
 
 """
     gemm_batch(tA::Char, tB::Char, alpha, As::Vector{Var}, B::Vector{Var})
