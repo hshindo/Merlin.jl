@@ -11,6 +11,7 @@ end
 BatchedArray(data::Array...) = BatchedArray([data...])
 
 @inline Base.getindex(x::BatchedArray, key) = getindex(x.data, key)
+@inline Base.setindex!(x::BatchedArray, value, key) = setindex!(x.data, value, key)
 
 Base.length(x::BatchedArray) = length(x.data)
 Base.size(x::BatchedArray) = size(x.data)

@@ -29,7 +29,7 @@ function Linear{T}(::Type{T}, insize::Int, outsize::Int)
     r = sqrt(6 / (insize+outsize))
     w = uniform(T, -r, r, outsize, insize)
     b = fill(T(0), outsize, 1)
-    Linear(param(w), param(b))
+    Linear(zerograd(w), zerograd(b))
 end
 
 (f::Linear)(x::Var) = f.w * x .+ f.b

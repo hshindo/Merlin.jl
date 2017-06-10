@@ -41,10 +41,10 @@ function (f::Lookup)(x::BatchedArray{Int})
     p = f.params[1].data
     y = similar(p, size(p)..., size(x)...)
     for i = 1:length(x)
-        yi = (i-1) * n + 1
-        copy!(y.data, yi, f.params[x[i]].data, 1, length(p))
+        yi = (i-1) * length(p) + 1
+        copy!(y, yi, f.params[x[i]].data, 1, length(p))
     end
-    y
+    BatchedArray(y, x.size)
 end
 
 function ∇lookup!{T}(gy::BatchedArray{T}, f::Lookup, x::BatchedArray{Int})
