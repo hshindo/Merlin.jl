@@ -25,7 +25,7 @@ x = Var(rand(Float32,5,4,3,2))
 y = pooling(:max, x, (2,2), pads=(0,0), strides=(1,1))
 ```
 """
-function pooling{N}(mode, x::Var, dims::NTuple{N,Int}; pads=nothing, strides=nothing)
+function pooling{N}(mode::Symbol, x::Var, dims::NTuple{N,Int}; pads=nothing, strides=nothing)
     pads == nothing && (pads = ntuple(_ -> 0, N))
     strides == nothing && (strides = ntuple(_ -> 1, N))
     if mode == :max

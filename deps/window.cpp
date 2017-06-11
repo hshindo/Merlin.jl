@@ -1,39 +1,53 @@
 template <typename T>
-void window1d(const T *x, T *y, const int height,
-    const int ksize_h, const int pad_h, const int stride_h) {
-    const int size_h = (height + 2*pad_h - ksize_h) / stride_h + 1;
+void window1d(const T *x, const int *xsize, const int batchsize, T *y,
+    const int ksize, const int pad, const int stride) {
 
-    for (int n = 0; n < size_h; n++) {
-        for (int h = 0; h < ksize_h; h++) {
-            int yh = n * ksize_h + h;
-            int xh = -pad_h + stride_h * n + h;
-            y[yh] = (xh >= 0 && xh < height) ? x[xh] : 0;
+    int *offset = new int[batchsize];
+    offset[0] = 0;
+    for (int i = 1; i < batchsize; i++) offset[i] = offset[i-1] + xsize[i-1];
+
+    for (int i = 0; i < batchsize; i++) {
+        int count = (xsize[i] + 2 * pad - ksize) / stride + 1;
+        for (int n = 0; n < count; n++) {
+            for (int h = 0; h < ksize; h++) {
+                int yh = (i * count * ksize) + (n * ksize) + h;
+                int xh = offset[i] + -pad + n * stride + h;
+                y[yh] = (xh >= offset[i] && xh < offset[i]+xsize[i]) ? x[xh] : 0;
+            }
         }
     }
+    delete[] offset;
 }
 
 template <typename T>
-void window1d_grad(const T *gy, T *gx, const int height,
-    const int ksize_h, const int pad_h, const int stride_h) {
-    const int size_h = (height + 2*pad_h - ksize_h) / stride_h + 1;
+void window1d_grad(const T *gy, T *gx, const int *gxsize, const int batchsize,
+    const int ksize, const int pad, const int stride) {
 
-    for (int n = 0; n < size_h; n++) {
-        for (int h = 0; h < ksize_h; h++) {
-            int yh = n * ksize_h + h;
-            int xh = -pad_h + stride_h * n + h;
-            if (xh >= 0 && xh < height) gx[xh] += gy[yh];
+    int *offset = new int[batchsize];
+    offset[0] = 0;
+    for (int i = 1; i < batchsize; i++) offset[i] = offset[i-1] + gxsize[i-1];
+
+    for (int i = 0; i < batchsize; i++) {
+        int count = (gxsize[i] + 2 * pad - ksize) / stride + 1;
+        for (int n = 0; n < count; n++) {
+            for (int h = 0; h < ksize; h++) {
+                int yh = (i * count * ksize) + (n * ksize) + h;
+                int xh = offset[i] + -pad + n * stride + h;
+                if (xh >= offset[i] && xh < offset[i]+gxsize[i]) gx[xh] += gy[yh];
+            }
         }
     }
+    delete[] offset;
 }
 
-#define WINDOW1D_CAPI(NAME, T) \
-void NAME(T *x, T *y, int height, int ksize_h, int pad_h, int stride_h) { \
-    window1d(x, y, height, ksize_h, pad_h, stride_h); \
+#define WINDOW1D_CAPI(T) \
+void window1d ## _ ## T(T *x, int *xsize, int batchsize, T *y, int ksize, int pad, int stride) { \
+    window1d(x, xsize, batchsize, y, ksize, pad, stride); \
 } \
-void NAME ## _ ## grad(T *gy, T *gx, int height, int ksize_h, int pad_h, int stride_h) { \
-    window1d_grad(gy, gx, height, ksize_h, pad_h, stride_h); \
+void window1d_grad ## _ ## T(T *gy, T *gx, int *xsize, int batchsize, int ksize, int pad, int stride) { \
+    window1d_grad(gy, gx, xsize, batchsize, ksize, pad, stride); \
 } \
 
 extern "C" {
-    WINDOW1D_CAPI(window1d_f32, float)
+    WINDOW1D_CAPI(float)
 }

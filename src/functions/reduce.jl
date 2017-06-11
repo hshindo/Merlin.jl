@@ -5,19 +5,22 @@ import Base: max, sum
 
 Returns the maximum value over the given dimensions.
 """
-max(x::Var, dim::Int) = Max(dim)(x)
-
-type Max
-    dim::Int
-end
-
-function (f::Max)(x::Var)
-    y = Var(nothing, f, (x,))
-    y.data, idx = findmax(x.data, f.dim)
-    y.df! = function df!()
-        isvoid(x.grad) || ∇max!(y.grad, x.grad, idx)
+function max(x::Var, dim::Int)
+    y = Var(nothing, max, (x,dim))
+    y.data, idx = findmax(x.data, dim)
+    y,df! = () -> begin
+        isconst(x) || ∇max!(y.grad, x.grad, idx)
     end
     y
+end
+
+function Base.findmax{T,N}(x::BatchedArray{T,N}, dim::Int)
+    data = Array{T,N-1}[]
+    for xx in split(x)
+        yy, idx = findmax(xx, dim)
+        push!(data, yy)
+    end
+    BatchedArray(data), []
 end
 
 function ∇max!{T}(gy::Array{T}, gx::Array{T}, idx::Array{Int})

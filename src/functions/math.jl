@@ -98,9 +98,6 @@ function .+(x1::Var, x2::Var)
     end
     y
 end
-.+(x1::Array, x2::BatchedArray) = BatchedArray(x1 .+ x2.data, x2.size)
-.+(x1::BatchedArray, x2::Array) = BatchedArray(x1.data .+ x2, x1.size)
-.+(x1::BatchedArray, x2::BatchedArray) = throw("Not implemented yet.")
 
 function ∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T,N})
     for i = 1:N

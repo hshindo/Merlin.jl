@@ -60,6 +60,8 @@ function softmax{T}(x::Array{T})
     y
 end
 
+softmax(x::BatchedArray) = BatchedArray(softmax(x.data), x.size)
+
 function ∇softmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     h = ∇softmax_handle(T)
     dims = dim3d(y, ndims(y)-1)

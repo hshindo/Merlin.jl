@@ -1,27 +1,17 @@
-export conv1d
-
-const WINDOW1D_F32 = Libdl.dlsym(libmerlin, :window1d_f32)
-const ∇WINDOW1D_F32 = Libdl.dlsym(libmerlin, :window1d_f32_grad)
-
-window1d_handle(::Type{Float32}) = WINDOW1D_F32
-∇window1d_handle(::Type{Float32}) = ∇WINDOW1D_F32
+export Conv1D
 
 """
-    conv1d(x::Var, dims, [pads, strides])
+    Conv1D(T::Type, insize::Int, outsize::Int, pad::Int, stride::Int)
 
-* x::Var: input var
-* dims::Tuple: window size
-* pads:Tuple: padding size
-* strides::Tuple: stride size
+1-dimensional convolution function.
 
 ## 👉 Example
 ```julia
+f = Conv1D(x, 10, 0, 1)
 x = Var(rand(Float32,10,5))
-y = conv1d(x, 10, 0, 1)
+y = f(x)
 ```
 """
-conv1d(x::Var, ksize, pad, stride) = Conv1D(ksize,pad,stride)(x)
-
 type Conv1D
     w::Var
     b::Var
@@ -38,24 +28,7 @@ function Conv1D{T}(::Type{T}, insize::Int, outsize::Int, pad::Int, stride::Int)
 end
 
 function (f::Conv1D)(x::Var)
-    y = Var(nothing, f, (x,))
-    conv1d!(y, x.data, f.insize, f.outsize, f.pad, f.stride)
+    h = window1d(x, f.insize, f.pad, f.stride)
+    y = f.w * h .+ f.b
     y
-end
-
-function conv1d!{T}(out::Var, x::Matrix{T}, insize::Int, outsize::Int, pad::Int, stride::Int)
-    hlen = (length(x) + 2pad - insize) ÷ stride + 1
-    h = Array{T}(insize, hlen)
-    ccall(window1d_handle(T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
-        x, h, length(x), insize, pad, stride)
-
-    out.data = w * h .+ b
-    out.df! = function df!()
-        isvoid(out[1].grad) || ∇conv1d!(out.grad, out[1].grad, insize, pad, stride)
-    end
-end
-
-function ∇conv1d!{T}(gy::Array{T}, gx::Array{T}, insize::Int, pad::Int, stride::Int)
-    ccall(∇window1d_handle(T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
-        gy, gx, length(gx), insize, pad, stride)
 end

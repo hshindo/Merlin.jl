@@ -55,8 +55,6 @@ function gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
     C
 end
 
-gemm(tA, tB, alpha, A::Array, B::BatchedArray) = gemm(tA, tB, alpha, A, B.data)
-
 """
     gemm_batch(tA::Char, tB::Char, alpha, As::Vector{Var}, B::Vector{Var})
     gemm_batch(As::Vector{Var}, B::Vector{Var}, [tA='N'], [tB='N'], [alpha=1])

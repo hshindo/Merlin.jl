@@ -44,7 +44,6 @@ for name in [
     "argmax",
     "blas",
     "cat",
-    #"conv",
     "crossentropy",
     "dropout",
     "getindex",
@@ -61,6 +60,8 @@ for name in [
     "reshape",
     "softmax",
     "window",
+
+    "conv1d",
     ]
     include("functions/$(name).jl")
     cudafile = "cuda/functions/$(name).jl"
