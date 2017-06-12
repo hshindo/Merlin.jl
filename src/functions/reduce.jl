@@ -1,49 +1,21 @@
-import Base: max, sum
+function reducedim{T,N}(f::Function, x::BatchedArray{T,N}, dim::Int)
 
-"""
-    max(x::Var, dim::Int)
-
-Returns the maximum value over the given dimensions.
-"""
-function max(x::Var, dim::Int)
-    y = Var(nothing, max, (x,dim))
-    y.data, idx = findmax(x.data, dim)
-    y,df! = () -> begin
-        isconst(x) || ∇max!(y.grad, x.grad, idx)
-    end
-    y
 end
 
-function Base.findmax{T,N}(x::BatchedArray{T,N}, dim::Int)
-    data = Array{T,N-1}[]
-    for xx in split(x)
-        yy, idx = findmax(xx, dim)
-        push!(data, yy)
+function rr(dims, js::Int, je::Int)
+    for i = 1:dims[1]
+        @inbounds for k = 1:dims[3]
+            maxv = x[sub2ind(dims,i,1,k)]
+            maxj = 1
+            @inbounds for j = js:je
+                ind = sub2ind(dims, i, j, k)
+                if x[ind] > maxv
+                    maxv = x[ind]
+                    maxj = j
+                end
+            end
+            y[i,k] = maxv
+            inds[i,k] = maxj
+        end
     end
-    BatchedArray(data), []
-end
-
-function ∇max!{T}(gy::Array{T}, gx::Array{T}, idx::Array{Int})
-    @inbounds @simd for i = 1:length(idx)
-        gx[idx[i]] += gy[i]
-    end
-end
-
-"""
-    sum(x::Var, dim::Int)
-
-Returns the sum over the given dimension.
-"""
-sum(x::Var, dim::Int) = Sum(dim)(x)
-
-type Sum
-    dim::Int
-end
-
-function (f::Sum)(x::Var)
-    y = Var(sum(x.data,f.dim), f, (x,))
-    y.df! = function df!()
-        isvoid(x.grad) || broadcast!(+, x.grad, x.grad, y.grad)
-    end
-    y
 end
