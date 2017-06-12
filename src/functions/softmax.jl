@@ -55,7 +55,7 @@ end
 function softmax{T}(x::Array{T})
     y = similar(x)
     h = softmax_handle(T)
-    dims = getdim3d(x, ndims(x)-1)
+    dims = size3d(x, ndims(x)-1)
     ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint), x, y, dims[1], dims[2], dims[3])
     y
 end
@@ -64,25 +64,25 @@ softmax(x::BatchedArray) = BatchedArray(softmax(x.data), x.size)
 
 function ∇softmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     h = ∇softmax_handle(T)
-    dims = getdim3d(y, ndims(y)-1)
+    dims = size3d(y, ndims(y)-1)
     ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), y, gy, gx, dims[1], dims[2], dims[3])
 end
 
 function logsoftmax{T}(x::Array{T})
     y = similar(x)
     h = logsoftmax_handle(T)
-    dims = getdim3d(x, ndims(x)-1)
+    dims = size3d(x, ndims(x)-1)
     ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint), x, y, dims[1], dims[2], dims[3])
     y
 end
 
 function ∇logsoftmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     h = ∇logsoftmax_handle(T)
-    dims = getdim3d(y, ndims(y)-1)
+    dims = size3d(y, ndims(y)-1)
     ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), y, gy, gx, dims[1], dims[2], dims[3])
 end
 
-function getdim3d(x::Array, dim::Int)
+function size3d(x::Array, dim::Int)
     dim == 0 && return (1, length(x), 1)
     dim1, dim2, dim3 = 1, size(x,dim), 1
     for i = 1:dim-1

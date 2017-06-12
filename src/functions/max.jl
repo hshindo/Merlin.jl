@@ -1,6 +1,6 @@
 import Base.max
 
-function findmax{T,N}(x::BatchedArray{T,N}, dim::Int)
+function Base.findmax{T,N}(x::BatchedArray{T,N}, dim::Int)
     if dim != N
         throw("Not implemented yet.")
         y, inds = findmax(x.data, dim)
@@ -11,7 +11,6 @@ function findmax{T,N}(x::BatchedArray{T,N}, dim::Int)
     for i = 1:N-1
         dim1 *= size(x,i)
     end
-    dim3 = 
 
     dims = getdim3d(x.data, dim)
     y = Array{T}(dims[1], dims[3])

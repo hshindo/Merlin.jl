@@ -21,14 +21,14 @@ if usecuda
     #using .CUDNN
 else
     type CuArray{T,N}; end
-    typealias CuVector{T} CuArray{T,1}
-    typealias CuMatrix{T} CuArray{T,2}
+    CuVector{T} = CuArray{T,1}
+    CuMatrix{T} = CuArray{T,2}
 end
-typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
-typealias UniVector{T} Union{Vector{T},CuVector{T}}
-typealias UniMatrix{T} Union{Matrix{T},CuMatrix{T}}
+UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
+UniVector{T} = Union{Vector{T},CuVector{T}}
+UniMatrix{T} = Union{Matrix{T},CuMatrix{T}}
 
-abstract Functor
+abstract type Functor end
 
 include("batchedarray.jl")
 include("util.jl")
@@ -53,7 +53,7 @@ for name in [
     "lookup",
     #"lstm",
     "math",
-    "max",
+    "reduce",
     "normalize",
     "pairwise",
     #"pooling",
