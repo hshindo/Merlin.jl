@@ -1,5 +1,5 @@
 import Base: exp, log, transpose
-import Base: +, .+, -, .-, .*, *
+import Base: +, -, *
 
 """
     exp(x::Var)
@@ -90,8 +90,9 @@ end
 """
     .+(x1::Var, x2::Var)
 """
-function .+(x1::Var, x2::Var)
-    y = Var(x1.data .+ x2.data, .+, (x1,x2))
+function Base.broadcast(::typeof(+), x1::Var, x2::Var)
+#function .+(x1::Var, x2::Var)
+    y = Var(x1.data .+ x2.data, broadcast, (+,x1,x2))
     y.df! = () -> begin
         isconst(x1) || ∇elemplus!(y.grad, x1.grad)
         isconst(x2) || ∇elemplus!(y.grad, x2.grad)
@@ -137,8 +138,8 @@ end
 """
     .-(x1::Var, x2::Var)
 """
-function .-(x1::Var, x2::Var)
-    y = Var(x1.data .- x2.data, .-, (x1,x2))
+function Base.broadcast(x1::Var, x2::Var)
+    y = Var(x1.data .- x2.data, broadcast, (.-,x1,x2))
     y.df! = function df!()
         isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
         isvoid(x2.grad) || ∇elemminus!(y.grad, x2.grad)
@@ -165,8 +166,8 @@ end
 """
     \.\*(x1::Var, x2::Var)
 """
-function .*(x1::Var, x2::Var)
-    y = Var(x1.data .* x2.data, .*, (x1,x2))
+function Base.broadcast(::typeof(*), x1::Var, x2::Var)
+    y = Var(x1.data .* x2.data, broadcast, (.*,x1,x2))
     y.df! = function df!()
         isvoid(x1.grad) || ∇elemtimes!(y.grad, x2.data, x1.grad)
         isvoid(x2.grad) || ∇elemtimes!(y.grad, x1.data, x2.grad)

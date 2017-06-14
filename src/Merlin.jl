@@ -16,9 +16,12 @@ const usecuda = begin
 end
 
 if usecuda
-    using CUJulia
+    #using CUJulia
     #include("cuda/cudnn/CUDNN.jl")
     #using .CUDNN
+    type CuArray{T,N}; end
+    CuVector{T} = CuArray{T,1}
+    CuMatrix{T} = CuArray{T,2}
 else
     type CuArray{T,N}; end
     CuVector{T} = CuArray{T,1}
