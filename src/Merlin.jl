@@ -62,7 +62,6 @@ for name in [
     #"pooling",
     "reshape",
     "softmax",
-    "sum",
     "window",
 
     "conv1d",

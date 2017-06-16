@@ -13,7 +13,10 @@ Var(data, f=nothing, args=()) = Var(data, f, args, nothing, nothing)
 zerograd(data) = Var(data, nothing, (), nothing, zeros(data))
 
 isvoid(x) = x == nothing
-Base.getindex(v::Var, key::Int) = v.args[key]
+isconst(x::Var) = x.grad == nothing
+Base.getindex(x::Var, key::Int) = x.args[key]
+getdata(x::Var) = x.data
+getgrad(x::Var) = x.grad
 
 function zerograd!(v::Var)
     if isvoid(v.grad)
@@ -43,9 +46,9 @@ function topsort(top::Var)
     sorted
 end
 
-function gradient2!(top::Var)
+function gradient!(top::Var)
     sorted = topsort(top)
-    isvoid(top.grad) && (top.grad = ones(top.data))
+    isconst(top) && (top.grad = ones(top.data))
     for i = 1:length(sorted)
         v = sorted[i]
         isempty(v.args) && continue

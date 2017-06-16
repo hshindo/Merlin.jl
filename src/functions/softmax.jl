@@ -29,8 +29,8 @@ end
 
 function softmax!(out::Var, x::Array)
     out.data = softmax(x)
-    out.df! = function df!()
-        isvoid(out[1].grad) || ∇softmax!(out.data, out.grad, out[1].grad)
+    out.df! = () -> begin
+        isconst(out[1]) || ∇softmax!(out.data, out.grad, out[1].grad)
     end
 end
 
@@ -94,7 +94,11 @@ function size3d(x::Array, dim::Int)
     (dim1, dim2, dim3)
 end
 
-function softmax_jl{T}(x::Matrix{T})
+function softmax_jl(x::Matrix{T}) where T
+    
+end
+
+function softmax_jl2{T}(x::Matrix{T})
     y = similar(x)
     for j = 1:size(x,2)
         maxv = x[1,j]

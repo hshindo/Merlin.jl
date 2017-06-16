@@ -21,6 +21,8 @@ function checkgrad(f, vars::Var...; eps=1e-3)
     end
     for i = 1:length(vars)
         g1, g2 = gxs1[i], gxs2[i]
+        isa(g1,BatchedArray) && (g1 = g1.data)
+        isa(g2,BatchedArray) && (g2 = g2.data)
         diff = g1 - g2
         if any(d -> abs(d) > eps, diff)
             println(maximum(d -> abs(d), diff))

@@ -13,19 +13,21 @@ function relu(x::Var)
     y
 end
 
-function relu{T}(x::BatchedArray{T})
+function relu(x::Array{T}) where T
     y = similar(x)
-    @inbounds @simd for i = 1:length(x)
+    @inbounds for i = 1:length(x)
         y[i] = max(x[i], T(0))
     end
     y
 end
+relu(x::BatchedArray) = BatchedArray(relu(x.data), x.dims)
 
-function ∇relu!{T}(y, gy::BatchedArray{T}, x::BatchedArray{T}, gx::BatchedArray{T})
-    @inbounds @simd for i = 1:length(x)
+function ∇relu!(y, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
+    @inbounds for i = 1:length(x)
         gx[i] += ifelse(x[i] > T(0), gy[i], T(0))
     end
 end
+∇relu!(y::BatchedArray, gy, x, gx) = ∇relu!(y.data, gy.data, x.data, gx.data)
 
 """
     clipped_relu(x::Var)
@@ -65,19 +67,21 @@ function sigmoid(x::Var)
     y
 end
 
-function sigmoid{T}(x::Array{T})
+function sigmoid(x::Array{T}) where T
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
         y[i] = 1 / (1 + exp(-x[i]))
     end
     y
 end
+sigmoid(x::BatchedArray) = BatchedArray(sigmoid(x.data), x.dims)
 
-function ∇sigmoid!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
-    @inbounds @simd for i = 1:length(gx)
+function ∇sigmoid!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
+    @inbounds for i = 1:length(gx)
         gx[i] += gy[i] * y[i] * (T(1) - y[i])
     end
 end
+∇sigmoid!(y::BatchedArray, gy, x, gx) = ∇sigmoid!(y.data, gy.data, x.data, gx.data)
 
 """
     tanh(x::Var)

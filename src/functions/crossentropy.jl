@@ -15,36 +15,25 @@ q = Var(rand(Float32,10,5))
 y = crossentropy(p, q)
 ```
 """
-function crossentropy(p::Var, q::Var, softmax=true)
+function crossentropy(p::Var, q::Var)
     y = Var(nothing, crossentropy, (p,q))
-    softmax ? softmax_crossentropy!(y,p.data,q.data) : crossentropy!(y,p.data,q.data)
+    crossentropy!(y, p.data, q.data)
     y
 end
 
-function crossentropy!{T}(out::Var, p::Array{Int}, q::Array{T})
-    size(p,1) == 1 || throw(DimensionMismatch("size(p,1) != 1"))
-    size(p,2) == size(q,2) || throw(DimensionMismatch("size of p: $(size(p)), size of q: $(size(q))"))
+function crossentropy(p::Vector{Int}, logq::Matrix{T}) where T
     y = Array{T}(1, length(p))
-    for j = 1:length(p)
-        y[j] = p[j] > 0 ? -log(q[p[j],j]) : T(0)
+    for i = 1:length(p)
+        y[i] = p[i] > 0 ? -logq[p[i],i] : T(0)
     end
-    out.data = y
-    out.df! = function df!()
-        isvoid(out[2].grad) || ∇crossentropy!(out.grad, p, q, out[2].grad)
-    end
+    y
 end
 
-function softmax_crossentropy!{T}(out::Var, p::Array{Int}, q::Array{T})
+function crossentropy!(y::Var, p::Vector{Int}, q::Matrix{T}) where T
     logq = logsoftmax(q)
-    size(p,1) == 1 || throw(DimensionMismatch("size(p,1) != 1"))
-    size(p,2) == size(logq,2) || throw(DimensionMismatch("size of p: $(size(p)), size of logq: $(size(logq))"))
-    y = Array{T}(1, length(p))
-    @inbounds @simd for j = 1:length(p)
-        y[j] = p[j] > 0 ? -logq[p[j],j] : T(0)
-    end
-    out.data = y
-    out.df! = function df!()
-        isvoid(out[2].grad) || ∇softmax_crossentropy!(out.grad, p, logq, out[2].grad)
+    y.data = crossentropy(p, logq)
+    y.df! = () -> begin
+        isconst(y[2]) || ∇crossentropy!(y.grad, p, logq, y[2].grad)
     end
 end
 
@@ -64,23 +53,22 @@ end
     end
 end
 
-function ∇crossentropy!{T}(gy::Matrix{T}, p::Matrix{Int}, q::Matrix{T}, gq::Matrix{T})
-    @inbounds @simd for j = 1:length(p)
-        if p[j] > 0
-            if q[p[j],j] < T(-1e-10) || q[p[j],j] > T(1e-10)
-                gq[p[j],j] -= T(1) / q[p[j],j]
-            end
+function ∇crossentropy!(gy::Matrix{T}, p::Vector{Int}, logq::Matrix{T}, gq::Matrix{T}) where T
+    @inbounds for j = 1:length(p)
+        g = gy[j]
+        p[j] > 0 || continue
+        for i = 1:size(logq,1)
+            delta = i == p[j] ? T(1) : T(0)
+            gq[i,j] += g * (exp(logq[i,j]) - delta)
         end
     end
 end
 
-function ∇softmax_crossentropy!{T}(gy::Matrix{T}, p::Matrix{Int}, logq::Matrix{T}, gq::Matrix{T})
-    for j = 1:length(p)
-        g = gy[j]
-        @inbounds @simd for i = 1:size(logq,1)
-            if p[j] > 0
-                delta = ifelse(i == p[j], T(1), T(0))
-                gq[i,j] += g * (exp(logq[i,j]) - delta)
+function ∇crossentropy2!(gy::Matrix{T}, p::Matrix{Int}, q::Matrix{T}, gq::Matrix{T}) where T
+    @inbounds for i = 1:length(p)
+        if p[i] > 0
+            if q[p[i],i] < T(-1e-10) || q[p[i],i] > T(1e-10)
+                gq[p[i],i] -= T(1) / q[p[i],i]
             end
         end
     end
@@ -103,26 +91,5 @@ end
     }""")
     quote
         $f(gy.ptr, p.ptr, logq, gq, dx=length(logq))
-    end
-end
-
-function softmax_crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
-    y = Array(T, 1, size(p,2))
-    for j = 1:size(p,2)
-        s = T(0)
-        @inbounds @simd for i = 1:size(p,1)
-            s += -p[i,j] * logq[i,j]
-        end
-        y[j] = s
-    end
-    y
-end
-
-function ∇softmax_crossentropy!{T}(gy::Matrix{T}, p::Matrix{T}, logq::Matrix{T}, gq::Matrix{T})
-    for j = 1:size(p,2)
-        g = gy[j]
-        @inbounds @simd for i = 1:size(p,1)
-            gq[i,j] += g * (exp(logq[i,j]) - p[i,j])
-        end
     end
 end

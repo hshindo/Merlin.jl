@@ -21,7 +21,7 @@ type Conv1D
     stride::Int
 end
 
-function Conv1D{T}(::Type{T}, insize::Int, outsize::Int, pad::Int, stride::Int)
+function Conv1D(T::Type, insize::Int, outsize::Int, pad::Int, stride::Int)
     w = uniform(T, -0.001, 0.001, outsize, insize)
     b = zeros(T, outsize, 1)
     Conv1D(zerograd(w), zerograd(b), insize, outsize, pad, stride)

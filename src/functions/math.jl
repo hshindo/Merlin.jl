@@ -91,7 +91,6 @@ end
     .+(x1::Var, x2::Var)
 """
 function Base.broadcast(::typeof(+), x1::Var, x2::Var)
-#function .+(x1::Var, x2::Var)
     y = Var(x1.data .+ x2.data, broadcast, (+,x1,x2))
     y.df! = () -> begin
         isconst(x1) || ∇elemplus!(y.grad, x1.grad)
@@ -100,14 +99,14 @@ function Base.broadcast(::typeof(+), x1::Var, x2::Var)
     y
 end
 
-function ∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T,N})
+function ∇elemplus!(gy::Array{T,N}, gx::Array{T,N}) where {T,N}
     for i = 1:N
         size(gx,i) == 1 && size(gy,i) > 1 && (gy = sum(gy,i))
     end
     BLAS.axpy!(T(1), gy, gx)
 end
-∇elemplus!(gy::BatchedArray, gx::Array) = ∇elemplus!(gy.data, gx)
 ∇elemplus!(gy::BatchedArray, gx::BatchedArray) = ∇elemplus!(gy.data, gx.data)
+∇elemplus!(gy::BatchedArray, gx::Array) = ∇elemplus!(gy.data, gx)
 #∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T}) = ∇elemplus!(gy, redim(gx,N))
 
 """
@@ -221,8 +220,14 @@ end
 =#
 
 """
-    \*(x1::Var, x2::Var)
+    \*(A::Var, B::Var)
 """
-function *(x1::Var, x2::Var)
-    gemm('N', 'N', 1, x1, x2)
+function *(A::Var, B::Var)
+    C = Var(A.data * B.data, *, (A,B))
+    C.df! = () -> begin
+        T = eltype(C.data)
+        isconst(A) || BLAS.gemm!('N', 'T', T(1), C.grad.data, B.data.data, T(1), A.grad)
+        isconst(B) || BLAS.gemm!('T', 'N', T(1), A.data, C.grad.data, T(1), B.grad.data)
+    end
+    C
 end

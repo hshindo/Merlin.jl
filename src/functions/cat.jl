@@ -12,32 +12,29 @@ x2 = Var(rand(Float32,4,5))
 y = cat(2, x1, x2)
 ```
 """
-cat(dim::Int, xs::Var...) = Cat(dim)(xs...)
-cat(dim::Int, xs::Vector{Var}) = throw("Use cat(dim, xs...).")
-
-type Cat
-    dim::Int
-end
-
-function (f::Cat)(xs::Var...)
-    y = Var(nothing, f, xs)
-    y.data = cat(f.dim, map(x -> x.data, xs)...)
-    y.df! = function df!()
-        ∇cat!(y.grad, f.dim, xs...)
+function cat(dim::Int, xs::Vector{Var})
+    data = cat(dim, map(getdata,xs))
+    y = Var(data, cat, (dim,xs))
+    y.df! = () -> begin
+        ∇cat!(y.grad, dim, map(getdata,xs), map(getgrad,xs))
     end
     y
 end
+cat(dim::Int, xs::Var...) = cat(dim, Var[xs...])
+cat(dim::Int, xs::Vector{<:Array}) = cat(dim, xs...)
 
-function ∇cat!{T}(gy::Array{T}, dim::Int, xs::Var...)
+function ∇cat!(gy::Array{T,N}, dim::Int, xs::Vector{<:Array}, gxs::Vector{<:Array}) where {T,N}
     offset = 1
-    for x in xs
-        s = size(x.data, dim)
-        if !isvoid(x.grad)
-            range = ntuple(ndims(gy)) do i
+    for i = 1:length(xs)
+        x, gx = xs[i], gxs[i]
+        s = size(x, dim)
+        #if !isconst(x)
+            range = ntuple(N) do i
                 i == dim ? (offset:(offset+s-1)) : Colon()
             end
-            BLAS.axpy!(T(1), gy[range...], x.grad)
-        end
+            BLAS.axpy!(T(1), gy[range...], gx)
+        #end
         offset += s
     end
 end
+∇cat!(gy::BatchedArray, dim, xs, gxs) = ∇cat!(gy.data, dim, map(getdata,xs), map(getdata,gxs))

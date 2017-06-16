@@ -17,16 +17,16 @@ end
 
 function window1d{T}(x::BatchedArray{T}, insize::Int, pad::Int, stride::Int)
     x = vec(x)
-    ysize = Int[(x.size[i] + 2pad - insize) ÷ stride + 1 for i=1:batchsize(x)]
+    ysize = Int[(x.dims[i] + 2pad - insize) ÷ stride + 1 for i=1:batchsize(x)]
     y = BatchedArray(Array{T}(insize,sum(ysize)), ysize)
-    xsize = map(Cint, x.size)
+    xsize = map(Cint, x.dims)
     ccall(window1d_handle(T), Void, (Ptr{T},Ptr{Cint},Cint,Ptr{T},Cint,Cint,Cint),
         x, xsize, batchsize(x), y, insize, pad, stride)
     y
 end
 
 function ∇window1d!{T}(gy::BatchedMatrix{T}, gx::BatchedArray{T}, insize::Int, pad::Int, stride::Int)
-    gxsize = map(Cint, gx.size)
+    gxsize = map(Cint, gx.dims)
     ccall(∇window1d_handle(T), Void, (Ptr{T},Ptr{T},Ptr{Cint},Cint,Cint,Cint,Cint),
         gy, gx, gxsize, batchsize(gx), insize, pad, stride)
 end
