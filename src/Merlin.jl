@@ -33,7 +33,7 @@ UniMatrix{T} = Union{Matrix{T},CuMatrix{T}}
 
 abstract type Functor end
 
-include("batchedarray.jl")
+#include("batchedarray.jl")
 include("util.jl")
 include("var.jl")
 include("graph.jl")

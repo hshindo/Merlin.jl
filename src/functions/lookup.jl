@@ -29,7 +29,7 @@ function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
 end
 
 function (f::Lookup)(x::Var)
-    y = Var(f(x.data), f, (x,))
+    y = Var(f(x.data), x.batchdims, f, (x,))
     y.df! = () -> begin
         ∇lookup!(y.grad, f, x.data)
         append!(f.idset, x.data)
@@ -37,16 +37,7 @@ function (f::Lookup)(x::Var)
     y
 end
 
-function (f::Lookup)(x::BatchedArray{Int})
-    p = f.params[1].data
-    y = similar(p, size(p)..., size(x)...)
-    for i = 1:length(x)
-        yi = (i-1) * length(p) + 1
-        copy!(y, yi, f.params[x[i]].data, 1, length(p))
-    end
-    BatchedArray(y, x.size)
-end
-function (f::Lookup)(x::Array{Int})
+function (f::Lookup)(x::Vector{Int})
     p = f.params[1].data
     y = similar(p, size(p)..., size(x)...)
     for i = 1:length(x)
@@ -56,7 +47,7 @@ function (f::Lookup)(x::Array{Int})
     y
 end
 
-function ∇lookup!{T}(gy::BatchedArray{T}, f::Lookup, x::BatchedArray{Int})
+function ∇lookup!{T}(gy::Array{T}, f::Lookup, x::Array{Int})
     p = f.params[1].data
     for i = 1:length(x)
         gw = f.params[x[i]].grad

@@ -3,18 +3,24 @@ export isvoid, topsort, zerograd, zerograd!
 
 type Var
     data
+    batchdims
     f
     args::Tuple
     df!
     grad
 end
 
-Var(data, f=nothing, args=()) = Var(data, f, args, nothing, nothing)
-zerograd(data) = Var(data, nothing, (), nothing, zeros(data))
+Var(data, batchdims=nothing, f=nothing, args=()) = Var(data, batchdims, f, args, nothing, nothing)
+
+function zerograd(data)
+    v = Var(data)
+    v.grad = zeros(data)
+    v
+end
 
 isvoid(x) = x == nothing
-isconst(x::Var) = x.grad == nothing
 Base.getindex(x::Var, key::Int) = x.args[key]
+
 getdata(x::Var) = x.data
 getgrad(x::Var) = x.grad
 
@@ -48,7 +54,7 @@ end
 
 function gradient!(top::Var)
     sorted = topsort(top)
-    isconst(top) && (top.grad = ones(top.data))
+    isvoid(top.grad) && (top.grad = ones(top.data))
     for i = 1:length(sorted)
         v = sorted[i]
         isempty(v.args) && continue

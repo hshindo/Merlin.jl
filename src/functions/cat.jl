@@ -13,28 +13,29 @@ y = cat(2, x1, x2)
 ```
 """
 function cat(dim::Int, xs::Vector{Var})
-    data = cat(dim, map(getdata,xs))
-    y = Var(data, cat, (dim,xs))
+    data = cat(dim, map(x -> x.data,xs)...)
+    if dim == ndims(xs[1].data)
+        batchdims = cat(1, map(x -> x.batchdims, xs)...)
+    else
+        batchdims = xs[1].batchdims
+    end
+    y = Var(data, batchdims, cat, (dim,xs))
     y.df! = () -> begin
-        ∇cat!(y.grad, dim, map(getdata,xs), map(getgrad,xs))
+        ∇cat!(y.grad, dim, xs)
     end
     y
 end
-cat(dim::Int, xs::Var...) = cat(dim, Var[xs...])
-cat(dim::Int, xs::Vector{<:Array}) = cat(dim, xs...)
 
-function ∇cat!(gy::Array{T,N}, dim::Int, xs::Vector{<:Array}, gxs::Vector{<:Array}) where {T,N}
+function ∇cat!(gy::Array{T,N}, dim::Int, xs::Vector{Var}) where {T,N}
     offset = 1
-    for i = 1:length(xs)
-        x, gx = xs[i], gxs[i]
-        s = size(x, dim)
-        #if !isconst(x)
+    for x in xs
+        s = size(x.data, dim)
+        if !isvoid(x.grad)
             range = ntuple(N) do i
                 i == dim ? (offset:(offset+s-1)) : Colon()
             end
-            BLAS.axpy!(T(1), gy[range...], gx)
-        #end
+            BLAS.axpy!(T(1), gy[range...], x.grad)
+        end
         offset += s
     end
 end
-∇cat!(gy::BatchedArray, dim, xs, gxs) = ∇cat!(gy.data, dim, map(getdata,xs), map(getdata,gxs))

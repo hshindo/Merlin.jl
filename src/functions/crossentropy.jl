@@ -16,9 +16,17 @@ y = crossentropy(p, q)
 ```
 """
 function crossentropy(p::Var, q::Var)
-    y = Var(nothing, crossentropy, (p,q))
+    y = Var(nothing, q.batchdims, crossentropy, (p,q))
     crossentropy!(y, p.data, q.data)
     y
+end
+
+function crossentropy!(y::Var, p::Vector{Int}, q::Matrix{T}) where T
+    logq = logsoftmax(q)
+    y.data = crossentropy(p, logq)
+    y.df! = () -> begin
+        isvoid(y[2].grad) || ∇crossentropy!(y.grad, p, logq, y[2].grad)
+    end
 end
 
 function crossentropy(p::Vector{Int}, logq::Matrix{T}) where T
@@ -27,14 +35,6 @@ function crossentropy(p::Vector{Int}, logq::Matrix{T}) where T
         y[i] = p[i] > 0 ? -logq[p[i],i] : T(0)
     end
     y
-end
-
-function crossentropy!(y::Var, p::Vector{Int}, q::Matrix{T}) where T
-    logq = logsoftmax(q)
-    y.data = crossentropy(p, logq)
-    y.df! = () -> begin
-        isconst(y[2]) || ∇crossentropy!(y.grad, p, logq, y[2].grad)
-    end
 end
 
 @generated function crossentropy{T}(p::CuVector{Int32}, logq::CuMatrix{T})

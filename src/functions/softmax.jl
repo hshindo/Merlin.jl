@@ -22,6 +22,7 @@ f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
 function softmax(x::Var)
+    throw("Not tested yet.")
     y = Var(nothing, softmax, (x,))
     softmax!(y, x.data)
     y
@@ -60,8 +61,6 @@ function softmax{T}(x::Array{T})
     y
 end
 
-softmax(x::BatchedArray) = BatchedArray(softmax(x.data), x.size)
-
 function ∇softmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     h = ∇softmax_handle(T)
     dims = size3d(y, ndims(y)-1)
@@ -95,7 +94,7 @@ function size3d(x::Array, dim::Int)
 end
 
 function softmax_jl(x::Matrix{T}) where T
-    
+
 end
 
 function softmax_jl2{T}(x::Matrix{T})

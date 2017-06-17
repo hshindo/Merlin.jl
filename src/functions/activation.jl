@@ -5,10 +5,9 @@ import Base.tanh
     relu(x::Var)
 """
 function relu(x::Var)
-    y = Var(relu(x.data), relu, (x,))
+    y = Var(relu(x.data), x.batchdims, relu, (x,))
     y.df! = () -> begin
-        isconst(x) && return
-        ∇relu!(y.data, y.grad, x.data, x.grad)
+        isvoid(x.grad) || ∇relu!(y.grad, x.data, x.grad)
     end
     y
 end
@@ -20,14 +19,12 @@ function relu(x::Array{T}) where T
     end
     y
 end
-relu(x::BatchedArray) = BatchedArray(relu(x.data), x.dims)
 
-function ∇relu!(y, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
+function ∇relu!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
     @inbounds for i = 1:length(x)
         gx[i] += ifelse(x[i] > T(0), gy[i], T(0))
     end
 end
-∇relu!(y::BatchedArray, gy, x, gx) = ∇relu!(y.data, gy.data, x.data, gx.data)
 
 """
     clipped_relu(x::Var)
@@ -59,10 +56,9 @@ end
     sigmoid(x::Var)
 """
 function sigmoid(x::Var)
-    y = Var(sigmoid(x.data), sigmoid, (x,))
+    y = Var(sigmoid(x.data), x.batchdims, sigmoid, (x,))
     y.df! = () -> begin
-        isconst(x) && return
-        ∇sigmoid!(y.data, y.grad, x.data, x.grad)
+        isvoid(x.grad) || ∇sigmoid!(y.data, y.grad, x.data, x.grad)
     end
     y
 end
@@ -74,29 +70,26 @@ function sigmoid(x::Array{T}) where T
     end
     y
 end
-sigmoid(x::BatchedArray) = BatchedArray(sigmoid(x.data), x.dims)
 
 function ∇sigmoid!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
     @inbounds for i = 1:length(gx)
         gx[i] += gy[i] * y[i] * (T(1) - y[i])
     end
 end
-∇sigmoid!(y::BatchedArray, gy, x, gx) = ∇sigmoid!(y.data, gy.data, x.data, gx.data)
 
 """
     tanh(x::Var)
 """
 function tanh(x::Var)
-    y = Var(tanh(x.data), tanh, (x,))
+    y = Var(tanh.(x.data), x.batchdims, tanh, (x,))
     y.df! = () -> begin
-        isconst(x) && return
-        ∇tanh!(y.data, y.grad, x.data, x.grad)
+        isvoid(x.grad) || ∇tanh!(y.data, y.grad, x.data, x.grad)
     end
     y
 end
 
 function ∇tanh!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
-    @inbounds @simd for i = 1:length(gx)
+    @inbounds for i = 1:length(gx)
         gx[i] += gy[i] * (T(1) - y[i] * y[i])
     end
 end

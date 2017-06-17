@@ -7,26 +7,28 @@ window1d_handle(::Type{Float32}) = WINDOW1D_F32
 ∇window1d_handle(::Type{Float32}) = ∇WINDOW1D_F32
 
 function window1d(x::Var, insize::Int, pad::Int, stride::Int)
-    data = window1d(x.data, insize, pad, stride)
+    data = window1d(x.data, x.batchdims, insize, pad, stride)
     y = Var(data, window1d, (x,insize,pad,stride))
     y.df! = () -> begin
-        isconst(x) || ∇window1d!(y.grad, x.grad, insize, pad, stride)
+        isvoid(x.grad) || ∇window1d!(y.grad, x.grad, x.batchdims, insize, pad, stride)
     end
     y
 end
 
-function window1d{T}(x::BatchedArray{T}, insize::Int, pad::Int, stride::Int)
+function window1d{T}(x::Array{T}, batchdims::Vector{Int}, insize::Int, pad::Int, stride::Int)
     x = vec(x)
-    ysize = Int[(x.dims[i] + 2pad - insize) ÷ stride + 1 for i=1:batchsize(x)]
-    y = BatchedArray(Array{T}(insize,sum(ysize)), ysize)
+    ysize = map(batchdims) do d
+        (d + 2pad - insize) ÷ stride + 1
+    end
+    y = Array{T}(insize, sum(ysize))
     xsize = map(Cint, x.dims)
     ccall(window1d_handle(T), Void, (Ptr{T},Ptr{Cint},Cint,Ptr{T},Cint,Cint,Cint),
-        x, xsize, batchsize(x), y, insize, pad, stride)
+        x, xsize, length(batchdims), y, insize, pad, stride)
     y
 end
 
-function ∇window1d!{T}(gy::BatchedMatrix{T}, gx::BatchedArray{T}, insize::Int, pad::Int, stride::Int)
-    gxsize = map(Cint, gx.dims)
+function ∇window1d!{T}(gy::Matrix{T}, gx::Array{T}, batchdims::Vector{Int}, insize::Int, pad::Int, stride::Int)
+    gxsize = map(Cint, batchdims)
     ccall(∇window1d_handle(T), Void, (Ptr{T},Ptr{T},Ptr{Cint},Cint,Cint,Cint,Cint),
-        gy, gx, gxsize, batchsize(gx), insize, pad, stride)
+        gy, gx, gxsize, length(batchdims), insize, pad, stride)
 end
