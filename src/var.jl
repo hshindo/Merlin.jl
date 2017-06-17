@@ -10,7 +10,10 @@ type Var
     grad
 end
 
-Var(data, batchdims=nothing, f=nothing, args=()) = Var(data, batchdims, f, args, nothing, nothing)
+function Var(data, batchdims=nothing, f=nothing, args=())
+    #batchdims == nothing && (batchdims = [length(data)])
+    Var(data, batchdims, f, args, nothing, nothing)
+end
 
 function zerograd(data)
     v = Var(data)
@@ -19,6 +22,7 @@ function zerograd(data)
 end
 
 isvoid(x) = x == nothing
+isaaa(x::Var) = length(x.batchdims) == 1
 Base.getindex(x::Var, key::Int) = x.args[key]
 
 getdata(x::Var) = x.data

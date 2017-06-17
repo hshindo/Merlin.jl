@@ -26,6 +26,10 @@ function compile(output::Var, inputs::Var...)
     Graph(nodes, inputs, output)
 end
 
+function (g::Graph)(inputs::Vector{Var})
+    
+end
+
 function (g::Graph)(inputs::Union{Var,Vector{Var}}...)
     vars = Array{Var}(length(g.nodes))
     for i = 1:length(inputs)

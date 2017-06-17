@@ -5,20 +5,20 @@ import Base: +, -, *
     exp(x::Var)
 """
 function exp(x::Var)
-    y = Var(exp(x.data), exp, (x,))
+    y = Var(exp.(x.data), x.batchdims, exp, (x,))
     y.df! = function df!()
         isvoid(x.grad) || ∇exp!(y.data, y.grad, x.grad)
     end
     y
 end
 
-function ∇exp!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
-    @inbounds @simd for i = 1:length(gx)
+function ∇exp!(y::Array{T}, gy::Array{T}, gx::Array{T}) where T
+    @inbounds for i = 1:length(gx)
         gx[i] += gy[i] * y[i]
     end
 end
 
-@generated function ∇exp!{T}(y::CuArray{T}, gy::CuArray{T}, gx::CuArray{T})
+@generated function ∇exp!(y::CuArray{T}, gy::CuArray{T}, gx::CuArray{T}) where T
     f = CuFunction("""
     __global__ void f($T *y, $T *gy, $T *gx, int length) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -35,20 +35,20 @@ end
     log(x::Var)
 """
 function log(x::Var)
-    y = Var(log(x.data), log, (x,))
+    y = Var(log.(x.data), x.batchdims, log, (x,))
     y.df! = function df!()
         isvoid(x.grad) || ∇log!(y.grad, x.data, x.grad)
     end
     y
 end
 
-function ∇log!{T}(gy::Array{T}, x::Array{T}, gx::Array{T})
-    @inbounds @simd for i = 1:length(gx)
+function ∇log!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
+    @inbounds for i = 1:length(gx)
         gx[i] += gy[i] / x[i]
     end
 end
 
-@generated function ∇log!{T}(gy::CuArray{T}, x::CuArray{T}, gx::CuArray{T})
+@generated function ∇log!(gy::CuArray{T}, x::CuArray{T}, gx::CuArray{T}) where T
     f = CuFunction("""
     __global__ void f($T *gy, $T *x, $T *gx, int length) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -65,7 +65,8 @@ end
     transpose(x::Var)
 """
 function transpose(x::Var)
-    y = Var(transpose(x.data), transpose, (x,))
+    isvoid(x.batchdims) || throw("")
+    y = Var(transpose(x.data), x.batchdims, transpose, (x,))
     y.df! = function df!()
         isvoid(x.grad) || BLAS.axpy!(eltype(x.data)(1), transpose(y.grad), x.grad)
     end
@@ -76,7 +77,7 @@ end
     +(x1::Var, x2::Var)
 """
 function +(x1::Var, x2::Var)
-    y = Var(x1.data + x2.data, +, (x1,x2))
+    y = Var(x1.data + x2.data, x1.batchdims, +, (x1,x2))
     y.df! = function df!()
         T = eltype(y.grad)
         isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
@@ -227,8 +228,8 @@ function *(A::Var, B::Var)
     C = Var(A.data * B.data, B.batchdims, *, (A,B))
     C.df! = () -> begin
         T = eltype(C.data)
-        isconst(A) || BLAS.gemm!('N', 'T', T(1), C.grad, B.data, T(1), A.grad)
-        isconst(B) || BLAS.gemm!('T', 'N', T(1), A.data, C.grad, T(1), B.grad)
+        isvoid(A.grad) || BLAS.gemm!('N', 'T', T(1), C.grad, B.data, T(1), A.grad)
+        isvoid(B.grad) || BLAS.gemm!('T', 'N', T(1), A.data, C.grad, T(1), B.grad)
     end
     C
 end
