@@ -30,24 +30,23 @@ end
     clipped_relu(x::Var)
 """
 function clipped_relu(x::Var)
-    y = Var(clipped_relu(x.data), clipped_relu, (x,))
+    y = Var(clipped_relu(x.data), x.batchdims, clipped_relu, (x,))
     y.df! = () -> begin
-        isconst(x) && return
-        ∇clipped_relu!(y.data, y.grad, x.data, x.grad)
+        isvoid(x.grad) || ∇clipped_relu!(y.grad, x.data, x.grad)
     end
     y
 end
 
-function clipped_relu!{T}(out::Var, x::Array{T})
+function clipped_relu!(x::Array{T}) where T
     y = similar(x)
-    @inbounds @simd for i = 1:length(x)
+    @inbounds for i = 1:length(x)
         y[i] = min(max(x[i],T(0)), T(20))
     end
     y
 end
 
-function ∇clipped_relu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
-    @inbounds @simd for i = 1:length(x)
+function ∇clipped_relu!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
+    @inbounds for i = 1:length(x)
         gx[i] += ifelse(T(0) < x[i] < T(20), gy[i], T(0))
     end
 end

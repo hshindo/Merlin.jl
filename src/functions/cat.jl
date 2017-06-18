@@ -13,9 +13,10 @@ y = cat(2, x1, x2)
 ```
 """
 function cat(dim::Int, xs::Vector{Var})
-    data = cat(dim, map(x -> x.data,xs)...)
+    data = cat(dim, map(x->x.data,xs)...)
     if dim == ndims(xs[1].data)
-        batchdims = cat(1, map(x -> x.batchdims, xs)...)
+        batchdims = Int[]
+        foreach(x->append!(batchdims,x.batchdims), xs)
     else
         batchdims = xs[1].batchdims
     end

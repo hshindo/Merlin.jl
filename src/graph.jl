@@ -27,7 +27,13 @@ function compile(output::Var, inputs::Var...)
 end
 
 function (g::Graph)(inputs::Vector{Var})
-    
+    data = copy(inputs[1].data)
+    batchdims = copy(inputs[1].batchdims)
+    for i = 2:length(inputs)
+        append!(data, inputs[i].data)
+        append!(batchdims, inputs[i].batchdims)
+    end
+    Var(data, batchdims)
 end
 
 function (g::Graph)(inputs::Union{Var,Vector{Var}}...)
