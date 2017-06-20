@@ -13,8 +13,8 @@ relu(x)
 # cat
 x1 = Var(rand(T,10,5,2))
 x2 = Var(rand(T,10,5,2))
-for dim = 1:3
-    @test checkgrad(()->cat(dim,[x1,x2]), x1, x2)
+for dim = 1:2
+    @test checkgrad(()->cat(dim,x1,x2), x1, x2)
 end
 
 # conv1d

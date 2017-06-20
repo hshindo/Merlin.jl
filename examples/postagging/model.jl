@@ -15,5 +15,5 @@ function create_model(numtags::Int)
     h = Conv1D(T,750,300,150)(h)
     h = relu(h)
     h = Linear(T,300,numtags)(h)
-    h
+    crossentropy(data_y, h)
 end

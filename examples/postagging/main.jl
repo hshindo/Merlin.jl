@@ -55,10 +55,10 @@ function train()
         loss = minimize!(train_f, (train_w,train_c), train_t, opt)
         println("loss: $loss")
 
-        ys = cat(1, map(x -> vec(x.data), test_y)...)
-        zs = cat(1, map(x -> vec(model(x).data), test_x)...)
-        acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))
-        println("test acc.: $acc")
+        #ys = cat(1, map(x -> vec(x.data), test_y)...)
+        #zs = cat(1, map(x -> vec(model(x).data), test_x)...)
+        #acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))
+        #println("test acc.: $acc")
         println()
     end
 end
