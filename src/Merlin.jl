@@ -37,10 +37,10 @@ abstract type Functor end
 include("util.jl")
 include("var.jl")
 include("graph.jl")
-include("fit.jl")
 include("rand.jl")
 #include("native.jl")
 include("check.jl")
+include("train.jl")
 
 for name in [
     "activation",

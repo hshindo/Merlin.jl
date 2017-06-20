@@ -9,13 +9,25 @@ x = Var()
 loss = crossentropy(y, z)
 
 opt = SGD(0.001)
-minimize!(loss, opt, x=x)
+minimize!(loss, opt)
 ```
 """
-function minimize!(output::Var, opt; progress=true, kwargs...)
-    kwdict = Dict(kwargs)
-    g = Graph(output)
-    
+function minimize!(f, opt, data_x::Vector, data_y::Vector; progress=true, batchsize::Int=10)
+    #kwdict = Dict(kwargs)
+    length(data_x) == length(data_y) || throw("Length unmatch.")
+    progress && (prog = Progress(length(data_x)÷batchsize+1))
+    idxs = randperm(length(data_x))
+    loss = 0.0
+    for i = 1:batchsize:length(idxs)
+        batchidxs = i:min(i+batchsize,length(idxs))-1
+        y = cat(data_y[r])
+        x = cat(data_x[r])
+        out = f(x, y)
+
+        loss += out.data
+        progress && next!(prog)
+    end
+    loss / length(data_x)
 end
 
 """

@@ -1,7 +1,7 @@
 export Var
 export isvoid, topsort, zerograd, zerograd!
 
-type Var
+mutable struct Var
     data
     batchdims
     f
@@ -10,7 +10,15 @@ type Var
     grad
 end
 
-Var(data, batchdims=nothing, f=nothing, args=()) = Var(data, batchdims, f, args, nothing, nothing)
+function Var(data, batchdims=nothing, f=nothing, args=())
+    Var(data, batchdims, f, args, nothing, nothing)
+end
+
+function Var(data::Vector{Array{T,N}}) where {T,N}
+    batchdims = cat(1, map(length,data)...)
+    data = cat(N, data...)
+    Var(data, batchdims)
+end
 
 function zerograd(data)
     v = Var(data)
@@ -30,22 +38,18 @@ function zerograd!(v::Var)
     v
 end
 
-function topsort(top::Var)
+function topsort(tops::Var...)
     sorted = Var[]
     dict = ObjectIdDict()
     function visit(v::Var)
         haskey(dict,v) && return
         dict[v] = v
         for arg in v.args
-            if isa(arg, Var)
-                visit(arg)
-            elseif isa(arg, Vector{Var})
-                foreach(visit, arg)
-            end
+            isa(arg,Var) && visit(arg)
         end
         push!(sorted, v)
     end
-    visit(top)
+    foreach(visit, tops)
     sorted
 end
 

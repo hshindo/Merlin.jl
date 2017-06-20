@@ -2,16 +2,16 @@ export Graph, compile
 
 type Graph
     nodes::Vector{Var} # topological order
-    inputs::Vector{Int}
-    output::Int
+    inputs::Tuple{Vararg{Int}}
+    outputs::Tuple{Vararg{Int}}
 end
 
 type VarId
     id::Int
 end
 
-function compile(output::Var, inputs::Var...)
-    nodes = topsort(output)
+function compile(inputs::Tuple, outputs::Tuple)
+    nodes = topsort(outputs...)
     node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
     nodes = map(nodes) do node
         args = map(node.args) do arg
@@ -22,21 +22,13 @@ function compile(output::Var, inputs::Var...)
         Var(node.data, node.f, args)
     end
     inputs = map(x -> node2id[x], inputs)
-    output = node2id[output]
-    Graph(nodes, inputs, output)
+    outputs = map(x -> node2id[x], outputs)
+    Graph(nodes, inputs, outputs)
 end
+compile(output::Var, inputs) = compile((output,), inputs)
+compile(outputs, input::Var) = compile(outputs, (input,))
 
-function (g::Graph)(inputs::Vector{Var})
-    data = copy(inputs[1].data)
-    batchdims = copy(inputs[1].batchdims)
-    for i = 2:length(inputs)
-        append!(data, inputs[i].data)
-        append!(batchdims, inputs[i].batchdims)
-    end
-    Var(data, batchdims)
-end
-
-function (g::Graph)(inputs::Union{Var,Vector{Var}}...)
+function (g::Graph)(inputs::Var...)
     vars = Array{Var}(length(g.nodes))
     for i = 1:length(inputs)
         vars[g.inputs[i]] = inputs[i]
@@ -54,7 +46,7 @@ function (g::Graph)(inputs::Union{Var,Vector{Var}}...)
             vars[i] = node.f(xs...)
         end
     end
-    vars[end]
+    map(id -> vars[id], g.outputs)
 end
 
 #=
@@ -90,19 +82,3 @@ function (g::Graph)(xs...)
     y
 end
 =#
-
-function compile!(top::Var)
-    nodes = topsort(top)
-
-
-    dict1 = ObjectIdDict()
-    dict2 = ObjectIdDict()
-    for node in nodes
-        isa(node.f,typeof(*)) || continue
-        vars = get!(dict1, node[1], Var[])
-        push!(vars, node[2])
-        vars = get!(dict2, node[2], Var[])
-        push!(vars, node[1])
-    end
-
-end
