@@ -1,4 +1,4 @@
-export window1d, window2d
+export window1d
 
 const WINDOW1D_F32 = Libdl.dlsym(libmerlin, :window1d_float)
 const ∇WINDOW1D_F32 = Libdl.dlsym(libmerlin, :window1d_grad_float)
@@ -7,8 +7,10 @@ window1d_handle(::Type{Float32}) = WINDOW1D_F32
 ∇window1d_handle(::Type{Float32}) = ∇WINDOW1D_F32
 
 function window1d(x::Var, insize::Int, pad::Int, stride::Int)
-    data, batchdims = window1d(x.data, x.batchdims, insize, pad, stride)
-    y = Var(data, batchdims, window1d, (x,insize,pad,stride))
+    y = Var(nothing, nothing, (window1d,x,insize,pad,stride))
+    isvoid(x.data) && return y
+
+    y.data, y.batchdims = window1d(x.data, x.batchdims, insize, pad, stride)
     y.df! = () -> begin
         isvoid(x.grad) || ∇window1d!(y.grad, x.grad, x.batchdims, insize, pad, stride)
     end

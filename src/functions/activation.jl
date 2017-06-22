@@ -5,7 +5,11 @@ import Base.tanh
     relu(x::Var)
 """
 function relu(x::Var)
-    y = Var(relu(x.data), x.batchdims, relu, (x,))
+    y = Var(nothing, nothing, (relu,x))
+    isvoid(x.data) && return y
+
+    y.data = relu(x.data)
+    y.batchdims = x.batchdims
     y.df! = () -> begin
         isvoid(x.grad) || ∇relu!(y.grad, x.data, x.grad)
     end
@@ -55,7 +59,10 @@ end
     sigmoid(x::Var)
 """
 function sigmoid(x::Var)
-    y = Var(sigmoid(x.data), x.batchdims, sigmoid, (x,))
+    y = Var(nothing, nothing, (sigmoid,x))
+    isvoid(x.data) && return y
+
+    y.data = sigmoid(x.data)
     y.df! = () -> begin
         isvoid(x.grad) || ∇sigmoid!(y.data, y.grad, x.data, x.grad)
     end
@@ -80,7 +87,10 @@ end
     tanh(x::Var)
 """
 function tanh(x::Var)
-    y = Var(tanh.(x.data), x.batchdims, tanh, (x,))
+    y = Var(nothing, nothing, (tanh,x))
+    isvoid(x.data) && return y
+
+    y.data = tanh.(x.data)
     y.df! = () -> begin
         isvoid(x.grad) || ∇tanh!(y.data, y.grad, x.data, x.grad)
     end

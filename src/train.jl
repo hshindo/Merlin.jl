@@ -1,8 +1,8 @@
-export minimize!
-import ProgressMeter: Progress, next!
+export minimize!, makebatch
+#import ProgressMeter: Progress, next!
 
 """
-    minimize(output::Var, opt, [progress=true])
+    minimize!(var::Var, opt)
 
 ```julia
 x = Var()
@@ -12,22 +12,32 @@ opt = SGD(0.001)
 minimize!(loss, opt)
 ```
 """
-function minimize!(f, opt, data_x::Vector, data_y::Vector; progress=true, batchsize::Int=10)
-    #kwdict = Dict(kwargs)
-    length(data_x) == length(data_y) || throw("Length unmatch.")
-    progress && (prog = Progress(length(data_x)÷batchsize+1))
-    idxs = randperm(length(data_x))
-    loss = 0.0
-    for i = 1:batchsize:length(idxs)
-        batchidxs = i:min(i+batchsize,length(idxs))-1
-        y = cat(data_y[r])
-        x = cat(data_x[r])
-        out = f(x, y)
-
-        loss += out.data
-        progress && next!(prog)
+function minimize!(var::Var, opt)
+    dict = ObjectIdDict()
+    nodes = gradient!(var)
+    for v in nodes
+        isparam(v) && opt(v.data, v.grad)
+        f = v[1]
+        isa(f,Functor) && (dict[f] = f)
     end
-    loss / length(data_x)
+    foreach(f -> update!(f,opt), keys(dict))
+end
+
+function makebatch(batchsize::Int, data::Vector...)
+    idxs = randperm(length(data[1]))
+    r = Var[], Var[], Var[]
+    for i in idxs
+        batches = map(x -> x[i], data)
+        push!(r[1], Var(batches[1],1))
+        push!(r[2], Var(batches[2]))
+        push!(r[3], Var(batches[3]))
+    end
+    return r
+
+    for i = 1:batchsize:length(idxs)
+        batchidxs = map(k -> idxs[k], i:min(i+batchsize-1,length(idxs)))
+        batches = map(x -> x[batchidxs...], data)
+    end
 end
 
 """

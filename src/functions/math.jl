@@ -92,9 +92,12 @@ end
     .+(x1::Var, x2::Var)
 """
 function Base.broadcast(::typeof(+), x1::Var, x2::Var)
-    batchdims = isvoid(x1.batchdims) ? x2.batchdims : x1.batchdims
-    isvoid(batchdims) && throw("")
-    y = Var(x1.data .+ x2.data, batchdims, broadcast, (+,x1,x2))
+    y = Var(nothing, nothing, (broadcast,+,x1,x2))
+    (isvoid(x1.data) || isvoid(x2.data)) && return y
+
+    y.data = broadcast(+, x1.data, x2.data)
+    y.batchdims = isvoid(x1.batchdims) ? x2.batchdims : x1.batchdims
+    isvoid(y.batchdims) && throw("")
     y.df! = () -> begin
         isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
         isvoid(x2.grad) || ∇elemplus!(y.grad, x2.grad)
@@ -224,8 +227,12 @@ end
     \*(A::Var, B::Var)
 """
 function *(A::Var, B::Var)
+    C = Var(nothing, nothing, (*,A,B))
+    (isvoid(A.data) || isvoid(B.data)) && return C
+
     isvoid(A.batchdims) || throw("A.batchdims")
-    C = Var(A.data * B.data, B.batchdims, *, (A,B))
+    C.data = A.data * B.data
+    C.batchdims = B.batchdims
     C.df! = () -> begin
         T = eltype(C.data)
         isvoid(A.grad) || BLAS.gemm!('N', 'T', T(1), C.grad, B.data, T(1), A.grad)

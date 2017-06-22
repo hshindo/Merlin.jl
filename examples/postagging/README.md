@@ -13,5 +13,5 @@ Then, download [pre-trained word embeddings](https://cl.naist.jp/~shindo/wordemb
 
 Then, run the script:
 ```
-julia main.jl
+julia train.jl
 ```

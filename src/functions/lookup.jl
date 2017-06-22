@@ -29,7 +29,11 @@ function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
 end
 
 function (f::Lookup)(x::Var)
-    y = Var(f(x.data), x.batchdims, f, (x,))
+    y = Var(nothing, nothing, (f,x))
+    isvoid(x.data) && return y
+
+    y.data = f(x.data)
+    y.batchdims = x.batchdims
     y.df! = () -> begin
         ∇lookup!(y.grad, f, x.data)
         append!(f.idset, x.data)

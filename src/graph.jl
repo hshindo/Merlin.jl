@@ -15,18 +15,16 @@ function compile(inputs::Tuple, outputs::Tuple)
     node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
     nodes = map(nodes) do node
         args = map(node.args) do arg
-            isa(arg,Var) && return VarId(node2id[arg])
-            isa(arg,Vector{Var}) && return map(x -> VarId(node2id[x]),arg)
-            arg
+            isa(arg,Var) ? VarId(node2id[arg]) : arg
         end
-        Var(node.data, node.f, args)
+        Var(node.data, node.batchdims, args)
     end
     inputs = map(x -> node2id[x], inputs)
     outputs = map(x -> node2id[x], outputs)
     Graph(nodes, inputs, outputs)
 end
-compile(output::Var, inputs) = compile((output,), inputs)
-compile(outputs, input::Var) = compile(outputs, (input,))
+compile(input::Var, outputs) = compile((input,), outputs)
+compile(inputs, output::Var) = compile(inputs, (output,))
 
 function (g::Graph)(inputs::Var...)
     vars = Array{Var}(length(g.nodes))
@@ -36,17 +34,18 @@ function (g::Graph)(inputs::Var...)
     for i = 1:length(g.nodes)
         node = g.nodes[i]
         if isempty(node.args)
-            isdefined(vars,i) || (vars[i] = node)
+            isassigned(vars,i) || (vars[i] = node)
         else
-            xs = map(node.args) do arg
-                isa(arg,VarId) && return vars[arg.id]
-                isa(arg,Vector{VarId}) && return map(x -> vars[x.id], arg)
-                arg
+            f = node[1]
+            args = ntuple(length(node.args)-1) do i
+                arg = node[i+1]
+                isa(arg,VarId) ? vars[arg.id] : arg
             end
-            vars[i] = node.f(xs...)
+            vars[i] = f(args...)
         end
     end
-    map(id -> vars[id], g.outputs)
+    outputs = map(id -> vars[id], g.outputs)
+    length(outputs) == 1 ? outputs[1] : outputs
 end
 
 #=

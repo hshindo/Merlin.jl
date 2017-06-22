@@ -4,14 +4,13 @@ export isvoid, topsort, zerograd, zerograd!
 mutable struct Var
     data
     batchdims
-    f
     args::Tuple
     df!
     grad
 end
 
-function Var(data, batchdims=nothing, f=nothing, args=())
-    Var(data, batchdims, f, args, nothing, nothing)
+function Var(data=nothing, batchdims=nothing, args::Tuple=())
+    Var(data, batchdims, args, nothing, nothing)
 end
 
 function Var(data::Vector{Array{T,N}}) where {T,N}
