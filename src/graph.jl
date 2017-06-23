@@ -17,7 +17,7 @@ function compile(inputs::Tuple, outputs::Tuple)
         args = map(node.args) do arg
             isa(arg,Var) ? VarId(node2id[arg]) : arg
         end
-        Var(node.data, node.batchdims, args)
+        Var(node.data, node.batchdims, args, node.df!, node.grad)
     end
     inputs = map(x -> node2id[x], inputs)
     outputs = map(x -> node2id[x], outputs)

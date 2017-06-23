@@ -1,15 +1,15 @@
 function readdata(path::String, worddict::Dict, chardict::Dict, tagdict::Dict)
     unkword = worddict["UNKNOWN"]
-    data_w, data_c, data_t = Vector{Int}[], Vector{Vector{Int}}[], Vector{Int}[]
+    data_w, data_c, data_t = Var[], Var[], Var[]
     w, c, t = Int[], Vector{Int}[], Int[]
 
     lines = open(readlines, path)
     for i = 1:length(lines)
         if isempty(lines[i]) || i == length(lines)
             isempty(w) && continue
-            push!(data_w, w)
-            push!(data_c, c)
-            push!(data_t, t)
+            push!(data_w, Var(w))
+            push!(data_c, Var(c))
+            push!(data_t, Var(t))
             w, c, t = Int[], Vector{Int}[], Int[]
         else
             items = split(lines[i], '\t')

@@ -7,49 +7,86 @@ function Base.max(x::Var, dim::Int)
     y = Var(nothing, nothing, (max,x,dim))
     isvoid(x.data) && return y
 
-    y.data, idx, y.batchdims = findmax(x.data, dim, x.batchdims)
+    if dim == ndims(x.data) && !isvoid(x.batchdims)
+        y.data, idx = findmax(x.data, x.batchdims)
+    else
+        y.data, idx = findmax(x.data, dim)
+        y.batchdims = x.batchdims
+    end
     y.df! = () -> begin
         isvoid(x.grad) || ∇max!(y.grad, x.grad, idx)
     end
     y
 end
 
-function Base.findmax(x::Array{T,N}, dim::Int, batchdims::Vector{Int}) where {T,N}
-    if dim == N
-        if all(d -> d == batchdims[1], batchdims)
-            x = reshape(x, Base.front(size(x))..., batchdims[1], length(batchdims))
-            y, idx = findmax(x, dim)
-            y = reshape(y, size(y)[1:N-1]..., size(y,N+1))
-            y, idx, 1
-        else
-            y = Array{T}(Base.front(size(x))..., length(batchdims))
-            idx = Array{Int}(size(y))
-
-            xoffset, yoffset = 0, 0
-            n = stride(x, N)
-            _ydims = ntuple(i -> i == N ? 1 : size(y,i), N)
-            for d in batchdims
-                _xdims = ntuple(i -> i == N ? d : size(x,i), N)
-                _x = unsafe_wrap(Array, pointer(x,xoffset+1), _xdims)
-                _y = unsafe_wrap(Array, pointer(y,yoffset+1), _ydims)
-                _idx = unsafe_wrap(Array, pointer(idx,yoffset+1), _ydims)
-                findmin!(_y, _idx, _x)
-                @inbounds for k = 1:length(_idx)
-                    _idx[k] += xoffset
-                end
-                xoffset += n * d
-                yoffset += n
-            end
-            y, idx, 1
-        end
+function Base.findmax(x::Array{T,N}, batchdims::Vector{Int}) where {T,N}
+    if all(d -> d == batchdims[1], batchdims)
+        x = reshape(x, Base.front(size(x))..., batchdims[1], length(batchdims))
+        y, idx = findmax(x, N)
+        y = reshape(y, size(y)[1:N-1]..., size(y,N+1))
+        y, idx
     else
-        y, idx = findmax(x, dim)
-        y, idx, batchdims
+        y = Array{T}(Base.front(size(x))..., length(batchdims))
+        idx = Array{Int}(size(y))
+
+        xoffset, yoffset = 0, 0
+        n = stride(x, N)
+        #_ydims = ntuple(i -> i == N ? 1 : size(y,i), N)
+        for d in batchdims
+            #_xdims = ntuple(i -> i == N ? d : size(x,i), N)
+            _x = view(x, :, xoffset+1:xoffset+d)
+            _y = view(y, :, yoffset+1)
+            _idx = view(idx, :, yoffset+1)
+            #_x = unsafe_wrap(Array, pointer(x,xoffset+1), _xdims)
+            #_y = unsafe_wrap(Array, pointer(y,yoffset+1), _ydims)
+            #_idx = unsafe_wrap(Array, pointer(idx,yoffset+1), _ydims)
+
+
+            #for xx in _x
+            #    if isinf(xx) || isnan(xx)
+            #        throw("x in inf 1")
+            #    end
+            #end
+            #for xx in _y
+            #    if isinf(xx) || isnan(xx)
+            #        throw("y in inf 1")
+            #    end
+            #end
+
+            findmax!(_y, _idx, _x)
+            #=
+            for xx in _x
+                if isinf(xx) || isnan(xx)
+                    throw("x in inf 2")
+                end
+            end
+            for xx in _y
+                if isinf(xx) || isnan(xx)
+                    println(_x)
+                    throw("y in inf 2")
+                end
+            end
+
+            for k = 1:length(_idx)
+                _idx[k] += xoffset*n
+                if _idx[k] == 0
+                    println()
+                    #println(xoffset)
+                    #println(n)
+                    #println(_y)
+                    throw("aaa")
+                end
+            end
+            =#
+            xoffset += d
+            yoffset += 1
+        end
+        y, idx
     end
 end
 
 function ∇max!(gy::Array{T}, gx::Array{T}, idx::Array{Int}) where T
-    @inbounds for i = 1:length(idx)
+    for i = 1:length(idx)
         gx[idx[i]] += gy[i]
     end
 end

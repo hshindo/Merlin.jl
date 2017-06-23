@@ -36,7 +36,7 @@ function (f::Lookup)(x::Var)
     y.batchdims = x.batchdims
     y.df! = () -> begin
         ∇lookup!(y.grad, f, x.data)
-        append!(f.idset, x.data)
+        push!(f.idset, x.data...)
     end
     y
 end
@@ -53,15 +53,16 @@ end
 
 function ∇lookup!{T}(gy::Array{T}, f::Lookup, x::Array{Int})
     p = f.params[1].data
+    n = length(p)
     for i = 1:length(x)
         gw = f.params[x[i]].grad
-        BLAS.axpy!(length(p), T(1), pointer(gy.data,(i-1)*n+1), 1, pointer(gw), 1)
+        BLAS.axpy!(n, T(1), pointer(gy,(i-1)*n+1), 1, pointer(gw), 1)
     end
 end
 
 function update!(f::Lookup, opt)
     for id in f.idset
-        w = f.ws[id]
+        w = f.params[id]
         opt(w.data, w.grad)
     end
     empty!(f.idset)

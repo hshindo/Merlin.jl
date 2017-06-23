@@ -1,5 +1,5 @@
 export Var
-export isvoid, topsort, zerograd, zerograd!
+export isvoid, topsort, zerograd, zerograd!, makebatch
 
 mutable struct Var
     data
@@ -52,9 +52,11 @@ function topsort(tops::Var...)
     sorted
 end
 
-function gradient!(top::Var)
-    sorted = topsort(top)
-    isvoid(top.grad) && (top.grad = ones(top.data))
+function gradient!(tops::Var...)
+    sorted = topsort(tops...)
+    for top in tops
+        isvoid(top.grad) && (top.grad = ones(top.data))
+    end
     for i = 1:length(sorted)
         v = sorted[i]
         isempty(v.args) && continue
@@ -65,6 +67,25 @@ function gradient!(top::Var)
         isvoid(v.df!) || v.df!()
     end
     sorted
+end
+
+function makebatch(batchsize::Int, dataset::Vector{Var}...; shuffle=true)
+    idxs = collect(1:length(dataset[1]))
+    shuffle && shuffle!(idxs)
+    map(dataset) do vars
+        N = ndims(vars[1].data)
+        map(1:batchsize:length(idxs)) do i
+            range = i:min(i+batchsize-1,length(idxs))
+            vec = map(k -> vars[k].data, range)
+            if isvoid(vars[1].batchdims)
+                Var(vec)
+            else
+                batchdata = cat(N, map(k -> vars[k].data, range)...)
+                batchdims = cat(1, map(k -> vars[k].batchdims, range)...)
+                Var(batchdata, batchdims)
+            end
+        end
+    end
 end
 
 readas(::Type{Var}, x) = Var(x["data"], x["f"], x["args"])

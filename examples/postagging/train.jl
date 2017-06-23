@@ -24,22 +24,35 @@ function train()
     for epoch = 1:10
         println("epoch: $epoch")
         totalloss = 0.0
-        opt.rate = 0.0075 / epoch
-        batches = makebatch(10, train_w, train_c, train_t)
+        opt.rate = 0.00075 / epoch
+        batches = makebatch(32, train_w, train_c, train_t)
         progress = Progress(length(batches[1]))
         for (w,c,t) in zip(batches...)
             y = nn(w, c)
             loss = crossentropy(t, y)
             totalloss += sum(loss.data)
-            minimize!(loss, opt)
+            minimize!(opt, loss)
             next!(progress)
         end
-        println("loss: $(totalloss)/$(length(train_w))")
+        totalloss = round(totalloss/length(train_w), 5)
+        println("loss: $(totalloss)")
 
-        #ys = cat(1, map(x -> vec(x.data), test_y)...)
+        ys = Int[]
+        zs = Int[]
+        batches = makebatch(1, test_w, test_c, test_t)
+        for (w,c,t) in zip(batches...)
+            append!(ys, t.data)
+            y = nn(w, c)
+            z = argmax(y.data, 1)
+            append!(zs, z)
+        end
+        length(ys) == length(zs) || throw("Length mismatch.")
+
+        #ys = cat(1, map(x -> vec(x.data), test_t)...)
         #zs = cat(1, map(x -> vec(model(x).data), test_x)...)
-        #acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))
-        #println("test acc.: $acc")
+        acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))
+        acc = round(acc, 5)
+        println("test acc.: $acc")
         println()
     end
 end

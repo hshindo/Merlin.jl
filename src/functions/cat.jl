@@ -17,12 +17,6 @@ function cat(dim::Int, xs::Var...)
 
     y.data = cat(dim, map(x->x.data,xs)...)
     dim == ndims(xs[1].data) && throw("Invalid cat.")
-    for i = 2:length(xs)
-        xs[i].batchdims == xs[1].batchdims && continue
-        println(xs[1].batchdims)
-        println(xs[i].batchdims)
-        throw("Batchdims mismatch.")
-    end
     y.batchdims = xs[1].batchdims
     y.df! = () -> ∇cat!(y.grad, dim, xs...)
     y

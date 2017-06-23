@@ -12,10 +12,6 @@ end
 
 Returns the maximum elements over the given dimension.
 """
-argmax(x::Var, dim::Int) = ArgMax(dim)(x)
-
-type ArgMax
-    dim::Int
+function argmax(x::Var, dim::Int)
+    throw("Not implemented yet.")
 end
-
-(f::ArgMax)(x::Var) = Var(argmax(x.data,f.dim), f, (x,))
