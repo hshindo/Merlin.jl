@@ -5,7 +5,7 @@ function readdata(path::String, worddict::Dict, chardict::Dict, tagdict::Dict)
 
     lines = open(readlines, path)
     for i = 1:length(lines)
-        if isempty(lines[i]) || i == length(lines)
+        if isempty(lines[i])
             isempty(w) && continue
             push!(data_w, Var(w))
             push!(data_c, Var(c))
@@ -23,6 +23,11 @@ function readdata(path::String, worddict::Dict, chardict::Dict, tagdict::Dict)
             push!(c, charid)
             push!(t, tagid)
         end
+    end
+    if !isempty(w)
+        push!(data_w, Var(w))
+        push!(data_c, Var(c))
+        push!(data_t, Var(t))
     end
     data_w, data_c, data_t
 end

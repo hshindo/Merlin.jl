@@ -24,8 +24,11 @@ function train()
     for epoch = 1:10
         println("epoch: $epoch")
         totalloss = 0.0
-        opt.rate = 0.00075 / epoch
-        batches = makebatch(32, train_w, train_c, train_t)
+        batchsize = 10
+        opt.rate = 0.0075 * sqrt(batchsize)/batchsize / epoch
+        #opt.rate = 0.0075 / epoch
+        batches = makebatch(batchsize, train_w, train_c, train_t)
+
         progress = Progress(length(batches[1]))
         for (w,c,t) in zip(batches...)
             y = nn(w, c)
@@ -39,7 +42,7 @@ function train()
 
         ys = Int[]
         zs = Int[]
-        batches = makebatch(1, test_w, test_c, test_t)
+        batches = makebatch(100, test_w, test_c, test_t)
         for (w,c,t) in zip(batches...)
             append!(ys, t.data)
             y = nn(w, c)
