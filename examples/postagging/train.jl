@@ -25,12 +25,13 @@ function train()
         println("epoch: $epoch")
         totalloss = 0.0
         batchsize = 1
-        opt.rate = 0.0075 * sqrt(batchsize)/batchsize / epoch
-        #opt.rate = 0.0075 / epoch
-        batches = makebatch(batchsize, train_w, train_c, train_t)
+        opt.rate = 0.0075 / epoch
 
         progress = Progress(length(batches[1]))
         for (w,c,t) in zip(batches...)
+            minimize!() do data
+                
+            end
             y = nn(w, c)
             loss = crossentropy(t, y)
             totalloss += sum(loss.data)

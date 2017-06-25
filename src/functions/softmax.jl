@@ -61,6 +61,39 @@ function softmax{T}(x::Array{T})
     y
 end
 
+export softmax2,softmax3
+function softmax2(x::Array{T,3}) where T
+    y = Array{Int}(size(x,1), size(x,3))
+    @inbounds for k = 1:size(x,3)
+        for j = 1:size(x,2)
+            for i = 1:size(x,1)
+                v = x[i,j,k]
+                if j == 1 || v > x[i,y[i,k],k]
+                    y[i,k] = j
+                end
+            end
+        end
+    end
+    y
+end
+
+function softmax3(x::Array{T,3}) where T
+    y = Array{Int}(size(x,1), size(x,3))
+    @inbounds for k = 1:size(x,3)
+        for i = 1:size(x,1)
+            maxj = 0
+            for j = 1:size(x,2)
+                v = x[i,j,k]
+                if j == 1 || v > x[i,maxj,k]
+                    maxj = j
+                end
+            end
+            y[i,k] = maxj
+        end
+    end
+    y
+end
+
 function ∇softmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     h = ∇softmax_handle(T)
     dims = size3d(y, ndims(y)-1)

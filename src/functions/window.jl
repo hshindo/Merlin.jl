@@ -6,34 +6,26 @@ const ∇WINDOW1D_F32 = Libdl.dlsym(libmerlin, :window1d_grad_float)
 window1d_handle(::Type{Float32}) = WINDOW1D_F32
 ∇window1d_handle(::Type{Float32}) = ∇WINDOW1D_F32
 
-function window1d(x::Var, insize::Int, pad::Int, stride::Int)
-    y = Var(nothing, nothing, (window1d,x,insize,pad,stride))
+function window1d(x::Var, winsize::Int, pad::Int, stride::Int)
+    y = Var(nothing, window1d, (x,winsize,pad,stride))
     isvoid(x.data) && return y
 
-    y.data, y.batchdims = window1d(x.data, x.batchdims, insize, pad, stride)
+    y.data = window1d(x.data, winsize, pad, stride)
     y.df! = () -> begin
-        isvoid(x.grad) || ∇window1d!(y.grad, x.grad, x.batchdims, insize, pad, stride)
+        isvoid(x.grad) || ∇window1d!(y.grad, x.grad, winsize, pad, stride)
     end
     y
 end
 
-function window1d(x::Array{T,N}, batchdims::Vector{Int}, insize::Int, pad::Int, stride::Int) where {T,N}
-    n = Base.stride(x, N)
-    batchdims = map(d -> d*n, batchdims)
-    x = vec(x)
-    ysize = map(batchdims) do d
-        (d + 2pad - insize) ÷ stride + 1
-    end
-    y = Array{T}(insize, sum(ysize))
-    xsize = map(Cint, batchdims)
-    ccall(window1d_handle(T), Void, (Ptr{T},Ptr{Cint},Cint,Ptr{T},Cint,Cint,Cint),
-        x, xsize, length(batchdims), y, insize, pad, stride)
-    y, ysize
+function window1d(x::Array{T}, winsize::Int, pad::Int, stride::Int) where T
+    c = (length(x) + 2pad - winsize) ÷ stride + 1
+    y = Array{T}(winsize, c)
+    ccall(window1d_handle(T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
+        x, y, length(x), winsize, pad, stride)
+    y
 end
 
-function ∇window1d!{T}(gy::Matrix{T}, gx::Array{T}, batchdims::Vector{Int}, insize::Int, pad::Int, stride::Int)
-    n = Base.stride(gx, ndims(gx))
-    gxsize = map(d -> Cint(d*n), batchdims)
-    ccall(∇window1d_handle(T), Void, (Ptr{T},Ptr{T},Ptr{Cint},Cint,Cint,Cint,Cint),
-        gy, gx, gxsize, length(batchdims), insize, pad, stride)
+function ∇window1d!(gy::Array{T}, gx::Array{T}, winsize::Int, pad::Int, stride::Int) where T
+    ccall(∇window1d_handle(T), Void, (Ptr{T},Ptr{T},Cint,Cint,Cint,Cint),
+        gy, gx, length(gx), winsize, pad, stride)
 end

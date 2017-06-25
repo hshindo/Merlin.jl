@@ -4,15 +4,10 @@
 Returns the maximum value over the given dimensions.
 """
 function Base.max(x::Var, dim::Int)
-    y = Var(nothing, nothing, (max,x,dim))
+    y = Var(nothing, max, (x,dim))
     isvoid(x.data) && return y
 
-    if dim == ndims(x.data)
-        y.data, idx = findmax2(x.data, x.batchdims)
-    else
-        y.data, idx = findmax(x.data, dim)
-        y.batchdims = x.batchdims
-    end
+    y.data, idx = findmax(x.data, dim)
     y.df! = () -> begin
         isvoid(x.grad) || ∇max!(y.grad, x.grad, idx)
     end
@@ -64,15 +59,11 @@ end
 Returns the sum over the given dimension.
 """
 function Base.sum(x::Var, dim::Int)
-end
+    y = Var(nothing, sum, (x,dim))
+    isvoid(x.data) && return y
 
-type Sum
-    dim::Int
-end
-
-function (f::Sum)(x::Var)
-    y = Var(sum(x.data,f.dim), f, (x,))
-    y.df! = function df!()
+    y.data = sum(x.data, dim)
+    y.df! = () -> begin
         isvoid(x.grad) || broadcast!(+, x.grad, x.grad, y.grad)
     end
     y

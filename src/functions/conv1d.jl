@@ -15,20 +15,20 @@ y = f(x)
 type Conv1D
     w::Var
     b::Var
-    insize::Int
+    filtersize::Int
     outsize::Int
     pad::Int
     stride::Int
 end
 
-function Conv1D(T::Type, insize::Int, outsize::Int, pad::Int, stride::Int)
-    w = uniform(T, -0.001, 0.001, outsize, insize)
+function Conv1D(T::Type, filtersize::Int, outsize::Int, pad::Int, stride::Int)
+    w = uniform(T, -0.001, 0.001, outsize, filtersize)
     b = zeros(T, outsize, 1)
-    Conv1D(zerograd(w), zerograd(b), insize, outsize, pad, stride)
+    Conv1D(zerograd(w), zerograd(b), filtersize, outsize, pad, stride)
 end
 
 function (f::Conv1D)(x::Var)
-    h = window1d(x, f.insize, f.pad, f.stride)
+    h = window1d(x, f.filtersize, f.pad, f.stride)
     y = f.w * h .+ f.b
     y
 end

@@ -1,22 +1,16 @@
 export Var
-export isvoid, topsort, zerograd, zerograd!, makebatch
+export isvoid, topsort, zerograd, zerograd!
 
 mutable struct Var
     data
-    batchdims
+    f
     args::Tuple
     df!
     grad
 end
 
-function Var(data=nothing, batchdims=nothing, args::Tuple=())
-    Var(data, batchdims, args, nothing, nothing)
-end
-
-function Var(data::Vector{Array{T,N}}) where {T,N}
-    batchdims = cat(1, map(length,data)...)
-    data = cat(N, data...)
-    Var(data, batchdims)
+function Var(data=nothing, f=nothing, args::Tuple=())
+    Var(data, f, args, nothing, nothing)
 end
 
 function zerograd(data)
@@ -59,8 +53,7 @@ function gradient!(tops::Var...)
     end
     for i = 1:length(sorted)
         v = sorted[i]
-        isempty(v.args) && continue
-        isvoid(v.grad) && zerograd!(v)
+        !isempty(v.args) && isvoid(v.grad) && zerograd!(v)
     end
     for i = length(sorted):-1:1
         v = sorted[i]

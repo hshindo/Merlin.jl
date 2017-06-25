@@ -12,12 +12,10 @@ y = cat(2, x1, x2)
 ```
 """
 function cat(dim::Int, xs::Var...)
-    y = Var(nothing, nothing, (cat,dim,xs...))
+    y = Var(nothing, cat, (dim,xs...))
     any(x -> isvoid(x.data), xs) && return y
 
     y.data = cat(dim, map(x->x.data,xs)...)
-    dim == ndims(xs[1].data) && throw("Invalid cat.")
-    y.batchdims = xs[1].batchdims
     y.df! = () -> ∇cat!(y.grad, dim, xs...)
     y
 end

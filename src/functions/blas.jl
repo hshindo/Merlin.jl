@@ -11,14 +11,17 @@ y = \alpha \times \textrm{tA}(A) \times x
 ```
 """
 function gemv(tA::Char, alpha::Number, A::Var, x::Var)
+    y = Var(nothing, gemv, (tA,alpha,A,x))
+    (isvoid(A.data) || isvoid(x.data)) && return y
+
     T = eltype(A.data)
-    data = BLAS.gemv(tA, T(alpha), A.data, x.data)
-    y = Var(data, gemv, (tA,alpha,A,x))
+    y.data = BLAS.gemv(tA, T(alpha), A.data, x.data)
     y.df! = () -> begin
         if !isvoid(A.grad)
+            mat(v) = reshape(v, length(v), 1)
             tA == 'N' ?
-            BLAS.gemm!('N', 'T', T(alpha), redim(y.grad,2), redim(x.data,2), T(1), A.grad) :
-            BLAS.gemm!('N', 'T', T(alpha), redim(x.data,2), redim(y.grad,2), T(1), A.grad)
+            BLAS.gemm!('N', 'T', T(alpha), mat(y.grad), mat(x.data), T(1), A.grad) :
+            BLAS.gemm!('N', 'T', T(alpha), mat(x.data), mat(y.grad), T(1), A.grad)
         end
         isvoid(x.grad) || BLAS.gemv!(tA=='N'?'T':'N', T(alpha), A.data, y.grad, T(1), x.grad)
     end
@@ -37,16 +40,18 @@ C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
 ```
 """
 function gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
+    C = Var(nothing, gemm, (tA,tB,alpha,A,B))
+    (isvoid(A.data) || isvoid(B.data)) && return C
+
     T = eltype(A.data)
-    data = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
-    C = Var(data, gemm, (tA,tB,alpha,A,B))
+    C.data = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
     C.df! = () -> begin
-        if !isconst(A)
+        if !isvoid(A.grad)
             tA == 'N' ?
             BLAS.gemm!('N', tB=='N'?'T':'N', T(alpha), C.grad, B.data, T(1), A.grad) :
             BLAS.gemm!(tB, 'T', T(alpha), B.data, C.grad, T(1), A.grad)
         end
-        if !isconst(B)
+        if !isvoid(B.grad)
             tB == 'N' ?
             BLAS.gemm!(tA=='N'?'T':'N', 'N', T(alpha), A.data, C.grad, T(1), B.grad) :
             BLAS.gemm!('T', tA, T(alpha), C.grad, A.data, T(1), B.grad)
