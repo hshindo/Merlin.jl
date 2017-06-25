@@ -78,7 +78,7 @@ function makebatch(batchsize::Int, dataset::Vector{Var}...)
             range = map(k -> idxs[k], i:min(i+batchsize-1,length(idxs)))
             vec = map(k -> vars[k].data, range)
             if isvoid(vars[1].batchdims)
-                Var(copy(vec))
+                Var(vec)
             else
                 batchdata = cat(N, map(k -> vars[k].data, range)...)
                 batchdims = cat(1, map(k -> vars[k].batchdims, range)...)
@@ -87,22 +87,6 @@ function makebatch(batchsize::Int, dataset::Vector{Var}...)
         end
     end
     dataset
-end
-export makebatch2
-function makebatch2(batchsize::Int, data::Vector...)
-    #idxs = randperm(length(data[1]))
-    idxs = collect(1:length(data[1]))
-    shuffle!(idxs)
-    r = Var[], Var[], Var[]
-    for i in idxs
-        batches = map(x -> x[i], data)
-        batches[1].batchdims = [length(batches[1].data)]
-        batches[3].batchdims = [length(batches[3].data)]
-        push!(r[1], batches[1])
-        push!(r[2], batches[2])
-        push!(r[3], batches[3])
-    end
-    return r
 end
 
 readas(::Type{Var}, x) = Var(x["data"], x["f"], x["args"])

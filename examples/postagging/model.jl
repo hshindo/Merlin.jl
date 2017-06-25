@@ -24,13 +24,12 @@ function setup_nn2(ntags::Int)
     wordembeds = h5read(wordembeds_file, "v")
     w = Lookup(wordembeds)(data_w)
 
-    #c = Lookup(T,100,10)(data_c)
-    #c = Conv1D(T,50,50,20,10)(c)
-    #c = max(c, 2)
+    c = Lookup(T,100,10)(data_c)
+    c = Conv1D(T,50,50,20,10)(c)
+    c = max(c, 2)
 
-    #h = cat(1, w, c)
-    h = w
-    h = Conv1D(T,500,300,200,100)(h)
+    h = cat(1, w, c)
+    h = Conv1D(T,750,300,300,150)(h)
     h = relu(h)
     h = Linear(T,300,ntags)(h)
 

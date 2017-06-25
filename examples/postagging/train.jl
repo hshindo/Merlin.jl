@@ -24,7 +24,7 @@ function train()
     for epoch = 1:10
         println("epoch: $epoch")
         totalloss = 0.0
-        batchsize = 10
+        batchsize = 1
         opt.rate = 0.0075 * sqrt(batchsize)/batchsize / epoch
         #opt.rate = 0.0075 / epoch
         batches = makebatch(batchsize, train_w, train_c, train_t)
