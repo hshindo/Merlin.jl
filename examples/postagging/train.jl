@@ -1,6 +1,5 @@
 using Merlin
 using HDF5
-using ProgressMeter
 
 const wordembeds_file = "wordembeds_nyt100.h5"
 
@@ -23,7 +22,6 @@ function train()
     opt = SGD()
     for epoch = 1:10
         println("epoch: $epoch")
-        loss = 0.0
         opt.rate = 0.0075 / epoch
 
         function train_f(data::Tuple)
@@ -35,6 +33,7 @@ function train()
         loss = minimize!(train_f, opt, train_data)
         println("loss: $loss")
 
+        # test
         function test_f(data::Tuple)
             w, c = data
             y = nn(w, c)

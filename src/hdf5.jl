@@ -72,6 +72,7 @@ end
 
 writeas(x::Union{Void,Char,Symbol,DataType}) = string(x)
 writeas(x::Union{Tuple,Vector}) = Dict(string(i)=>x[i] for i=1:length(x))
+writeas(x::Serializable) = Dict(name=>getfield(x,name) for name in fieldnames(x))
 
 readas(::Type{T}, x::String) where T<:Union{Void,DataType,Function} = eval(parse(x))
 readas(::Type{Char}, x::String) = x[1]
@@ -83,11 +84,7 @@ function readas(::Type{T}, d::Dict) where T<:Tuple
     end
     tuple(data...)
 end
-
-#=
-function readas(T::Type, x)
+function readas(::Type{T}, d::Dict) where T
     values = map(name -> x[string(name)], fieldnames(T))
     T(values...)
 end
-writeas(x) = Dict(name=>getfield(x,name) for name in fieldnames(x))
-=#

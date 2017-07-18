@@ -23,6 +23,7 @@ end
 =#
 
 abstract type Functor end
+abstract type Serializable end
 
 include("util.jl")
 include("var.jl")

@@ -1,33 +1,33 @@
 using HDF5
+using Merlin
 
-type Segmenter
+type Segmenter <: Serializable
     word2id::Dict
     char2id::Dict
     tag2id::Dict
     id2tag::Dict
-    model
+    nn
 end
 
-function Segmenter()
-    h5file = "glove.6B.100d.h5"
-    words = h5read(h5file, "key")
-    push!(words, "UNKNOWN")
+function Segmenter(ntags::Int)
+    # h5file = "glove.6B.100d.h5"
+    wordembeds_file = "wordembeds_nyt100.h5"
+    words = h5read(wordembeds_file, "s")
     word2id = Dict(words[i] => i for i=1:length(words))
     char2id = Dict{String,Int}()
     tag2id = Dict{String,Int}()
     id2tag = Dict{Int,String}()
-    wordembeds = h5read(h5file, "value")
-    wordembeds = cat(2, wordembeds, uniform(Float32,-0.001,0.001,100,1))
-    charembeds = rand(Float32, 50, 100)
-    model = Model(wordembeds, charembeds, 13)
-    Segmenter(word2id, char2id, tag2id, id2tag, model)
+    wordembeds = h5read(wordembeds_file, "v")
+    charembeds = rand(Float32, 100, 100)
+    nn = Model(wordembeds, charembeds, ntags)
+    Segmenter(word2id, char2id, tag2id, id2tag, nn)
 end
 
 function train(seg::Segmenter, trainfile::String, testfile::String)
-    train_x, train_y = read!(seg, trainfile)
-    test_x, test_y = read!(seg, testfile)
-    info("# sentences of train data: $(length(train_x))")
-    info("# sentences of test data: $(length(test_x))")
+    train_w, train_c, train_t = readdata!(seg, trainfile)
+    test_w, test_c, test_t = readdata!(seg, testfile)
+    info("# sentences of train data: $(length(train_w))")
+    info("# sentences of test data: $(length(test_w))")
     info("# words: $(length(seg.word2id))")
     info("# chars: $(length(seg.char2id))")
     info("# tags: $(length(seg.tag2id))")
@@ -36,68 +36,51 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
     for epoch = 1:20
         println("epoch: $epoch")
         #opt.rate = 0.0075 / epoch
-        loss = fit(train_x, train_y, seg.model, opt)
+
+        function train_f(data::Tuple)
+            w, c, t = data
+            y = seg.nn(w, c)
+            softmax_crossentropy(t, y)
+        end
+        train_data = collect(zip(train_w, train_c, train_t))
+        loss = minimize!(train_f, opt, train_data)
         println("loss: $loss")
 
-        ys = cat(1, map(x -> vec(x.data), test_y)...)
-        zs = cat(1, map(x -> vec(seg.model(x).data), test_x)...)
+        # test
+        println("testing...")
+        function test_f(data::Tuple)
+            w, c = data
+            y = seg.nn(w, c)
+            vec(argmax(y.data,1))
+        end
+        test_data = collect(zip(test_w, test_c))
+        ys = cat(1, map(t -> t.data, test_t)...)
+        zs = cat(1, map(test_f, test_data)...)
+        length(ys) == length(zs) || throw("Length mismatch.")
         acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))
         acc = round(acc, 5)
         preds = map(id -> seg.id2tag[id], zs)
         golds = map(id -> seg.id2tag[id], ys)
-        f = fscore(preds, golds)
-        println("test eval...")
+        prec, recall, fval = fscore(preds, golds)
         println("acc: $acc")
-        println("prec: $(f[1])")
-        println("recall: $(f[2])")
-        println("fscore: $(f[3])")
+        println("prec: $prec")
+        println("recall: $recall")
+        println("fscore: $fval")
         println()
     end
 end
 
-function readdata!(seg::Segmenter, path::String)
-    data_x, data_y = Tuple{Var,Vector{Var}}[], Var[]
-    w, c, t = Int[], Vector{Int}[], Int[]
-    unkword = seg.word2id["UNKNOWN"]
-    lines = open(readlines, path)
-    for i = 1:length(lines)
-        line = chomp(lines[i])
-        if isempty(line) || i == length(lines)
-            isempty(w) && continue
-            w = Var(reshape(w,1,length(w)))
-            c = map(x -> Var(reshape(x,1,length(x))), c)
-            t = Var(reshape(t,1,length(t)))
-            push!(data_x, (w,c))
-            push!(data_y, t)
-            w, c, t = Int[], Vector{Int}[], Int[]
-        else
-            items = split(line, "\t")
-            word = String(items[1])
-            #word0 = replace(word, r"[0-9]", '0')
-            word0 = word
-            wordid = get(seg.word2id, lowercase(word0), unkword)
-            push!(w, wordid)
-
-            chars = Vector{Char}(word0)
-            charids = map(c -> get!(seg.char2id,string(c),length(seg.char2id)+1), chars)
-            push!(c, charids)
-
-            tag = String(items[3])
-            tagid = get!(seg.tag2id, tag, length(seg.tag2id)+1)
-            seg.id2tag[tagid] = tag
-            push!(t, tagid)
-        end
-    end
-    data_x, data_y
-end
-
+include("data.jl")
 include("eval.jl")
 include("model.jl")
 
-seg = Segmenter()
-#path = joinpath(dirname(@__FILE__), ".data")
-#train(seg, "$(path)/eng.train", "$(path)/eng.testb")
+# training
+seg = Segmenter(13)
+path = joinpath(dirname(@__FILE__), ".data")
+train(seg, "$(path)/eng.train", "$(path)/eng.testb")
+Merlin.save("ner.h5", seg)
+
 
 # chunking
-path = joinpath(dirname(@__FILE__), ".data/chunking")
-train(seg, "$(path)/train.txt", "$(path)/test.txt")
+# path = joinpath(dirname(@__FILE__), ".data/chunking")
+# train(seg, "$(path)/train.txt", "$(path)/test.txt")

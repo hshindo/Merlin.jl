@@ -1,26 +1,38 @@
-function convertBI(path::String)
-    data = []
+function readdata!(seg::Segmenter, path::String)
+    data_w, data_c, data_t = Var[], Vector{Var}[], Var[]
+    w, c, t = Int[], Var[], Int[]
+    unkwordid = seg.word2id["UNKNOWN"]
+
     for line in open(readlines,path)
-        line = chomp(line)
         if isempty(line)
-            push!(data, "")
+            isempty(w) && continue
+            push!(data_w, Var(w))
+            push!(data_c, c)
+            push!(data_t, Var(t))
+            w, c, t = Int[], Var[], Int[]
         else
-            items = split(line, ' ')
-            tag = items[3]
-            if tag == "O"
-            elseif tag[1] == 'B'
-                tag = tag[3:end]
-            elseif tag[1] == 'I'
-                tag = "_"
-            else
-                tbrow("")
+            items = split(line, "\t")
+            word = String(items[1])
+            word0 = replace(word, r"[0-9]", '0')
+            wordid = get(seg.word2id, lowercase(word0), unkwordid)
+            push!(w, wordid)
+
+            chars = Vector{Char}(word0)
+            charids = map(chars) do c
+                get!(seg.char2id, string(c), length(seg.char2id)+1)
             end
-            push!(data, "$(items[1])\t$(items[2])\t$tag")
+            push!(c, Var(charids))
+
+            tag = String(items[2])
+            tagid = get!(seg.tag2id, tag, length(seg.tag2id)+1)
+            seg.id2tag[tagid] = tag
+            push!(t, tagid)
         end
     end
-    open("test.out", "w") do f
-        foreach(x -> println(f,x), data)
+    if !isempty(w)
+        push!(data_w, Var(w))
+        push!(data_c, c)
+        push!(data_t, Var(t))
     end
+    data_w, data_c, data_t
 end
-
-convertBI("C:/Users/hshindo/Dropbox/chunking/test.txt")
