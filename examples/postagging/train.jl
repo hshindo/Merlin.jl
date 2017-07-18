@@ -26,39 +26,25 @@ function train()
         loss = 0.0
         opt.rate = 0.0075 / epoch
 
-        #=
-        progress = Progress(length(train_w))
-        for i = randperm(length(train_w))
-            w, c, t = train_w[i], train_c[i], train_t[i]
-            y = nn(w, c)
-            out = softmax_crossentropy(t, y)
-            loss += sum(out.data)
-            minimize!(opt, out)
-            next!(progress)
-        end
-        loss = round(loss/length(train_w), 5)
-        =#
         function train_f(data::Tuple)
             w, c, t = data
             y = nn(w, c)
             softmax_crossentropy(t, y)
         end
-        loss = minimize!(train_f, opt, collect(zip(train_w,train_c,train_t)))
+        train_data = collect(zip(train_w, train_c, train_t))
+        loss = minimize!(train_f, opt, train_data)
         println("loss: $loss")
 
-        ys = Int[]
-        zs = Int[]
-        #batches = makebatch(100, test_w, test_c, test_t)
-        for (w,c,t) in zip(test_w,test_c,test_t)
-            append!(ys, t.data)
+        function test_f(data::Tuple)
+            w, c = data
             y = nn(w, c)
-            z = argmax(y.data, 1)
-            append!(zs, z)
+            vec(argmax(y.data,1))
         end
+        test_data = collect(zip(test_w, test_c))
+        ys = cat(1, map(t -> t.data, test_t)...)
+        zs = cat(1, map(test_f, test_data)...)
         length(ys) == length(zs) || throw("Length mismatch.")
 
-        #ys = cat(1, map(x -> vec(x.data), test_t)...)
-        #zs = cat(1, map(x -> vec(model(x).data), test_x)...)
         acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))
         acc = round(acc, 5)
         println("test acc.: $acc")

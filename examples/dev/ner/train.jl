@@ -55,7 +55,7 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
     end
 end
 
-function read!(seg::Segmenter, path::String)
+function readdata!(seg::Segmenter, path::String)
     data_x, data_y = Tuple{Var,Vector{Var}}[], Var[]
     w, c, t = Int[], Vector{Int}[], Int[]
     unkword = seg.word2id["UNKNOWN"]
