@@ -1,30 +1,54 @@
-export Graph, compile
+export Graph, @graph
 
-type Graph
+struct Graph
     nodes::Vector{Var} # topological order
-    inputs::Tuple{Vararg{Int}}
-    outputs::Tuple{Vararg{Int}}
+    inputs::Vector{Int}
+    outputs::Vector{Int}
 end
 
 type VarId
     id::Int
 end
 
-function compile(inputs::Tuple, outputs::Tuple)
+function Graph(inputs::Union{Var,Vector{Var}}, outputs::Union{Var,Vector{Var}})
+    inputs = isa(inputs,Var) ? [inputs] : inputs
+    outputs = isa(outputs,Var) ? [outputs] : outputs
     nodes = topsort(outputs...)
     node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
     nodes = map(nodes) do node
         args = map(node.args) do arg
             isa(arg,Var) ? VarId(node2id[arg]) : arg
         end
-        Var(node.data, node.batchdims, args, node.df!, node.grad)
+        Var(node.data, node.f, args, node.df!, node.grad)
     end
     inputs = map(x -> node2id[x], inputs)
     outputs = map(x -> node2id[x], outputs)
     Graph(nodes, inputs, outputs)
 end
-compile(input::Var, outputs) = compile((input,), outputs)
-compile(inputs, output::Var) = compile(inputs, (output,))
+
+"""
+```julia
+f = @graph x begin
+    relu(x)
+end
+```
+"""
+macro graph(input, output)
+    if isa(input, Expr)
+        input.head == :tuple || throw("not tuple")
+        exp = Expr(:block)
+        for arg in input.args
+            e = Expr(:(=), arg, Var()) # x = Var(), etc.
+            push!(exp.args, e)
+        end
+    else
+        exp = Expr(:(=), input, Var())
+    end
+    quote
+        $(esc(exp))
+        Graph($(esc(input)), $(esc(output)))
+    end
+end
 
 function (g::Graph)(inputs::Var...)
     vars = Array{Var}(length(g.nodes))
@@ -36,48 +60,35 @@ function (g::Graph)(inputs::Var...)
         if isempty(node.args)
             isassigned(vars,i) || (vars[i] = node)
         else
-            f = node[1]
-            args = ntuple(length(node.args)-1) do i
-                arg = node[i+1]
+            args = map(node.args) do arg
                 isa(arg,VarId) ? vars[arg.id] : arg
             end
-            vars[i] = f(args...)
+            vars[i] = node.f(args...)
         end
     end
     outputs = map(id -> vars[id], g.outputs)
     length(outputs) == 1 ? outputs[1] : outputs
 end
 
-#=
-function (g::Graph)(xs...)
-    ys = Array{Any}(length(g.nodes))
-    for i = 1:length(xs)
-        ys[g.input[i]] = xs[i]
-    end
-    for i = 1:length(g.nodes)
-        node = g.nodes[i]
-        if isempty(node.args)
-            isdefined(ys,i) || (ys[i] = node)
-            continue
-        end
-        xs = map(x -> ys[x], node.args)
-        ys[i] = node.f(xs...)
-    end
+JLD2.writeas(::Type{Graph}) = Dict{Any,Any}
+function JLD2.wconvert(::Type{Dict{Any,Any}}, g::Graph)
+    dict = Dict()
+    dict["nodes"] = g.nodes
+    dict["inputs"] = g.inputs
+    dict["outputs"] = g.outputs
+    dict
+end
+function JLD2.rconvert(::Type{Graph}, dict::Dict{Any,Any})
+    Graph(dict["nodes"], dict["inputs"], dict["outputs"])
+end
 
-    gg = Graph(ys, g.input, g.output)
-    y = Var(ys[end].data, gg, xs)
-    y.df! = function df!()
-        for i = 1:length(y.f.nodes)
-            v = y.f.nodes[i]
-            isempty(v.args) && continue
-            #all(a -> isvoid(a.grad), v.args) && continue
-            isvoid(v.grad) && zerograd!(v)
-        end
-        for i = length(y.f.nodes):-1:1
-            v = y.f.nodes[i]
-            isvoid(v.df!) || v.df!()
-        end
+#=
+function (g::Graph)(inputs::Vector{Var})
+    ys = Var[]
+    for x in inputs
+        y = g(x)
+        push!(ys, y)
     end
-    y
+    cat(ndims(ys[1].data), ys...)
 end
 =#

@@ -19,6 +19,7 @@ function forward(::typeof(dropout), x::Array, rate::Float64)
     y, backward!
 end
 
+#=
 function forward{T}(::typeof(dropout), x::CuArray{T}, rate::Float64)
     h = CUDNN.handle(x)
     y = similar(x)
@@ -49,3 +50,4 @@ function ∇dropout!{T}(gy::Array{T}, gx::Array{T}, rate::Float64, rx::Array{T})
         gx[i] += ifelse(rx[i] <= T(rate), T(0), scale*gy[i])
     end
 end
+=#

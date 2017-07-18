@@ -4,12 +4,12 @@ export isvoid, topsort, zerograd, zerograd!
 mutable struct Var
     data
     f
-    args::Tuple
+    args
     df!
     grad
 end
 
-function Var(data=nothing, f=nothing, args::Tuple=())
+function Var(data=nothing, f=nothing, args=())
     Var(data, f, args, nothing, nothing)
 end
 
@@ -29,6 +29,13 @@ function zerograd!(v::Var)
         fill!(v.grad, 0)
     end
     v
+end
+
+function forward(f, args...)
+    y = Var(nothing, f, args)
+    any(a -> isvoid(a.data), args) && return y
+    f(y, args...)
+    y
 end
 
 function topsort(tops::Var...)
@@ -82,5 +89,17 @@ function makebatch(batchsize::Int, dataset::Vector{Var}...)
     dataset
 end
 
-readas(::Type{Var}, x) = Var(x["data"], x["f"], x["args"])
 writeas(v::Var) = Dict("data"=>v.data, "f"=>v.f, "args"=>v.args)
+readas(::Type{Var}, d::Dict) = Var(d["data"], d["f"], d["args"])
+
+JLD2.writeas(::Type{Var}) = Dict{Any,Any}
+function JLD2.wconvert(::Type{Dict{Any,Any}}, v::Var)
+    dict = Dict()
+    dict["data"] = v.data
+    dict["f"] = v.f
+    dict["args"] = v.args
+    dict
+end
+function JLD2.rconvert(::Type{Var}, dict::Dict{Any,Any})
+    Var(dict["data"], dict["f"], dict["args"])
+end

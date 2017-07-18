@@ -1,4 +1,4 @@
-type TensorDesc
+struct TensorDesc
     ptr::Ptr{Void}
 end
 

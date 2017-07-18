@@ -1,3 +1,5 @@
+export max_batch
+
 """
     max(x::Var, dim::Int)
 
@@ -12,6 +14,34 @@ function Base.max(x::Var, dim::Int)
         isvoid(x.grad) || ∇max!(y.grad, x.grad, idx)
     end
     y
+end
+
+function max_batch(x::Var, ranges::Vector)
+    y = Var(nothing, max_batch, (x,ranges))
+    isvoid(x.data) && return y
+
+    y.data, idx = findmax_batch(x.data, ranges)
+    y.df! = () -> begin
+        isvoid(x.grad) || ∇max!(y.grad, x.grad, idx)
+    end
+    y
+end
+
+function findmax_batch(x::Array{T,N}, ranges::Vector) where {T,N}
+    y = Array{T}(Base.front(size(x))..., length(ranges))
+    idx = Array{Int}(size(y))
+    incx = stride(x, N)
+
+    for i = 1:length(ranges)
+        _x = view(x, :, ranges[i])
+        _y = view(y, :, i)
+        _idx = view(idx, :, i)
+        findmax!(_y, _idx, _x)
+        @inbounds for j = 1:length(_idx)
+            _idx[j] += incx * (start(ranges[i])-1)
+        end
+    end
+    y, idx
 end
 
 function findmax2(x::Array{T,N}, batchdims::Vector{Int}) where {T,N}

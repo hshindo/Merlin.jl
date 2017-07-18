@@ -1,38 +1,33 @@
-using Merlin
-
 type Model
-    wordfun::Lookup
-    charfun::Graph
-    sentfun::Graph
+    fw
+    fc
+    fs
 end
 
-function Model{T}(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int)
-    wordfun = Lookup(wordembeds)
-
-    x = Var([1,2,3])
-    h = Lookup(charembeds)(x)
-    h = window(h, (50,), pads=(20,), strides=(10,))
-    h = Linear(T,50,50)(h)
-    h = max(h, 2)
-    charfun = Graph([x], [h])
-
-    w = Var(rand(T,100,3))
-    c = Var(rand(T,50,3))
-    h = cat(1, w, c)
-    h = window(h, (750,), pads=(300,), strides=(150,))
-    h = Linear(T,750,300)(h)
-    h = relu(h)
-    h = Linear(T,300,ntags)(h)
-    sentfun = Graph([w,c], [h])
-
-    Model(wordfun, charfun, sentfun)
+function Model(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int) where T
+    fw = @graph w begin
+        Lookup(wordembeds)(w)
+    end
+    fc = @graph c begin
+        c = Lookup(T,100,10)(c)
+        c = Conv1D(T,50,50,20,10)(c)
+        max(c, 2)
+    end
+    fs = @graph s begin
+        s = Conv1D(T,750,300,300,150)(s)
+        s = relu(s)
+        Linear(T,300,ntags)(s)
+    end
+    Model(fw, fc, fs)
 end
 
-function (m::Model)(input::Tuple{Var,Vector{Var}}, y=nothing)
-    w, cs = input
-    wmat = m.wordfun(w)
-    cvecs = map(m.charfun, cs)
-    cmat = cat(2, cvecs...)
-    x = m.sentfun(wmat, cmat)
-    y == nothing ? argmax(x,1) : crossentropy(y,x)
+function (m::Model)(word::Var, chars::Vector{Var})
+    w = m.fw(word)
+    cs = Var[]
+    for i = 1:length(chars)
+        push!(cs, m.fc(chars[i]))
+    end
+    c = cat(2, cs...)
+    s = cat(1, w, c)
+    m.fs(s)
 end

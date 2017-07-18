@@ -21,11 +21,6 @@ x = Var(rand(T,10,5))
 f = Conv1D(T, 10, 7, 0, 1)
 @test checkgrad(()->f(x), x)
 
-# crossentropy
-p = Var(rand(1:10,5))
-q = Var(rand(T,10,5))
-@test checkgrad(()->crossentropy(p,q), q)
-
 # linear
 x = Var(rand(T,10,5))
 f = Linear(T, 10, 7)
@@ -40,11 +35,29 @@ y = f(x)
 x = Var(rand(T,10,5)+1)
 for dim = 1:2
     max(x, dim)
-    @test checkgrad(()->sum(x,dim), x)
+    #@test checkgrad(()->sum(x,dim), x)
 end
+
+# softmax_crossentropy
+p = Var(rand(1:10,5))
+q = Var(rand(T,10,5))
+@test checkgrad(()->softmax_crossentropy(p,q), q)
 
 # window
 x = Var(rand(T,10,5))
 @test checkgrad(()->window1d(x,10,1,1), x)
+
+# softmax
+x1 = Var(rand(T,10)+1)
+x2 = Var(rand(T,10,5)+1)
+for x in (x1,x2)
+    @test checkgrad(()->softmax(x), x)
+    #@test checkgrad(()->logsoftmax(x), x, eps=1e-2)
+end
+
+### loss ###
+x1 = Var(rand(T,10,5))
+x2 = Var(rand(T,10,5))
+@test checkgrad(()->mse(x1,x2), x1)
 
 end

@@ -1,6 +1,7 @@
 module Merlin
 
 using Base.LinAlg.BLAS
+using JLD2
 
 if is_windows()
     const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.dll"))
@@ -10,30 +11,20 @@ else
     throw("Unsupported OS.")
 end
 
-const usecuda = begin
-    libname = is_windows() ? "nvcuda" : "libcuda"
-    !isempty(Libdl.find_library([libname]))
-end
-
-if usecuda
-    #using CUJulia
-    #include("cuda/cudnn/CUDNN.jl")
-    #using .CUDNN
-    type CuArray{T,N}; end
-    CuVector{T} = CuArray{T,1}
-    CuMatrix{T} = CuArray{T,2}
+#=
+if haskey(ENV,"USE_CUDA") && ENV["USE_CUDA"]
+    using CUJulia
+    include("cuda/cudnn/CUDNN.jl")
+    using .CUDNN
 else
     type CuArray{T,N}; end
     CuVector{T} = CuArray{T,1}
     CuMatrix{T} = CuArray{T,2}
 end
-UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
-UniVector{T} = Union{Vector{T},CuVector{T}}
-UniMatrix{T} = Union{Matrix{T},CuMatrix{T}}
+=#
 
 abstract type Functor end
 
-#include("batchedarray.jl")
 include("util.jl")
 include("var.jl")
 include("graph.jl")
@@ -47,7 +38,6 @@ for name in [
     "argmax",
     "blas",
     "cat",
-    "crossentropy",
     "dropout",
     "getindex",
     #"glu",
@@ -62,13 +52,14 @@ for name in [
     #"pooling",
     "reshape",
     "softmax",
+    "softmax_crossentropy",
     "window",
 
     "conv1d",
+    "mse"
     ]
     include("functions/$(name).jl")
-    cudafile = "cuda/functions/$(name).jl"
-    isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)
+    #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)
 end
 
 export update!

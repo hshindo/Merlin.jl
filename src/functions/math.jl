@@ -18,6 +18,7 @@ function ∇exp!(y::Array{T}, gy::Array{T}, gx::Array{T}) where T
     end
 end
 
+#=
 @generated function ∇exp!(y::CuArray{T}, gy::CuArray{T}, gx::CuArray{T}) where T
     f = CuFunction("""
     __global__ void f($T *y, $T *gy, $T *gx, int length) {
@@ -30,6 +31,7 @@ end
         $f(y.ptr, gy.ptr, gx.ptr, length(y), dx=length(y))
     end
 end
+=#
 
 """
     log(x::Var)
@@ -48,6 +50,7 @@ function ∇log!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
     end
 end
 
+#=
 @generated function ∇log!(gy::CuArray{T}, x::CuArray{T}, gx::CuArray{T}) where T
     f = CuFunction("""
     __global__ void f($T *gy, $T *x, $T *gx, int length) {
@@ -60,6 +63,7 @@ end
         $f(gy.ptr, x.ptr, gx.ptr, length(gy), dx=length(gy))
     end
 end
+=#
 
 """
     transpose(x::Var)
@@ -160,7 +164,7 @@ function Base.broadcast(x1::Var, x2::Var)
     y
 end
 
-function ∇elemminus!{T,N}(gy::UniArray{T,N}, gx::UniArray{T,N})
+function ∇elemminus!{T,N}(gy::Array{T,N}, gx::Array{T,N})
     for i = 1:N
         size(gx,i) == 1 && size(gy,i) > 1 && (gy = sum(gy,i))
     end
@@ -205,6 +209,7 @@ function ∇elemtimes!{T,N}(gy::Array{T,N}, x2::Array{T,N}, gx1::Array{T,N})
     end
 end
 
+#=
 @generated function ∇elemtimes!{T,N}(gy::CuArray{T,N}, x2::CuArray{T,N}, gx1::CuArray{T,N})
     f = CuFunction("""
     __global__ void f(Array<$T,$N> gy, Array<$T,$N> x2, Array<$T,$N> gx1) {
@@ -225,6 +230,7 @@ end
         end
     end
 end
+=#
 
 #=
 function ∇elemtimes!{T}(gy::Array{T}, x2::Array{T}, gx1::Array{T})

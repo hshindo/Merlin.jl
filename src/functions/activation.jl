@@ -6,21 +6,21 @@ import Base.tanh
 """
 function relu(x::Var)
     y = Var(nothing, relu, (x,))
-    isvoid(x.data) && return y
-
-    y.data = relu(x.data)
-    y.df! = () -> begin
-        isvoid(x.grad) || ∇relu!(y.grad, x.data, x.grad)
-    end
+    isvoid(x.data) || relu!(y, x.data)
     y
 end
 
-function relu(x::Array{T}) where T
+function relu!(out::Var, x::Array{T}) where T
     y = similar(x)
     @inbounds for i = 1:length(x)
         y[i] = max(x[i], T(0))
     end
-    y
+
+    out.data = y
+    out.df! = () -> begin
+        isvoid(out[1].grad) && return
+        ∇relu!(out.grad, out[1].data, out[1].grad)
+    end
 end
 
 function ∇relu!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
@@ -34,21 +34,21 @@ end
 """
 function clipped_relu(x::Var)
     y = Var(nothing, clipped_relu, (x,))
-    isvoid(x.data) && return y
-
-    y.data = clipped_relu(x.data)
-    y.df! = () -> begin
-        isvoid(x.grad) || ∇clipped_relu!(y.grad, x.data, x.grad)
-    end
+    isvoid(x.data) || clipped_relu!(y, x.data)
     y
 end
 
-function clipped_relu!(x::Array{T}) where T
+function clipped_relu!(out::Var, x::Array{T}) where T
     y = similar(x)
     @inbounds for i = 1:length(x)
         y[i] = min(max(x[i],T(0)), T(20))
     end
-    y
+
+    out.data = y
+    out.df! = () -> begin
+        isvoid(out[1].grad) && return
+        ∇clipped_relu!(out.grad, out[1].data, out[1].grad)
+    end
 end
 
 function ∇clipped_relu!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
@@ -62,21 +62,21 @@ end
 """
 function sigmoid(x::Var)
     y = Var(nothing, sigmoid, (x,))
-    isvoid(x.data) && return y
-
-    y.data = sigmoid(x.data)
-    y.df! = () -> begin
-        isvoid(x.grad) || ∇sigmoid!(y.data, y.grad, x.data, x.grad)
-    end
+    isvoid(x.data) || sigmoid!(y, x.data)
     y
 end
 
-function sigmoid(x::Array{T}) where T
+function sigmoid!(out::Var, x::Array{T}) where T
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
         y[i] = 1 / (1 + exp(-x[i]))
     end
-    y
+
+    out.data = y
+    out.df! = () -> begin
+        isvoid(out[1].grad) && return
+        ∇sigmoid!(out.data, out.grad, out[1].data, out[1].grad)
+    end
 end
 
 function ∇sigmoid!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
@@ -90,13 +90,16 @@ end
 """
 function tanh(x::Var)
     y = Var(nothing, tanh, (x,))
-    isvoid(x.data) && return y
-
-    y.data = tanh.(x.data)
-    y.df! = () -> begin
-        isvoid(x.grad) || ∇tanh!(y.data, y.grad, x.data, x.grad)
-    end
+    isvoid(x.data) || tanh!(y, x.data)
     y
+end
+
+function tanh!(out::Var, x::Array{T}) where T
+    out.data = tanh.(x)
+    out.df! = () -> begin
+        isvoid(out[1].grad) && return
+        ∇tanh!(out.data, out.grad, out[1].data, out[1].grad)
+    end
 end
 
 function ∇tanh!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})

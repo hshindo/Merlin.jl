@@ -22,8 +22,9 @@ f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
 function softmax(x::Var)
-    throw("Not tested yet.")
     y = Var(nothing, softmax, (x,))
+    isvoid(x.data) && return y
+
     softmax!(y, x.data)
     y
 end
@@ -31,7 +32,7 @@ end
 function softmax!(out::Var, x::Array)
     out.data = softmax(x)
     out.df! = () -> begin
-        isconst(out[1]) || ∇softmax!(out.data, out.grad, out[1].grad)
+        isvoid(out[1].grad) || ∇softmax!(out.data, out.grad, out[1].grad)
     end
 end
 

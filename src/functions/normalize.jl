@@ -12,17 +12,6 @@ function forward{T}(::typeof(normalize), x::Matrix{T})
     y, backward!
 end
 
-@generated function normalize{T}(x::CuMatrix{T})
-    f = CuFunction("""
-    __global__ void f($T *y, $U *x, int length) {
-        int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        
-    }
-    """)
-    quote
-    end
-end
-
 function ∇normalize!{T}(gy::Matrix{T}, x::Matrix{T}, gx::Matrix{T}, z::Matrix{T})
     s = sum(x, 1)
     for j = 1:size(x,2)

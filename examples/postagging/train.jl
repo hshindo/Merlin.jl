@@ -7,7 +7,7 @@ const wordembeds_file = "wordembeds_nyt100.h5"
 function train()
     words = h5read(wordembeds_file, "s")
     worddict = Dict(words[i] => i for i=1:length(words))
-    chardict = Dict{Char,Int}()
+    chardict = Dict{Char,Int}(' ' => 1)
     tagdict = Dict{String,Int}()
     #traindoc = UD_English.traindata()
     #testdoc = UD_English.testdata()
@@ -19,32 +19,29 @@ function train()
     info("# chars: $(length(chardict))")
     info("# postags: $(length(tagdict))")
 
-    nn = setup_nn(length(tagdict))
+    nn = Model(length(tagdict))
     opt = SGD()
     for epoch = 1:10
         println("epoch: $epoch")
-        totalloss = 0.0
-        batchsize = 1
+        loss = 0.0
         opt.rate = 0.0075 / epoch
 
-        progress = Progress(length(batches[1]))
-        for (w,c,t) in zip(batches...)
-            minimize!() do data
-                
-            end
+        progress = Progress(length(train_w))
+        for i = randperm(length(train_w))
+            w, c, t = train_w[i], train_c[i], train_t[i]
             y = nn(w, c)
-            loss = crossentropy(t, y)
-            totalloss += sum(loss.data)
-            minimize!(opt, loss)
+            out = softmax_crossentropy(t, y)
+            loss += sum(out.data)
+            minimize!(opt, out)
             next!(progress)
         end
-        totalloss = round(totalloss/length(train_w), 5)
-        println("loss: $(totalloss)")
+        loss = round(loss/length(train_w), 5)
+        println("loss: $loss")
 
         ys = Int[]
         zs = Int[]
-        batches = makebatch(100, test_w, test_c, test_t)
-        for (w,c,t) in zip(batches...)
+        #batches = makebatch(100, test_w, test_c, test_t)
+        for (w,c,t) in zip(test_w,test_c,test_t)
             append!(ys, t.data)
             y = nn(w, c)
             z = argmax(y.data, 1)
@@ -58,6 +55,8 @@ function train()
         acc = round(acc, 5)
         println("test acc.: $acc")
         println()
+
+
     end
 end
 
