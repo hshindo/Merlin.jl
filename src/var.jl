@@ -91,15 +91,3 @@ end
 
 writeas(v::Var) = Dict("data"=>v.data, "f"=>v.f, "args"=>v.args)
 readas(::Type{Var}, d::Dict) = Var(d["data"], d["f"], d["args"])
-
-JLD2.writeas(::Type{Var}) = Dict{Any,Any}
-function JLD2.wconvert(::Type{Dict{Any,Any}}, v::Var)
-    dict = Dict()
-    dict["data"] = v.data
-    dict["f"] = v.f
-    dict["args"] = v.args
-    dict
-end
-function JLD2.rconvert(::Type{Var}, dict::Dict{Any,Any})
-    Var(dict["data"], dict["f"], dict["args"])
-end

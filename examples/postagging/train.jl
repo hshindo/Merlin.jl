@@ -26,6 +26,7 @@ function train()
         loss = 0.0
         opt.rate = 0.0075 / epoch
 
+        #=
         progress = Progress(length(train_w))
         for i = randperm(length(train_w))
             w, c, t = train_w[i], train_c[i], train_t[i]
@@ -36,6 +37,13 @@ function train()
             next!(progress)
         end
         loss = round(loss/length(train_w), 5)
+        =#
+        function train_f(data::Tuple)
+            w, c, t = data
+            y = nn(w, c)
+            softmax_crossentropy(t, y)
+        end
+        loss = minimize!(train_f, opt, collect(zip(train_w,train_c,train_t)))
         println("loss: $loss")
 
         ys = Int[]
@@ -55,8 +63,6 @@ function train()
         acc = round(acc, 5)
         println("test acc.: $acc")
         println()
-
-
     end
 end
 

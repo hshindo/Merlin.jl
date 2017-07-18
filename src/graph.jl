@@ -70,17 +70,8 @@ function (g::Graph)(inputs::Var...)
     length(outputs) == 1 ? outputs[1] : outputs
 end
 
-JLD2.writeas(::Type{Graph}) = Dict{Any,Any}
-function JLD2.wconvert(::Type{Dict{Any,Any}}, g::Graph)
-    dict = Dict()
-    dict["nodes"] = g.nodes
-    dict["inputs"] = g.inputs
-    dict["outputs"] = g.outputs
-    dict
-end
-function JLD2.rconvert(::Type{Graph}, dict::Dict{Any,Any})
-    Graph(dict["nodes"], dict["inputs"], dict["outputs"])
-end
+writeas(g::Graph) = Dict("nodes"=>g.nodes, "inputs"=>g.inputs, "outputs"=>g.outputs)
+readas(::Type{Graph}, d::Dict) = Graph(d["nodes"], d["inputs"], d["outputs"])
 
 #=
 function (g::Graph)(inputs::Vector{Var})

@@ -1,7 +1,6 @@
 module Merlin
 
 using Base.LinAlg.BLAS
-using JLD2
 
 if is_windows()
     const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.dll"))
