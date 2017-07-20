@@ -70,9 +70,6 @@ function (g::Graph)(inputs::Var...)
     length(outputs) == 1 ? outputs[1] : outputs
 end
 
-readas(::Type{Graph}, d::Dict) = Graph(d["nodes"], d["inputs"], d["outputs"])
-writeas(g::Graph) = Dict("nodes"=>g.nodes, "inputs"=>g.inputs, "outputs"=>g.outputs)
-
 #=
 function (g::Graph)(inputs::Vector{Var})
     ys = Var[]

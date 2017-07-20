@@ -1,7 +1,7 @@
 using HDF5
 using Merlin
 
-type Segmenter <: Serializable
+type Segmenter
     word2id::Dict
     char2id::Dict
     tag2id::Dict
@@ -19,7 +19,8 @@ function Segmenter(ntags::Int)
     id2tag = Dict{Int,String}()
     wordembeds = h5read(wordembeds_file, "v")
     charembeds = rand(Float32, 100, 100)
-    nn = Model(wordembeds, charembeds, ntags)
+    #nn = Model(wordembeds, charembeds, ntags)
+    nn = nothing
     Segmenter(word2id, char2id, tag2id, id2tag, nn)
 end
 
@@ -33,7 +34,7 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
     info("# tags: $(length(seg.tag2id))")
 
     opt = SGD(0.005)
-    for epoch = 1:20
+    for epoch = 1:1
         println("epoch: $epoch")
         #opt.rate = 0.0075 / epoch
 
@@ -77,9 +78,11 @@ include("model.jl")
 # training
 seg = Segmenter(13)
 path = joinpath(dirname(@__FILE__), ".data")
-train(seg, "$(path)/eng.train", "$(path)/eng.testb")
-Merlin.save("ner.h5", seg)
+#train(seg, "$(path)/eng.train", "$(path)/eng.testb")
 
+Merlin.save("ner.h5", seg)
+#using Merlin
+#Merlin.load(joinpath(dirname(@__FILE__),"ner.h5"))
 
 # chunking
 # path = joinpath(dirname(@__FILE__), ".data/chunking")
