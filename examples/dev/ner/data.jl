@@ -13,11 +13,11 @@ function readdata!(seg::Segmenter, path::String)
         else
             items = split(line, "\t")
             word = String(items[1])
-            word0 = replace(word, r"[0-9]", '0')
-            wordid = get(seg.word2id, lowercase(word0), unkwordid)
+            #word0 = replace(word, r"[0-9]", '0')
+            wordid = get(seg.word2id, lowercase(word), unkwordid)
             push!(w, wordid)
 
-            chars = Vector{Char}(word0)
+            chars = Vector{Char}(word)
             charids = map(chars) do c
                 get!(seg.char2id, string(c), length(seg.char2id)+1)
             end

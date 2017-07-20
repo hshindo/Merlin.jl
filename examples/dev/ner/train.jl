@@ -11,30 +11,29 @@ end
 
 function Segmenter(ntags::Int)
     # h5file = "glove.6B.100d.h5"
-    wordembeds_file = "wordembeds_nyt100.h5"
-    words = h5read(wordembeds_file, "s")
+    wordembeds_file = ".data/glove.6B.100d.h5"
+    words = h5read(wordembeds_file, "key")
     word2id = Dict(words[i] => i for i=1:length(words))
     char2id = Dict{String,Int}()
     tag2id = Dict{String,Int}()
     id2tag = Dict{Int,String}()
-    wordembeds = h5read(wordembeds_file, "v")
+    wordembeds = h5read(wordembeds_file, "value")
     charembeds = rand(Float32, 100, 100)
-    #nn = Model(wordembeds, charembeds, ntags)
-    nn = nothing
+    nn = Model(wordembeds, charembeds, ntags)
     Segmenter(word2id, char2id, tag2id, id2tag, nn)
 end
 
 function train(seg::Segmenter, trainfile::String, testfile::String)
     train_w, train_c, train_t = readdata!(seg, trainfile)
     test_w, test_c, test_t = readdata!(seg, testfile)
-    info("# sentences of train data: $(length(train_w))")
-    info("# sentences of test data: $(length(test_w))")
-    info("# words: $(length(seg.word2id))")
-    info("# chars: $(length(seg.char2id))")
-    info("# tags: $(length(seg.tag2id))")
+    info("# Training sentences:\t$(length(train_w))")
+    info("# Testing sentences:\t$(length(test_w))")
+    info("# Words:\t$(length(seg.word2id))")
+    info("# Chars:\t$(length(seg.char2id))")
+    info("# Tags:\t$(length(seg.tag2id))")
 
     opt = SGD(0.005)
-    for epoch = 1:1
+    for epoch = 1:10
         println("epoch: $epoch")
         #opt.rate = 0.0075 / epoch
 
@@ -63,10 +62,10 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
         preds = map(id -> seg.id2tag[id], zs)
         golds = map(id -> seg.id2tag[id], ys)
         prec, recall, fval = fscore(preds, golds)
-        println("acc: $acc")
-        println("prec: $prec")
-        println("recall: $recall")
-        println("fscore: $fval")
+        println("Accuracy:\t$acc")
+        println("Precision:\t$prec")
+        println("Recall:\t$recall")
+        println("Fscore:\t$fval")
         println()
     end
 end
@@ -78,9 +77,9 @@ include("model.jl")
 # training
 seg = Segmenter(13)
 path = joinpath(dirname(@__FILE__), ".data")
-#train(seg, "$(path)/eng.train", "$(path)/eng.testb")
+train(seg, "$(path)/eng.train", "$(path)/eng.testb")
+#Merlin.save("ner.h5", seg.nn)
 
-Merlin.save("ner.h5", seg)
 #using Merlin
 #Merlin.load(joinpath(dirname(@__FILE__),"ner.h5"))
 

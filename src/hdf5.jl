@@ -69,6 +69,7 @@ Save an object in Merlin HDF5 format.
 * mode: "w" (overrite) or "r+" (append)
 """
 function save(path::String, obj, mode="w")
+    info("Saving the object...")
     h5obj = convert(H5Object, obj)
     h5open(path, mode) do h
         h["JULIA_VERSION"] = string(VERSION)
@@ -103,6 +104,7 @@ end
 Load an object from Merlin HDF5 format.
 """
 function load(path::String)
+    info("Loading the object...")
     dict = h5open(path, "r") do h
         d = Dict{String,Any}()
         for name in names(h)
@@ -132,24 +134,4 @@ function h5load(dataset::HDF5Dataset)
     else
         data
     end
-end
-
-"""
-Convert plain-text to HDF5 format
-"""
-function text2h5(srcpath::String, delim::Char, T::Type)
-    destpath = srcpath * ".h5"
-    keys = String[]
-    values = T[]
-    lines = open(readlines, srcpath)
-    for line in lines
-        line = chomp(line)
-        items = split(line, delim)
-        push!(keys, String(items[1]))
-        value = T[parse(T,items[i]) for i=2:length(items)]
-        append!(values, value)
-    end
-    v = reshape(values, length(values)÷length(lines), length(lines))
-    h5write(destpath, "key", keys)
-    h5write(destpath, "value", v)
 end

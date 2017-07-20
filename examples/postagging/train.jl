@@ -12,16 +12,16 @@ function train()
     #testdoc = UD_English.testdata()
     train_w, train_c, train_t = readdata(".data/wsj_00-18.conll", worddict, chardict, tagdict)
     test_w, test_c, test_t = readdata(".data/wsj_22-24.conll", worddict, chardict, tagdict)
-    info("# train sentences: $(length(train_w))")
-    info("# test sentences: $(length(test_w))")
-    info("# words: $(length(worddict))")
-    info("# chars: $(length(chardict))")
-    info("# postags: $(length(tagdict))")
+    info("# training sentences:\t$(length(train_w))")
+    info("# testing sentences:\t$(length(test_w))")
+    info("# words:\t$(length(worddict))")
+    info("# chars:\t$(length(chardict))")
+    info("# tags:\t$(length(tagdict))")
 
     nn = Model(length(tagdict))
     opt = SGD()
     for epoch = 1:10
-        println("epoch: $epoch")
+        println("Epoch: $epoch")
         opt.rate = 0.0075 / epoch
 
         function train_f(data::Tuple)
@@ -31,7 +31,7 @@ function train()
         end
         train_data = collect(zip(train_w, train_c, train_t))
         loss = minimize!(train_f, opt, train_data)
-        println("loss: $loss")
+        println("Average loss: $loss")
 
         # test
         function test_f(data::Tuple)
@@ -46,9 +46,10 @@ function train()
 
         acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))
         acc = round(acc, 5)
-        println("test acc.: $acc")
+        println("Test acc.:\t$acc")
         println()
     end
+    Merlin.save("postagger.h5", nn)
 end
 
 include("data.jl")
