@@ -1,11 +1,11 @@
-abstract Tagset
+abstract type Tagset end
 
 """
 * I: begin or internal
 * O: outside
 * E: end
 """
-immutable BIO <: Tagset
+struct BIO <: Tagset
     B::Int
     I::Int
     O::Int

@@ -1,3 +1,6 @@
+function aaa()
+end
+
 function readdata!(seg::Segmenter, path::String)
     data_w, data_c, data_t = Var[], Vector{Var}[], Var[]
     w, c, t = Int[], Var[], Int[]
