@@ -33,8 +33,8 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
     info("# Tags:\t$(length(seg.tag2id))")
 
     opt = SGD(0.005)
-    for epoch = 1:10
-        println("Epoch: $epoch")
+    for epoch = 1:1
+        println("Epoch:\t$epoch")
         #opt.rate = 0.0075 / epoch
 
         function train_f(data::Tuple)
@@ -44,7 +44,7 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
         end
         train_data = collect(zip(train_w, train_c, train_t))
         loss = minimize!(train_f, opt, train_data)
-        println("Loss: $loss")
+        println("Loss:\t$loss")
 
         # test
         println("Testing...")
@@ -65,7 +65,7 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
         println("Accuracy:\t$acc")
         println("Precision:\t$prec")
         println("Recall:\t$recall")
-        println("Fscore:\t$fval")
+        println("FScore:\t$fval")
         println()
     end
 end
@@ -78,7 +78,7 @@ include("model.jl")
 seg = Segmenter(13)
 path = joinpath(dirname(@__FILE__), ".data")
 train(seg, "$(path)/eng.train", "$(path)/eng.testb")
-#Merlin.save("ner.h5", seg.nn)
+Merlin.save("ner.h5", seg.nn)
 
 #using Merlin
 #Merlin.load(joinpath(dirname(@__FILE__),"ner.h5"))

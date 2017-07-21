@@ -25,13 +25,13 @@ end
 function convert(::Type{H5Object}, x::Dict)
     H5Object(typeof(x), Dict("keys"=>collect(keys(x)), "values"=>collect(values(x))))
 end
-function convert(::Type{H5Object}, x)
-    T = typeof(x)
-    if isa(T, DataType)
+function convert(::Type{H5Object}, x::T) where T
+    m = Base.datatype_module(T)
+    if m == Main || m == Core || m == Base
+        throw("Type $T is not serializable.")
+    else
         d = Dict(string(name)=>getfield(x,name) for name in fieldnames(x))
         H5Object(T, d)
-    else
-        throw("Type $T is not serializable.")
     end
 end
 
@@ -39,6 +39,20 @@ convert(::Type{T}, o::H5Object) where T<:Union{Void,DataType,Function} = eval(pa
 convert(::Type{Char}, o::H5Object) = Vector{Char}(o.data)[1]
 convert(::Type{Symbol}, o::H5Object) = parse(o.data)
 convert(::Type{Function}, o::H5Object) = eval(parse(o.data))
+function convert(::Type{Array{T,N}}, o::H5Object) where {T,N}
+    if T <: Union{Real,String}
+        o.data
+    elseif N == 1
+        dict = o.data
+        data = Array{T}(length(dict))
+        for (k,v) in dict
+            data[parse(Int,k)] = v
+        end
+        data
+    else
+        throw("Not supported yet.")
+    end
+end
 function convert(::Type{T}, o::H5Object) where T<:Tuple
     dict = o.data
     data = Array{Any}(length(dict))
@@ -53,12 +67,13 @@ function convert(::Type{T}, o::H5Object) where T<:Dict
     Dict(k=>v for (k,v) in zip(keys,values))
 end
 function convert(::Type{T}, o::H5Object) where T
-    if isa(T, DataType)
+    m = Base.datatype_module(T)
+    if m == Main || m == Core || m == Base
+        throw("Type $T is not deserializable.")
+    else
         dict = o.data
         values = map(name -> dict[string(name)], fieldnames(T))
         T(values...)
-    else
-        throw("Type $T is not deserializable.")
     end
 end
 
@@ -130,7 +145,7 @@ function h5load(dataset::HDF5Dataset)
     if exists(attrs(dataset), "JULIA_TYPE")
         attr = read(attrs(dataset), "JULIA_TYPE")
         T = eval(current_module(), parse(attr))
-        convert(T, H5Object(data))
+        convert(T, H5Object(T,data))
     else
         data
     end
