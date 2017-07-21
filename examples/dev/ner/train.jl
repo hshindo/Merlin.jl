@@ -77,7 +77,7 @@ include("model.jl")
 function train()
     seg = Segmenter(6)
     path = joinpath(dirname(@__FILE__), ".data")
-    #train(seg, "$(path)/eng.train", "$(path)/eng.testb")
+    train(seg, "$(path)/eng.train", "$(path)/eng.testb")
     Merlin.save("ner.merlin", seg)
 end
 

@@ -19,8 +19,9 @@ function convert(::Type{H5Object}, x::Array{T,N}) where {T,N}
         throw("Not supported yet.")
     end
 end
+
 function convert(::Type{H5Object}, x::Tuple)
-    H5Object(typeof(x), Dict(string(i)=>x[i] for i=1:length(x)))
+    H5Object(Tuple, Dict(string(i)=>x[i] for i=1:length(x)))
 end
 function convert(::Type{H5Object}, x::Dict)
     H5Object(typeof(x), Dict("keys"=>collect(keys(x)), "values"=>collect(values(x))))
@@ -69,7 +70,7 @@ function convert(::Type{T}, o::H5Object) where T<:Dict
 end
 function convert(::Type{T}, o::H5Object) where T
     m = Base.datatype_module(T)
-    if m == Main || m == Core || m == Base
+    if m == Core || m == Base
         throw("Type $T is not deserializable.")
     else
         dict = o.data
@@ -137,7 +138,6 @@ function h5load(group::HDF5Group)
         dict[name] = h5load(group[name])
     end
     attr = read(attrs(group), "JULIA_TYPE")
-    println(attr)
     T = eval(current_module(), parse(attr))
     convert(T, H5Object(T,dict))
 end

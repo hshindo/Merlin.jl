@@ -4,8 +4,6 @@ docs/site/
 sandbox.jl
 benchmark.jl
 .data
-*.h5
 *.so
 *.dll
-*.merlin
 /mkl
