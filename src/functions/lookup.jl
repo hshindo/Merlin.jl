@@ -67,8 +67,9 @@ function update!(f::Lookup, opt)
     empty!(f.idset)
 end
 
-readas(::Type{Lookup}, params) = Lookup(params, IntSet())
-function writeas(f::Lookup)
+function Base.convert(::Type{H5Object}, f::Lookup)
     data = map(p -> p.data, f.params)
-    hcat(data...)
+    data = hcat(data...)
+    H5Object(Lookup, data)
 end
+Base.convert(::Type{Lookup}, o::H5Object) = Lookup(o.data)

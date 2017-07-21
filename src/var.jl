@@ -88,6 +88,3 @@ function makebatch(batchsize::Int, dataset::Vector{Var}...)
     end
     dataset
 end
-
-writeas(v::Var) = Dict("data"=>v.data, "f"=>v.f, "args"=>v.args)
-readas(::Type{Var}, d::Dict) = Var(d["data"], d["f"], d["args"])

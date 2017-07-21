@@ -74,15 +74,17 @@ include("data.jl")
 include("eval.jl")
 include("model.jl")
 
-# training
-seg = Segmenter(13)
-path = joinpath(dirname(@__FILE__), ".data")
-train(seg, "$(path)/eng.train", "$(path)/eng.testb")
-Merlin.save("ner.h5", seg.nn)
+function train()
+    seg = Segmenter(6)
+    path = joinpath(dirname(@__FILE__), ".data")
+    #train(seg, "$(path)/eng.train", "$(path)/eng.testb")
+    Merlin.save("ner.merlin", seg)
+end
 
-#using Merlin
-#Merlin.load(joinpath(dirname(@__FILE__),"ner.h5"))
+function decode()
+    seg = Merlin.load("ner.merlin")
 
-# chunking
-# path = joinpath(dirname(@__FILE__), ".data/chunking")
-# train(seg, "$(path)/train.txt", "$(path)/test.txt")
+end
+
+train()
+decode()

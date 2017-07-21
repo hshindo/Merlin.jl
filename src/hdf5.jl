@@ -27,7 +27,7 @@ function convert(::Type{H5Object}, x::Dict)
 end
 function convert(::Type{H5Object}, x::T) where T
     m = Base.datatype_module(T)
-    if m == Main || m == Core || m == Base
+    if m == Core || m == Base
         throw("Type $T is not serializable.")
     else
         d = Dict(string(name)=>getfield(x,name) for name in fieldnames(x))
@@ -35,6 +35,7 @@ function convert(::Type{H5Object}, x::T) where T
     end
 end
 
+convert(::Type{<:Union{Real,String}}, o::H5Object) = o.data
 convert(::Type{T}, o::H5Object) where T<:Union{Void,DataType,Function} = eval(parse(o.data))
 convert(::Type{Char}, o::H5Object) = Vector{Char}(o.data)[1]
 convert(::Type{Symbol}, o::H5Object) = parse(o.data)
@@ -136,6 +137,7 @@ function h5load(group::HDF5Group)
         dict[name] = h5load(group[name])
     end
     attr = read(attrs(group), "JULIA_TYPE")
+    println(attr)
     T = eval(current_module(), parse(attr))
     convert(T, H5Object(T,dict))
 end

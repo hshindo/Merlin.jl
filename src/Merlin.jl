@@ -24,6 +24,7 @@ end
 
 abstract type Functor end
 
+include("hdf5.jl")
 include("util.jl")
 include("var.jl")
 include("graph.jl")
@@ -70,9 +71,8 @@ for name in [
     include("optimizers/$(name).jl")
 end
 
-include("hdf5.jl")
 #include("caffe/Caffe.jl")
 
-info("# Threads:\t$(Threads.nthreads())")
+info("# Threads: $(Threads.nthreads())")
 
 end
