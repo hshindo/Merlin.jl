@@ -73,6 +73,6 @@ end
 include("hdf5.jl")
 #include("caffe/Caffe.jl")
 
-info("# threads: $(Threads.nthreads())")
+info("# Threads:\t$(Threads.nthreads())")
 
 end

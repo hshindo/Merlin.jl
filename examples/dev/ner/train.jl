@@ -10,8 +10,8 @@ type Segmenter
 end
 
 function Segmenter(ntags::Int)
-    # h5file = "glove.6B.100d.h5"
     wordembeds_file = ".data/glove.6B.100d.h5"
+    #wordembeds_file = ".data/word2vec_nyt100d.h5"
     words = h5read(wordembeds_file, "key")
     word2id = Dict(words[i] => i for i=1:length(words))
     char2id = Dict{String,Int}()
@@ -34,7 +34,7 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
 
     opt = SGD(0.005)
     for epoch = 1:10
-        println("epoch: $epoch")
+        println("Epoch: $epoch")
         #opt.rate = 0.0075 / epoch
 
         function train_f(data::Tuple)
@@ -44,10 +44,10 @@ function train(seg::Segmenter, trainfile::String, testfile::String)
         end
         train_data = collect(zip(train_w, train_c, train_t))
         loss = minimize!(train_f, opt, train_data)
-        println("loss: $loss")
+        println("Loss: $loss")
 
         # test
-        println("testing...")
+        println("Testing...")
         function test_f(data::Tuple)
             w, c = data
             y = seg.nn(w, c)

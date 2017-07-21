@@ -13,7 +13,7 @@ function readdata!(seg::Segmenter, path::String)
         else
             items = split(line, "\t")
             word = String(items[1])
-            #word0 = replace(word, r"[0-9]", '0')
+            #word = replace(word, r"[0-9]", '0')
             wordid = get(seg.word2id, lowercase(word), unkwordid)
             push!(w, wordid)
 
