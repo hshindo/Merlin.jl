@@ -22,19 +22,19 @@ function softmax_crossentropy(p::Var, q::Var)
 end
 
 function softmax_crossentropy!(out::Var, p::Vector{Int}, q::Matrix{T}) where T
-    logq = logsoftmax(q)
-    out.data = crossentropy(p, logq)
+    out.data, logq = softmax_crossentropy(p, q)
     out.df! = () -> begin
-        isvoid(out[2].grad) || ∇softmax_crossentropy!(out.grad, p, logq, out[2].grad)
+        isvoid(out[2].grad) || ∇softmax_crossentropy!(out.grad, out[1].data, logq, out[2].grad)
     end
 end
 
-function crossentropy(p::Vector{Int}, logq::Matrix{T}) where T
-    y = Array{T}(1, length(p))
+function softmax_crossentropy(p::Vector{Int}, q::Matrix{T}) where T
+    logq = logsoftmax(q)
+    y = Array{T}(length(p))
     for i = 1:length(p)
         y[i] = p[i] > 0 ? -logq[p[i],i] : T(0)
     end
-    y
+    y, logq
 end
 
 #=
@@ -55,7 +55,7 @@ end
 end
 =#
 
-function ∇softmax_crossentropy!(gy::Matrix{T}, p::Vector{Int}, logq::Matrix{T}, gq::Matrix{T}) where T
+function ∇softmax_crossentropy!(gy::Vector{T}, p::Vector{Int}, logq::Matrix{T}, gq::Matrix{T}) where T
     @inbounds for j = 1:length(p)
         g = gy[j]
         p[j] > 0 || continue

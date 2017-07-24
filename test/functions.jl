@@ -21,6 +21,11 @@ x = Var(rand(T,10,5))
 f = Conv1D(T, 10, 7, 0, 1)
 @test checkgrad(()->f(x), x)
 
+# crossentropy
+p = Var(rand(1:10,5))
+q = Var(softmax(rand(T,10,5)))
+# @test checkgrad(()->crossentropy(p,q), q)
+
 # linear
 x = Var(rand(T,10,5))
 f = Linear(T, 10, 7)

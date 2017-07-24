@@ -38,6 +38,7 @@ for name in [
     "argmax",
     "blas",
     "cat",
+    "crossentropy",
     "dropout",
     "getindex",
     #"glu",

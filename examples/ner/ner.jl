@@ -69,6 +69,7 @@ function train(ner::NER, trainfile::String, testfile::String)
         function train_f(data::Tuple)
             w, c, t = data
             y = ner.model(w, c)
+            #crossentropy(t, softmax(y))
             softmax_crossentropy(t, y)
         end
         train_data = collect(zip(train_w, train_c, train_t))
