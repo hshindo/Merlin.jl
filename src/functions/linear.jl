@@ -35,8 +35,6 @@ end
 (f::Linear)(x::Var) = f.w * x .+ f.b
 
 
-
-
 export NormLinear
 type NormLinear
     v::Var

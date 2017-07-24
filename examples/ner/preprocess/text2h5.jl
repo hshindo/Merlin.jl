@@ -25,5 +25,5 @@ function text2h5(path::String; delim=' ')
     h5write(path*".h5", "value", v)
 end
 
-path = joinpath(dirname(@__FILE__), "glove.6B.100d.txt")
+path = joinpath(dirname(@__FILE__), "glove.840B.300d.txt")
 text2h5(path)
