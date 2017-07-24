@@ -1,4 +1,4 @@
-type Model
+struct Model
     fw
     fc
     fs
