@@ -26,6 +26,11 @@ p = Var(rand(1:10,5))
 q = Var(softmax(rand(T,10,5)))
 # @test checkgrad(()->crossentropy(p,q), q)
 
+# getindex
+x = Var(rand(T,10,5))
+@test checkgrad(()->x[1:3,:], x)
+@test checkgrad(()->x[2:10,3], x)
+
 # linear
 x = Var(rand(T,10,5))
 f = Linear(T, 10, 7)
@@ -35,6 +40,12 @@ f = Linear(T, 10, 7)
 x = Var(rand(1:100,10))
 f = Lookup(T, 100, 10)
 y = f(x)
+
+# math
+x1 = Var(rand(T,10,5))
+x2 = Var(rand(T,10,5))
+@test checkgrad(()->x1+x2, x1, x2)
+@test checkgrad(()->-x1, x1)
 
 # reduce
 x = Var(rand(T,10,5)+1)

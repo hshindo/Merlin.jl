@@ -3,7 +3,7 @@ using Merlin
 
 include("tagset.jl")
 include("ner.jl")
-include("model.jl")
+include("model2.jl")
 
 const wordembeds_file = ".data/glove.6B.100d.h5"
 #const datapath = joinpath(dirname(@__FILE__), ".data")

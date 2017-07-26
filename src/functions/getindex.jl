@@ -11,24 +11,18 @@ y = x[2:2]
 Note that `y = x[i]` throws an error since `y` is not a vector but a scholar.
 Instead, use `y = x[i:i]`.
 """
-getindex(x::Var, inds::Tuple) = GetIndex(inds)(x)
-getindex(x::Var, inds...) = getindex(x, inds)
-
-#islinear{T,N,P,I,L}(x::SubArray{T,N,P,I,L}) = L
-
-type GetIndex
-    inds::Tuple
-end
-
-function (f::GetIndex)(x::Var)
+function getindex(x::Var, inds::Tuple)
     #v = view(x.data, f.inds...)
     #data = islinear(v) ? unsafe_wrap(Array,pointer(v),size(v)) : x.data[f.inds...]
-    data = x.data[f.inds...]
-    y = Var(data, f, (x,))
-    y.df! = function df!()
+
+    y = Var(nothing, getindex, (x,inds))
+    isvoid(x.data) && return y
+    y.data = x.data[inds...]
+    y.df! = () -> begin
         isvoid(x.grad) && return
-        gx = view(x.grad, f.inds...)
+        gx = view(x.grad, inds...)
         broadcast!(+, gx, gx, y.grad)
     end
     y
 end
+getindex(x::Var, inds::Union{Int,Range,Colon}...) = getindex(x, inds)

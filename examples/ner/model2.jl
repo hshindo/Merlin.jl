@@ -2,8 +2,12 @@ struct Model
     fw
     fc
     fs
+    O
     q0
-    L
+    q1
+    Y1
+    Y2
+    conv
 end
 
 function Model(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int) where T
@@ -20,11 +24,16 @@ function Model(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int) where T
         d = size(wordembeds,1) + size(charembeds,1)*5
         s = Conv1D(T,5d,2d,2d,d)(s)
         s = relu(s)
-        Linear(T,2d,ntags)(s)
+        s
     end
+    d = size(wordembeds,1) + size(charembeds,1)*5
+    O = Linear(T,2d,ntags)
     q0 = zerograd(rand(T,ntags,1))
-    L = zerograd(rand(T,ntags,ntags))
-    Model(fw, fc, fs, q0, L)
+    q1 = zerograd(rand(T,ntags,1))
+    Y1 = zerograd(rand(T,ntags,ntags))
+    Y2 = zerograd(rand(T,ntags,ntags))
+    conv = Conv1D(T,6d,ntags,2d,2d)
+    Model(fw, fc, fs, O, q0, q1, Y1, Y2, conv)
 end
 
 function (m::Model)(word::Var, chars::Vector{Var})
@@ -35,13 +44,17 @@ function (m::Model)(word::Var, chars::Vector{Var})
     end
     c = cat(2, cs...)
     s = cat(1, w, c)
-    u = m.fs(s)
-    Q = softmax(u)
-    Q = cat(2, m.q0, Q)
+    h = m.fs(s)
+    u = m.O(h)
+    F = m.conv(h)
+    Q = softmax(-u)
+    n = length(chars)
     for i = 1:5
-        LQ = m.L * Q
-        Q += LQ
-        Q = softmax(Q)
+        L = m.Y1 * cat(2, m.q0, Q)[:,1:n]
+        R = m.Y2 * cat(2, Q, m.q1)[:,2:n+1]
+        QQ = L + R
+        u += QQ
+        Q = softmax(-u)
     end
     Q
 end

@@ -57,21 +57,19 @@ end
 
 function ∇softmax_crossentropy!(gy::Vector{T}, p::Vector{Int}, logq::Matrix{T}, gq::Matrix{T}) where T
     @inbounds for j = 1:length(p)
-        g = gy[j]
         p[j] > 0 || continue
         for i = 1:size(logq,1)
             delta = i == p[j] ? T(1) : T(0)
-            gq[i,j] += g * (exp(logq[i,j]) - delta)
+            gq[i,j] += gy[j] * (exp(logq[i,j]) - delta)
         end
     end
 end
 
 function ∇softmax_crossentropy2!(gy::Matrix{T}, p::Matrix{Int}, q::Matrix{T}, gq::Matrix{T}) where T
     @inbounds for i = 1:length(p)
-        if p[i] > 0
-            if q[p[i],i] < T(-1e-10) || q[p[i],i] > T(1e-10)
-                gq[p[i],i] -= T(1) / q[p[i],i]
-            end
+        p[i] > 0 || continue
+        if q[p[i],i] < T(-1e-10) || q[p[i],i] > T(1e-10)
+            gq[p[i],i] -= T(1) / q[p[i],i]
         end
     end
 end

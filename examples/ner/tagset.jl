@@ -32,7 +32,7 @@ function decode(tagset::BIO, ids::Vector{Int})
         tag == "O" && continue
         startswith(tag, "B-") && (bpos = i)
         nexttag = i == length(ids) ? "O" : tagset.tags[ids[i+1]]
-        if !startswith(nexttag,"I-")
+        if !startswith(nexttag,"I-") && bpos > 0
             basetag = tagset.tags[ids[bpos]][3:end]
             push!(spans, (bpos,i,basetag))
         end
