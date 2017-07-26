@@ -4,10 +4,9 @@ import Base.tanh
 """
     relu(x::Var)
 """
-function relu(x::Var)
-    y = Var(nothing, relu, (x,))
-    isvoid(x.data) || relu!(y, x.data)
-    y
+relu(x::Var) = forward(relu, x)
+function relu(out::Var, x::Array)
+    Var(relu(x.data), relu, (x,))
 end
 
 function relu!(out::Var, x::Array{T}) where T

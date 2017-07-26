@@ -22,6 +22,16 @@ end
 isvoid(x) = x == nothing
 Base.getindex(x::Var, key::Int) = x.args[key]
 
+for f in (:size,:ndims,:eltype)
+    @eval begin
+        function Base.$f(x::Var)
+            y = Var(nothing, $f, (x,))
+            isvoid(x.data) || (y.data = $f(x.data))
+            y
+        end
+    end
+end
+
 function zerograd!(v::Var)
     if isvoid(v.grad)
         v.grad = zeros(v.data)
@@ -29,13 +39,6 @@ function zerograd!(v::Var)
         fill!(v.grad, 0)
     end
     v
-end
-
-function forward(f, args...)
-    y = Var(nothing, f, args)
-    any(a -> isvoid(a.data), args) && return y
-    f(y, args...)
-    y
 end
 
 function topsort(tops::Var...)
