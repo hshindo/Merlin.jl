@@ -4,9 +4,10 @@ import Base.tanh
 """
     relu(x::Var)
 """
-relu(x::Var) = forward(relu, x)
-function relu(out::Var, x::Array)
-    Var(relu(x.data), relu, (x,))
+function relu(x::Var)
+    y = Var(nothing, relu, (x,))
+    relu!(y, x.data)
+    y
 end
 
 function relu!(out::Var, x::Array{T}) where T
@@ -33,7 +34,7 @@ end
 """
 function clipped_relu(x::Var)
     y = Var(nothing, clipped_relu, (x,))
-    isvoid(x.data) || clipped_relu!(y, x.data)
+    clipped_relu!(y, x.data)
     y
 end
 
@@ -61,7 +62,7 @@ end
 """
 function sigmoid(x::Var)
     y = Var(nothing, sigmoid, (x,))
-    isvoid(x.data) || sigmoid!(y, x.data)
+    sigmoid!(y, x.data)
     y
 end
 
@@ -89,7 +90,7 @@ end
 """
 function tanh(x::Var)
     y = Var(nothing, tanh, (x,))
-    isvoid(x.data) || tanh!(y, x.data)
+    tanh!(y, x.data)
     y
 end
 

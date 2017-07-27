@@ -7,8 +7,6 @@ Returns the maximum value over the given dimensions.
 """
 function Base.max(x::Var, dim::Int)
     y = Var(nothing, max, (x,dim))
-    isvoid(x.data) && return y
-
     y.data, idx = findmax(x.data, dim)
     y.df! = () -> begin
         isvoid(x.grad) || ∇max!(y.grad, x.grad, idx)
@@ -18,8 +16,6 @@ end
 
 function max_batch(x::Var, ranges::Vector)
     y = Var(nothing, max_batch, (x,ranges))
-    isvoid(x.data) && return y
-
     y.data, idx = findmax_batch(x.data, ranges)
     y.df! = () -> begin
         isvoid(x.grad) || ∇max!(y.grad, x.grad, idx)
@@ -90,8 +86,6 @@ Returns the sum over the given dimension.
 """
 function Base.sum(x::Var, dim::Int)
     y = Var(nothing, sum, (x,dim))
-    isvoid(x.data) && return y
-
     y.data = sum(x.data, dim)
     y.df! = () -> begin
         isvoid(x.grad) || broadcast!(+, x.grad, x.grad, y.grad)

@@ -4,21 +4,19 @@ struct Model
     fs
 end
 
-function Model(ntags::Int)
-    T = Float32
-    fw = @graph w begin
-        wordembeds = h5read(wordembeds_file, "v")
-        Lookup(wordembeds)(w)
+function Model{T}(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int)
+    fw = @graph n begin
+        Node(Lookup(wordembeds), n)
     end
-    fc = @graph c begin
-        c = Lookup(T,100,10)(c)
-        c = Conv1D(T,50,50,20,10)(c)
-        max(c, 2)
+    fc = @graph n begin
+        n = Node(Lookup(T,100,10), n)
+        n = Node(Conv1D(T,50,50,20,10), n)
+        Node(max, n, 2)
     end
-    fs = @graph s begin
-        s = Conv1D(T,750,300,300,150)(s)
-        s = relu(s)
-        Linear(T,300,ntags)(s)
+    fs = @graph n begin
+        n = Node(Conv1D(T,750,300,300,150), n)
+        n = Node(relu, n)
+        Node(Linear(T,300,ntags), n)
     end
     Model(fw, fc, fs)
 end

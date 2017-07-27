@@ -30,8 +30,6 @@ end
 
 function (f::Lookup)(x::Var)
     y = Var(nothing, f, (x,))
-    isvoid(x.data) && return y
-
     y.data = f(x.data)
     y.df! = () -> begin
         ∇lookup!(y.grad, f, x.data)

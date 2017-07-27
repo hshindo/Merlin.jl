@@ -5,9 +5,10 @@ import Base: +, -, *
     exp(x::Var)
 """
 function exp(x::Var)
-    y = Var(exp.(x.data), x.batchdims, exp, (x,))
-    y.df! = function df!()
-        isvoid(x.grad) || ∇exp!(y.data, y.grad, x.grad)
+    y = Var(exp.(x.data), exp, (x,))
+    y.df! = () -> begin
+        isvoid(x.grad) && return
+        ∇exp!(y.data, y.grad, x.grad)
     end
     y
 end
@@ -37,9 +38,11 @@ end
     log(x::Var)
 """
 function log(x::Var)
-    y = Var(log.(x.data), x.batchdims, log, (x,))
-    y.df! = function df!()
-        isvoid(x.grad) || ∇log!(y.grad, x.data, x.grad)
+    y = Var(nothing, log, (x,))
+    y.data = log.(x.data)
+    y.df! = () -> begin
+        isvoid(x.grad) && return
+        ∇log!(y.grad, x.data, x.grad)
     end
     y
 end
@@ -82,10 +85,8 @@ end
 """
 function +(x1::Var, x2::Var)
     y = Var(nothing, +, (x1,x2))
-    (isvoid(x1.data) || isvoid(x2.data)) && return y
-
     y.data = x1.data + x2.data
-    y.df! = function df!()
+    y.df! = () -> begin
         T = eltype(y.grad)
         isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
         isvoid(x2.grad) || BLAS.axpy!(T(1), y.grad, x2.grad)
@@ -100,8 +101,6 @@ end
 """
 function Base.broadcast(::typeof(+), x1::Var, x2::Var)
     y = Var(nothing, broadcast, (+,x1,x2))
-    (isvoid(x1.data) || isvoid(x2.data)) && return y
-
     y.data = broadcast(+, x1.data, x2.data)
     y.df! = () -> begin
         isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
@@ -124,10 +123,8 @@ end
 """
 function -(x1::Var, x2::Var)
     y = Var(nothing, -, (x1,x2))
-    (isvoid(x1.data) || isvoid(x2.data)) && return y
-
     y.data = x1.data - x2.data
-    y.df! = function df!()
+    y.df! = () -> begin
         T = eltype(y.grad)
         isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
         isvoid(x2.grad) || BLAS.axpy!(T(-1), y.grad, x2.grad)
@@ -137,12 +134,11 @@ end
 
 function -(x::Var)
     y = Var(nothing, -, (x,))
-    isvoid(x.data) && return y
-
     y.data = -x.data
-    y.df! = function df!()
+    y.df! = () -> begin
+        isvoid(x.grad) && return
         T = eltype(y.grad)
-        isvoid(x.grad) || BLAS.axpy!(T(-1), y.grad, x.grad)
+        BLAS.axpy!(T(-1), y.grad, x.grad)
     end
     y
 end
@@ -154,10 +150,8 @@ end
 """
 function Base.broadcast(x1::Var, x2::Var)
     y = Var(nothing, broadcast, (-,x1,x2))
-    (isvoid(x1.data) || isvoid(x2.data)) && return y
-
     y.data = broadcast(-, x1.data, x2.data)
-    y.df! = function df!()
+    y.df! = () -> begin
         isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
         isvoid(x2.grad) || ∇elemminus!(y.grad, x2.grad)
     end
@@ -185,10 +179,8 @@ end
 """
 function Base.broadcast(::typeof(*), x1::Var, x2::Var)
     y = Var(nothing, broadcast, (*,x1,x2))
-    (isvoid(x1.data) || isvoid(x2.data)) && return y
-
     y.data = broadcast(*, x1.data, x2.data)
-    y.df! = function df!()
+    y.df! = () -> begin
         isvoid(x1.grad) || ∇elemtimes!(y.grad, x2.data, x1.grad)
         isvoid(x2.grad) || ∇elemtimes!(y.grad, x1.data, x2.grad)
     end
@@ -247,8 +239,6 @@ end
 """
 function *(A::Var, B::Var)
     C = Var(nothing, *, (A,B))
-    (isvoid(A.data) || isvoid(B.data)) && return C
-
     C.data = A.data * B.data
     C.df! = () -> begin
         T = eltype(C.data)

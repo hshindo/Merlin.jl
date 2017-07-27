@@ -5,20 +5,22 @@ struct Model
 end
 
 function Model(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int) where T
-    fw = @graph w begin
-        Lookup(wordembeds)(w)
+    fw = @graph n begin
+        Node(Lookup(wordembeds), n)
     end
-    fc = @graph c begin
-        c = Lookup(charembeds)(c)
-        d = size(charembeds, 1)
-        c = Conv1D(T,5d,5d,2d,d)(c)
-        max(c, 2)
+
+    d = size(charembeds, 1)
+    fc = @graph n begin
+        n = Node(Lookup(charembeds), n)
+        n = Node(Conv1D(T,5d,5d,2d,d), n)
+        Node(max, n, 2)
     end
-    fs = @graph s begin
-        d = size(wordembeds,1) + size(charembeds,1)*5
-        s = Conv1D(T,5d,2d,2d,d)(s)
-        s = relu(s)
-        Linear(T,2d,ntags)(s)
+
+    d = size(wordembeds,1) + size(charembeds,1)*5
+    fs = @graph n begin
+        n = Node(Conv1D(T,5d,2d,2d,d), n)
+        n = Node(relu, n)
+        Node(Linear(T,2d,ntags), n)
     end
     Model(fw, fc, fs)
 end

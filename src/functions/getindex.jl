@@ -16,7 +16,6 @@ function getindex(x::Var, inds::Tuple)
     #data = islinear(v) ? unsafe_wrap(Array,pointer(v),size(v)) : x.data[f.inds...]
 
     y = Var(nothing, getindex, (x,inds))
-    isvoid(x.data) && return y
     y.data = x.data[inds...]
     y.df! = () -> begin
         isvoid(x.grad) && return

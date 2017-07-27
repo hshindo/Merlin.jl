@@ -8,8 +8,6 @@ window1d_handle(::Type{Float32}) = WINDOW1D_F32
 
 function window1d(x::Var, winsize::Int, pad::Int, stride::Int)
     y = Var(nothing, window1d, (x,winsize,pad,stride))
-    isvoid(x.data) && return y
-
     y.data = window1d(x.data, winsize, pad, stride)
     y.df! = () -> begin
         isvoid(x.grad) || ∇window1d!(y.grad, x.grad, winsize, pad, stride)

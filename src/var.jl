@@ -41,14 +41,14 @@ function zerograd!(v::Var)
     v
 end
 
-function topsort(tops::Var...)
-    sorted = Var[]
+function topsort{T}(tops::T...)
+    sorted = T[]
     dict = ObjectIdDict()
-    function visit(v::Var)
+    function visit(v::T)
         haskey(dict,v) && return
         dict[v] = v
         for arg in v.args
-            isa(arg,Var) && visit(arg)
+            isa(arg,T) && visit(arg)
         end
         push!(sorted, v)
     end

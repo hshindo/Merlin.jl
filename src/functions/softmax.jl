@@ -23,8 +23,6 @@ f(x) = \exp(x) \over \sum \exp(x)
 """
 function softmax(x::Var)
     y = Var(nothing, softmax, (x,))
-    isvoid(x.data) && return y
-
     softmax!(y, x.data)
     y
 end

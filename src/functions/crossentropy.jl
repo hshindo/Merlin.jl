@@ -17,7 +17,7 @@ y = crossentropy(p, q)
 """
 function crossentropy(p::Var, q::Var)
     y = Var(nothing, crossentropy, (p,q))
-    !isvoid(p.data) && !isvoid(q.data) && crossentropy!(y,p.data,q.data)
+    crossentropy!(y, p.data, q.data)
     y
 end
 

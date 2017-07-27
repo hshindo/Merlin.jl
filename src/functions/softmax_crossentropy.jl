@@ -17,7 +17,7 @@ y = softmax_crossentropy(p, q)
 """
 function softmax_crossentropy(p::Var, q::Var)
     y = Var(nothing, softmax_crossentropy, (p,q))
-    !isvoid(p.data) && !isvoid(q.data) && softmax_crossentropy!(y,p.data,q.data)
+    softmax_crossentropy!(y, p.data, q.data)
     y
 end
 

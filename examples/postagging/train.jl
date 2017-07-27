@@ -18,6 +18,8 @@ function train()
     info("# Chars:\t$(length(chardict))")
     info("# Tags:\t$(length(tagdict))")
 
+    wordembeds = h5read(wordembeds_file, "v")
+    charembeds = rand(Float32, 10, length(chardict))
     nn = Model(length(tagdict))
     opt = SGD()
     for epoch = 1:10
