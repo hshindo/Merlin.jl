@@ -27,7 +27,8 @@ y = f(x)
 """
 function Linear{T}(::Type{T}, insize::Int, outsize::Int)
     r = sqrt(6 / (insize+outsize))
-    w = uniform(T, -r, r, outsize, insize)
+    w = rand(T, outsize, insize)
+    w = w * T(2r) - T(r)
     b = fill(T(0), outsize, 1)
     Linear(zerograd(w), zerograd(b))
 end

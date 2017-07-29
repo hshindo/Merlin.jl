@@ -30,7 +30,7 @@ end
 function softmax!(out::Var, x::Array)
     out.data = softmax(x)
     out.df! = () -> begin
-        isvoid(out[1].grad) || ∇softmax!(out.data, out.grad, out[1].grad)
+        isvoid(out[1].grad) || ∇softmax_jl!(out.data, out.grad, out[1].grad)
     end
 end
 
@@ -125,10 +125,6 @@ function size3d(x::Array, dim::Int)
     (dim1, dim2, dim3)
 end
 
-function softmax_jl(x::Matrix{T}) where T
-
-end
-
 function softmax_jl2{T}(x::Matrix{T})
     y = similar(x)
     for j = 1:size(x,2)
@@ -151,7 +147,19 @@ function softmax_jl2{T}(x::Matrix{T})
     y
 end
 
-function ∇softmax_jl!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
+function ∇softmax_jl!{T}(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T})
+    for j = 1:size(y,2)
+        sum = T(0)
+        for i = 1:size(y,1)
+            sum += gy[i,j] * y[i,j]
+        end
+        for i = 1:size(y,1)
+            gx[i,j] += y[i,j] * (gy[i,j]-sum)
+        end
+    end
+end
+
+function ∇softmax_jl3!{T}(gx::Matrix{T}, y::Matrix{T}, gy::Matrix{T})
     # d yj / d xi = yj * (delta (i=j) - yi)
     for d = 1:size(gx,2)
         for i = 1:size(gx,1)

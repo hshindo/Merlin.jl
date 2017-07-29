@@ -21,8 +21,9 @@ type Conv1D
     stride::Int
 end
 
-function Conv1D(T::Type, filtersize::Int, outsize::Int, pad::Int, stride::Int)
-    w = uniform(T, -0.001, 0.001, outsize, filtersize)
+function Conv1D{T}(::Type{T}, filtersize::Int, outsize::Int, pad::Int, stride::Int)
+    w = rand(T, outsize, filtersize)
+    w = w * T(0.002) - T(0.001)
     b = zeros(T, outsize, 1)
     Conv1D(zerograd(w), zerograd(b), filtersize, outsize, pad, stride)
 end

@@ -2,6 +2,12 @@ const T = Float32
 
 @testset "functions" for i = 1:5
 
+# rnn
+## lstm
+x = Var(rand(T,30,5))
+f = LSTM(T, 30, 10)
+@test checkgrad(()->f(x), x, f.w, f.b)
+
 # activation
 x = Var(rand(T,10,5))
 relu(x)
@@ -31,6 +37,10 @@ x = Var(rand(T,10,5))
 @test checkgrad(()->x[1:3,:], x)
 @test checkgrad(()->x[2:10,3], x)
 
+# gumbel_softmax
+x = Var(rand(T,10,5))
+#@test checkgrad(()->gumbel_softmax(x,0.1), x)
+
 # linear
 x = Var(rand(T,10,5))
 f = Linear(T, 10, 7)
@@ -46,6 +56,7 @@ x1 = Var(rand(T,10,5))
 x2 = Var(rand(T,10,5))
 @test checkgrad(()->x1+x2, x1, x2)
 @test checkgrad(()->-x1, x1)
+@test checkgrad(()->x1/0.1, x1)
 
 # reduce
 x = Var(rand(T,10,5)+1)
@@ -66,7 +77,7 @@ x = Var(rand(T,10,5))
 # softmax
 x1 = Var(rand(T,10)+1)
 x2 = Var(rand(T,10,5)+1)
-for x in (x1,x2)
+for x in (x2,)
     @test checkgrad(()->softmax(x), x)
     #@test checkgrad(()->logsoftmax(x), x, eps=1e-2)
 end

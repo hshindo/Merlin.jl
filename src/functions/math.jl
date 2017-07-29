@@ -1,5 +1,5 @@
 import Base: exp, log, transpose
-import Base: +, -, *
+import Base: +, -, *, /
 
 """
     exp(x::Var)
@@ -93,8 +93,8 @@ function +(x1::Var, x2::Var)
     end
     y
 end
-+(a::Number, x::Var) = Var(a) + x
-+(x::Var, a::Number) = x + Var(a)
++(x1::Union{Number,Array}, x2::Var) = Var(x1) + x2
++(x1::Var, x2::Union{Number,Array}) = x1 + Var(x2)
 
 """
     .+(x1::Var, x2::Var)
@@ -246,4 +246,24 @@ function *(A::Var, B::Var)
         isvoid(B.grad) || BLAS.gemm!('T', 'N', T(1), A.data, C.grad, T(1), B.grad)
     end
     C
+end
+
+"""
+    /(x1::Var, a)
+"""
+function /(x::Var, a::Number)
+    a = eltype(x.data)(a)
+    y = Var(nothing, /, (x,a))
+    y.data = x.data / a
+    y.df! = () -> begin
+        isvoid(x.grad) && return
+        ∇divide!(y.grad, x.grad, a)
+    end
+    y
+end
+
+function ∇divide!{T}(gy::Array{T}, gx::Array{T}, a::T)
+    @inbounds for i = 1:length(gy)
+        gx[i] += gy[i] / a
+    end
 end

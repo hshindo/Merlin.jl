@@ -43,9 +43,9 @@ for name in [
     "getindex",
     #"glu",
     "gru",
+    "gumbel_softmax",
     "linear",
     "lookup",
-    #"lstm",
     "math",
     "reduce",
     "normalize",
@@ -57,7 +57,10 @@ for name in [
     "window",
 
     "conv1d",
-    "mse"
+    "mse",
+
+    "rnn/lstm",
+    "rnn/bilstm"
     ]
     include("functions/$(name).jl")
     #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)

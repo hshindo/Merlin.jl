@@ -61,27 +61,22 @@ function train(ner::NER, trainfile::String, testfile::String)
     info("# Tags:\t$(length(ner.tagset))")
 
     wordembeds = h5read(wordembeds_file, "value")
-    charembeds = rand(Float32, 10, length(ner.chardict))
+    charembeds = rand(Float32, 30, length(ner.chardict))
     ner.model = Model(wordembeds, charembeds, length(ner.tagset))
     opt = SGD()
     for epoch = 1:20
         println("Epoch:\t$epoch")
-        opt.rate = 0.0075 / epoch
+        opt.rate = 0.0075 / (1 + 0.05epoch)
 
         function train_f(data::Tuple)
             w, c, t = data
             y = ner.model(w, c)
-            crossentropy(t, y)
-            #softmax_crossentropy(t, y)
+            #crossentropy(t, y)
+            softmax_crossentropy(t, y)
         end
         train_data = collect(zip(train_w, train_c, train_t))
         loss = minimize!(train_f, opt, train_data)
         println("Loss:\t$loss")
-
-        #L = ner.model.L.data
-        #for i = 1:size(L,1)
-            #println(L[i,:])
-        #end
 
         # test
         println("Testing...")
@@ -94,9 +89,6 @@ function train(ner::NER, trainfile::String, testfile::String)
         pred = cat(1, map(test_f, test_data)...)
         gold = cat(1, map(t -> t.data, test_t)...)
         length(pred) == length(gold) || throw("Length mismatch.")
-        #println(ner.tagset.tags)
-        #println(pred)
-        #println(gold)
 
         ranges_p = decode(ner.tagset, pred)
         ranges_g = decode(ner.tagset, gold)

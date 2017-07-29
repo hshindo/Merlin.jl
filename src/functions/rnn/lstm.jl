@@ -1,4 +1,4 @@
-export LSTM, BiLSTM
+export LSTM
 
 """
     LSTM(T::Type, xsize::Int, hsize::Int)
@@ -8,29 +8,29 @@ Long short-term memory (LSTM).
 ```julia
 T = Float32
 lstm = LSTM(T, 100, 100)
-# one-step
-c = Var(zeros(T,100))
-h = Var(zeros(T,100))
-c, h = lstm(x, c, h)
-# n-step
 h = lstm(x)
 ```
 """
 type LSTM
     w::Var
     b::Var
+    h0::Var
+    c0::Var
 end
 
-function LSTM{T}(::Type{T}, insize::Int, hsize::Int)
-    w = uniform(T, -0.001, 0.001, hsize*4, insize)
-    u = orthogonal(T, hsize*4, hsize)
+function LSTM{T}(::Type{T}, insize::Int, outsize::Int)
+    w = rand(T, 4outsize, insize)
+    w = w * T(0.002) - T(0.001)
+    u = orthogonal(T, 4outsize, outsize)
     w = cat(2, w, u)
     b = zeros(T, size(w,1))
-    b[1:hsize] = ones(T, hsize) # forget gate initializes to 1
-    LSTM(zerograd(w), zerograd(b))
+    b[1:outsize] = ones(T, outsize) # forget gate initializes to 1
+    h0 = zeros(T, outsize)
+    c0 = zeros(T, outsize)
+    LSTM(zerograd(w), zerograd(b), zerograd(h0), zerograd(c0))
 end
 
-function (f::LSTM)(x::Var, h::Var, c::Var)
+function (lstm::LSTM)(x::Var, h::Var, c::Var)
     a = lstm.w * cat(1,x,h) + lstm.b
     n = size(h.data, 1)
     f = sigmoid(a[1:n])
@@ -41,13 +41,24 @@ function (f::LSTM)(x::Var, h::Var, c::Var)
     h, c
 end
 
-function lstm{T}(out::Var, x::Matrix{T}, h::Vector{T}, c::Vector{T})
+function (lstm::LSTM)(x::Var)
+    h, c = lstm.h0, lstm.c0
+    n = size(x.data, 1)
+    hs = Var[]
+    for i = 1:size(x.data,2)
+        h, c = lstm(x[(i-1)*n+1:i*n], h, c)
+        push!(hs, h)
+    end
+    cat(2, hs...)
+end
+
+function lstm_fast{T}(out::Var, x::Matrix{T}, h::Vector{T}, c::Vector{T})
     fio = lstm.w * cat(1,x,h) + lstm.b
     n = size(h.data, 1)
-    @inbounds @simd for i = 1:3n
+    @inbounds for i = 1:3n
         a[i] = sigmoid(a[i])
     end
-    @inbounds @simd for i = 3n+1:4n
+    @inbounds for i = 3n+1:4n
         a[i] = tanh(a[i])
     end
     for i = 1:n
@@ -55,6 +66,7 @@ function lstm{T}(out::Var, x::Matrix{T}, h::Vector{T}, c::Vector{T})
     end
 end
 
+#=
 """
 Batched LSTM
 """
@@ -95,6 +107,7 @@ function (f::LSTM)(x::Var; rev=false)
     c = Var(zeros(T,n))
     f(x, h, c, rev=rev)
 end
+=#
 
 #=
 function onestep(lstm::LSTM, x::Var, h::Var, c::Var)
@@ -108,18 +121,3 @@ function onestep(lstm::LSTM, x::Var, h::Var, c::Var)
     h, c
 end
 =#
-
-type BiLSTM
-    fw
-    bw
-end
-
-function BiLSTM{T}(::Type{T}, insize::Int, hsize::Int)
-    BiLSTM(LSTM(T,insize,hsize), LSTM(T,insize,hsize))
-end
-
-function (f::BiLSTM)(x::Var)
-    y1 = f.fw(x)
-    y2 = f.bw(x, rev=true)
-    cat(1, y1, y2)
-end

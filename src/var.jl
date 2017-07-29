@@ -1,5 +1,5 @@
 export Var
-export isvoid, topsort, zerograd, zerograd!
+export isvoid, topsort, gradient!, zerograd, zerograd!
 
 mutable struct Var
     data
