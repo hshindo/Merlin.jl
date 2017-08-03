@@ -12,11 +12,11 @@ function Model(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int) where T
     d = size(charembeds, 1)
     fc = @graph n begin
         n = Node(Lookup(charembeds), n)
-        n = Node(Conv1D(T,3d,d,d,d), n)
+        n = Node(Conv1D(T,5d,5d,2d,d), n)
         Node(max, n, 2)
     end
 
-    d = size(wordembeds,1) + size(charembeds,1)
+    d = size(wordembeds,1) + size(charembeds,1)*5
     fs = @graph n begin
         n = Node(BiLSTM(T,d,d), n)
         Node(Linear(T,2d,ntags), n)

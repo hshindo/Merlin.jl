@@ -5,18 +5,21 @@ import Base.tanh
     relu(x::Var)
 """
 function relu(x::Var)
-    y = Var(nothing, relu, (x,))
+    y = Var(nothing, x.batchdims, relu, (x,))
     relu!(y, x.data)
     y
 end
 
-function relu!(out::Var, x::Array{T}) where T
+function relu{T}(x::Array{T})
     y = similar(x)
     @inbounds for i = 1:length(x)
         y[i] = max(x[i], T(0))
     end
+    y
+end
 
-    out.data = y
+function relu!{T}(out::Var, x::Array{T})
+    out.data = relu(x)
     out.df! = () -> begin
         isvoid(out[1].grad) && return
         ∇relu!(out.grad, out[1].data, out[1].grad)

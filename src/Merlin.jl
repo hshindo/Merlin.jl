@@ -56,11 +56,12 @@ for name in [
     "softmax_crossentropy",
     "window",
 
-    "conv1d",
     "mse",
 
     "rnn/lstm",
-    "rnn/bilstm"
+    "rnn/bilstm",
+    "cnn/conv1d",
+    "cnn/gated_conv1d"
     ]
     include("functions/$(name).jl")
     #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)

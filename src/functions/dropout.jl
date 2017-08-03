@@ -6,17 +6,37 @@ export dropout
 This is inteded to be used only for training.
 For testing, omit the dropout function.
 """
-dropout(x::Var, rate::Float64) = forward0(dropout, x, rate)
+function dropout(x::Var, rate::Float64, train::Var)
+    y = Var(nothing, dropout, (x,rate,train))
+    if train.data
+        rate = eltype(x.data)(rate)
+        dropout!(y, x.data, rate)
+    else
+        y.data = x.data
+    end
+    y
+end
 
-function forward(::typeof(dropout), x::Array, rate::Float64)
+function dropout!{T}(out::Var, x::Array{T}, rate::T)
     rx = rand(T, length(x))
     scale = T(1 / (1-rate))
     y = similar(x)
-    @inbounds @simd for i = 1:length(x)
-        y[i] = ifelse(rx[i] <= T(rate), T(0), scale*x[i])
+    @inbounds for i = 1:length(x)
+        y[i] = ifelse(rx[i] <= rate, T(0), scale*x[i])
     end
-    backward!(gy, gx) = isvoid(gx) || ∇dropout!(gy, gx, rate, rx)
-    y, backward!
+
+    out.data = y
+    out.df! = () -> begin
+        isvoid(out[1].grad) && return
+        ∇dropout!(out.grad, out[1].grad, rate, rx)
+    end
+end
+
+function ∇dropout!{T}(gy::Array{T}, gx::Array{T}, rate::T, rx::Array{T})
+    scale = T(1 / (1-rate))
+    @inbounds for i = 1:length(gx)
+        gx[i] += ifelse(rx[i] <= rate, T(0), scale*gy[i])
+    end
 end
 
 #=
@@ -42,12 +62,5 @@ function forward{T}(::typeof(dropout), x::CuArray{T}, rate::Float64)
         isvoid(dx) || cudnnDropoutBackward(h, desc, xdesc, dy, xdesc, dx, reservespace, reservesize)
     end
     y, backward!
-end
-
-function ∇dropout!{T}(gy::Array{T}, gx::Array{T}, rate::Float64, rx::Array{T})
-    scale = T(1/(1-rate))
-    @inbounds @simd for i = 1:length(gx)
-        gx[i] += ifelse(rx[i] <= T(rate), T(0), scale*gy[i])
-    end
 end
 =#

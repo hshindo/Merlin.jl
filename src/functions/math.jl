@@ -95,6 +95,9 @@ function +(x1::Var, x2::Var)
 end
 +(x1::Union{Number,Array}, x2::Var) = Var(x1) + x2
 +(x1::Var, x2::Union{Number,Array}) = x1 + Var(x2)
++(x1::Node, x2) = Node(+, x1, x2)
++(x1, x2::Node) = Node(+, x1, x2)
++(x1::Node, x2::Node) = Node(+, x1, x2)
 
 """
     .+(x1::Var, x2::Var)

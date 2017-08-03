@@ -3,33 +3,25 @@ export isvoid, topsort, gradient!, zerograd, zerograd!
 
 mutable struct Var
     data
+    batchdims
     f
     args
     df!
     grad
 end
 
-function Var(data=nothing, f=nothing, args=())
-    Var(data, f, args, nothing, nothing)
+function Var(; data=nothing, batchdims=nothing, f=nothing, args=(), df!=nothing, grad=nothing)
+    Var(data, batchdims, f, args, df!, grad)
 end
+Var(data) = Var(data=data)
+
+isvoid(x) = x == nothing
+Base.getindex(x::Var, key::Int) = x.args[key]
 
 function zerograd(data)
     v = Var(data)
     v.grad = zeros(data)
     v
-end
-
-isvoid(x) = x == nothing
-Base.getindex(x::Var, key::Int) = x.args[key]
-
-for f in (:size,:ndims,:eltype)
-    @eval begin
-        function Base.$f(x::Var)
-            y = Var(nothing, $f, (x,))
-            isvoid(x.data) || (y.data = $f(x.data))
-            y
-        end
-    end
 end
 
 function zerograd!(v::Var)

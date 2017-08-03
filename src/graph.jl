@@ -1,6 +1,6 @@
 export Graph, Node, @graph
 
-struct Node
+mutable struct Node
     f
     args
 
@@ -8,7 +8,7 @@ struct Node
 end
 Node() = Node(nothing)
 
-type NodeId
+mutable struct NodeId
     id::Int
 end
 

@@ -61,16 +61,17 @@ function train(ner::NER, trainfile::String, testfile::String)
     info("# Tags:\t$(length(ner.tagset))")
 
     wordembeds = h5read(wordembeds_file, "value")
-    charembeds = rand(Float32, 30, length(ner.chardict))
+    charembeds = rand(Float32, 20, length(ner.chardict))
     ner.model = Model(wordembeds, charembeds, length(ner.tagset))
     opt = SGD()
-    for epoch = 1:20
+    for epoch = 1:30
         println("Epoch:\t$epoch")
-        opt.rate = 0.0075 / (1 + 0.05epoch)
+        opt.rate = 0.01 / (1 + 0.05*(epoch-1))
+        #opt.rate = 0.00075
 
         function train_f(data::Tuple)
             w, c, t = data
-            y = ner.model(w, c)
+            y = ner.model(w, c, true)
             #crossentropy(t, y)
             softmax_crossentropy(t, y)
         end
@@ -82,7 +83,7 @@ function train(ner::NER, trainfile::String, testfile::String)
         println("Testing...")
         function test_f(data::Tuple)
             w, c = data
-            y = ner.model(w, c)
+            y = ner.model(w, c, false)
             vec(argmax(y.data,1))
         end
         test_data = collect(zip(test_w, test_c))
