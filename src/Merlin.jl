@@ -36,32 +36,25 @@ include("train.jl")
 for name in [
     "activation",
     "argmax",
-    "blas",
     "cat",
-    "crossentropy",
     "dropout",
     "getindex",
-    #"glu",
-    "gru",
-    "gumbel_softmax",
     "linear",
     "lookup",
     "math",
     "reduce",
-    "normalize",
-    "pairwise",
-    #"pooling",
     "reshape",
     "softmax",
-    "softmax_crossentropy",
     "window1d",
 
-    "mse",
+    "cnn/conv1d",
+    "cnn/gated_conv1d",
+
+    "loss/crossentropy",
+    "loss/softmax_crossentropy",
 
     "rnn/lstm",
-    "rnn/bilstm",
-    "cnn/conv1d",
-    "cnn/gated_conv1d"
+    "rnn/bilstm"
     ]
     include("functions/$(name).jl")
     #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)

@@ -1,5 +1,5 @@
 import Base: exp, log, transpose
-import Base: +, -, *, /
+import Base: +, -, *, /, pow
 
 """
     exp(x::Var)
@@ -273,4 +273,20 @@ function ∇divide!{T}(gy::Array{T}, gx::Array{T}, a::T)
     @inbounds for i = 1:length(gy)
         gx[i] += gy[i] / a
     end
+end
+
+"""
+    .^(x::Var, a::Number)
+"""
+function .^(x::Var, a::Number)
+    y = x.data .^ a
+    df(gy) = hasgrad(x) && ∇elemexp!(a, x.data, x.grad, y, gy)
+    Var(y, [x], .^, df)
+end
+
+function ∇elempow!{T}(a, x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
+   @inbounds @simd for i = 1:length(gx)
+       gx[i] += gy[i] * T(a) * y[i] / x[i]
+   end
+   gx
 end

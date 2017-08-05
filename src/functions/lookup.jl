@@ -29,8 +29,7 @@ function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
 end
 
 function (f::Lookup)(x::Var)
-    data = f(x.data)
-    Var(data, x.batchdims, f, (x,))
+    Var(f(x.data), x.batchdims, f, (x,))
 end
 (f::Lookup)(x::Node) = Node(f, x)
 

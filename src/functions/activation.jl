@@ -7,6 +7,7 @@ import Base.tanh
 function relu(x::Var{<:Array})
     Var(relu(x.data), x.batchdims, relu, (x,))
 end
+
 relu(x::Node) = Node(relu, x)
 
 function relu(x::Array{T}) where {T}
@@ -34,6 +35,7 @@ end
 function clipped_relu(x::Var{<:Array})
     Var(clipped_relu(x.data), x.batchdims, clipped_relu, (x,))
 end
+
 clipped_relu(x::Node) = Node(clipped_relu, x)
 
 function clipped_relu(x::Array{T}) where {T}
