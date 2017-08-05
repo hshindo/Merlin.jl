@@ -12,8 +12,7 @@ logsoftmax_handle(::Type{Float32}) = LOGSOFTMAX_F32
 Returns a logarithm of softmax function.
 """
 function logsoftmax(x::Var{<:Array})
-    data = logsoftmax(x.data)
-    Var(data, x.batchdims, logsoftmax, (x,))
+    Var(logsoftmax(x.data), x.batchdims, logsoftmax, (x,))
 end
 logsoftmax(x::Node) = Node(logsoftmax, x)
 

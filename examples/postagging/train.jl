@@ -24,7 +24,7 @@ function train()
     opt = SGD()
     for epoch = 1:10
         println("Epoch: $epoch")
-        opt.rate = 0.001 / epoch
+        opt.rate = 0.01 / epoch
 
         function train_f(data::Tuple)
             w, c, t = data

@@ -18,7 +18,9 @@ function minimize!(f, opt, data::Vector; progress=true)
         loss += sum(y.data)
         nodes = gradient!(y)
         for v in nodes
-            isempty(v.args) && !isvoid(v.grad) && opt(v.data,v.grad)
+            if isempty(v.args) && !isvoid(v.grad)
+                opt(v.data, v.grad)
+            end
             isa(v.f,Functor) && (dict[v.f] = v.f)
         end
         foreach(f -> update!(f,opt), keys(dict))
