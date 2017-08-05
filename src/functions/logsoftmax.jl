@@ -11,7 +11,7 @@ logsoftmax_handle(::Type{Float32}) = LOGSOFTMAX_F32
 
 Returns a logarithm of softmax function.
 """
-function logsoftmax(x::Var{<:Array})
+function logsoftmax(x::Var)
     Var(logsoftmax(x.data), x.batchdims, logsoftmax, (x,))
 end
 logsoftmax(x::Node) = Node(logsoftmax, x)
@@ -24,7 +24,7 @@ function logsoftmax{T}(x::Array{T})
     y
 end
 
-function addgrad!(y::Var{<:Array}, ::typeof(logsoftmax), x::Var)
+function addgrad!(y::Var, ::typeof(logsoftmax), x::Var)
     isvoid(x.grad) && return
     ∇logsoftmax!(y.data, y.grad, x.grad)
 end

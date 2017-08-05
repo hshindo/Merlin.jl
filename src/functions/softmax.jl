@@ -15,13 +15,13 @@ Returns a softmax over the `ndims(x)-1`-th dimension.
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
-function softmax(x::Var{<:Array})
+function softmax(x::Var)
     data = softmax(x.data)
     Var(data, x.batchdims, softmax, (x,))
 end
 softmax(x::Node) = Node(softmax, x)
 
-function addgrad!(y::Var{<:Array}, ::typeof(softmax), x::Var)
+function addgrad!(y::Var, ::typeof(softmax), x::Var)
     isvoid(x.grad) && return
     ∇softmax!(y.data, y.grad, x.grad)
 end

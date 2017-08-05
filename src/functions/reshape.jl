@@ -7,7 +7,6 @@ function reshape(x::Var, dims::Tuple)
     Var(reshape(x.data,dims), x.batchdims, reshape, (x,dims))
 end
 reshape(x::Var, dims::Int...) = reshape(x, dims)
-
 reshape(x::Node, dims::Tuple) = Node(reshape, x, dims)
 reshape(x::Node, dims::Int...) = reshape(x, dims)
 

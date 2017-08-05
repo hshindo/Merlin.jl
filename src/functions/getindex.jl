@@ -19,7 +19,6 @@ function getindex(x::Var, inds::Tuple)
     Var(data, x.batchdims, getindex, (x,inds))
 end
 getindex(x::Var, inds::Union{Int,Range,Colon}...) = getindex(x, inds)
-
 getindex(x::Node, inds::Tuple) = Node(getindex, x, inds)
 getindex(x::Node, inds::Union{Int,Range,Colon}...) = getindex(x, inds)
 

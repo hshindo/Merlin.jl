@@ -19,7 +19,8 @@ mutable struct Graph
 end
 
 function Graph(inputs::Tuple{Vararg{Node}}, outputs::Tuple{Vararg{Node}})
-    nodes = topsort(Node, outputs...)
+    length(outputs) == 1 || throw("Not implemented yet.")
+    nodes = topsort(outputs[1])
     node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
     nodes = map(nodes) do node
         args = map(node.args) do arg
@@ -30,6 +31,21 @@ function Graph(inputs::Tuple{Vararg{Node}}, outputs::Tuple{Vararg{Node}})
     inputs = [map(x -> node2id[x], inputs)...]
     outputs = [map(x -> node2id[x], outputs)...]
     Graph(nodes, inputs, outputs)
+end
+
+function compile!(g::Graph)
+    params = Var[]
+    for n in g.nodes
+        isa(n.f,Functor) || continue
+        append!(params, n.f.params)
+    end
+
+    l = sum(p -> length(p.data), params)
+    param = Array{T}(l)
+    for p in params
+        x = unsafe_wrap(Array, pointer(param), size(p.data))
+        f.params[i] = Var(x)
+    end
 end
 
 """

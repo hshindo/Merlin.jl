@@ -31,7 +31,7 @@ function train()
             y = nn(w, c)
             softmax_crossentropy(t, y)
         end
-        train_data = makebatch(8, train_w, train_c, train_t)
+        train_data = makebatch(1, train_w, train_c, train_t)
         train_data = collect(zip(train_data...))
         loss = minimize!(train_f, opt, train_data)
         println("Loss: $loss")

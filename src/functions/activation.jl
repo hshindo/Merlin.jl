@@ -4,10 +4,9 @@ import Base.tanh
 """
     relu(x::Var)
 """
-function relu(x::Var{<:Array})
+function relu(x::Var)
     Var(relu(x.data), x.batchdims, relu, (x,))
 end
-
 relu(x::Node) = Node(relu, x)
 
 function relu(x::Array{T}) where {T}
@@ -18,7 +17,7 @@ function relu(x::Array{T}) where {T}
     y
 end
 
-function addgrad!(y::Var{<:Array}, ::typeof(relu), x::Var{<:Array})
+function addgrad!(y::Var, ::typeof(relu), x::Var)
     isvoid(x.grad) && return
     ∇relu!(y.grad, x.data, x.grad)
 end
@@ -32,10 +31,9 @@ end
 """
     clipped_relu(x::Var)
 """
-function clipped_relu(x::Var{<:Array})
+function clipped_relu(x::Var)
     Var(clipped_relu(x.data), x.batchdims, clipped_relu, (x,))
 end
-
 clipped_relu(x::Node) = Node(clipped_relu, x)
 
 function clipped_relu(x::Array{T}) where {T}
@@ -46,7 +44,7 @@ function clipped_relu(x::Array{T}) where {T}
     y
 end
 
-function addgrad!(y::Var{<:Array}, ::typeof(clipped_relu), x::Var{<:Array})
+function addgrad!(y::Var, ::typeof(clipped_relu), x::Var)
     isvoid(x.grad) && return
     ∇clipped_relu!(y.grad, x.data, x.grad)
 end
@@ -60,7 +58,7 @@ end
 """
     sigmoid(x::Var)
 """
-function sigmoid(x::Var{<:Array})
+function sigmoid(x::Var)
     Var(sigmoid(x.data), x.batchdims, sigmoid, (x,))
 end
 sigmoid(x::Node) = Node(sigmoid, x)
@@ -73,7 +71,7 @@ function sigmoid(x::Array{T}) where {T}
     y
 end
 
-function addgrad!(y::Var{<:Array}, ::typeof(sigmoid), x::Var{<:Array})
+function addgrad!(y::Var, ::typeof(sigmoid), x::Var)
     isvoid(x.grad) && return
     ∇sigmoid!(y.data, y.grad, x.data, x.grad)
 end
@@ -92,7 +90,7 @@ function tanh(x::Var)
 end
 tanh(x::Node) = Node(tanh, x)
 
-function addgrad!(y::Var{<:Array}, ::typeof(tanh), x::Var{<:Array})
+function addgrad!(y::Var, ::typeof(tanh), x::Var)
     isvoid(x.grad) && return
     ∇tanh!(y.data, y.grad, x.data, x.grad)
 end

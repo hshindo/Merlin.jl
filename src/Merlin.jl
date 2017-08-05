@@ -26,6 +26,7 @@ abstract type Functor end
 
 include("hdf5.jl")
 include("util.jl")
+include("abstractvar.jl")
 include("var.jl")
 include("graph.jl")
 include("rand.jl")

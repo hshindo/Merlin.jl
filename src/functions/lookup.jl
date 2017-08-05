@@ -23,7 +23,7 @@ x = Var(rand(1:1000,5,3))
 y = f(x)
 ```
 """
-function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
+function Lookup(::Type{T}, insize::Int, outsize::Int) where {T}
     params = Var[zerograd(rand(T,outsize)) for i=1:insize]
     Lookup(params, IntSet())
 end
@@ -48,7 +48,7 @@ function addgrad!(y::Var, f::Lookup, x::Var)
     push!(f.idset, x.data...)
 end
 
-function ∇lookup!{T}(gy::Array{T}, f::Lookup, x::Array{Int})
+function ∇lookup!(gy::Array{T}, f::Lookup, x::Array{Int}) where {T}
     p = f.params[1].data
     n = length(p)
     for i = 1:length(x)
