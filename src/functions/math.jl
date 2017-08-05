@@ -84,14 +84,9 @@ end
     +(x1::Var, x2::Var)
 """
 function +(x1::Var, x2::Var)
-    y = Var(nothing, +, (x1,x2))
-    y.data = x1.data + x2.data
-    y.df! = () -> begin
-        T = eltype(y.grad)
-        isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
-        isvoid(x2.grad) || BLAS.axpy!(T(1), y.grad, x2.grad)
-    end
-    y
+    x1.batchdims == x2.batchdims || throw("batchdims unmatch")
+    data = x1.data + x2.data
+    Var(data, x1.batchdims, +, (x1,x2))
 end
 +(x1::Union{Number,Array}, x2::Var) = Var(x1) + x2
 +(x1::Var, x2::Union{Number,Array}) = x1 + Var(x2)
@@ -99,17 +94,24 @@ end
 +(x1, x2::Node) = Node(+, x1, x2)
 +(x1::Node, x2::Node) = Node(+, x1, x2)
 
+function addgrad!(y::Var, ::typeof(+), x1::Var, x2::Var)
+    T = eltype(y.grad)
+    isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
+    isvoid(x2.grad) || BLAS.axpy!(T(1), y.grad, x2.grad)
+end
+
 """
     .+(x1::Var, x2::Var)
 """
 function Base.broadcast(::typeof(+), x1::Var, x2::Var)
-    y = Var(nothing, broadcast, (+,x1,x2))
-    y.data = broadcast(+, x1.data, x2.data)
-    y.df! = () -> begin
-        isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
-        isvoid(x2.grad) || ∇elemplus!(y.grad, x2.grad)
-    end
-    y
+    data = broadcast(+, x1.data, x2.data)
+    batchdims = nothing
+    Var(data, batchdims, broadcast, (+,x1,x2))
+end
+
+function gradient!(y::Var, ::typeof(broadcast), ::typeof(+), x1::Var, x2::Var)
+    isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
+    isvoid(x2.grad) || ∇elemplus!(y.grad, x2.grad)
 end
 
 function ∇elemplus!(gy::Array{T,N}, gx::Array{T,N}) where {T,N}
@@ -241,14 +243,16 @@ end
     \*(A::Var, B::Var)
 """
 function *(A::Var, B::Var)
-    C = Var(nothing, *, (A,B))
-    C.data = A.data * B.data
-    C.df! = () -> begin
-        T = eltype(C.data)
-        isvoid(A.grad) || BLAS.gemm!('N', 'T', T(1), C.grad, B.data, T(1), A.grad)
-        isvoid(B.grad) || BLAS.gemm!('T', 'N', T(1), A.data, C.grad, T(1), B.grad)
-    end
-    C
+    data = A.data * B.data
+    length(A.batchdims) == 1 || throw("Not implemented yet.")
+    batchdims = B.batchdims
+    Var(data, batchdims, *, (A,B))
+end
+
+function gradient!(C::Var, f::typeof(*), A::Var, B::Var)
+    T = eltype(C.data)
+    isvoid(A.grad) || BLAS.gemm!('N', 'T', T(1), C.grad, B.data, T(1), A.grad)
+    isvoid(B.grad) || BLAS.gemm!('T', 'N', T(1), A.data, C.grad, T(1), B.grad)
 end
 
 """

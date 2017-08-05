@@ -15,13 +15,16 @@ function getindex(x::Var, inds::Tuple)
     #v = view(x.data, f.inds...)
     #data = islinear(v) ? unsafe_wrap(Array,pointer(v),size(v)) : x.data[f.inds...]
 
-    y = Var(nothing, getindex, (x,inds))
-    y.data = x.data[inds...]
-    y.df! = () -> begin
-        isvoid(x.grad) && return
-        gx = view(x.grad, inds...)
-        broadcast!(+, gx, gx, y.grad)
-    end
-    y
+    data = x.data[inds...]
+    Var(data, x.batchdims, getindex, (x,inds))
 end
 getindex(x::Var, inds::Union{Int,Range,Colon}...) = getindex(x, inds)
+
+getindex(x::Node, inds::Tuple) = Node(getindex, x, inds)
+getindex(x::Node, inds::Union{Int,Range,Colon}...) = getindex(x, inds)
+
+function addgrad!(y::Var, ::typeof(getindex), x::Var, inds::Tuple)
+    isvoid(x.grad) && return
+    gx = view(x.grad, inds...)
+    broadcast!(+, gx, gx, y.grad)
+end

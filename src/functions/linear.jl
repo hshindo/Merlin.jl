@@ -1,6 +1,6 @@
 export Linear
 
-type Linear
+mutable struct Linear
     w::Var
     b::Var
 end
@@ -25,16 +25,33 @@ f = Linear(T,10,7)
 y = f(x)
 ```
 """
-function Linear{T}(::Type{T}, insize::Int, outsize::Int)
-    r = sqrt(6 / (insize+outsize))
+function Linear(::Type{T}, insize::Int, outsize::Int) where {T}
+    r = T(sqrt(6 / (insize+outsize)))
     w = rand(T, outsize, insize)
-    w = w * T(2r) - T(r)
-    b = fill(T(0), outsize, 1)
+    w = w * 2r - r
+    b = fill(T(0), outsize)
     Linear(zerograd(w), zerograd(b))
 end
 
-(f::Linear)(x::Var) = f.w * x .+ f.b
+(f::Linear)(x::Var) = linear(f.w, x, f.b)
+(f::Linear)(x::Node) = Node(f, x)
 
+function linear(w::Var, x::Var, b::Var)
+    length(w.batchdims) == 1 || throw("Not implemented yet.")
+    length(b.batchdims) == 1 || throw("Error.")
+    data = w.data * x.data .+ b.data
+    Var(data, x.batchdims, linear, (w,x,b))
+end
+
+function addgrad!(y::Var, ::typeof(linear), w::Var, x::Var, b::Var)
+    T = eltype(y.data)
+    isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), y.grad, x.data, T(1), w.grad)
+    isvoid(x.grad) || BLAS.gemm!('T', 'N', T(1), w.data, y.grad, T(1), x.grad)
+    if !isvoid(b.grad)
+        g = sum(y.grad, 2)
+        BLAS.axpy!(T(1), g, b.grad)
+    end
+end
 
 export NormLinear
 type NormLinear

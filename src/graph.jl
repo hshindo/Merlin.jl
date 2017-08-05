@@ -12,14 +12,14 @@ mutable struct NodeId
     id::Int
 end
 
-struct Graph
+mutable struct Graph
     nodes::Vector{Node} # topological order
     inputs::Vector{Int}
     outputs::Vector{Int}
 end
 
 function Graph(inputs::Tuple{Vararg{Node}}, outputs::Tuple{Vararg{Node}})
-    nodes = topsort(outputs...)
+    nodes = topsort(Node, outputs...)
     node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
     nodes = map(nodes) do node
         args = map(node.args) do arg

@@ -1,12 +1,12 @@
 export Lookup
 
 type Lookup <: Functor
-    params::Vector{Var}
+    params::Vector
     idset::IntSet
 end
 
 function Lookup(mat::Matrix)
-    params = [zerograd(mat[:,i]) for i=1:size(mat,2)]
+    params = Var[zerograd(mat[:,i]) for i=1:size(mat,2)]
     Lookup(params, IntSet())
 end
 
@@ -29,14 +29,10 @@ function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
 end
 
 function (f::Lookup)(x::Var)
-    y = Var(nothing, f, (x,))
-    y.data = f(x.data)
-    y.df! = () -> begin
-        ∇lookup!(y.grad, f, x.data)
-        push!(f.idset, x.data...)
-    end
-    y
+    data = f(x.data)
+    Var(data, x.batchdims, f, (x,))
 end
+(f::Lookup)(x::Node) = Node(f, x)
 
 function (f::Lookup)(x::Vector{Int})
     p = f.params[1].data
@@ -46,6 +42,11 @@ function (f::Lookup)(x::Vector{Int})
         copy!(y, yi, f.params[x[i]].data, 1, length(p))
     end
     y
+end
+
+function addgrad!(y::Var, f::Lookup, x::Var)
+    ∇lookup!(y.grad, f, x.data)
+    push!(f.idset, x.data...)
 end
 
 function ∇lookup!{T}(gy::Array{T}, f::Lookup, x::Array{Int})

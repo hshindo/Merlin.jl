@@ -19,19 +19,20 @@ function train()
     info("# Tags:\t$(length(tagdict))")
 
     wordembeds = h5read(wordembeds_file, "v")
-    charembeds = rand(Float32, 10, length(chardict))
-    nn = Model(length(tagdict))
+    charembeds = rand(eltype(wordembeds), 10, length(chardict))
+    nn = Model(wordembeds, charembeds, length(tagdict))
     opt = SGD()
     for epoch = 1:10
         println("Epoch: $epoch")
-        opt.rate = 0.0075 / epoch
+        opt.rate = 0.001 / epoch
 
         function train_f(data::Tuple)
             w, c, t = data
             y = nn(w, c)
             softmax_crossentropy(t, y)
         end
-        train_data = collect(zip(train_w, train_c, train_t))
+        train_data = makebatch(8, train_w, train_c, train_t)
+        train_data = collect(zip(train_data...))
         loss = minimize!(train_f, opt, train_data)
         println("Loss: $loss")
 
@@ -51,7 +52,7 @@ function train()
         println("Test acc.:\t$acc")
         println()
     end
-    Merlin.save("postagger.h5", nn)
+    # Merlin.save("postagger.h5", nn)
 end
 
 include("data.jl")

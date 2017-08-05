@@ -25,7 +25,7 @@ function encode(ner::NER, words::Vector{String})
 end
 
 function readdata!(ner::NER, path::String)
-    data_w, data_c, data_t = Var[], Vector{Var}[], Var[]
+    data_w, data_c, data_t = Var[], Var[], Var[]
     words, tags = String[], String[]
     lines = open(readlines, path)
     for i = 1:length(lines)
@@ -35,7 +35,9 @@ function readdata!(ner::NER, path::String)
             w, cs = encode(ner, words)
             t = encode(ner.tagset, tags)
             push!(data_w, Var(w))
-            push!(data_c, map(Var,cs))
+            batchdims = map(length, cs)
+            c = cat(1, cs...)
+            push!(data_c, Var(c,batchdims))
             push!(data_t, Var(t))
             empty!(words)
             empty!(tags)
@@ -64,19 +66,20 @@ function train(ner::NER, trainfile::String, testfile::String)
     charembeds = rand(Float32, 20, length(ner.chardict))
     ner.model = Model(wordembeds, charembeds, length(ner.tagset))
     opt = SGD()
-    for epoch = 1:30
+    for epoch = 1:60
         println("Epoch:\t$epoch")
-        opt.rate = 0.01 / (1 + 0.05*(epoch-1))
+        opt.rate = 0.001 / (1 + 0.05*(epoch-1))
         #opt.rate = 0.00075
 
+        train_data = makebatch(16, train_w, train_c, train_t)
         function train_f(data::Tuple)
             w, c, t = data
             y = ner.model(w, c, true)
             #crossentropy(t, y)
             softmax_crossentropy(t, y)
         end
-        train_data = collect(zip(train_w, train_c, train_t))
-        loss = minimize!(train_f, opt, train_data)
+        #train_data = collect(zip(train_w, train_c, train_t))
+        loss = minimize!(train_f, opt, collect(zip(train_data...)))
         println("Loss:\t$loss")
 
         # test

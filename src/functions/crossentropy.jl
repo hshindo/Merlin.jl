@@ -11,25 +11,17 @@ When p[i] == 0, returns 0.
 
 ```julia
 p = Var(rand(0:10,5))
-q = Var(rand(Float32,10,5))
+q = logsoftmax(Var(rand(Float32,10,5)))
 y = crossentropy(p, q)
 ```
 """
 function crossentropy(p::Var, q::Var)
-    y = Var(nothing, crossentropy, (p,q))
-    crossentropy!(y, p.data, q.data)
-    y
+    data = crossentropy(p.data, q.data)
+    Var(data, q.batchdims, crossentropy, (p,q))
 end
+crossentropy(p::Node, q::Node) = Node(crossentropy, p, q)
 
-function crossentropy!(out::Var, p::Vector{Int}, q::Matrix{T}) where T
-    out.data = crossentropy(p, q)
-    out.df! = () -> begin
-        isvoid(out[2].grad) && return
-        ∇crossentropy!(out.grad, out[1].data, out[2].data, out[2].grad)
-    end
-end
-
-function crossentropy(p::Vector{Int}, q::Matrix{T}) where T
+function crossentropy(p::Vector{Int}, q::Matrix{T}) where {T}
     y = Array{T}(length(p))
     for i = 1:length(p)
         y[i] = p[i] > 0 ? -log(q[p[i],i]) : T(0)
@@ -37,11 +29,16 @@ function crossentropy(p::Vector{Int}, q::Matrix{T}) where T
     y
 end
 
-function ∇crossentropy!(gy::Vector{T}, p::Vector{Int}, q::Matrix{T}, gq::Matrix{T}) where T
-    for j = 1:length(p)
-        g = gy[j]
-        p[j] > 0 || continue
-        gq[p[j],j] -= g / q[p[j],j]
+function addgrad!(y::Var, ::typeof(crossentropy), p::Var, q::Var)
+    isvoid(q.grad) && return
+    ∇crossentropy!(y.grad, p.data, q.data, q.grad)
+end
+
+function ∇crossentropy!(gy::Vector{T}, p::Vector{Int}, q::Matrix{T}, gq::Matrix{T}) where {T}
+    @inbounds for i = 1:length(p)
+        if p[i] > 0
+            gq[p[i],i] -= gy[i] / q[p[i],i]
+        end
     end
 end
 

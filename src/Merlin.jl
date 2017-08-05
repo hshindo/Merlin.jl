@@ -54,7 +54,7 @@ for name in [
     "reshape",
     "softmax",
     "softmax_crossentropy",
-    "window",
+    "window1d",
 
     "mse",
 

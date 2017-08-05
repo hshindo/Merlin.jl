@@ -21,17 +21,15 @@ Returns a softmax over the `ndims(x)-1`-th dimension.
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
-function softmax(x::Var)
-    y = Var(nothing, softmax, (x,))
-    softmax!(y, x.data)
-    y
+function softmax(x::Var{<:Array})
+    data = softmax(x.data)
+    Var(data, x.batchdims, softmax, (x,))
 end
+softmax(x::Node) = Node(softmax, x)
 
-function softmax!(out::Var, x::Array)
-    out.data = softmax(x)
-    out.df! = () -> begin
-        isvoid(out[1].grad) || ∇softmax_jl!(out.data, out.grad, out[1].grad)
-    end
+function addgrad!(y::Var{<:Array}, ::typeof(softmax), x::Var)
+    isvoid(x.grad) && return
+    ∇softmax!(y.data, y.grad, x.grad)
 end
 
 """
@@ -39,17 +37,15 @@ end
 
 Returns a logarithm of softmax function.
 """
-function logsoftmax(x::Var)
-    y = Var(nothing, logsoftmax, (x,))
-    logsoftmax!(y, x.data)
-    y
+function logsoftmax(x::Var{<:Array})
+    data = logsoftmax(x.data)
+    Var(data, x.batchdims, logsoftmax, (x,))
 end
+logsoftmax(x::Node) = Node(logsoftmax, x)
 
-function logsoftmax!(out::Var, x::Array)
-    out.data = logsoftmax(x)
-    out.df! = function df!()
-        isvoid(out[1].grad) || ∇logsoftmax!(out.data, out.grad, out[1].grad)
-    end
+function addgrad!(y::Var{<:Array}, ::typeof(logsoftmax), x::Var)
+    isvoid(x.grad) && return
+    ∇logsoftmax!(y.data, y.grad, x.grad)
 end
 
 function softmax{T}(x::Array{T})

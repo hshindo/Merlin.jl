@@ -1,7 +1,27 @@
+#include <iostream>
+
 template <typename T>
-void window1d(const T *x, T *y, const int xsize,
+void window1d(const T *x, T *y, const int *xsize, const int batchsize,
     const int winsize, const int pad, const int stride, const int dilation) {
 
+    int yi = 0;
+    int s = 0;
+    for (int b = 0; b < batchsize; b++) {
+        int e = s + xsize[b];
+        int i = s - pad;
+        while (i+winsize <= e+pad) {
+            for (int j = 0; j < winsize; j++) {
+                int xi = i + j * dilation;
+                if (xi >= s && xi < e) y[yi] = x[xi];
+                else y[yi] = 0;
+                yi++;
+            }
+            i += stride;
+        }
+        s = e;
+    }
+
+    /*
     int count = (xsize + 2*pad - winsize) / stride + 1;
     for (int n = 0; n < count; n++) {
         for (int i = 0; i < winsize; i++) {
@@ -9,29 +29,36 @@ void window1d(const T *x, T *y, const int xsize,
             int xi = -pad + stride * n + i * dilation;
             y[yi] = (xi >= 0 && xi < xsize) ? x[xi] : 0;
         }
-    }
+    }*/
 }
 
 template <typename T>
-void window1d_grad(const T *gy, T *gx, const int xsize,
+void window1d_grad(const T *gy, T *gx, const int *xsize, const int batchsize,
     const int winsize, const int pad, const int stride, const int dilation) {
 
-    int count = (xsize + 2*pad - winsize) / stride + 1;
-    for (int n = 0; n < count; n++) {
-        for (int i = 0; i < winsize; i++) {
-            int yi = n * winsize + i;
-            int xi = -pad + stride * n + i * dilation;
-            if (xi >= 0 && xi < xsize) gx[xi] += gy[yi];
+    int yi = 0;
+    int s = 0;
+    for (int b = 0; b < batchsize; b++) {
+        int e = s + xsize[b];
+        int i = s - pad;
+        while (i+winsize <= e+pad) {
+            for (int j = 0; j < winsize; j++) {
+                int xi = i + j * dilation;
+                if (xi >= s && xi < e) gx[xi] += gy[yi];
+                yi++;
+            }
+            i += stride;
         }
+        s = e;
     }
 }
 
 #define WINDOW1D_CAPI(T) \
-void window1d ## _ ## T(T *x, T *y, int xsize, int winsize, int pad, int stride, int dilation) { \
-    window1d(x, y, xsize, winsize, pad, stride, dilation); \
+void window1d ## _ ## T(T *x, T *y, int *xsize, int batchsize, int winsize, int pad, int stride, int dilation) { \
+    window1d(x, y, xsize, batchsize, winsize, pad, stride, dilation); \
 } \
-void window1d_grad ## _ ## T(T *gy, T *gx, int xsize, int winsize, int pad, int stride, int dilation) { \
-    window1d_grad(gy, gx, xsize, winsize, pad, stride, dilation); \
+void window1d_grad ## _ ## T(T *gy, T *gx, int *xsize, int batchsize, int winsize, int pad, int stride, int dilation) { \
+    window1d_grad(gy, gx, xsize, batchsize, winsize, pad, stride, dilation); \
 } \
 
 extern "C" {

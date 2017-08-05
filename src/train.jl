@@ -27,11 +27,3 @@ function minimize!(f, opt, data::Vector; progress=true)
     loss /= length(data)
     loss
 end
-
-#=
-function minimize2!(; batchsize=10)
-    Threads.@threads for i = 1:batchsize
-        y[i] = f(x[i]...)
-    end
-end
-=#

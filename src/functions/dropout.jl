@@ -7,32 +7,34 @@ This is inteded to be used only for training.
 For testing, omit the dropout function.
 """
 function dropout(x::Var, rate::Float64, train::Var)
-    y = Var(nothing, dropout, (x,rate,train))
     if train.data
-        rate = eltype(x.data)(rate)
-        dropout!(y, x.data, rate)
+        T = eltype(x.data)
+        rate = T(rate)
+        rx = rand(T, length(x.data))
+        data = dropout(x.data, rate, rx)
     else
-        y.data = x.data
+        data = x.data
+        rx = nothing
     end
-    y
+    Var(data, x.batchdims, dropout, (x,rate,train), work=rx)
 end
+dropout(x::Node, args...) = Node(dropout, x, args...)
 
-function dropout!{T}(out::Var, x::Array{T}, rate::T)
-    rx = rand(T, length(x))
+function dropout(x::Array{T}, rate::T, rx::Vector{T}) where {T}
     scale = T(1 / (1-rate))
     y = similar(x)
     @inbounds for i = 1:length(x)
         y[i] = ifelse(rx[i] <= rate, T(0), scale*x[i])
     end
-
-    out.data = y
-    out.df! = () -> begin
-        isvoid(out[1].grad) && return
-        ∇dropout!(out.grad, out[1].grad, rate, rx)
-    end
+    y
 end
 
-function ∇dropout!{T}(gy::Array{T}, gx::Array{T}, rate::T, rx::Array{T})
+function addgrad!(y::Var, ::typeof(dropout), x::Var, rate, train::Var)
+    isvoid(x.grad) && return
+    ∇dropout!(y.grad, x.grad, rate, y.work)
+end
+
+function ∇dropout!{T}(gy::Array{T}, gx::Array{T}, rate::T, rx::Vector{T})
     scale = T(1 / (1-rate))
     @inbounds for i = 1:length(gx)
         gx[i] += ifelse(rx[i] <= rate, T(0), scale*gy[i])

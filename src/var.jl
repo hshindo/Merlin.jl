@@ -1,22 +1,25 @@
 export Var
 export isvoid, topsort, gradient!, zerograd, zerograd!
+export makebatch
 
-mutable struct Var
-    data
+mutable struct Var{T}
+    data::T
     batchdims
     f
     args
-    df!
     grad
+    work
 end
 
-function Var(; data=nothing, batchdims=nothing, f=nothing, args=(), df!=nothing, grad=nothing)
-    Var(data, batchdims, f, args, df!, grad)
+function Var(data::T, batchdims=nothing, f=nothing, args=(); grad=nothing, work=nothing) where {T}
+    if isvoid(batchdims) && T <: Array
+        batchdims = [size(data,ndims(data))]
+    end
+    Var{T}(data, batchdims, f, args, grad, work)
 end
-Var(data) = Var(data=data)
 
 isvoid(x) = x == nothing
-Base.getindex(x::Var, key::Int) = x.args[key]
+# Base.getindex(x::Var, key::Int) = x.args[key]
 
 function zerograd(data)
     v = Var(data)
@@ -33,7 +36,7 @@ function zerograd!(v::Var)
     v
 end
 
-function topsort{T}(tops::T...)
+function topsort(::Type{T}, tops::T...) where {T}
     sorted = T[]
     dict = ObjectIdDict()
     function visit(v::T)
@@ -48,8 +51,10 @@ function topsort{T}(tops::T...)
     sorted
 end
 
+addgrad!(v::Var) = addgrad!(v, v.f, v.args...)
+
 function gradient!(tops::Var...)
-    sorted = topsort(tops...)
+    sorted = topsort(Var, tops...)
     for top in tops
         isvoid(top.grad) && (top.grad = ones(top.data))
     end
@@ -59,26 +64,21 @@ function gradient!(tops::Var...)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
-        isvoid(v.df!) || v.df!()
+        isvoid(v.f) || addgrad!(v)
     end
     sorted
 end
 
-function makebatch(batchsize::Int, dataset::Vector{Var}...)
+function makebatch(batchsize::Int, dataset::Vector{<:Var}...)
     idxs = collect(1:length(dataset[1]))
     shuffle!(idxs)
     dataset = map(dataset) do vars
-        N = ndims(vars[1].data)
         map(1:batchsize:length(idxs)) do i
-            range = map(k -> idxs[k], i:min(i+batchsize-1,length(idxs)))
-            vec = map(k -> vars[k].data, range)
-            if isvoid(vars[1].batchdims)
-                Var(vec)
-            else
-                batchdata = cat(N, map(k -> vars[k].data, range)...)
-                batchdims = cat(1, map(k -> vars[k].batchdims, range)...)
-                Var(batchdata, batchdims)
-            end
+            vs = map(k -> vars[idxs[k]], i:min(i+batchsize-1,length(idxs)))
+            v = cat(ndims(vs[1].data), vs...)
+            v.f = nothing
+            v.args = ()
+            v
         end
     end
     dataset

@@ -4,13 +4,12 @@ import Base.tanh
 """
     relu(x::Var)
 """
-function relu(x::Var)
-    y = Var(nothing, x.batchdims, relu, (x,))
-    relu!(y, x.data)
-    y
+function relu(x::Var{<:Array})
+    Var(relu(x.data), x.batchdims, relu, (x,))
 end
+relu(x::Node) = Node(relu, x)
 
-function relu{T}(x::Array{T})
+function relu(x::Array{T}) where {T}
     y = similar(x)
     @inbounds for i = 1:length(x)
         y[i] = max(x[i], T(0))
@@ -18,15 +17,12 @@ function relu{T}(x::Array{T})
     y
 end
 
-function relu!{T}(out::Var, x::Array{T})
-    out.data = relu(x)
-    out.df! = () -> begin
-        isvoid(out[1].grad) && return
-        ∇relu!(out.grad, out[1].data, out[1].grad)
-    end
+function addgrad!(y::Var{<:Array}, ::typeof(relu), x::Var{<:Array})
+    isvoid(x.grad) && return
+    ∇relu!(y.grad, x.data, x.grad)
 end
 
-function ∇relu!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
+function ∇relu!(gy::Array{T}, x::Array{T}, gx::Array{T}) where {T}
     @inbounds for i = 1:length(x)
         gx[i] += ifelse(x[i] > T(0), gy[i], T(0))
     end
@@ -35,23 +31,22 @@ end
 """
     clipped_relu(x::Var)
 """
-function clipped_relu(x::Var)
-    y = Var(nothing, clipped_relu, (x,))
-    clipped_relu!(y, x.data)
-    y
+function clipped_relu(x::Var{<:Array})
+    Var(clipped_relu(x.data), x.batchdims, clipped_relu, (x,))
 end
+clipped_relu(x::Node) = Node(clipped_relu, x)
 
-function clipped_relu!(out::Var, x::Array{T}) where T
+function clipped_relu(x::Array{T}) where {T}
     y = similar(x)
     @inbounds for i = 1:length(x)
         y[i] = min(max(x[i],T(0)), T(20))
     end
+    y
+end
 
-    out.data = y
-    out.df! = () -> begin
-        isvoid(out[1].grad) && return
-        ∇clipped_relu!(out.grad, out[1].data, out[1].grad)
-    end
+function addgrad!(y::Var{<:Array}, ::typeof(clipped_relu), x::Var{<:Array})
+    isvoid(x.grad) && return
+    ∇clipped_relu!(y.grad, x.data, x.grad)
 end
 
 function ∇clipped_relu!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
@@ -63,26 +58,25 @@ end
 """
     sigmoid(x::Var)
 """
-function sigmoid(x::Var)
-    y = Var(nothing, sigmoid, (x,))
-    sigmoid!(y, x.data)
-    y
+function sigmoid(x::Var{<:Array})
+    Var(sigmoid(x.data), x.batchdims, sigmoid, (x,))
 end
+sigmoid(x::Node) = Node(sigmoid, x)
 
-function sigmoid!(out::Var, x::Array{T}) where T
+function sigmoid(x::Array{T}) where {T}
     y = similar(x)
     @inbounds @simd for i = 1:length(x)
         y[i] = 1 / (1 + exp(-x[i]))
     end
-
-    out.data = y
-    out.df! = () -> begin
-        isvoid(out[1].grad) && return
-        ∇sigmoid!(out.data, out.grad, out[1].data, out[1].grad)
-    end
+    y
 end
 
-function ∇sigmoid!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
+function addgrad!(y::Var{<:Array}, ::typeof(sigmoid), x::Var{<:Array})
+    isvoid(x.grad) && return
+    ∇sigmoid!(y.data, y.grad, x.data, x.grad)
+end
+
+function ∇sigmoid!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where {T}
     @inbounds for i = 1:length(gx)
         gx[i] += gy[i] * y[i] * (T(1) - y[i])
     end
@@ -92,17 +86,13 @@ end
     tanh(x::Var)
 """
 function tanh(x::Var)
-    y = Var(nothing, tanh, (x,))
-    tanh!(y, x.data)
-    y
+    Var(tanh.(x.data), x.batchdims, tanh, (x,))
 end
+tanh(x::Node) = Node(tanh, x)
 
-function tanh!(out::Var, x::Array{T}) where T
-    out.data = tanh.(x)
-    out.df! = () -> begin
-        isvoid(out[1].grad) && return
-        ∇tanh!(out.data, out.grad, out[1].data, out[1].grad)
-    end
+function addgrad!(y::Var{<:Array}, ::typeof(tanh), x::Var{<:Array})
+    isvoid(x.grad) && return
+    ∇tanh!(y.data, y.grad, x.data, x.grad)
 end
 
 function ∇tanh!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
