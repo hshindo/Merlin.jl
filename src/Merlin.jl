@@ -40,6 +40,7 @@ for name in [
     "dropout",
     "getindex",
     "linear",
+    "logsoftmax",
     "lookup",
     "math",
     "reduce",

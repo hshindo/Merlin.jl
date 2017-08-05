@@ -64,6 +64,6 @@ end
 
 # window
 x = Var(rand(T,10,5))
-@testgrad eps window1d(x,30,10,10) x
+@testgrad eps window1d(x,30,10,10,1) x
 
 end

@@ -1,5 +1,3 @@
-export max_batch
-
 """
     max(x::Var, dim::Int)
 

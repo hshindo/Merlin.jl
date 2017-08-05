@@ -1,3 +1,14 @@
+function size3d(x::Array, dim::Int)
+    dim == 0 && return (1, length(x), 1)
+    dim1, dim2, dim3 = 1, size(x,dim), 1
+    for i = 1:dim-1
+        dim1 *= size(x, i)
+    end
+    for i = dim+1:ndims(x)
+        dim3 *= size(x, i)
+    end
+    (dim1, dim2, dim3)
+end
 
 #=
 import Base: normalize, normalize!
