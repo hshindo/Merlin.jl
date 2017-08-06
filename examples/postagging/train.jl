@@ -24,32 +24,36 @@ function train()
     opt = SGD()
     for epoch = 1:10
         println("Epoch: $epoch")
-        opt.rate = 0.01 / epoch
+        opt.rate = 0.0075/8 / (1 + 0.05*(epoch-1))
 
         function train_f(data::Tuple)
             w, c, t = data
             y = nn(w, c)
             softmax_crossentropy(t, y)
         end
-        train_data = makebatch(1, train_w, train_c, train_t)
+        train_data = makebatch(16, train_w, train_c, train_t)
         train_data = collect(zip(train_data...))
         loss = minimize!(train_f, opt, train_data)
         println("Loss: $loss")
 
         # test
+        ys = Int[]
+        zs = Int[]
         function test_f(data::Tuple)
-            w, c = data
+            w, c, t = data
+            append!(ys, t.data)
             y = nn(w, c)
-            vec(argmax(y.data,1))
+            z = vec(argmax(y.data,1))
+            append!(zs, z)
         end
-        test_data = collect(zip(test_w, test_c))
-        ys = cat(1, map(t -> t.data, test_t)...)
-        zs = cat(1, map(test_f, test_data)...)
+        test_data = makebatch(100, test_w, test_c, test_t)
+        test_data = collect(zip(test_data...))
+        foreach(test_f, test_data)
         length(ys) == length(zs) || throw("Length mismatch.")
 
         acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))
         acc = round(acc, 5)
-        println("Test acc.:\t$acc")
+        println("Test acc.: $acc")
         println()
     end
     # Merlin.save("postagger.h5", nn)

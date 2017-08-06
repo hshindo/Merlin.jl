@@ -28,13 +28,16 @@ function makebatch(batchsize::Int, dataset::Vector{Var}...)
     idxs = collect(1:length(dataset[1]))
     shuffle!(idxs)
     dataset = map(dataset) do vars
-        map(1:batchsize:length(idxs)) do i
-            vs = map(k -> vars[idxs[k]], i:min(i+batchsize-1,length(idxs)))
-            v = cat(ndims(vs[1].data), vs...)
+        vars = map(i -> vars[i], idxs)
+        data = Var[]
+        for i = 1:batchsize:length(vars)
+            j = min(i+batchsize-1, length(vars))
+            v = cat(ndims(vars[1].data), vars[i:j]...)
             v.f = nothing
             v.args = ()
-            v
+            push!(data, v)
         end
+        data
     end
     dataset
 end
