@@ -23,6 +23,11 @@ end
     @testgrad eps f(x) x f.w f.b
 end
 
+@testset "math" for i = 1:5
+    x = Var(rand(T,10,5))
+    @testgrad eps x/2, x
+end
+
 @testset "loss" for i = 1:5
     p = Var(rand(1:10,5))
     q = Var(softmax(rand(T,10,5)))

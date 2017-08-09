@@ -27,13 +27,14 @@ function train()
     batchsize = 8
     for epoch = 1:10
         println("Epoch: $epoch")
-        opt.rate = 0.0075 * sqrt(batchsize)/batchsize*1.2 / epoch
+        opt.rate = 0.0075 / epoch
         #opt.rate = 0.0075 / (1 + 0.05*(epoch-1))
 
         function train_f(data::Tuple)
             w, c, t = data
             y = nn(w, c)
-            softmax_crossentropy(t, y)
+            z = softmax_crossentropy(t, y)
+            z / batchsize
         end
         train_data = makebatch(batchsize, train_w, train_c, train_t)
         train_data = collect(zip(train_data...))

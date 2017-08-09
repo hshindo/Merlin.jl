@@ -16,6 +16,7 @@ y = softmax_crossentropy(p, q)
 ```
 """
 function softmax_crossentropy(p::Var, q::Var)
+    p.batchdims == q.batchdims || throw("Batchdims mismatch.")
     logq = logsoftmax(q.data)
     data = softmax_crossentropy(p.data, logq)
     Var(data, q.batchdims, softmax_crossentropy, (p,q), work=logq)

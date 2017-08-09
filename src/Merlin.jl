@@ -44,17 +44,15 @@ for name in [
     "logsoftmax",
     "lookup",
     "math",
-    "reduce",
     "reshape",
     "softmax",
     "window1d",
-
     "cnn/conv1d",
     "cnn/gated_conv1d",
-
     "loss/crossentropy",
     "loss/softmax_crossentropy",
-
+    "reduce/max",
+    "reduce/sum",
     "rnn/lstm",
     "rnn/bilstm"
     ]

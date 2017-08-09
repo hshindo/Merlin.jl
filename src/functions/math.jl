@@ -259,17 +259,18 @@ end
     /(x1::Var, a)
 """
 function /(x::Var, a::Number)
-    a = eltype(x.data)(a)
-    y = Var(nothing, /, (x,a))
-    y.data = x.data / a
-    y.df! = () -> begin
-        isvoid(x.grad) && return
-        ∇divide!(y.grad, x.grad, a)
-    end
-    y
+    T = eltype(x.data)
+    data = x.data / T(a)
+    Var(data, x.batchdims, /, (x,a))
 end
 
-function ∇divide!{T}(gy::Array{T}, gx::Array{T}, a::T)
+function addgrad!(y::Var, ::typeof(/), x::Var, a::Float64)
+    isvoid(x.grad) && return
+    T = eltype(x.data)
+    ∇divide!(y.grad, x.grad, T(a))
+end
+
+function ∇divide!(gy::Array{T}, gx::Array{T}, a::T) where {T}
     @inbounds for i = 1:length(gy)
         gx[i] += gy[i] / a
     end

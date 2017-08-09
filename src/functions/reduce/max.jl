@@ -1,13 +1,15 @@
+import Base.max
+
 """
     max(x::Var, dim::Int)
 
 Returns the maximum value over the given dimensions.
 """
-function Base.max(x::Var, dim::Int)
+function max(x::Var, dim::Int)
     data, idx, batchdims = findmax_batch(x.data, dim, x.batchdims)
     Var(data, batchdims, max, (x,dim), work=idx)
 end
-Base.max(x::Node, dim::Int) = Node(max, x, dim)
+max(x::Node, dim::Int) = Node(max, x, dim)
 
 function findmax_batch(x::Array{T,N}, dim::Int, batchdims::Vector{Int}) where {T,N}
     if dim == N
@@ -49,18 +51,4 @@ function ∇max!(gy::Array{T}, gx::Array{T}, idx::Array{Int}) where T
     for i = 1:length(idx)
         gx[idx[i]] += gy[i]
     end
-end
-
-"""
-    sum(x::Var, dim::Int)
-
-Returns the sum over the given dimension.
-"""
-function Base.sum(x::Var, dim::Int)
-    y = Var(nothing, sum, (x,dim))
-    y.data = sum(x.data, dim)
-    y.df! = () -> begin
-        isvoid(x.grad) || broadcast!(+, x.grad, x.grad, y.grad)
-    end
-    y
 end
