@@ -22,16 +22,18 @@ function train()
     charembeds = rand(eltype(wordembeds), 10, length(chardict))
     nn = Model(wordembeds, charembeds, length(tagdict))
     opt = SGD()
+    batchsize = 8
     for epoch = 1:10
         println("Epoch: $epoch")
-        opt.rate = 0.0075/8 / (1 + 0.05*(epoch-1))
+        opt.rate = 0.002 / epoch
+        #opt.rate = 0.0075 / (1 + 0.05*(epoch-1))
 
         function train_f(data::Tuple)
             w, c, t = data
             y = nn(w, c)
             softmax_crossentropy(t, y)
         end
-        train_data = makebatch(16, train_w, train_c, train_t)
+        train_data = makebatch(batchsize, train_w, train_c, train_t)
         train_data = collect(zip(train_data...))
         loss = minimize!(train_f, opt, train_data)
         println("Loss: $loss")

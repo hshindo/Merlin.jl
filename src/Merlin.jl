@@ -66,7 +66,6 @@ export update!
 for name in [
     "adagrad",
     "adam",
-    "clipping",
     "sgd"]
     include("optimizers/$(name).jl")
 end

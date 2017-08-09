@@ -40,6 +40,7 @@ function (opt::SGD){T,N}(x::Array{T,N}, gx::Array{T,N})
         end
         BLAS.axpy!(T(1), v, x)
     else
+        # BLAS.axpy!(T(0.0005), x, gx)
         BLAS.axpy!(T(-opt.rate), gx, x)
     end
     fill!(gx, T(0))

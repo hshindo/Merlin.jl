@@ -19,8 +19,8 @@ end
 
 @testset "cnn" for i = 1:5
     x = Var(rand(T,10,5))
-    f = Conv1D(T, 10, 7, 0, 1)
-    @testgrad 1e-2 f(x) x f.w f.b
+    f = Conv1D(T, 30, 10, 10, 10, dilation=1)
+    @testgrad eps f(x) x f.w f.b
 end
 
 @testset "loss" for i = 1:5
