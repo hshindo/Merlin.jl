@@ -1,8 +1,8 @@
 #include <iostream>
 
 template <typename T>
-void window1d(const T *x, const int *xsize, const int batchsize, T *y,
-    const int ksize, const int pad, const int stride) {
+void window1d(const T *x, T *y, const int *xsize, const int batchsize,
+    const int ksize, const int pad, const int stride, int dilation) {
 
     //int *offset = new int[batchsize];
     //offset[0] = 0;
@@ -27,7 +27,7 @@ void window1d(const T *x, const int *xsize, const int batchsize, T *y,
 
 template <typename T>
 void window1d_grad(const T *gy, T *gx, const int *gxsize, const int batchsize,
-    const int ksize, const int pad, const int stride) {
+    const int ksize, const int pad, const int stride, int dilation) {
 
     int offset = 0;
     int yh = 0;
@@ -46,11 +46,11 @@ void window1d_grad(const T *gy, T *gx, const int *gxsize, const int batchsize,
 }
 
 #define WINDOW1D_CAPI(T) \
-void window1d ## _ ## T(T *x, int *xsize, int batchsize, T *y, int ksize, int pad, int stride) { \
-    window1d(x, xsize, batchsize, y, ksize, pad, stride); \
+void window1d ## _ ## T(T *x, T *y, int *xsize, int batchsize, int ksize, int pad, int stride, int dilation) { \
+    window1d(x, y, xsize, batchsize, ksize, pad, stride, dilation); \
 } \
-void window1d_grad ## _ ## T(T *gy, T *gx, int *xsize, int batchsize, int ksize, int pad, int stride) { \
-    window1d_grad(gy, gx, xsize, batchsize, ksize, pad, stride); \
+void window1d_grad ## _ ## T(T *gy, T *gx, int *xsize, int batchsize, int ksize, int pad, int stride, int dilation) { \
+    window1d_grad(gy, gx, xsize, batchsize, ksize, pad, stride, dilation); \
 } \
 
 extern "C" {

@@ -19,13 +19,15 @@ function train()
     info("# Tags:\t$(length(tagdict))")
 
     wordembeds = h5read(wordembeds_file, "v")
-    charembeds = rand(eltype(wordembeds), 10, length(chardict))
+    T = eltype(wordembeds)
+    charembeds = rand(T, 10, length(chardict))
+    charembeds = charembeds * T(0.02) - T(0.01)
     nn = Model(wordembeds, charembeds, length(tagdict))
     opt = SGD()
     batchsize = 8
     for epoch = 1:10
         println("Epoch: $epoch")
-        opt.rate = 0.002 / epoch
+        opt.rate = 0.0075 * sqrt(batchsize)/batchsize*1.2 / epoch
         #opt.rate = 0.0075 / (1 + 0.05*(epoch-1))
 
         function train_f(data::Tuple)
