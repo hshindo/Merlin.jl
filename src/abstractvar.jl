@@ -31,7 +31,7 @@ function topsort(top::T) where {T}
 end
 
 function addgrad!(v::AbstractVar)
-    addgrad!(v, v.f, v.args...)
+    isvoid(v.f) || addgrad!(v, v.f, v.args...)
 end
 
 function gradient!(top::AbstractVar)
@@ -41,8 +41,7 @@ function gradient!(top::AbstractVar)
         !isempty(v.args) && isvoid(v.grad) && zerograd!(v)
     end
     for i = length(sorted):-1:1
-        v = sorted[i]
-        isvoid(v.f) || addgrad!(v)
+        addgrad!(sorted[i])
     end
     sorted
 end

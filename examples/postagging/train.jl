@@ -21,39 +21,45 @@ function train()
     wordembeds = h5read(wordembeds_file, "v")
     T = eltype(wordembeds)
     charembeds = rand(T, 10, length(chardict))
-    charembeds = charembeds * T(0.02) - T(0.01)
+    charembeds = charembeds * T(0.002) - T(0.001)
     nn = Model(wordembeds, charembeds, length(tagdict))
-    opt = SGD()
+    opt = SGD(momentum=0.95, nesterov=true)
+
     batchsize = 8
+    train_data = makebatch(batchsize, train_w, train_c, train_t)
+    train_data = collect(zip(train_data...))
+    test_data = makebatch(100, test_w, test_c, test_t)
+    test_data = collect(zip(test_data...))
+
     for epoch = 1:10
         println("Epoch: $epoch")
-        opt.rate = 0.0075 / epoch
+        opt.rate = 0.001 / batchsize / epoch
         #opt.rate = 0.0075 / (1 + 0.05*(epoch-1))
 
-        function train_f(data::Tuple)
-            w, c, t = data
+        loss = 0
+        for i in randperm(length(train_data))
+            w, c, t = train_data[i]
             y = nn(w, c)
-            z = softmax_crossentropy(t, y)
-            z / batchsize
+            y = softmax_crossentropy(t, y)
+            loss += sum(y.data)
+            gradient!(y)
+            update!(nn.fw, opt)
+            update!(nn.fc, opt)
+            update!(nn.fs, opt)
         end
-        train_data = makebatch(batchsize, train_w, train_c, train_t)
-        train_data = collect(zip(train_data...))
-        loss = minimize!(train_f, opt, train_data)
+        loss /= batchsize * length(train_data)
+        # loss = minimize!(train_f, opt, train_data)
         println("Loss: $loss")
 
         # test
         ys = Int[]
         zs = Int[]
-        function test_f(data::Tuple)
-            w, c, t = data
+        for (w,c,t) in test_data
             append!(ys, t.data)
             y = nn(w, c)
             z = vec(argmax(y.data,1))
             append!(zs, z)
         end
-        test_data = makebatch(100, test_w, test_c, test_t)
-        test_data = collect(zip(test_data...))
-        foreach(test_f, test_data)
         length(ys) == length(zs) || throw("Length mismatch.")
 
         acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))

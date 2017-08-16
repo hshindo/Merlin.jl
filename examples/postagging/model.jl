@@ -5,9 +5,7 @@ struct Model
 end
 
 function Model(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int) where {T}
-    fw = @graph x begin
-        Lookup(wordembeds)(x)
-    end
+    fw = Lookup(wordembeds)
     fc = @graph x begin
         x = Lookup(T,100,10)(x)
         x = Conv1D(T,50,50,20,10)(x)

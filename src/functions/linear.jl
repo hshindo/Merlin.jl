@@ -27,14 +27,14 @@ y = f(x)
 """
 function Linear(::Type{T}, insize::Int, outsize::Int) where {T}
     w = rand(T, outsize, insize)
-    r = T(sqrt(2 / (insize+outsize)))
+    r = T(2 / sqrt(insize+outsize))
     w = w * 2r - r
     b = fill(T(0), outsize)
     Linear(zerograd(w), zerograd(b))
 end
 
 (f::Linear)(x::Var) = linear(f.w, x, f.b)
-(f::Linear)(x::Node) = Node(f, x)
+(f::Linear)(x::Node) = Node(linear, f.w, x, f.b)
 
 function linear(w::Var, x::Var, b::Var)
     length(w.batchdims) == 1 || throw("Not implemented yet.")
@@ -51,20 +51,8 @@ function addgrad!(y::Var, ::typeof(linear), w::Var, x::Var, b::Var)
         g = sum(y.grad, 2)
         BLAS.axpy!(T(1), g, b.grad)
     end
-    #for ww in w.grad
-    #    if abs(ww) > 200
-    #        println(w.grad)
-    #        throw("")
-    #    end
-    #end
 end
 
-function clip!(x::Array{T}, threshold::T) where {T}
-    @inbounds for i = 1:length(x)
-        x[i] > threshold && (x[i] = threshold)
-        x[i] < -threshold && (x[i] = -threshold)
-    end
-end
 
 export NormLinear
 type NormLinear

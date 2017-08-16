@@ -31,4 +31,8 @@ function (f::Conv1D)(x::Var)
     h = window1d(x, f.filtersize, f.pad, f.stride, f.dilation)
     linear(f.w, h, f.b)
 end
-(f::Conv1D)(x::Node) = Node(f, x)
+
+function (f::Conv1D)(x::Node)
+    h = window1d(x, f.filtersize, f.pad, f.stride, f.dilation)
+    Node(linear, f.w, h, f.b)
+end

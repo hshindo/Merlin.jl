@@ -21,9 +21,9 @@ function minimize!(f, opt, data::Vector; progress=true)
             if isempty(v.args) && !isvoid(v.grad)
                 opt(v.data, v.grad)
             end
-            isa(v.f,Functor) && (dict[v.f] = v.f)
+            dict[v.f] = v.f
         end
-        foreach(f -> update!(f,opt), keys(dict))
+        foreach(f -> applicable(update!,f,opt) && update!(f,opt), keys(dict))
         progress && next!(prog)
     end
     loss /= length(data)
