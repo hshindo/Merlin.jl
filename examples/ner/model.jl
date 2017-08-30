@@ -18,7 +18,7 @@ function Model(wordembeds::Matrix{T}, charembeds::Matrix{T}, ntags::Int) where {
 
     d = size(wordembeds,1) + size(charembeds,1)*5
     # n1 = Node(Conv1D(T,10d,2d,4d,2d), n)
-    fs = @graph (x,b) begin
+    fs = @graph x begin
         x = Conv1D(T,5d,2d,2d,d)(x)
         x = relu(x)
         # xx = dropout(x, 0.5, b)
@@ -34,5 +34,5 @@ function (m::Model)(word::Var, char::Var, istrain::Bool)
     c = m.fc(char)
     c.batchdims = w.batchdims
     s = cat(1, w, c)
-    m.fs(s,Var(istrain))
+    m.fs(s)
 end
