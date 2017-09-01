@@ -26,9 +26,7 @@ y = f(x)
 ```
 """
 function Linear(::Type{T}, insize::Int, outsize::Int) where {T}
-    w = rand(T, outsize, insize)
-    r = T(2 / sqrt(insize+outsize))
-    w = w * 2r - r
+    w = randn(T,outsize,insize) * sqrt(T(2/(insize+outsize)))
     b = fill(T(0), outsize)
     Linear(zerograd(w), zerograd(b))
 end

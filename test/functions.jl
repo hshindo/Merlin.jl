@@ -34,9 +34,11 @@ end
     # @testgrad 1e-2 crossentropy(p,q) q
 
     # softmax_crossentropy
-    p = Var(rand(1:10,5))
+    p1 = Var(rand(1:10,5))
+    p2 = Var(softmax(rand(T,10,5)))
     q = Var(rand(T,10,5))
-    @testgrad eps softmax_crossentropy(p,q) q
+    @testgrad eps softmax_crossentropy(p1,q) q
+    @testgrad eps softmax_crossentropy(p2,q) q
 end
 
 @testset "getindex" for i = 1:5
