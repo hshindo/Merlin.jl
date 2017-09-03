@@ -11,9 +11,10 @@ else
 end
 
 mutable struct Config
-    mode
+    train::Bool
+    debug::Bool
 end
-const config = Config(:train)
+const config = Config(true, false)
 
 #=
 if haskey(ENV,"USE_CUDA") && ENV["USE_CUDA"]

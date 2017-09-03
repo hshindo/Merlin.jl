@@ -7,13 +7,12 @@ This is inteded to be used only for training.
 For testing, omit the dropout function.
 """
 function dropout(x::Var, rate::Float64)
-    config.mode == :lazy && return Var(f=dropout, args=(x,rate))
-    if config.mode == :train
+    if config.train
         T = eltype(x.data)
         rate = T(rate)
         rx = rand(T, length(x.data))
         data = dropout(x.data, rate, rx)
-    elseif config.mode == :test
+    else
         data = x.data
         rx = nothing
     end
@@ -30,7 +29,7 @@ function dropout{T}(x::Array{T}, rate::T, rx::Vector{T})
     y
 end
 
-function addgrad!(y::Var, ::typeof(dropout), x::Var, rate, train::Var)
+function addgrad!(y::Var, ::typeof(dropout), x::Var, rate)
     isvoid(x.grad) && return
     ∇dropout!(y.grad, x.grad, rate, y.work)
 end
