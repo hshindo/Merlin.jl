@@ -1,5 +1,8 @@
 export batchnorm
 
+function batchnorm(x::Var, gamma::Float64, beta::Float64, eps=2e-5)
+end
+
 function batchnorm(x::Var, scale::Var, bias::Var, mean, var, istrain; epsilon=0.001)
     forward0(batchnorm, x, scale, bias, mean, var)
 end

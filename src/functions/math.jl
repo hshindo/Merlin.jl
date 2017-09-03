@@ -84,7 +84,7 @@ end
     +(x1::Var, x2::Var)
 """
 function +(x1::Var, x2::Var)
-    x1.batchdims == x2.batchdims || throw("batchdims unmatch")
+    x1.batchdims == x2.batchdims || throw("batchdims unmatch: $(x1.batchdims), $(x2.batchdims)")
     data = x1.data + x2.data
     Var(data, x1.batchdims, +, (x1,x2))
 end
@@ -263,14 +263,15 @@ function /(x::Var, a::Number)
     data = x.data / T(a)
     Var(data, x.batchdims, /, (x,a))
 end
+/(x::Node, a::Number) = Node(/, x, a)
 
-function addgrad!(y::Var, ::typeof(/), x::Var, a::Float64)
+function addgrad!(y::Var, ::typeof(/), x::Var, a::Number)
     isvoid(x.grad) && return
     T = eltype(x.data)
     ∇divide!(y.grad, x.grad, T(a))
 end
 
-function ∇divide!(gy::Array{T}, gx::Array{T}, a::T) where {T}
+function ∇divide!{T}(gy::Array{T}, gx::Array{T}, a::T)
     @inbounds for i = 1:length(gy)
         gx[i] += gy[i] / a
     end

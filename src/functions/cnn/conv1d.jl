@@ -16,15 +16,17 @@ type Conv1D
     w::Var
     b::Var
     filtersize::Int
-    outsize::Int
+    inchannel::Int
+    outchannel::Int
     pad::Int
     stride::Int
     dilation::Int
+    group::Int
 end
 
-function Conv1D(::Type{T}, filtersize::Int, outsize::Int, pad::Int, stride::Int; dilation=1) where {T}
-    l = Linear(T, filtersize, outsize)
-    Conv1D(l.w, l.b, filtersize, outsize, pad, stride, dilation)
+function Conv1D{T}(::Type{T}, filtersize::Int, inchannel::Int, outchannel::Int, pad::Int, stride::Int; dilation=1, group=1)
+    l = Linear(T, filtersize * inchannel, outchannel)
+    Conv1D(l.w, l.b, filtersize, inchannel, outchannel, pad, stride, dilation, group)
 end
 
 function (f::Conv1D)(x::Var)

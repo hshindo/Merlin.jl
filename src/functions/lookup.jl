@@ -1,7 +1,7 @@
 export Lookup
 
-type Lookup <: Functor
-    params::Vector
+struct Lookup <: Functor
+    params::Vector{Var}
     idset::IntSet
 end
 
@@ -23,7 +23,7 @@ x = Var(rand(1:1000,5,3))
 y = f(x)
 ```
 """
-function Lookup(::Type{T}, insize::Int, outsize::Int) where {T}
+function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
     params = Var[zerograd(rand(T,outsize)) for i=1:insize]
     Lookup(params, IntSet())
 end
@@ -33,7 +33,7 @@ function (f::Lookup)(x::Var)
 end
 (f::Lookup)(x::Node) = Node(f, x)
 
-function (f::Lookup)(x::Vector{Int})
+function (f::Lookup)(x::Array{Int})
     p = f.params[1].data
     y = similar(p, size(p)..., size(x)...)
     for i = 1:length(x)

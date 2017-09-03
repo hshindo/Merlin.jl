@@ -18,8 +18,8 @@ end
 end
 
 @testset "cnn" for i = 1:5
-    x = Var(rand(T,10,5))
-    f = Conv1D(T, 30, 10, 10, 10, dilation=1)
+    x = Var(rand(T,10,15),[5,10])
+    f = Conv1D(T, 5, 10, 20, 2, 1, dilation=1)
     @testgrad eps f(x) x f.w f.b
 end
 
@@ -77,6 +77,6 @@ end
 end
 
 @testset "window" for i = 1:5
-    x = Var(rand(T,10,5))
-    @testgrad eps window1d(x,30,10,10,1) x
+    x = Var(rand(T,10,15),[5,10])
+    @testgrad eps window1d(x,5,2,1,1) x
 end

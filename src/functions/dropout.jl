@@ -6,21 +6,22 @@ export dropout
 This is inteded to be used only for training.
 For testing, omit the dropout function.
 """
-function dropout(x::Var, rate::Float64, train::Var)
-    if train.data
+function dropout(x::Var, rate::Float64)
+    config.mode == :lazy && return Var(f=dropout, args=(x,rate))
+    if config.mode == :train
         T = eltype(x.data)
         rate = T(rate)
         rx = rand(T, length(x.data))
         data = dropout(x.data, rate, rx)
-    else
+    elseif config.mode == :test
         data = x.data
         rx = nothing
     end
-    Var(data, x.batchdims, dropout, (x,rate,train), work=rx)
+    Var(data, x.batchdims, dropout, (x,rate), work=rx)
 end
-dropout(x::Node, args...) = Node(dropout, x, args...)
+dropout(x::Node, rate::Float64) = Node(dropout, x, rate)
 
-function dropout(x::Array{T}, rate::T, rx::Vector{T}) where {T}
+function dropout{T}(x::Array{T}, rate::T, rx::Vector{T})
     scale = T(1 / (1-rate))
     y = similar(x)
     @inbounds for i = 1:length(x)

@@ -10,6 +10,11 @@ else
     throw("Unsupported OS.")
 end
 
+mutable struct Config
+    mode
+end
+const config = Config(:train)
+
 #=
 if haskey(ENV,"USE_CUDA") && ENV["USE_CUDA"]
     using CUJulia
