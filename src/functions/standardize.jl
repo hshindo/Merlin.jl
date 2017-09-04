@@ -40,7 +40,7 @@ function addgrad!(y::Var, ::typeof(standardize), x::Var, scale::Var, bias::Var)
 
     if !isvoid(x.grad)
         m = size(x.data, 2)
-        g = scale.data .* invstd .* (y.grad .- (xhat .* gscale .+ gbias) ./ m)
+        g = scale.data .* invstd .* (y.grad .- (xhat .* gscale .+ gbias) / m)
         BLAS.axpy!(T(1), g, x.grad)
     end
     isvoid(scale.grad) || BLAS.axpy!(T(1), gscale, scale.grad)
