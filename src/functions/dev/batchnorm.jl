@@ -1,19 +1,3 @@
-struct Normalize
-    gamma::Var
-    beta::Var
-end
-
-function (f::Normalize)(x::Var)
-
-end
-
-"""
-    Base.normalize(x, dim, beta, gamma)
-"""
-function Base.normalize(x::Var, dim::Int, gamma::Float64, beta::Float64; epsilon=1e-5, decay=0.9)
-    mean = 
-end
-
 function batchnorm(x::Var, scale::Var, bias::Var, mean, var, istrain; epsilon=0.001)
     forward0(batchnorm, x, scale, bias, mean, var)
 end

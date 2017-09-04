@@ -1,6 +1,6 @@
 export Linear
 
-mutable struct Linear
+struct Linear
     w::Var
     b::Var
 end

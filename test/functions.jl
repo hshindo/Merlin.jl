@@ -76,6 +76,12 @@ end
     end
 end
 
+@testset "standardize" for i = 1:5
+    x = Var(rand(T,10,30)+T(10))
+    f = Standardize(T,size(x.data))
+    @testgrad eps f(x) x f.scale f.bias
+end
+
 @testset "window" for i = 1:5
     x = Var(rand(T,10,15),[5,10])
     @testgrad eps window1d(x,5,2,1,1) x

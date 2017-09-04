@@ -52,7 +52,9 @@ for name in [
     "math",
     "reshape",
     "softmax",
+    "standardize",
     "window1d",
+
     "cnn/conv1d",
     "cnn/gated_conv1d",
     "loss/crossentropy",

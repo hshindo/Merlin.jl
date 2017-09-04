@@ -11,7 +11,7 @@ mutable struct Var <: AbstractVar
     work
 end
 
-function Var(data=nothing, batchdims=nothing, f=nothing, args=(); grad=nothing, work=nothing)
+function Var(data, batchdims=nothing, f=nothing, args=(); grad=nothing, work=nothing)
     if isvoid(batchdims) && isa(data,Array)
         batchdims = [size(data,ndims(data))]
     end
