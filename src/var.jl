@@ -24,9 +24,9 @@ function zerograd(data::Array)
     v
 end
 
-function makebatch(batchsize::Int, dataset::Vector{Var}...)
+function makebatch(batchsize::Int, dataset::Vector{Var}...; shf=true)
     idxs = collect(1:length(dataset[1]))
-    shuffle!(idxs)
+    shf && shuffle!(idxs)
     dataset = map(dataset) do vars
         vars = map(i -> vars[i], idxs)
         data = Var[]

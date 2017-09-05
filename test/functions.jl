@@ -77,7 +77,7 @@ end
 end
 
 @testset "standardize" for i = 1:5
-    x = Var(rand(T,10,30)+T(10))
+    x = Var(randn(T,1,5)*3+2)
     f = Standardize(T,size(x.data))
     @testgrad eps f(x) x f.scale f.bias
 end
