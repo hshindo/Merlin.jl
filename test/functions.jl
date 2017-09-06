@@ -9,6 +9,12 @@ const eps = 1e-3
     @testgrad eps tanh(x) x
 end
 
+@testset "blas" for i = 1:5
+    A = Var(rand(T,10,5))
+    B = Var(rand(T,10,5))
+    @testgrad eps BLAS.gemm('T','N',1,A,B) A B
+end
+
 @testset "cat" for i = 1:5
     x1 = Var(rand(T,10,5,2))
     x2 = Var(rand(T,10,5,2))

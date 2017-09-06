@@ -40,24 +40,24 @@ C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
 ```
 """
 function gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
-    C = Var(nothing, gemm, (tA,tB,alpha,A,B))
-    (isvoid(A.data) || isvoid(B.data)) && return C
-
     T = eltype(A.data)
-    C.data = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
-    C.df! = () -> begin
-        if !isvoid(A.grad)
-            tA == 'N' ?
-            BLAS.gemm!('N', tB=='N'?'T':'N', T(alpha), C.grad, B.data, T(1), A.grad) :
-            BLAS.gemm!(tB, 'T', T(alpha), B.data, C.grad, T(1), A.grad)
-        end
-        if !isvoid(B.grad)
-            tB == 'N' ?
-            BLAS.gemm!(tA=='N'?'T':'N', 'N', T(alpha), A.data, C.grad, T(1), B.grad) :
-            BLAS.gemm!('T', tA, T(alpha), C.grad, A.data, T(1), B.grad)
-        end
+    data = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
+    Var(data, B.batchdims, gemm, (tA,tB,alpha,A,B))
+end
+gemm(tA::Char, tB::Char, alpha::Number, A::Node, B::Node) = Node(gemm, tA, tB, alpha, A, B)
+
+function addgrad!(C::Var, ::typeof(gemm), tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
+    T = eltype(C.data)
+    if !isvoid(A.grad)
+        tA == 'N' ?
+        BLAS.gemm!('N', tB=='N'?'T':'N', T(alpha), C.grad, B.data, T(1), A.grad) :
+        BLAS.gemm!(tB, 'T', T(alpha), B.data, C.grad, T(1), A.grad)
     end
-    C
+    if !isvoid(B.grad)
+        tB == 'N' ?
+        BLAS.gemm!(tA=='N'?'T':'N', 'N', T(alpha), A.data, C.grad, T(1), B.grad) :
+        BLAS.gemm!('T', tA, T(alpha), C.grad, A.data, T(1), B.grad)
+    end
 end
 
 """

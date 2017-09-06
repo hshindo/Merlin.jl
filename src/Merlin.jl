@@ -43,6 +43,7 @@ include("train.jl")
 for name in [
     "activation",
     "argmax",
+    "blas",
     "cat",
     "dropout",
     "getindex",
