@@ -11,21 +11,20 @@ y = \alpha \times \textrm{tA}(A) \times x
 ```
 """
 function gemv(tA::Char, alpha::Number, A::Var, x::Var)
-    y = Var(nothing, gemv, (tA,alpha,A,x))
-    (isvoid(A.data) || isvoid(x.data)) && return y
-
     T = eltype(A.data)
-    y.data = BLAS.gemv(tA, T(alpha), A.data, x.data)
-    y.df! = () -> begin
-        if !isvoid(A.grad)
-            mat(v) = reshape(v, length(v), 1)
-            tA == 'N' ?
-            BLAS.gemm!('N', 'T', T(alpha), mat(y.grad), mat(x.data), T(1), A.grad) :
-            BLAS.gemm!('N', 'T', T(alpha), mat(x.data), mat(y.grad), T(1), A.grad)
-        end
-        isvoid(x.grad) || BLAS.gemv!(tA=='N'?'T':'N', T(alpha), A.data, y.grad, T(1), x.grad)
+    data = BLAS.gemv(tA, T(alpha), A.data, x.data)
+    Var(data, x.batchdims, gemv, (tA,alpha,A,x))
+end
+
+function addgrad!(y::Var, ::typeof(gemv), tA::Char, alpha::Number, A::Var, x::Var)
+    T = eltype(A.data)
+    if !isvoid(A.grad)
+        mat(v) = reshape(v, length(v), 1)
+        tA == 'N' ?
+        BLAS.gemm!('N', 'T', T(alpha), mat(y.grad), mat(x.data), T(1), A.grad) :
+        BLAS.gemm!('N', 'T', T(alpha), mat(x.data), mat(y.grad), T(1), A.grad)
     end
-    y
+    isvoid(x.grad) || BLAS.gemv!(tA=='N'?'T':'N', T(alpha), A.data, y.grad, T(1), x.grad)
 end
 
 """

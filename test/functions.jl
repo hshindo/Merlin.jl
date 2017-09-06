@@ -11,7 +11,9 @@ end
 
 @testset "blas" for i = 1:5
     A = Var(rand(T,10,5))
+    x = Var(rand(T,10))
     B = Var(rand(T,10,5))
+    @testgrad eps BLAS.gemv('T',1,A,x) A x
     @testgrad eps BLAS.gemm('T','N',1,A,B) A B
 end
 
