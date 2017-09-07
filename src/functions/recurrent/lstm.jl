@@ -3,8 +3,9 @@ export LSTM
 """
     LSTM(T::Type, xsize::Int, hsize::Int)
 
-Long short-term memory (LSTM).
+Long Short-Term Memory network.
 
+# 👉 Example
 ```julia
 T = Float32
 lstm = LSTM(T, 100, 100)

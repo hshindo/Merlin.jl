@@ -17,37 +17,33 @@ function Standardize{T}(::Type{T}, insize::Tuple)
     runvar = ones(T, dims)
     Standardize(scale, bias, runmean, runvar)
 end
-
-(f::Standardize)(x::Var) = standardize(x, f.scale, f.bias, f.runmean, f.runvar)
-(f::Standardize)(x::Node) = Node(standardize, x, f.scale, f.bias, f.runmean, f.runvar)
+(f::Standardize)(x) = standardize(x, f.scale, f.bias, f.runmean, f.runvar)
 
 function standardize(x::Var, scale::Var, bias::Var, runmean, runvar; eps=1e-4, decay=0.99)
     T = eltype(x.data)
-    if config.train
-        xmean = mean(x.data, 2)
-        xvar = varm(x.data, xmean, 2)
-        n = length(xmean)
-        BLAS.scal!(n, T(decay), runmean, 1)
-        BLAS.axpy!(T(1-decay), xmean, runmean)
-        BLAS.scal!(n, T(decay), runvar, 1)
-        a = (1 - decay) * n / max(n-1,1)
-        BLAS.axpy!(T(a), xvar, runvar)
-        #@. runmean = T(decay) * runmean + T(1-decay) * xmean
-        #@. runvar = T(decay) * runvar + T(1-decay) * xvar
-        invstd = T(1) ./ sqrt.(xvar + T(eps))
-        xhat = (x.data .- xmean) .* invstd
-        data = xhat .* scale.data .+ bias.data
-        Var(data, x.batchdims, standardize, (x,scale,bias), work=(invstd,xhat))
-    else
-        xhat = (x.data .- runmean) ./ sqrt.(runvar + T(eps))
-        data = xhat .* scale.data .+ bias.data
-        Var(data, x.batchdims, standardize, (x,scale,bias))
-    end
+    xmean = mean(x.data, 2)
+    xvar = varm(x.data, xmean, 2)
+    n = length(xmean)
+    BLAS.scal!(n, T(decay), runmean, 1)
+    BLAS.axpy!(T(1-decay), xmean, runmean)
+    BLAS.scal!(n, T(decay), runvar, 1)
+    a = (1 - decay) * n / max(n-1,1)
+    BLAS.axpy!(T(a), xvar, runvar)
+    #@. runmean = T(decay) * runmean + T(1-decay) * xmean
+    #@. runvar = T(decay) * runvar + T(1-decay) * xvar
+    invstd = T(1) ./ sqrt.(xvar + T(eps))
+    xhat = (x.data .- xmean) .* invstd
+    data = xhat .* scale.data .+ bias.data
+    Var(data, standardize, (x,scale,bias,invstd,xhat))
+end
+standardize(x::Node, scale, bias, runmean, runvar) = Node(standardize, x, scale, bias, runmean, runvar)
+
+function standardize{T}(x::Array{T}, scale::Var, bias::Var, runmean, runvar; eps=1e-4)
+    (x .- runmean) ./ sqrt.(runvar + T(eps)) .* scale.data .+ bias.data
 end
 
-function addgrad!(y::Var, ::typeof(standardize), x::Var, scale::Var, bias::Var)
+function addgrad!(y::Var, ::typeof(standardize), x::Var, scale::Var, bias::Var, invstd, xhat)
     T = eltype(y.data)
-    invstd, xhat = y.work
     gscale = sum(y.grad .* xhat, 2)
     gbias = sum(y.grad, 2)
 

@@ -28,9 +28,7 @@ function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
     Lookup(params, IntSet())
 end
 
-function (f::Lookup)(x::Var)
-    Var(f(x.data), x.batchdims, f, (x,))
-end
+(f::Lookup)(x::Var) = Var(f(x.data), f, (x,))
 (f::Lookup)(x::Node) = Node(f, x)
 
 function (f::Lookup)(x::Array{Int})
@@ -48,7 +46,7 @@ function addgrad!(y::Var, f::Lookup, x::Var)
     push!(f.idset, x.data...)
 end
 
-function ∇lookup!(gy::Array{T}, f::Lookup, x::Array{Int}) where {T}
+function ∇lookup!{T}(gy::Array{T}, f::Lookup, x::Array{Int})
     p = f.params[1].data
     n = length(p)
     for i = 1:length(x)

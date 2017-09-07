@@ -1,40 +1,40 @@
 export Conv1D
 
-"""
-    Conv1D(T::Type, insize::Int, outsize::Int, pad::Int, stride::Int; dilation::Int)
+doc"""
+    Conv1D(T, ksize, insize, outsize, pad, stride; dilation=1)
 
 1-dimensional convolution function.
 
-## 👉 Example
+# 👉 Example
 ```julia
-f = Conv1D(x, 10, 0, 1)
 x = Var(rand(Float32,10,5))
+f = Conv1D(x, 5, 10, 3, 0, 1)
 y = f(x)
 ```
 """
-type Conv1D
+mutable struct Conv1D
     w::Var
     b::Var
-    filtersize::Int
-    inchannel::Int
-    outchannel::Int
+    ksize::Int
     pad::Int
     stride::Int
     dilation::Int
-    group::Int
 end
 
-function Conv1D{T}(::Type{T}, filtersize::Int, inchannel::Int, outchannel::Int, pad::Int, stride::Int; dilation=1, group=1)
-    l = Linear(T, filtersize * inchannel, outchannel)
-    Conv1D(l.w, l.b, filtersize, inchannel, outchannel, pad, stride, dilation, group)
+function Conv1D{T}(::Type{T}, ksize, insize, outsize, pad, stride; dilation=1)
+    w = randn(T,outsize,ksize*insize) * T(sqrt(2 / (ksize+insize+outsize)))
+    b = fill(T(0), outsize)
+    Conv1D(zerograd(w), zerograd(b), ksize, pad, stride, dilation)
+end
+(c::Conv1D)(x) = conv1d(x, c.w, c.b, c.ksize, c.pad, c.stride, c.dilation)
+(c::Conv1D)(x, batchdims) = conv1d_batch(x, batchdims, c.w, c.b, c.ksize, c.pad, c.stride, c.dilation)
+
+function conv1d(x, w, b, ksize, pad, stride, dilation)
+    h = window1d(x, ksize, pad, stride, dilation)
+    linear(w, h, b)
 end
 
-function (f::Conv1D)(x::Var)
-    h = window1d(x, f.filtersize, f.pad, f.stride, f.dilation)
-    linear(f.w, h, f.b)
-end
-
-function (f::Conv1D)(x::Node)
-    h = window1d(x, f.filtersize, f.pad, f.stride, f.dilation)
-    Node(linear, f.w, h, f.b)
+function conv1d_batch(x, batchdims, w, b, ksize, pad, stride, dilation)
+    h = window1d_batch(x, batchdims, ksize, pad, stride, dilation)
+    linear(w, h, b)
 end

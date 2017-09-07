@@ -1,14 +1,15 @@
 export softmax_crossentropy
 
-"""
-    softmax_crossentropy(p::Var, q::Var)
+doc"""
+    softmax_crossentropy(p, q)
 
-Returns cross-entropy between p and q.
+Cross-entropy function between p and q.
 When p[i] == 0, returns 0.
 
 * p: Var of Vector{Int} or Matrix{Float}
 * q: Var of Matrix{Float}
 
+# 👉 Example
 ```julia
 p = Var(rand(0:10,5))
 q = Var(rand(Float32,10,5))
@@ -16,24 +17,27 @@ y = softmax_crossentropy(p, q)
 ```
 """
 function softmax_crossentropy(p::Var, q::Var)
-    p.batchdims == q.batchdims || throw("Batchdims mismatch.")
-    logq = logsoftmax(q.data)
-    data = softmax_crossentropy(p.data, logq)
-    Var(data, q.batchdims, softmax_crossentropy, (p,q), work=logq)
+    y, logq = softmax_crossentropy_train(p.data, q.data)
+    Var(y, softmax_crossentropy, (p,q,logq))
 end
+
 softmax_crossentropy(p::Node, q::Node) = Node(softmax_crossentropy, p, q)
 
-function softmax_crossentropy{T}(p::Vector{Int}, logq::Matrix{T})
-    length(p) == size(logq,2) || throw("Length unmatch.")
+softmax_crossentropy{T}(p::Vector{Int}, q::Matrix{T}) = softmax_crossentropy_train(p,q)[1]
+
+function softmax_crossentropy_train{T}(p::Vector{Int}, q::Matrix{T})
+    length(p) == size(q,2) || throw("Length unmatch.")
+    logq = logsoftmax(q)
     y = Array{T}(length(p))
     @inbounds for i = 1:length(p)
         y[i] = p[i] > 0 ? -logq[p[i],i] : T(0)
     end
-    y
+    y, logq
 end
 
-function softmax_crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
-    size(p) == size(logq) || throw("Size mismatch.")
+function softmax_crossentropy_train{T}(p::Matrix{T}, q::Matrix{T})
+    size(p) == size(q) || throw("Size mismatch.")
+    logq = logsoftmax(q)
     y = Array{T}(size(p,2))
     @inbounds for j = 1:size(p,2)
         s = T(0)
@@ -42,12 +46,12 @@ function softmax_crossentropy{T}(p::Matrix{T}, logq::Matrix{T})
         end
         y[j] = s
     end
-    y
+    y, logq
 end
 
-function addgrad!(y::Var, ::typeof(softmax_crossentropy), p::Var, q::Var)
+function addgrad!(y::Var, ::typeof(softmax_crossentropy), p::Var, q::Var, logq)
     isvoid(q.grad) && return
-    ∇softmax_crossentropy!(y.grad, p.data, y.work, q.grad)
+    ∇softmax_crossentropy!(y.grad, p.data, logq, q.grad)
 end
 
 #=

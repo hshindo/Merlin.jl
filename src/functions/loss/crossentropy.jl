@@ -1,27 +1,25 @@
 export crossentropy
 
-"""
-    crossentropy(p::Var, q::Var)
+doc"""
+    crossentropy(p, q)
 
-Returns cross-entropy between p and q.
+Cross-entropy function between p and q.
 When p[i] == 0, returns 0.
 
-* p: Var of Vector{Int} or Matrix{Float}
-* q: Var of Matrix{Float}
+* p::Var: `Var` of Vector{Int} or Matrix{Float}
+* q::Var: `Var` of Matrix{Float}
 
+# 👉 Example
 ```julia
 p = Var(rand(0:10,5))
 q = logsoftmax(Var(rand(Float32,10,5)))
 y = crossentropy(p, q)
 ```
 """
-function crossentropy(p::Var, q::Var)
-    data = crossentropy(p.data, q.data)
-    Var(data, q.batchdims, crossentropy, (p,q))
-end
+crossentropy(p::Var, q::Var) = Var(crossentropy(p.data,q.data), crossentropy, (p,q))
 crossentropy(p::Node, q::Node) = Node(crossentropy, p, q)
 
-function crossentropy(p::Vector{Int}, q::Matrix{T}) where {T}
+function crossentropy{T}(p::Vector{Int}, q::Matrix{T})
     y = Array{T}(length(p))
     for i = 1:length(p)
         y[i] = p[i] > 0 ? -log(q[p[i],i]) : T(0)
@@ -30,11 +28,10 @@ function crossentropy(p::Vector{Int}, q::Matrix{T}) where {T}
 end
 
 function addgrad!(y::Var, ::typeof(crossentropy), p::Var, q::Var)
-    isvoid(q.grad) && return
-    ∇crossentropy!(y.grad, p.data, q.data, q.grad)
+    isvoid(q.grad) || ∇crossentropy!(y.grad, p.data, q.data, q.grad)
 end
 
-function ∇crossentropy!(gy::Vector{T}, p::Vector{Int}, q::Matrix{T}, gq::Matrix{T}) where {T}
+function ∇crossentropy!{T}(gy::Vector{T}, p::Vector{Int}, q::Matrix{T}, gq::Matrix{T})
     @inbounds for i = 1:length(p)
         if p[i] > 0
             gq[p[i],i] -= gy[i] / q[p[i],i]

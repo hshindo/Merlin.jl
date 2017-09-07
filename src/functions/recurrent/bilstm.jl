@@ -1,5 +1,15 @@
 export BiLSTM
 
+doc"""
+    BiLSTM(x)
+
+Bidirectional Long Short-Term Memory network.
+
+# 👉 Example
+```julia
+x = Var(rand(Float32,10,5))
+```
+"""
 struct BiLSTM
     rnn1::LSTM
     rnn2::LSTM

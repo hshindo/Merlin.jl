@@ -5,17 +5,14 @@ import Base.mean
 
 Returns the average over the given dimension.
 """
-function mean(x::Var, dim::Int)
-    data = mean(x.data, dim)
-    Var(data, average, (x,dim))
-end
+mean(x::Var, dim::Int) = Var(mean(x.data,dim), mean, (x,dim))
+mean(x::Node, dim::Int) = Node(mean, x, dim)
 
 function addgrad!(y::Var, ::typeof(mean), x::Var, dim::Int)
-    isvoid(x.grad) && return
-    ∇mean!(y.grad, x.grad, dim)
+    isvoid(x.grad) || ∇mean!(y.grad, x.grad, dim)
 end
 
-function ∇mean!(gy::Array{T}, gx::Array{T}, dim::Int) where {T}
+function ∇mean!{T}(gy::Array{T}, gx::Array{T}, dim::Int)
     g = broadcast(+, x.grad, y.grad)
     broadcast(/, gx, g, size(gx,dim))
 end

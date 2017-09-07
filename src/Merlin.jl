@@ -41,11 +41,30 @@ include("check.jl")
 include("train.jl")
 
 for name in [
-    "activation",
+    "activation/clipped_relu",
+    "activation/relu",
+    "activation/selu",
+    "activation/sigmoid",
+    "activation/tanh",
+
+    "cnn/conv1d",
+    "cnn/gated_conv1d",
+
+    "loss/crossentropy",
+    "loss/mse",
+    "loss/softmax_crossentropy",
+
+    "random/dropout",
+
+    "reduction/max",
+    "reduction/sum",
+
+    "recurrent/lstm",
+    "recurrent/bilstm",
+
     "argmax",
     "blas",
-    "cat",
-    "dropout",
+    "concat",
     "getindex",
     "linear",
     "logsoftmax",
@@ -55,15 +74,6 @@ for name in [
     "softmax",
     "standardize",
     "window1d",
-
-    "cnn/conv1d",
-    "cnn/gated_conv1d",
-    "loss/crossentropy",
-    "loss/softmax_crossentropy",
-    "reduce/max",
-    "reduce/sum",
-    "rnn/lstm",
-    "rnn/bilstm"
     ]
     include("functions/$(name).jl")
     #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)

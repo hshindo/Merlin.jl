@@ -15,7 +15,7 @@ function zerograd!(v::AbstractVar)
     v
 end
 
-function topsort(top::T) where {T}
+function topsort{T}(top::T)
     sorted = T[]
     dict = ObjectIdDict()
     function visit(v::T)

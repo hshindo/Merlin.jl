@@ -1,8 +1,9 @@
 export Linear
+export linear
 
 struct Linear
-    w::Var
-    b::Var
+    w
+    b
 end
 
 """
@@ -25,21 +26,16 @@ f = Linear(T,10,7)
 y = f(x)
 ```
 """
-function Linear(::Type{T}, insize::Int, outsize::Int) where {T}
-    w = randn(T,outsize,insize) * sqrt(T(2/(insize+outsize)))
+function Linear{T}(::Type{T}, insize::Int, outsize::Int)
+    w = randn(T,outsize,insize) * T(sqrt(2 / (insize+outsize)))
     b = fill(T(0), outsize)
     Linear(zerograd(w), zerograd(b))
 end
+(f::Linear)(x) = linear(f.w, x, f.b)
 
-(f::Linear)(x::Var) = linear(f.w, x, f.b)
-(f::Linear)(x::Node) = Node(linear, f.w, x, f.b)
-
-function linear(w::Var, x::Var, b::Var)
-    length(w.batchdims) == 1 || throw("Not implemented yet.")
-    length(b.batchdims) == 1 || throw("Error.")
-    data = w.data * x.data .+ b.data
-    Var(data, x.batchdims, linear, (w,x,b))
-end
+linear(w::Var, x::Var, b::Var) = Var(linear(w,x.data,b), linear, (w,x,b))
+linear(w::Var, x::Node, b::Var) = Node(linear, w, x, b)
+linear(w::Var, x::Array, b::Var) = w.data * x .+ b.data
 
 function addgrad!(y::Var, ::typeof(linear), w::Var, x::Var, b::Var)
     T = eltype(y.data)

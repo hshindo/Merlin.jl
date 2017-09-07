@@ -1,26 +1,25 @@
 export dropout
 
-"""
-    dropout(x::Var, rate::Float64)
+doc"""
+    dropout(x, rate::Float64)
 
-This is inteded to be used only for training.
-For testing, omit the dropout function.
+Drops elements randomly with probability ``rate`` and
+scales the other elements by factor ``1 / (1 - rate)``.
+In testing, it just returns `x`.
 """
 function dropout(x::Var, rate::Float64)
     if config.train
-        T = eltype(x.data)
-        rate = T(rate)
-        rx = rand(T, length(x.data))
+        rx = rand(eltype(x.data), length(x.data))
         data = dropout(x.data, rate, rx)
+        Var(data, dropout, (x,rate,rx))
     else
-        data = x.data
-        rx = nothing
+        x
     end
-    Var(data, x.batchdims, dropout, (x,rate), work=rx)
 end
+
 dropout(x::Node, rate::Float64) = Node(dropout, x, rate)
 
-function dropout{T}(x::Array{T}, rate::T, rx::Vector{T})
+function dropout{T}(x::Array{T}, rate::Float64, rx::Vector{T})
     scale = T(1 / (1-rate))
     y = similar(x)
     @inbounds for i = 1:length(x)
@@ -29,9 +28,9 @@ function dropout{T}(x::Array{T}, rate::T, rx::Vector{T})
     y
 end
 
-function addgrad!(y::Var, ::typeof(dropout), x::Var, rate)
+function addgrad!(y::Var, ::typeof(dropout), x::Var, rate, rx)
     isvoid(x.grad) && return
-    ∇dropout!(y.grad, x.grad, rate, y.work)
+    ∇dropout!(y.grad, x.grad, rate, rx)
 end
 
 function ∇dropout!{T}(gy::Array{T}, gx::Array{T}, rate::T, rx::Vector{T})

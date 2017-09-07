@@ -1,19 +1,18 @@
-import Base: exp, log, transpose
-import Base: +, -, *, /, pow
+import Base: transpose
+import Base: +, -, *, /, ^
 
 """
-    exp(x::Var)
+    exp.(x::Var)
 """
-function exp(x::Var)
-    y = Var(exp.(x.data), exp, (x,))
-    y.df! = () -> begin
-        isvoid(x.grad) && return
-        ∇exp!(y.data, y.grad, x.grad)
-    end
-    y
+Base.broadcast(::typeof(exp), x::Var) = Var(exp.(x.data), broadcast, (exp,x))
+Base.broadcast(::typeof(exp), x::Node) = Node(broadcast, exp, x)
+
+function addgrad!(y::Var, ::typeof(broadcast), ::typeof(exp), x::Var)
+    isvoid(x.grad) && return
+    ∇exp!(y.data, y.grad, x.grad)
 end
 
-function ∇exp!(y::Array{T}, gy::Array{T}, gx::Array{T}) where T
+function ∇exp!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
     @inbounds for i = 1:length(gx)
         gx[i] += gy[i] * y[i]
     end
@@ -35,19 +34,16 @@ end
 =#
 
 """
-    log(x::Var)
+    log.(x::Var)
 """
-function log(x::Var)
-    y = Var(nothing, log, (x,))
-    y.data = log.(x.data)
-    y.df! = () -> begin
-        isvoid(x.grad) && return
-        ∇log!(y.grad, x.data, x.grad)
-    end
-    y
+Base.broadcast(::typeof(log), x::Var) = Var(log.(x.data), broadcast, (log,x))
+Base.broadcast(::typeof(log), x::Node) = Node(broadcast, log, x)
+
+function addgrad!(y::Var, ::typeof(broadcast), ::typeof(log), x::Var)
+    isvoid(x.grad) || ∇log!(y.grad,x.data,x.grad)
 end
 
-function ∇log!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
+function ∇log!{T}(gy::Array{T}, x::Array{T}, gx::Array{T})
     @inbounds for i = 1:length(gx)
         gx[i] += gy[i] / x[i]
     end
@@ -71,23 +67,17 @@ end
 """
     transpose(x::Var)
 """
-function transpose(x::Var)
-    isvoid(x.batchdims) || throw("")
-    y = Var(transpose(x.data), x.batchdims, transpose, (x,))
-    y.df! = function df!()
-        isvoid(x.grad) || BLAS.axpy!(eltype(x.data)(1), transpose(y.grad), x.grad)
-    end
-    y
+transpose(x::Var) = Var(transpose(x.data), transpose, (x,))
+transpose(x::Node) = Node(transpose, x)
+
+function addgrad!(y::Var, ::typeof(transpose), x::Var)
+    isvoid(x.grad) || BLAS.axpy!(eltype(x.data)(1), transpose(y.grad), x.grad)
 end
 
 """
     +(x1::Var, x2::Var)
 """
-function +(x1::Var, x2::Var)
-    x1.batchdims == x2.batchdims || throw("batchdims unmatch: $(x1.batchdims), $(x2.batchdims)")
-    data = x1.data + x2.data
-    Var(data, x1.batchdims, +, (x1,x2))
-end
++(x1::Var, x2::Var) = Var(x1.data + x2.data, +, (x1,x2))
 +(x1::Union{Number,Array}, x2::Var) = Var(x1) + x2
 +(x1::Var, x2::Union{Number,Array}) = x1 + Var(x2)
 +(x1::Node, x2) = Node(+, x1, x2)
@@ -101,20 +91,39 @@ function addgrad!(y::Var, ::typeof(+), x1::Var, x2::Var)
 end
 
 """
-    .+(x1::Var, x2::Var)
+    -(x1::Var, x2::Var)
+    -(x::Var)
 """
-function Base.broadcast(::typeof(+), x1::Var, x2::Var)
-    data = broadcast(+, x1.data, x2.data)
-    batchdims = nothing
-    Var(data, batchdims, broadcast, (+,x1,x2))
+-(x1::Var, x2::Var) = Var(x1.data - x2.data, -, (x1,x2))
+-(x1::Node, x2::Node) = Node(-, x1, x2)
+-(x::Var) = Var(-x.data, -, (x,))
+-(x::Node) = Node(-, x)
+-(a::Number, x::Var) = Var(a) - x
+-(x::Var, a::Number) = x - Var(a)
+
+function addgrad!(y::Var, ::typeof(-), x1::Var, x2::Var)
+    T = eltype(y.grad)
+    isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
+    isvoid(x2.grad) || BLAS.axpy!(T(-1), y.grad, x2.grad)
 end
 
-function gradient!(y::Var, ::typeof(broadcast), ::typeof(+), x1::Var, x2::Var)
+function addgrad!(y::Var, ::typeof(-), x::Var)
+    T = eltype(y.grad)
+    isvoid(x.grad) || BLAS.axpy!(T(-1), y.grad, x.grad)
+end
+
+"""
+    .+(x1::Var, x2::Var)
+"""
+Base.broadcast(::typeof(+), x1::Var, x2::Var) = Var(x1.data .+ x2.data, broadcast, (+,x1,x2))
+Base.broadcast(::typeof(+), x1::Node, x2::Node) = Node(broadcast, +, x1, x2)
+
+function addgrad!(y::Var, ::typeof(broadcast), ::typeof(+), x1::Var, x2::Var)
     isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
     isvoid(x2.grad) || ∇elemplus!(y.grad, x2.grad)
 end
 
-function ∇elemplus!(gy::Array{T,N}, gx::Array{T,N}) where {T,N}
+function ∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T,N})
     for i = 1:N
         size(gx,i) == 1 && size(gy,i) > 1 && (gy = sum(gy,i))
     end
@@ -123,44 +132,14 @@ end
 #∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T}) = ∇elemplus!(gy, redim(gx,N))
 
 """
-    -(x1::Var, x2::Var)
-    -(x::Var)
-"""
-function -(x1::Var, x2::Var)
-    y = Var(nothing, -, (x1,x2))
-    y.data = x1.data - x2.data
-    y.df! = () -> begin
-        T = eltype(y.grad)
-        isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
-        isvoid(x2.grad) || BLAS.axpy!(T(-1), y.grad, x2.grad)
-    end
-    y
-end
-
-function -(x::Var)
-    y = Var(nothing, -, (x,))
-    y.data = -x.data
-    y.df! = () -> begin
-        isvoid(x.grad) && return
-        T = eltype(y.grad)
-        BLAS.axpy!(T(-1), y.grad, x.grad)
-    end
-    y
-end
--(a::Number, x::Var) = Var(a) - x
--(x::Var, a::Number) = x - Var(a)
-
-"""
     .-(x1::Var, x2::Var)
 """
-function Base.broadcast(x1::Var, x2::Var)
-    y = Var(nothing, broadcast, (-,x1,x2))
-    y.data = broadcast(-, x1.data, x2.data)
-    y.df! = () -> begin
-        isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
-        isvoid(x2.grad) || ∇elemminus!(y.grad, x2.grad)
-    end
-    y
+Base.broadcast(::typeof(-), x1::Var, x2::Var) = Var(x1.data .- x2.data, broadcast, (-,x1,x2))
+Base.broadcast(::typeof(-), x1::Node, x2::Node) = Node(broadcast, -, x1, x2)
+
+function addgrad!(y::Var, ::typeof(broadcast), ::typeof(-), x1::Var, x2::Var)
+    isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
+    isvoid(x2.grad) || ∇elemminus!(y.grad, x2.grad)
 end
 
 function ∇elemminus!{T,N}(gy::Array{T,N}, gx::Array{T,N})
@@ -182,14 +161,12 @@ end
 """
     \.\*(x1::Var, x2::Var)
 """
-function Base.broadcast(::typeof(*), x1::Var, x2::Var)
-    y = Var(nothing, broadcast, (*,x1,x2))
-    y.data = broadcast(*, x1.data, x2.data)
-    y.df! = () -> begin
-        isvoid(x1.grad) || ∇elemtimes!(y.grad, x2.data, x1.grad)
-        isvoid(x2.grad) || ∇elemtimes!(y.grad, x1.data, x2.grad)
-    end
-    y
+Base.broadcast(::typeof(*), x1::Var, x2::Var) = Var(x1.data .* x2.data, broadcast, (*,x1,x2))
+Base.broadcast(::typeof(*), x1::Node, x2::Node) = Node(broadcast, *, x1, x2)
+
+function addgrad!(y::Var, ::typeof(broadcast), ::typeof(*), x1::Var, x2::Var)
+    isvoid(x1.grad) || ∇elemtimes!(y.grad, x2.data, x1.grad)
+    isvoid(x2.grad) || ∇elemtimes!(y.grad, x1.data, x2.grad)
 end
 
 function ∇elemtimes!{T,N}(gy::Array{T,N}, x2::Array{T,N}, gx1::Array{T,N})
@@ -242,14 +219,10 @@ end
 """
     \*(A::Var, B::Var)
 """
-function *(A::Var, B::Var)
-    data = A.data * B.data
-    length(A.batchdims) == 1 || throw("Not implemented yet.")
-    batchdims = B.batchdims
-    Var(data, batchdims, *, (A,B))
-end
+*(A::Var, B::Var) = Var(A.data * B.data, *, (A,B))
+*(A::Node, B::Node) = Node(*, A, B)
 
-function gradient!(C::Var, f::typeof(*), A::Var, B::Var)
+function addgrad!(C::Var, ::typeof(*), A::Var, B::Var)
     T = eltype(C.data)
     isvoid(A.grad) || BLAS.gemm!('N', 'T', T(1), C.grad, B.data, T(1), A.grad)
     isvoid(B.grad) || BLAS.gemm!('T', 'N', T(1), A.data, C.grad, T(1), B.grad)
@@ -258,17 +231,12 @@ end
 """
     /(x1::Var, a)
 """
-function /(x::Var, a::Number)
-    T = eltype(x.data)
-    data = x.data / T(a)
-    Var(data, x.batchdims, /, (x,a))
-end
+/(x::Var, a::Number) = Var(x.data / a, /, (x,a))
 /(x::Node, a::Number) = Node(/, x, a)
 
 function addgrad!(y::Var, ::typeof(/), x::Var, a::Number)
-    isvoid(x.grad) && return
     T = eltype(x.data)
-    ∇divide!(y.grad, x.grad, T(a))
+    isvoid(x.grad) || ∇divide!(y.grad, x.grad, T(a))
 end
 
 function ∇divide!{T}(gy::Array{T}, gx::Array{T}, a::T)
@@ -278,17 +246,18 @@ function ∇divide!{T}(gy::Array{T}, gx::Array{T}, a::T)
 end
 
 """
-    .^(x::Var, a::Number)
+    ^(x::Var, a::Number)
 """
-function .^(x::Var, a::Number)
-    y = x.data .^ a
-    df(gy) = hasgrad(x) && ∇elemexp!(a, x.data, x.grad, y, gy)
-    Var(y, [x], .^, df)
+^(x::Var, a::Number) = Var(x.data ^ a, ^, (x,a))
+^(x::Node, a::Number) = Node(^, x, a)
+
+function addgrad!(y::Var, ::typeof(^), x::Var, a::Number)
+    T = eltype(x.data)
+    isvoid(x.grad) || ∇elempow!(T(a), x.data, x.grad, y.data, y.grad)
 end
 
-function ∇elempow!{T}(a, x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
-   @inbounds @simd for i = 1:length(gx)
-       gx[i] += gy[i] * T(a) * y[i] / x[i]
+function ∇elempow!{T}(a::T, x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
+   @inbounds for i = 1:length(gx)
+       gx[i] += gy[i] * a * y[i] / x[i]
    end
-   gx
 end
