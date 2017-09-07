@@ -9,8 +9,9 @@ In testing, it just returns `x`.
 """
 function dropout(x::Var, rate::Float64)
     if config.train
+        T = eltype(x.data)
         rx = rand(eltype(x.data), length(x.data))
-        data = dropout(x.data, rate, rx)
+        data = dropout(x.data, T(rate), rx)
         Var(data, dropout, (x,rate,rx))
     else
         x
@@ -19,7 +20,7 @@ end
 
 dropout(x::Node, rate::Float64) = Node(dropout, x, rate)
 
-function dropout{T}(x::Array{T}, rate::Float64, rx::Vector{T})
+function dropout{T}(x::Array{T}, rate::T, rx::Vector{T})
     scale = T(1 / (1-rate))
     y = similar(x)
     @inbounds for i = 1:length(x)
@@ -30,7 +31,8 @@ end
 
 function addgrad!(y::Var, ::typeof(dropout), x::Var, rate, rx)
     isvoid(x.grad) && return
-    ∇dropout!(y.grad, x.grad, rate, rx)
+    T = eltype(x.data)
+    ∇dropout!(y.grad, x.grad, T(rate), rx)
 end
 
 function ∇dropout!{T}(gy::Array{T}, gx::Array{T}, rate::T, rx::Vector{T})

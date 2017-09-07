@@ -3,8 +3,9 @@ export Graph, Node, @graph
 mutable struct Node
     f
     args::Tuple
+    name::String
 
-    Node(f, args...) = new(f, args)
+    Node(f, args...; name="") = new(f, args, name)
 end
 Node() = Node(nothing)
 
@@ -87,30 +88,25 @@ macro graph(input, output)
     end
 end
 
-function (g::Graph)(inputs...)
-    outputs = Array{Any}(length(g.nodes))
+function (g::Graph)(inputs::Var...)
+    vars = Array{Var}(length(g.nodes))
     for i = 1:length(inputs)
-        outputs[g.inputs[i]] = inputs[i]
+        vars[g.inputs[i]] = inputs[i]
     end
     for i = 1:length(g.nodes)
         node = g.nodes[i]
         if isempty(node.args)
-            isassigned(outputs,i) || (outputs[i] = node)
+            isassigned(vars,i) || (vars[i] = node)
         else
             args = map(node.args) do arg
-                isa(arg,NodeId) ? outputs[arg.id] : arg
+                isa(arg,NodeId) ? vars[arg.id] : arg
             end
-            outputs[i] = node.f(args...)
+            vars[i] = node.f(args...)
         end
     end
-    tops = map(id -> outputs[id], g.outputs)
-    length(tops) > 1 && throw("Not implemented yet.")
-    v = tops[1]
-    if isa(v, Var)
-        Var(v.data, g, inputs, work=outputs)
-    else
-        v
-    end
+    outputs = map(id -> vars[id], g.outputs)
+    length(outputs) > 1 && throw("Not implemented yet.")
+    Var(outputs[1].data, g, inputs, work=vars)
 end
 
 function addgrad!(y::Var, g::Graph, xs::Var...)

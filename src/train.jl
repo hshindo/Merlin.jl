@@ -13,7 +13,7 @@ function minimize!(f, opt, data::Vector; progress=true)
     progress && (prog = Progress(length(data)))
     loss = 0.0
     dict = ObjectIdDict()
-    for i in randperm(length(data))
+    for i in 1:length(data)
         y = f(data[i])
         loss += sum(y.data)
         nodes = gradient!(y)

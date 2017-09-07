@@ -39,8 +39,8 @@ x = Var(randn(Float32,10,5))
 y = max_batch(x, [2,3])
 ```
 """
-function max_batch(x::Var, batchsize::Vector{Int})
-    y, idx = max_batch(x.data, batchsize)
+function max_batch(x::Var, batchsize::Var)
+    y, idx = max_batch(x.data, batchsize.data)
     Var(y, max_batch, (x,idx))
 end
 max_batch(x::Node, batchsize::Node) = Node(max_batch, x, batchsize)

@@ -6,18 +6,18 @@ window1d_handle(::Type{Float32}) = WINDOW1D_F32
 ∇window1d_handle(::Type{Float32}) = ∇WINDOW1D_F32
 
 function window1d(x::Var, ksize, pad, stride, dilation)
-    y = window1d(x.data, ksize, pad, stride, dilation)
+    y = window1d_batch(x.data, [size(x.data,2)], ksize, pad, stride, dilation)
     Var(y, window1d, (x,ksize,pad,stride,dilation))
 end
-window1d(x::Node, ksize, pad, stride, dilation) = Node(window1d, x, ksize, pad, stride, dilation)
-window1d(x::Matrix, ksize, pad, stride, dilation) = window1d_batch(x, [size(x,2)], ksize, pad, stride, dilation)
 
-function window1d_batch(x::Var, batchdims::Vector{Int}, ksize, pad, stride, dilation)
-    y = window1d_batch(x.data, batchdims, ksize, pad, stride, dilation)
+window1d(x::Node, ksize, pad, stride, dilation) = Node(window1d, x, ksize, pad, stride, dilation)
+
+function window1d_batch(x::Var, batchdims::Var, ksize, pad, stride, dilation)
+    y = window1d_batch(x.data, batchdims.data, ksize, pad, stride, dilation)
     Var(y, window1d_batch, (x,batchdims,ksize,pad,stride,dilation))
 end
-window1d_batch(x::Node, dims, ksize, pad, stride, dilation) = Node(window1d_batch, x, dims, ksize, pad, stride, dilation)
-function window1d_batch{T}(x::Matrix{T}, batchdims, ksize, pad, stride, dilation)
+window1d_batch(x::Node, batchdims, ksize, pad, stride, dilation) = Node(window1d_batch, x, batchdims, ksize, pad, stride, dilation)
+function window1d_batch{T}(x::Matrix{T}, batchdims::Vector{Int}, ksize, pad, stride, dilation)
     outdims = map(batchdims) do d
         (d + 2pad - ksize) ÷ stride + 1
     end
@@ -28,15 +28,16 @@ function window1d_batch{T}(x::Matrix{T}, batchdims, ksize, pad, stride, dilation
 end
 
 function addgrad!(y::Var, ::typeof(window1d), x::Var, ksize, pad, stride, dilation)
-    addgrad!(y, window1d_batch, x, [size(x.data,2)], ksize, pad, stride, dilation)
-end
-
-function addgrad!(y::Var, ::typeof(window1d_batch), x::Var, batchdims, ksize, pad, stride, dilation)
     isvoid(x.grad) && return
-    ∇window1d_batch!(y.grad, x.grad, batchdims, ksize, pad, stride, dilation)
+    ∇window1d_batch!(y.grad, x.grad, [size(x.data,2)], ksize, pad, stride, dilation)
 end
 
-function ∇window1d_batch!{T}(gy::Array{T}, gx::Array{T}, batchdims, ksize, pad, stride, dilation)
+function addgrad!(y::Var, ::typeof(window1d_batch), x::Var, batchdims::Var, ksize, pad, stride, dilation)
+    isvoid(x.grad) && return
+    ∇window1d_batch!(y.grad, x.grad, batchdims.data, ksize, pad, stride, dilation)
+end
+
+function ∇window1d_batch!{T}(gy::Array{T}, gx::Array{T}, batchdims::Vector{Int}, ksize, pad, stride, dilation)
     outdims = map(batchdims) do d
         (d + 2pad - ksize) ÷ stride + 1
     end

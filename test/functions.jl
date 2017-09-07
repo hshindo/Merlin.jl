@@ -30,8 +30,10 @@ end
 
 @testset "cnn" for i = 1:5
     x = Var(rand(T,10,15))
+    batchdims = Var([5,10])
     f = Conv1D(T, 5, 10, 20, 2, 1)
-    @testgrad f(x,[5,10]) x f.w f.b
+    @testgrad f(x) x f.w f.b
+    @testgrad f(x,batchdims) x f.w f.b
 end
 
 @testset "getindex" for i = 1:5
@@ -88,12 +90,13 @@ end
 
 @testset "reduction" for i = 1:5
     x = Var(rand(T,10,15)+1)
+    batchsize = Var([5,10])
     for dim = 1:ndims(x.data)
         max(x, dim)
         #@testgrad sum(x,dim) x
         #@testgrad mean(x,dim) x
     end
-    max_batch(x, [5,10])
+    max_batch(x, batchsize)
 end
 
 @testset "reshape" for i = 1:5
@@ -118,6 +121,7 @@ end
 
 @testset "window" for i = 1:5
     x = Var(randn(T,10,15))
+    batchdims = Var([5,10])
     @testgrad window1d(x,5,2,1,1) x
-    @testgrad window1d_batch(x,[5,10],5,2,1,1) x
+    @testgrad window1d_batch(x,batchdims,5,2,1,1) x
 end

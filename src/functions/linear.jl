@@ -33,9 +33,12 @@ function Linear{T}(::Type{T}, insize::Int, outsize::Int)
 end
 (f::Linear)(x) = linear(f.w, x, f.b)
 
-linear(w::Var, x::Var, b::Var) = Var(linear(w,x.data,b), linear, (w,x,b))
-linear(w::Var, x::Node, b::Var) = Node(linear, w, x, b)
-linear(w::Var, x::Array, b::Var) = w.data * x .+ b.data
+function linear(w::Var, x::Var, b::Var)
+    y = w.data * x.data .+ b.data
+    Var(y, linear, (w,x,b))
+end
+
+linear(w, x::Node, b) = Node(linear, w, x, b)
 
 function addgrad!(y::Var, ::typeof(linear), w::Var, x::Var, b::Var)
     T = eltype(y.data)
