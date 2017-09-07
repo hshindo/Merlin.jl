@@ -1,29 +1,57 @@
 # Functions
 
+```@index
+Pages = ["functions.md"]
+```
+
+## Activation
 ```@docs
-+
--
-*
-.*
-concat
-Conv
-crossentropy
-dropout
-exp
-gemm
-getindex
-GRU
-Linear
-log
-logsoftmax
-max
-maxpooling
+clipped_relu
 relu
-reshape
+selu
 sigmoid
-softmax
-sum
 tanh
-transpose
-view
+```
+
+## Convolution
+```@docs
+Conv1D
+```
+
+## Loss
+```@docs
+crossentropy
+mse
+softmax_crossentropy
+```
+
+## Random
+```@docs
+dropout
+```
+
+## Recurrent
+```@docs
+BiLSTM
+LSTM
+```
+
+## Reduction
+```@docs
+max
+max_batch
+```
+
+```@docs
+gemm
+gemv
+concat
+getindex
+Linear
+logsoftmax
+lookup
+reshape
+softmax
+standardize
+window1d
 ```
