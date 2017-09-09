@@ -25,6 +25,17 @@ mse
 softmax_crossentropy
 ```
 
+## Math
+```@docs
+broadcast
++
+-
+*
+/
+^
+transpose
+```
+
 ## Random
 ```@docs
 dropout
