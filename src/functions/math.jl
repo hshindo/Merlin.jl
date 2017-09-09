@@ -1,8 +1,8 @@
 import Base: transpose
 import Base: +, -, *, /, ^
 
-"""
-    exp.(x::Var)
+doc"""
+    exp.(x)
 """
 Base.broadcast(::typeof(exp), x::Var) = Var(exp.(x.data), broadcast, (exp,x))
 Base.broadcast(::typeof(exp), x::Node) = Node(broadcast, exp, x)
@@ -34,7 +34,7 @@ end
 =#
 
 """
-    log.(x::Var)
+    log.(x)
 """
 Base.broadcast(::typeof(log), x::Var) = Var(log.(x.data), broadcast, (log,x))
 Base.broadcast(::typeof(log), x::Node) = Node(broadcast, log, x)
@@ -65,7 +65,7 @@ end
 =#
 
 """
-    transpose(x::Var)
+    transpose(x)
 """
 transpose(x::Var) = Var(transpose(x.data), transpose, (x,))
 transpose(x::Node) = Node(transpose, x)
