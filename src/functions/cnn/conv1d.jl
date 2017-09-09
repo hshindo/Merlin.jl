@@ -22,7 +22,9 @@ mutable struct Conv1D
 end
 
 function Conv1D{T}(::Type{T}, ksize, insize, outsize, pad, stride; dilation=1)
-    w = randn(T,outsize,ksize*insize) * T(sqrt(2 / (ksize+insize+outsize)))
+    r = T(sqrt(2 / (outsize+ksize*insize)))
+    w = rand(T,outsize,ksize*insize) * 2r - r
+    #w = randn(T,outsize,ksize*insize) * T(1 / ksize*insize)
     b = fill(T(0), outsize)
     Conv1D(zerograd(w), zerograd(b), ksize, pad, stride, dilation)
 end

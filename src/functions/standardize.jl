@@ -21,25 +21,33 @@ end
 
 function standardize(x::Var, scale::Var, bias::Var, runmean, runvar; eps=1e-4, decay=0.99)
     T = eltype(x.data)
-    xmean = mean(x.data, 2)
-    xvar = varm(x.data, xmean, 2)
-    n = length(xmean)
-    BLAS.scal!(n, T(decay), runmean, 1)
-    BLAS.axpy!(T(1-decay), xmean, runmean)
-    BLAS.scal!(n, T(decay), runvar, 1)
-    a = (1 - decay) * n / max(n-1,1)
-    BLAS.axpy!(T(a), xvar, runvar)
-    #@. runmean = T(decay) * runmean + T(1-decay) * xmean
-    #@. runvar = T(decay) * runvar + T(1-decay) * xvar
-    invstd = T(1) ./ sqrt.(xvar + T(eps))
-    xhat = (x.data .- xmean) .* invstd
-    data = xhat .* scale.data .+ bias.data
-    Var(data, standardize, (x,scale,bias,invstd,xhat))
+    if config.train
+        xmean = mean(x.data, 2)
+        xvar = varm(x.data, xmean, 2)
+        n = length(xmean)
+        BLAS.scal!(n, T(decay), runmean, 1)
+        BLAS.axpy!(T(1-decay), xmean, runmean)
+        BLAS.scal!(n, T(decay), runvar, 1)
+        a = (1 - decay) * n / max(n-1,1)
+        BLAS.axpy!(T(a), xvar, runvar)
+        #@. runmean = T(decay) * runmean + T(1-decay) * xmean
+        #@. runvar = T(decay) * runvar + T(1-decay) * xvar
+        invstd = T(1) ./ sqrt.(xvar + T(eps))
+        xhat = (x.data .- xmean) .* invstd
+        data = xhat .* scale.data .+ bias.data
+        Var(data, standardize, (x,scale,bias,invstd,xhat))
+    else
+        data = (x.data .- runmean) ./ sqrt.(runvar + T(eps)) .* scale.data .+ bias.data
+        Var(data, standardize, (x,scale,bias))
+    end
 end
+
 standardize(x::Node, scale, bias, runmean, runvar) = Node(standardize, x, scale, bias, runmean, runvar)
 
-function standardize{T}(x::Array{T}, scale::Var, bias::Var, runmean, runvar; eps=1e-4)
-    (x .- runmean) ./ sqrt.(runvar + T(eps)) .* scale.data .+ bias.data
+function standardize{T}(x::Matrix{T}; eps=1e-4)
+    xmean = mean(x, 2)
+    xvar = varm(x, xmean, 2)
+    (x .- xmean) ./ sqrt.(xvar + T(eps))
 end
 
 function addgrad!(y::Var, ::typeof(standardize), x::Var, scale::Var, bias::Var, invstd, xhat)
