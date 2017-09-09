@@ -3,9 +3,9 @@ export dropout
 doc"""
     dropout(x, rate::Float64)
 
-Drops elements randomly with probability ``rate`` and
+If config.train is true, drops elements randomly with probability ``rate`` and
 scales the other elements by factor ``1 / (1 - rate)``.
-In testing, it just returns `x`.
+Otherwise, it just returns x.
 """
 function dropout(x::Var, rate::Float64)
     if config.train
