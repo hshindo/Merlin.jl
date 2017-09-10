@@ -21,7 +21,8 @@ function window1d_batch{T}(x::Matrix{T}, batchdims::Vector{Int}, ksize, pad, str
     outdims = map(batchdims) do d
         (d + 2pad - ksize) ÷ stride + 1
     end
-    y = similar(x, size(x,1)*ksize, sum(outdims))
+    #y = similar(x, size(x,1)*ksize, sum(outdims))
+    y = zeros(T, size(x,1)*ksize, sum(outdims))
     ccall(window1d_handle(T), Void, (Ptr{T},Ptr{T},Cint,Ptr{Cint},Cint,Cint,Cint,Cint,Cint),
         x, y, size(x,1), map(Cint,outdims), length(outdims), ksize, pad, stride, dilation)
     y

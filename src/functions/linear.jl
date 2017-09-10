@@ -27,8 +27,8 @@ y = f(x)
 ```
 """
 function Linear{T}(::Type{T}, insize::Int, outsize::Int)
-    r =  T(sqrt(2 / (insize+outsize)))
-    w = rand(T,outsize,insize) * 2r - r
+    v =  2 / (insize + outsize)
+    w = randn(T,outsize,insize) * T(sqrt(v))
     #w = randn(T,outsize,insize) * T(1 / insize)
     b = fill(T(0), outsize)
     Linear(zerograd(w), zerograd(b))
@@ -42,6 +42,13 @@ end
 
 linear(w, x::Node, b) = Node(linear, w, x, b)
 
+function clip!{T}(x::Array{T}, threshold::T)
+    for i = 1:length(x)
+        x[i] > threshold && (x[i] = threshold)
+        x[i] < threshold && (x[i] = -threshold)
+    end
+end
+
 function addgrad!(y::Var, ::typeof(linear), w::Var, x::Var, b::Var)
     T = eltype(y.data)
     isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), y.grad, x.data, T(1), w.grad)
@@ -50,6 +57,7 @@ function addgrad!(y::Var, ::typeof(linear), w::Var, x::Var, b::Var)
         g = sum(y.grad, 2)
         BLAS.axpy!(T(1), g, b.grad)
     end
+    #clip!(w.grad, T(1))
 end
 
 export NormLinear

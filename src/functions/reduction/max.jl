@@ -64,6 +64,7 @@ function max_batch{T,N}(x::Array{T,N}, batchsize::Vector{Int})
         append!(idx, index)
         cumdim += batchsize[i]
     end
+
     y = reshape(y, front..., length(batchsize))
     y, idx
 end

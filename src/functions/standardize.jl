@@ -23,7 +23,7 @@ function standardize(x::Var, scale::Var, bias::Var, runmean, runvar; eps=1e-4, d
     T = eltype(x.data)
     if config.train
         xmean = mean(x.data, 2)
-        xvar = varm(x.data, xmean, 2)
+        xvar = varm(x.data, xmean, 2, corrected = size(x.data,2) > 1)
         n = length(xmean)
         BLAS.scal!(n, T(decay), runmean, 1)
         BLAS.axpy!(T(1-decay), xmean, runmean)
@@ -46,7 +46,7 @@ standardize(x::Node, scale, bias, runmean, runvar) = Node(standardize, x, scale,
 
 function standardize{T}(x::Matrix{T}; eps=1e-4)
     xmean = mean(x, 2)
-    xvar = varm(x, xmean, 2)
+    xvar = varm(x, xmean, 2, corrected = size(x.data,2) > 1)
     (x .- xmean) ./ sqrt.(xvar + T(eps))
 end
 

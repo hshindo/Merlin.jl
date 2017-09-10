@@ -42,6 +42,8 @@ include("train.jl")
 
 for name in [
     "activation/clipped_relu",
+    "activation/crelu",
+    "activation/elu",
     "activation/relu",
     "activation/selu",
     "activation/sigmoid",

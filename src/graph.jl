@@ -116,7 +116,9 @@ function addgrad!(y::Var, g::Graph, xs::Var...)
         !isempty(v.args) && isvoid(v.grad) && zerograd!(v)
     end
     for i = length(vars):-1:1
-        addgrad!(vars[i])
+        v = vars[i]
+        addgrad!(v)
+        isvoid(v.grad) && continue
     end
 end
 

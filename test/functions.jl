@@ -6,7 +6,9 @@ const T = Float32
         abs(x.data[i]) < 0.1 && (x.data[i] += 1)
     end
     clipped_relu(x)
-    relu(x)
+    @testgrad elu(x) x
+    @testgrad relu(x) x
+    @testgrad crelu(x) x
     @testgrad selu(x) x
     @testgrad sigmoid(x) x
     @testgrad tanh(x) x
