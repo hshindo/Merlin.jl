@@ -3,12 +3,13 @@ export mse
 doc"""
     mse(x1, x2)
 
-Mean Squared Error function between two variables.
+Mean Squared Error function between `x1` and `x2`.
 The mean is calculated over the minibatch.
 Note that the error is not scaled by 1/2.
 """
 function mse(x1::Var, x2::Var)
-    Var(mse(x1.data,x2.data), mse, (x1,x2))
+    x1.batchdims == x2.batchdims || throw("Batchdims mismatch: $(x1.batchdims) : $(x2.batchdims)")
+    Var(mse(x1.data,x2.data), x1.batchdims, mse, (x1,x2))
 end
 
 mse(x1::Node, x2::Node) = Node(mse, x1, x2)

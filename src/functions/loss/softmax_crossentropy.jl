@@ -1,15 +1,17 @@
 export softmax_crossentropy
 
 doc"""
-    softmax_crossentropy(p, q)
+    softmax_crossentropy(p, x)
 
-Cross-entropy function between p and q.
-When p[i] == 0, returns 0.
+Cross-entropy function between p and ``softmax(x)``.
+```math
+f(x) = -\sum_{x} p(x) \log q(x)
+```
+where ``q = softmax(x)``
 
 * p: Var of Vector{Int} or Matrix{Float}
 * q: Var of Matrix{Float}
 
-# 👉 Example
 ```julia
 p = Var(rand(0:10,5))
 q = Var(rand(Float32,10,5))

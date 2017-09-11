@@ -6,7 +6,6 @@ Pages = ["functions.md"]
 
 ## Activation
 ```@docs
-clipped_relu
 crelu
 elu
 relu

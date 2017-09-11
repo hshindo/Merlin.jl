@@ -4,19 +4,25 @@ doc"""
     crossentropy(p, q)
 
 Cross-entropy function between p and q.
-When p[i] == 0, returns 0.
 
-* p::Var: `Var` of Vector{Int} or Matrix{Float}
+```math
+f(x) = -\sum_{x} p(x) \log q(x)
+```
+
+* p::Var: `Var` of Vector{Int} or Matrix{Float}. If p is `Vector{Int}` and p[i] == 0, returns 0.
 * q::Var: `Var` of Matrix{Float}
 
-# 👉 Example
 ```julia
 p = Var(rand(0:10,5))
-q = logsoftmax(Var(rand(Float32,10,5)))
+q = softmax(Var(rand(Float32,10,5)))
 y = crossentropy(p, q)
 ```
 """
-crossentropy(p::Var, q::Var) = Var(crossentropy(p.data,q.data), crossentropy, (p,q))
+function crossentropy(p::Var, q::Var)
+    p.batchdims == q.batchdims || throw("Batchdims mismatch: $(p.batchdims) : $(q.batchdims)")
+    Var(crossentropy(p.data,q.data), p.batchdims, crossentropy, (p,q))
+end
+
 crossentropy(p::Node, q::Node) = Node(crossentropy, p, q)
 
 function crossentropy{T}(p::Vector{Int}, q::Matrix{T})

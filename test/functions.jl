@@ -5,7 +5,6 @@ const T = Float32
     for i = 1:length(x.data)
         abs(x.data[i]) < 0.1 && (x.data[i] += 1)
     end
-    clipped_relu(x)
     @testgrad elu(x) x
     @testgrad relu(x) x
     @testgrad crelu(x) x
