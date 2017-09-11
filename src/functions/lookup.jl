@@ -28,8 +28,11 @@ function Lookup{T}(::Type{T}, insize::Int, outsize::Int)
     Lookup(params, IntSet())
 end
 
-(f::Lookup)(x::Var) = Var(f(x.data), f, (x,))
-(f::Lookup)(x::Node) = Node(f, x)
+function (f::Lookup)(x::Var)
+    Var(f(x.data), f, (x,))
+end
+
+(f::Lookup)(x::Node; name) = Node(f, x, name=name)
 
 function (f::Lookup)(x::Array{Int})
     p = f.params[1].data

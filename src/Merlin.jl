@@ -65,7 +65,7 @@ for name in [
 
     "argmax",
     "blas",
-    "concat",
+    "cat",
     "getindex",
     "linear",
     "logsoftmax",

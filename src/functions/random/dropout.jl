@@ -12,19 +12,19 @@ function dropout(x::Var, rate::Float64)
         T = eltype(x.data)
         rx = rand(eltype(x.data), length(x.data))
         data = dropout(x.data, T(rate), rx)
-        Var(data, dropout, (x,rate,rx))
+        Var(data, x.batchdims, dropout, (x,rate,rx))
     else
         x
     end
 end
 
-dropout(x::Node, rate::Float64) = Node(dropout, x, rate)
+dropout(x::Node, rate::Float64; name) = Node(dropout, x, rate, name=name)
 
 function dropout{T}(x::Array{T}, rate::T, rx::Vector{T})
     scale = T(1 / (1-rate))
     y = similar(x)
     @inbounds for i = 1:length(x)
-        y[i] = ifelse(rx[i] <= rate, T(0), scale*x[i])
+        y[i] = rx[i] <= rate ? T(0) : scale*x[i]
     end
     y
 end

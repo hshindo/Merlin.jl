@@ -2,8 +2,8 @@ export Linear
 export linear
 
 struct Linear
-    w
-    b
+    w::Var
+    b::Var
 end
 
 """
@@ -15,7 +15,7 @@ Computes linear function (a.k.a. affine transformation).
 * outsize: size of output dimension
 
 ```math
-f(x) = W^{T}x + b
+f(x) = Wx + b
 ```
 where ``W`` is a weight matrix and ``b`` is a bias vector.
 
@@ -29,7 +29,6 @@ y = f(x)
 function Linear{T}(::Type{T}, insize::Int, outsize::Int)
     v =  2 / (insize + outsize)
     w = randn(T,outsize,insize) * T(sqrt(v))
-    #w = randn(T,outsize,insize) * T(1 / insize)
     b = fill(T(0), outsize)
     Linear(zerograd(w), zerograd(b))
 end
@@ -37,17 +36,10 @@ end
 
 function linear(w::Var, x::Var, b::Var)
     y = w.data * x.data .+ b.data
-    Var(y, linear, (w,x,b))
+    Var(y, x.batchdims, linear, (w,x,b))
 end
 
-linear(w, x::Node, b) = Node(linear, w, x, b)
-
-function clip!{T}(x::Array{T}, threshold::T)
-    for i = 1:length(x)
-        x[i] > threshold && (x[i] = threshold)
-        x[i] < threshold && (x[i] = -threshold)
-    end
-end
+linear(w, x::Node, b; name) = Node(linear, w, x, b, name=name)
 
 function addgrad!(y::Var, ::typeof(linear), w::Var, x::Var, b::Var)
     T = eltype(y.data)
@@ -57,7 +49,6 @@ function addgrad!(y::Var, ::typeof(linear), w::Var, x::Var, b::Var)
         g = sum(y.grad, 2)
         BLAS.axpy!(T(1), g, b.grad)
     end
-    #clip!(w.grad, T(1))
 end
 
 export NormLinear
