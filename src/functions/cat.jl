@@ -15,7 +15,7 @@ function cat(dim::Int, xs::Var...)
     N = ndims(xs[1].data)
     if dim == N
         batchdims = Int[]
-        foreach(d -> append!(batchdims,d), x.batchdims)
+        foreach(x -> append!(batchdims,x.batchdims), xs)
     else
         all(x -> x.batchdims == xs[1].batchdims, xs) || throw("Invalid batchdims.")
         batchdims = xs[1].batchdims
@@ -24,7 +24,7 @@ function cat(dim::Int, xs::Var...)
     Var(y, batchdims, cat, (dim,xs...))
 end
 
-cat(dim::Int, xs::Node...; name) = Node(dim, xs..., name=name)
+cat(dim::Int, xs::Node...; name="cat") = Node(cat, dim, xs..., name=name)
 
 function addgrad!(y::Var, ::typeof(cat), dim::Int, xs::Var...)
     T, N = eltype(y.data), ndims(y.data)

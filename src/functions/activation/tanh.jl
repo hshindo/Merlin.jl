@@ -5,13 +5,12 @@ doc"""
 
 Hyperbolic tangent function.
 """
-tanh(x::Var) = Var(tanh.(x.data), tanh, (x,))
+tanh(x::Var) = Var(tanh.(x.data), x.batchdims, tanh, (x,))
 
-tanh(x::Node) = Node(tanh, x)
+tanh(x::Node; name="tanh") = Node(tanh, x, name=name)
 
 function addgrad!(y::Var, ::typeof(tanh), x::Var)
-    isvoid(x.grad) && return
-    ∇tanh!(y.data, y.grad, x.data, x.grad)
+    isvoid(x.grad) || ∇tanh!(y.data, y.grad, x.data, x.grad)
 end
 
 function ∇tanh!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})

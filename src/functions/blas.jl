@@ -13,7 +13,7 @@ y = \alpha \times \textrm{tA}(A) \times x
 function gemv(tA::Char, alpha::Number, A::Var, x::Var)
     T = eltype(A.data)
     data = BLAS.gemv(tA, T(alpha), A.data, x.data)
-    Var(data, gemv, (tA,alpha,A,x))
+    Var(data, x.batchdims, gemv, (tA,alpha,A,x))
 end
 
 function addgrad!(y::Var, ::typeof(gemv), tA::Char, alpha::Number, A::Var, x::Var)
@@ -41,9 +41,8 @@ C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
 function gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
     T = eltype(A.data)
     data = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
-    Var(data, gemm, (tA,tB,alpha,A,B))
+    Var(data, B.batchdims, gemm, (tA,tB,alpha,A,B))
 end
-gemm(tA::Char, tB::Char, alpha::Number, A::Node, B::Node) = Node(gemm, tA, tB, alpha, A, B)
 
 function addgrad!(C::Var, ::typeof(gemm), tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
     T = eltype(C.data)

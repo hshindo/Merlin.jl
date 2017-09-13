@@ -7,15 +7,15 @@ struct Linear
 end
 
 """
-    Linear(T::Type, insize::Int, outsize::Int)
+    Linear(T::Type, dim1::Int, dim2::Int)
 
 Computes linear function (a.k.a. affine transformation).
 
-* insize: size of input dimension
-* outsize: size of output dimension
+* dim1
+* dim2
 
 ```math
-f(x) = Wx + b
+f(x) = W^{T}x + b
 ```
 where ``W`` is a weight matrix and ``b`` is a bias vector.
 
@@ -26,28 +26,36 @@ f = Linear(T,10,7)
 y = f(x)
 ```
 """
-function Linear{T}(::Type{T}, insize::Int, outsize::Int)
-    v =  2 / (insize + outsize)
-    w = randn(T,outsize,insize) * T(sqrt(v))
-    b = fill(T(0), outsize)
+function Linear{T}(::Type{T}, insize::Int, outsize::Int; init=nothing)
+    w = random(Xavier(), T, insize, outsize)
+    b = zeros(T, outsize)
     Linear(zerograd(w), zerograd(b))
 end
-(f::Linear)(x) = linear(f.w, x, f.b)
+(f::Linear)(x) = linear(x, f.w, f.b)
 
-function linear(w::Var, x::Var, b::Var)
-    y = w.data * x.data .+ b.data
-    Var(y, x.batchdims, linear, (w,x,b))
+function linear(x::Var, w::Var, b::Var)
+    Var(linear(x.data,w.data,b.data), x.batchdims, linear, (x,w,b))
 end
 
-linear(w, x::Node, b; name) = Node(linear, w, x, b, name=name)
+linear(x::Node, w, b; name="linear") = Node(linear, x, w, b, name=name)
 
-function addgrad!(y::Var, ::typeof(linear), w::Var, x::Var, b::Var)
-    T = eltype(y.data)
-    isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), y.grad, x.data, T(1), w.grad)
-    isvoid(x.grad) || BLAS.gemm!('T', 'N', T(1), w.data, y.grad, T(1), x.grad)
-    if !isvoid(b.grad)
-        g = sum(y.grad, 2)
-        BLAS.axpy!(T(1), g, b.grad)
+function linear(x::Array, w::Array, b::Array)
+    y = gemm('T', 'N', w, x)
+    broadcast!(+, y, y, b)
+    y
+end
+
+function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
+    ∇linear!(y.data, y.grad, x.data, x.grad, w.data, w.grad, b.data, b.grad)
+end
+
+function ∇linear!(y, gy, x, gx, w, gw, b, gb)
+    T = eltype(y)
+    isvoid(gx) || BLAS.gemm!('N', 'N', T(1), w, gy, T(1), gx)
+    isvoid(gw) || BLAS.gemm!('N', 'T', T(1), x, gy, T(1), gw)
+    if !isvoid(gb)
+        g = sum(gy, 2)
+        BLAS.axpy!(T(1), g, gb)
     end
 end
 

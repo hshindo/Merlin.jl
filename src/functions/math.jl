@@ -1,15 +1,15 @@
-import Base: transpose
+import Base: broadcast, transpose
 import Base: +, -, *, /, ^
 
 doc"""
     exp.(x)
 """
-Base.broadcast(::typeof(exp), x::Var) = Var(exp.(x.data), broadcast, (exp,x))
-Base.broadcast(::typeof(exp), x::Node) = Node(broadcast, exp, x)
+broadcast(::typeof(exp), x::Var) = Var(exp.(x.data), x.batchdims, broadcast, (exp,x))
+
+broadcast(::typeof(exp), x::Node; name="exp") = Node(broadcast, exp, x, name=name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(exp), x::Var)
-    isvoid(x.grad) && return
-    ∇exp!(y.data, y.grad, x.grad)
+    isvoid(x.grad) || ∇exp!(y.data, y.grad, x.grad)
 end
 
 function ∇exp!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
@@ -36,8 +36,9 @@ end
 """
     log.(x)
 """
-Base.broadcast(::typeof(log), x::Var) = Var(log.(x.data), broadcast, (log,x))
-Base.broadcast(::typeof(log), x::Node) = Node(broadcast, log, x)
+broadcast(::typeof(log), x::Var) = Var(log.(x.data), x.batchdims, broadcast, (log,x))
+
+broadcast(::typeof(log), x::Node; name="log") = Node(broadcast, log, x, name=name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(log), x::Var)
     isvoid(x.grad) || ∇log!(y.grad,x.data,x.grad)
@@ -67,8 +68,9 @@ end
 """
     transpose(x)
 """
-transpose(x::Var) = Var(transpose(x.data), transpose, (x,))
-transpose(x::Node) = Node(transpose, x)
+transpose(x::Var) = Var(transpose(x.data), x.batchdims, transpose, (x,))
+
+transpose(x::Node; name="transpose") = Node(transpose, x, name=name)
 
 function addgrad!(y::Var, ::typeof(transpose), x::Var)
     isvoid(x.grad) || BLAS.axpy!(eltype(x.data)(1), transpose(y.grad), x.grad)
@@ -77,12 +79,16 @@ end
 """
     +(x1::Var, x2::Var)
 """
-+(x1::Var, x2::Var) = Var(x1.data + x2.data, +, (x1,x2))
+function +(x1::Var, x2::Var)
+    x1.batchdims == x2.batchdims || throw("Batchdims mismatch.")
+    Var(x1.data + x2.data, x1.batchdims, +, (x1,x2))
+end
 +(x1::Union{Number,Array}, x2::Var) = Var(x1) + x2
 +(x1::Var, x2::Union{Number,Array}) = x1 + Var(x2)
-+(x1::Node, x2) = Node(+, x1, x2)
-+(x1, x2::Node) = Node(+, x1, x2)
-+(x1::Node, x2::Node) = Node(+, x1, x2)
+
++(x1::Node, x2; name="+") = Node(+, x1, x2, name=name)
++(x1, x2::Node; name="+") = Node(+, x1, x2, name=name)
++(x1::Node, x2::Node; name="+") = Node(+, x1, x2, name=name)
 
 function addgrad!(y::Var, ::typeof(+), x1::Var, x2::Var)
     T = eltype(y.grad)
@@ -91,15 +97,18 @@ function addgrad!(y::Var, ::typeof(+), x1::Var, x2::Var)
 end
 
 """
-    -(x1::Var, x2::Var)
-    -(x::Var)
+    -(x1, x2)
 """
--(x1::Var, x2::Var) = Var(x1.data - x2.data, -, (x1,x2))
--(x1::Node, x2::Node) = Node(-, x1, x2)
--(x::Var) = Var(-x.data, -, (x,))
--(x::Node) = Node(-, x)
+function -(x1::Var, x2::Var)
+    x1.batchdims == x2.batchdims || throw("Batchdims mismatch.")
+    Var(x1.data - x2.data, x1.batchdims, -, (x1,x2))
+end
 -(a::Number, x::Var) = Var(a) - x
 -(x::Var, a::Number) = x - Var(a)
+-(x::Var) = Var(-x.data, x.batchdims, -, (x,))
+
+-(x1::Node, x2::Node) = Node(-, x1, x2)
+-(x::Node) = Node(-, x)
 
 function addgrad!(y::Var, ::typeof(-), x1::Var, x2::Var)
     T = eltype(y.grad)
@@ -115,8 +124,12 @@ end
 """
     .+(x1::Var, x2::Var)
 """
-Base.broadcast(::typeof(+), x1::Var, x2::Var) = Var(x1.data .+ x2.data, broadcast, (+,x1,x2))
-Base.broadcast(::typeof(+), x1::Node, x2::Node) = Node(broadcast, +, x1, x2)
+function broadcast(::typeof(+), x1::Var, x2::Var)
+    throw("Not implemented yet.")
+    Var(x1.data .+ x2.data, broadcast, (+,x1,x2))
+end
+
+broadcast(::typeof(+), x1::Node, x2::Node; name=".+") = Node(broadcast, +, x1, x2, name=name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(+), x1::Var, x2::Var)
     isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
@@ -134,8 +147,12 @@ end
 """
     .-(x1::Var, x2::Var)
 """
-Base.broadcast(::typeof(-), x1::Var, x2::Var) = Var(x1.data .- x2.data, broadcast, (-,x1,x2))
-Base.broadcast(::typeof(-), x1::Node, x2::Node) = Node(broadcast, -, x1, x2)
+function broadcast(::typeof(-), x1::Var, x2::Var)
+    throw("Not implemented yet.")
+    Var(x1.data .- x2.data, broadcast, (-,x1,x2))
+end
+
+broadcast(::typeof(-), x1::Node, x2::Node; name=".-") = Node(broadcast, -, x1, x2, name=name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(-), x1::Var, x2::Var)
     isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
@@ -161,8 +178,12 @@ end
 """
     \.\*(x1::Var, x2::Var)
 """
-Base.broadcast(::typeof(*), x1::Var, x2::Var) = Var(x1.data .* x2.data, broadcast, (*,x1,x2))
-Base.broadcast(::typeof(*), x1::Node, x2::Node) = Node(broadcast, *, x1, x2)
+function broadcast(::typeof(*), x1::Var, x2::Var)
+    throw("Not implemented yet.")
+    Var(x1.data .* x2.data, broadcast, (*,x1,x2))
+end
+
+broadcast(::typeof(*), x1::Node, x2::Node; name=".*") = Node(broadcast, *, x1, x2, name=name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(*), x1::Var, x2::Var)
     isvoid(x1.grad) || ∇elemtimes!(y.grad, x2.data, x1.grad)
@@ -219,8 +240,12 @@ end
 """
     \*(A::Var, B::Var)
 """
-*(A::Var, B::Var) = Var(A.data * B.data, *, (A,B))
-*(A::Node, B::Node) = Node(*, A, B)
+function *(A::Var, B::Var)
+    length(A.batchdims) == 1 || throw("")
+    Var(A.data * B.data, B.batchdims, *, (A,B))
+end
+
+*(A::Node, B::Node; name="*") = Node(*, A, B, name=name)
 
 function addgrad!(C::Var, ::typeof(*), A::Var, B::Var)
     T = eltype(C.data)
@@ -231,8 +256,9 @@ end
 """
     /(x1::Var, a)
 """
-/(x::Var, a::Number) = Var(x.data / a, /, (x,a))
-/(x::Node, a::Number) = Node(/, x, a)
+/(x::Var, a::Number) = Var(x.data, x.batchdims, /, (x,a))
+
+/(x::Node, a::Number; name="/") = Node(/, x, a, name=name)
 
 function addgrad!(y::Var, ::typeof(/), x::Var, a::Number)
     T = eltype(x.data)

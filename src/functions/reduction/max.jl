@@ -20,7 +20,7 @@ function Base.max(x::Var, dim::Int)
     Var(y, batchdims, max, (x,idx))
 end
 
-Base.max(x::Node, dim::Int; name) = Node(max, x, dim, name=name)
+Base.max(x::Node, dim::Int; name="max") = Node(max, x, dim, name=name)
 
 function Base.findmax{T,N}(x::Array{T,N}, batchdims::Vector{Int})
     front = Base.front(size(x))
@@ -39,7 +39,7 @@ function Base.findmax{T,N}(x::Array{T,N}, batchdims::Vector{Int})
         end
         append!(y, val)
         append!(idx, index)
-        cumdim += batchsize[i]
+        cumdim += batchdims[i]
     end
     y = reshape(y, front..., length(batchdims))
     y, idx

@@ -106,7 +106,8 @@ function (g::Graph)(inputs::Var...)
     end
     outputs = map(id -> vars[id], g.outputs)
     length(outputs) > 1 && throw("Not implemented yet.")
-    Var(outputs[1].data, g, inputs, work=vars)
+    v = outputs[1]
+    Var(v.data, v.batchdims, g, inputs, work=vars)
 end
 
 function addgrad!(y::Var, g::Graph, xs::Var...)

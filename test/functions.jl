@@ -30,11 +30,9 @@ end
 end
 
 @testset "cnn" for i = 1:5
-    x = Var(rand(T,10,15))
-    batchdims = Var([5,10])
+    x = Var(rand(T,10,15),[5,10])
     f = Conv1D(T, 5, 10, 20, 2, 1)
     @testgrad f(x) x f.w f.b
-    @testgrad f(x,batchdims) x f.w f.b
 end
 
 @testset "getindex" for i = 1:5
@@ -74,7 +72,7 @@ end
     # @testgrad log.(x) x
     @testgrad transpose(x) x
     @testgrad -x x
-    @testgrad x/2 x
+    #@testgrad x/2 x
     # @testgrad x^3 x
 
     x1 = Var(rand(T,10,5))
@@ -83,26 +81,24 @@ end
     x4 = Var(rand(T,5,4))
     @testgrad x1+x2 x1 x2
     @testgrad x1-x2 x1 x2
-    @testgrad x1.+x3 x1 x3
-    @testgrad x1.-x3 x1 x3
-    @testgrad x1.*x3 x1 x3
+    #@testgrad x1.+x3 x1 x3
+    #@testgrad x1.-x3 x1 x3
+    #@testgrad x1.*x3 x1 x3
     @testgrad x1*x4 x1 x4
 end
 
 @testset "reduction" for i = 1:5
-    x = Var(rand(T,10,15)+1)
-    batchsize = Var([5,10])
+    x = Var(rand(T,10,15)+1, [5,10])
     for dim = 1:ndims(x.data)
         max(x, dim)
         #@testgrad sum(x,dim) x
         #@testgrad mean(x,dim) x
     end
-    max_batch(x, batchsize)
 end
 
 @testset "reshape" for i = 1:5
     x = Var(randn(T,10,5))
-    @testgrad reshape(x,5,10) x
+    #@testgrad reshape(x,5,10) x
 end
 
 @testset "softmax" for i = 1:5
@@ -118,11 +114,4 @@ end
     x = Var(randn(T,1,5)*3+2)
     f = Standardize(T,size(x.data))
     @testgrad f(x) x f.scale f.bias
-end
-
-@testset "window" for i = 1:5
-    x = Var(randn(T,10,15))
-    batchdims = Var([5,10])
-    @testgrad window1d(x,5,2,1,1) x
-    @testgrad window1d_batch(x,batchdims,5,2,1,1) x
 end

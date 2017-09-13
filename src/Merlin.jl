@@ -13,8 +13,9 @@ end
 mutable struct Config
     train::Bool
     debug::Bool
+    env::Dict
 end
-const config = Config(true, false)
+const config = Config(true, false, Dict())
 
 #=
 if haskey(ENV,"USE_CUDA") && ENV["USE_CUDA"]
@@ -31,6 +32,7 @@ end
 abstract type Functor end
 
 include("hdf5.jl")
+include("initializer.jl")
 include("util.jl")
 include("abstractvar.jl")
 include("var.jl")
@@ -73,8 +75,7 @@ for name in [
     "math",
     "reshape",
     "softmax",
-    "standardize",
-    "window1d",
+    "standardize"
     ]
     include("functions/$(name).jl")
     #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)

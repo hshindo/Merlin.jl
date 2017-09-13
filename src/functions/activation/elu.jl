@@ -12,9 +12,9 @@ x & x > 0 \\
 \end{cases}
 ```
 """
-elu(x::Var) = Var(elu(x.data), elu, (x,))
+elu(x::Var) = Var(elu(x.data), x.batchdims, elu, (x,))
 
-elu(x::Node) = Node(elu, x)
+elu(x::Node; name="elu") = Node(elu, x, name=name)
 
 function elu{T}(x::Array{T})
     alpha = T(1)
@@ -26,8 +26,7 @@ function elu{T}(x::Array{T})
 end
 
 function addgrad!(y::Var, ::typeof(elu), x::Var)
-    isvoid(x.grad) && return
-    ∇elu!(y.data, y.grad, x.data, x.grad)
+    isvoid(x.grad) || ∇elu!(y.data, y.grad, x.data, x.grad)
 end
 
 function ∇elu!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})

@@ -1,66 +1,76 @@
 export softmax
 
-const SOFTMAX_F32 = Libdl.dlsym(libmerlin, :softmax_f32)
-const ∇SOFTMAX_F32 = Libdl.dlsym(libmerlin, :softmax_f32_grad)
-
-softmax_handle(::Type{Float32}) = SOFTMAX_F32
-∇softmax_handle(::Type{Float32}) = ∇SOFTMAX_F32
-
 """
-    softmax(x::Var)
+    softmax(x)
 
-Returns a softmax over the `ndims(x)-1`-th dimension.
+Returns a softmax over the first dimension.
 
 ```math
 f(x) = \exp(x) \over \sum \exp(x)
 ```
+
+* x: Var of Matrix
 """
-softmax(x::Var) = Var(softmax(x.data), softmax, (x,))
-softmax(x::Node) = Node(softmax, x)
+softmax(x::Var) = Var(softmax(x.data), x.batchdims, softmax, (x,))
 
-function addgrad!(y::Var, ::typeof(softmax), x::Var)
-    isvoid(x.grad) && return
-    ∇softmax!(y.data, y.grad, x.grad)
-end
+softmax(x::Node, name="softmax") = Node(softmax, x, name=name)
 
-function softmax{T}(x::Array{T})
+function softmax{T}(x::Vector{T})
     y = similar(x)
-    h = softmax_handle(T)
-    dims = size3d(x, ndims(x)-1)
-    ccall(h, Void, (Ptr{T},Ptr{T},Cint,Cint,Cint), x, y, dims[1], dims[2], dims[3])
+    maxv = x[1]
+    @inbounds for i = 1:length(x)
+        maxv = max(maxv, x[i])
+    end
+    z = T(0)
+    @inbounds for i = 1:length(x)
+        y[i] = exp(x[i] - maxv)
+        z += y[i]
+    end
+    z == T(0) && throw("z == 0")
+    invz = 1 / z
+    @inbounds for i = 1:length(x)
+        y[i] *= invz
+    end
     y
 end
 
-function softmax_jl{T}(x::Matrix{T})
+function softmax{T}(x::Matrix{T})
     y = similar(x)
-    for j = 1:size(x,2)
+    @inbounds for j = 1:size(x,2)
         maxv = x[1,j]
-        @inbounds for i = 1:size(x,1)
+        for i = 1:size(x,1)
             maxv = max(maxv, x[i,j])
         end
-
         z = T(0)
-        @inbounds for i = 1:size(x,1)
+        for i = 1:size(x,1)
             y[i,j] = exp(x[i,j] - maxv)
             z += y[i,j]
         end
-        z == T(0) && error("z == 0")
+        z == T(0) && throw("z == 0")
         invz = 1 / z
-        @inbounds for i = 1:size(x,1)
+        for i = 1:size(x,1)
             y[i,j] *= invz
         end
     end
     y
 end
 
-function ∇softmax!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
-    h = ∇softmax_handle(T)
-    dims = size3d(y, ndims(y)-1)
-    ccall(h, Void, (Ptr{T},Ptr{T},Ptr{T},Cint,Cint,Cint), y, gy, gx, dims[1], dims[2], dims[3])
+function addgrad!(y::Var, ::typeof(softmax), x::Var)
+    isvoid(x.grad) || ∇softmax!(y.data, y.grad, x.grad)
 end
 
-function ∇softmax_jl!{T}(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T})
-    for j = 1:size(y,2)
+function ∇softmax!{T}(y::Vector{T}, gy::Vector{T}, gx::Vector{T})
+    sum = T(0)
+    @inbounds for i = 1:length(y)
+        sum += gy[i] * y[i]
+    end
+    @inbounds for i = 1:length(y)
+        gx[i] += y[i] * (gy[i]-sum)
+    end
+end
+
+function ∇softmax!{T}(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T})
+    @inbounds for j = 1:size(y,2)
         sum = T(0)
         for i = 1:size(y,1)
             sum += gy[i,j] * y[i,j]

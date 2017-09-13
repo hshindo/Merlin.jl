@@ -8,9 +8,9 @@ Concatenated Rectified Linear Unit.
 f(x) = (\max(0,x), \max(0,-x))
 ```
 """
-crelu(x::Var) = Var(crelu(x.data), crelu, (x,))
+crelu(x::Var) = Var(crelu(x.data), x.batchdims, crelu, (x,))
 
-crelu(x::Node) = Node(crelu, x)
+crelu(x::Node; name="crelu") = Node(crelu, x, name=name)
 
 function crelu{T}(x::Array{T})
     s = [size(x)...]
@@ -25,8 +25,7 @@ function crelu{T}(x::Array{T})
 end
 
 function addgrad!(y::Var, ::typeof(crelu), x::Var)
-    isvoid(x.grad) && return
-    ∇crelu!(y.grad, x.data, x.grad)
+    isvoid(x.grad) || ∇crelu!(y.grad, x.data, x.grad)
 end
 
 function ∇crelu!{T}(gy::Array{T}, x::Array{T}, gx::Array{T})

@@ -8,9 +8,9 @@ Sigmoid logistic function.
 f(x) = (1 + \exp(-x))^{-1}
 ```
 """
-sigmoid(x::Var) = Var(sigmoid(x.data), sigmoid, (x,))
+sigmoid(x::Var) = Var(sigmoid(x.data), x.batchdims, sigmoid, (x,))
 
-sigmoid(x::Node) = Node(sigmoid, x)
+sigmoid(x::Node; name="sigmoid") = Node(sigmoid, x, name=name)
 
 function sigmoid{T}(x::Array{T})
     y = similar(x)
