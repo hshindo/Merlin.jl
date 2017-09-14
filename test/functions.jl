@@ -7,6 +7,7 @@ const T = Float32
     end
     @testgrad elu(x) x
     @testgrad relu(x) x
+    @testgrad leaky_relu(x) x
     @testgrad crelu(x) x
     @testgrad selu(x) x
     @testgrad sigmoid(x) x
@@ -83,7 +84,7 @@ end
     @testgrad x1-x2 x1 x2
     #@testgrad x1.+x3 x1 x3
     #@testgrad x1.-x3 x1 x3
-    #@testgrad x1.*x3 x1 x3
+    @testgrad x1.*x2 x1 x3
     @testgrad x1*x4 x1 x4
 end
 

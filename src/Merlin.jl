@@ -46,6 +46,7 @@ for name in [
     "activation/crelu",
     "activation/elu",
     "activation/relu",
+    "activation/leaky_relu",
     "activation/selu",
     "activation/sigmoid",
     "activation/tanh",

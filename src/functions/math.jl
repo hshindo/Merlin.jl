@@ -100,13 +100,16 @@ end
     -(x1, x2)
 """
 function -(x1::Var, x2::Var)
-    x1.batchdims == x2.batchdims || throw("Batchdims mismatch.")
-    Var(x1.data - x2.data, x1.batchdims, -, (x1,x2))
+    if isa(x1.data,Array) && isa(x2.data,Array)
+        x1.batchdims == x2.batchdims || throw("Batchdims mismatch.")
+    end
+    Var(x1.data - x2.data, x2.batchdims, -, (x1,x2))
 end
 -(a::Number, x::Var) = Var(a) - x
 -(x::Var, a::Number) = x - Var(a)
 -(x::Var) = Var(-x.data, x.batchdims, -, (x,))
 
+-(a::Number, x::Node) = Node(-, Var(a), x)
 -(x1::Node, x2::Node) = Node(-, x1, x2)
 -(x::Node) = Node(-, x)
 
@@ -179,8 +182,8 @@ end
     \.\*(x1::Var, x2::Var)
 """
 function broadcast(::typeof(*), x1::Var, x2::Var)
-    throw("Not implemented yet.")
-    Var(x1.data .* x2.data, broadcast, (*,x1,x2))
+    x1.batchdims == x2.batchdims || throw("")
+    Var(x1.data .* x2.data, x1.batchdims, broadcast, (*,x1,x2))
 end
 
 broadcast(::typeof(*), x1::Node, x2::Node; name=".*") = Node(broadcast, *, x1, x2, name=name)
