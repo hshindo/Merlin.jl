@@ -7,3 +7,4 @@ benchmark.jl
 *.so
 *.dll
 /mkl
+*.h5

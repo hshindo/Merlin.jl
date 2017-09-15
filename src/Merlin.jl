@@ -54,8 +54,8 @@ for name in [
     "activation/sigmoid",
     "activation/tanh",
 
-    "cnn/conv1d",
-    "cnn/gated_conv1d",
+    "conv/conv1d",
+    "conv/gated_conv1d",
 
     "loss/crossentropy",
     "loss/mse",
