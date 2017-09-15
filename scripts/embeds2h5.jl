@@ -16,12 +16,12 @@ function embeds2h5(path::String)
     end
     value = reshape(values, length(values)÷length(keys), length(keys))
 
-    outpath = splitext(path)[1] * ".h5"
-    println("Key size: $(length(keys))")
-    println("Value size: $(size(value))")
+    outpath = path * ".h5"
+    info("Key size: $(length(keys))")
+    info("Value size: $(size(value))")
     h5write(outpath, "key", keys)
     h5write(outpath, "value", value)
-    println("Finished.")
+    info("Finished.")
 end
 
 if isempty(ARGS)

@@ -1,8 +1,6 @@
 const sources = [
     "im2col.cpp",
-    "pooling.cpp",
-    "softmax.cpp",
-    "window.cpp"]
+    "pooling.cpp"]
 
 if is_windows()
     builddir = dirname(Base.source_path())
