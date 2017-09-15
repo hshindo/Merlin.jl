@@ -10,71 +10,91 @@ else
     throw("Unsupported OS.")
 end
 
-const usecuda = begin
-    libname = is_windows() ? "nvcuda" : "libcuda"
-    !isempty(Libdl.find_library([libname]))
+mutable struct Config
+    train::Bool
+    debug::Bool
+    env::Dict
 end
+const config = Config(true, false, Dict())
 
-if usecuda
+#=
+if haskey(ENV,"USE_CUDA") && ENV["USE_CUDA"]
     using CUJulia
     include("cuda/cudnn/CUDNN.jl")
     using .CUDNN
 else
     type CuArray{T,N}; end
-    typealias CuVector{T} CuArray{T,1}
-    typealias CuMatrix{T} CuArray{T,2}
+    CuVector{T} = CuArray{T,1}
+    CuMatrix{T} = CuArray{T,2}
 end
-typealias UniArray{T,N} Union{Array{T,N},CuArray{T,N}}
-typealias UniVector{T} Union{Vector{T},CuVector{T}}
-typealias UniMatrix{T} Union{Matrix{T},CuMatrix{T}}
+=#
 
-abstract Functor
+abstract type Functor end
 
+include("hdf5.jl")
+include("initializers/normal.jl")
+include("initializers/orthogonal.jl")
+include("initializers/uniform.jl")
+include("initializers/xavier.jl")
 include("util.jl")
+include("abstractvar.jl")
 include("var.jl")
 include("graph.jl")
-include("fit.jl")
 include("rand.jl")
 #include("native.jl")
-include("hdf5.jl")
 include("check.jl")
+include("train.jl")
 
 for name in [
-    "activation",
+    "activation/crelu",
+    "activation/elu",
+    "activation/relu",
+    "activation/leaky_relu",
+    "activation/selu",
+    "activation/sigmoid",
+    "activation/tanh",
+
+    "conv/conv1d",
+    "conv/gated_conv1d",
+
+    "loss/crossentropy",
+    "loss/mse",
+    "loss/softmax_crossentropy",
+
+    "random/dropout",
+
+    "reduction/max",
+    "reduction/sum",
+
+    "recurrent/lstm",
+    "recurrent/bilstm",
+
     "argmax",
     "blas",
     "cat",
-    #"conv",
-    "crossentropy",
-    "dropout",
     "getindex",
-    "gru",
     "linear",
+    "logsoftmax",
     "lookup",
-    "lstm",
     "math",
-    "normalize",
-    "pairwise",
-    #"pooling",
-    "reduce",
     "reshape",
     "softmax",
-    "window",
+    "standardize"
     ]
     include("functions/$(name).jl")
-    cudafile = "cuda/functions/$(name).jl"
-    isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)
+    #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)
 end
 
 export update!
 for name in [
     "adagrad",
     "adam",
-    "clipping",
     "sgd"]
     include("optimizers/$(name).jl")
 end
 
 #include("caffe/Caffe.jl")
+
+info("# Threads: $(Threads.nthreads())")
 
 end

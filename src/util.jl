@@ -1,11 +1,14 @@
-function uniform{T}(::Type{T}, a, b, dims::Tuple)
-    a < b || throw("Invalid interval: [$a: $b]")
-    r = rand(T, dims)
-    r .*= T(b - a)
-    r .+= T(a)
-    r
+function size3d(x::Array, dim::Int)
+    dim == 0 && return (1, length(x), 1)
+    dim1, dim2, dim3 = 1, size(x,dim), 1
+    for i = 1:dim-1
+        dim1 *= size(x, i)
+    end
+    for i = dim+1:ndims(x)
+        dim3 *= size(x, i)
+    end
+    (dim1, dim2, dim3)
 end
-uniform{T}(::Type{T}, a, b, dims::Int...) = uniform(T, a, b, dims)
 
 #=
 import Base: normalize, normalize!
@@ -29,21 +32,10 @@ end
 """
     redim(x, n, [pad])
 """
-function redim{T,N}(x::UniArray{T,N}, n::Int; pad=0)
+function redim{T,N}(x::Array{T,N}, n::Int; pad=0)
     n == N && return x
     dims = ntuple(n) do i
         1 <= i-pad <= N ? size(x,i-pad) : 1
     end
     reshape(x, dims)
-end
-
-function minibatch(data::Vector, size::Int)
-    batches = []
-    for i = 1:size:length(data)
-        xs = [data[k] for k = i:min(i+size-1,length(data))]
-        b = cat(ndims(data[1])+1, xs...)
-        push!(batches, b)
-    end
-    T = typeof(batches[1])
-    Vector{T}(batches)
 end

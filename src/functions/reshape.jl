@@ -1,20 +1,20 @@
 import Base.reshape
 
+doc"""
+    reshape(x, dims::Int...)
+    reshape(x, dims::Tuple)
 """
-    reshape(x::Var, dims::Int...)
-"""
-reshape(x::Var, dims::Tuple) = Reshape(dims)(x)
+function reshape(x::Var, dims::Tuple)
+    throw("Not implemented yet.")
+    Var(reshape(x.data,dims), x.batchdims, reshape, (x,dims))
+end
 reshape(x::Var, dims::Int...) = reshape(x, dims)
 
-type Reshape
-    dims::Tuple
-end
+reshape(x::Node, dims::Tuple; name="reshape") = Node(reshape, x, dims, name=name)
+reshape(x::Node, dims::Int...) = reshape(x, dims)
 
-function (f::Reshape)(x::Var)
-    y = Var(reshape(x.data,f.dims), f, (x,))
-    y.df! = function df!()
-        T = eltype(x.data)
-        isvoid(x.grad) || BLAS.axpy!(T(1), y.grad, x.grad)
-    end
-    y
+function addgrad!(y::Var, ::typeof(reshape), x::Var, dims::Tuple)
+    isvoid(x.grad) && return
+    T = eltype(x.data)
+    BLAS.axpy!(T(1), y.grad, x.grad)
 end

@@ -18,7 +18,7 @@ Our primary goal is to develop a natural language processing toolkit based on `M
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](http://hshindo.github.io/Merlin.jl/latest/)
 
 ## Requirements
-- Julia 0.5 or later
+- Julia 0.6
 - g++ (for OSX or Linux)
 
 ## Installation

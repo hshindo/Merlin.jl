@@ -1,121 +1,118 @@
 const T = Float32
 
-@testset "functions" for i = 1:5
-
-# activation
-x = Var(rand(T,10,5))
-relu(x)
-clipped_relu(x)
-@test checkgrad(()->sigmoid(x), x)
-@test checkgrad(()->tanh(x), x)
-
-# argmax
-x = Var(rand(T,10,7,5,3))
-for dim = 1:ndims(x.data)
-    y = argmax(x, dim)
+@testset "activation" for i = 1:5
+    x = Var(randn(T,10,5))
+    for i = 1:length(x.data)
+        abs(x.data[i]) < 0.1 && (x.data[i] += 1)
+    end
+    @testgrad elu(x) x
+    @testgrad relu(x) x
+    @testgrad leaky_relu(x) x
+    @testgrad crelu(x) x
+    @testgrad selu(x) x
+    @testgrad sigmoid(x) x
+    @testgrad tanh(x) x
 end
 
-# blas
-A = Var(rand(T,10,5))
-B = Var(rand(T,5,10))
-x = Var(rand(T,5))
-@test checkgrad(()->gemv('N',0.3,A,x), A, x)
-@test checkgrad(()->gemv('T',0.3,B,x), B, x)
-
-x1 = Var(rand(T,10,5))
-x2 = Var(rand(T,5,10))
-x3 = Var(rand(T,10,5))
-@test checkgrad(()->gemm('N','N',0.2,x1,x2), x1, x2)
-@test checkgrad(()->gemm('N','T',0.3,x1,x3), x1, x3)
-@test checkgrad(()->gemm('T','N',0.4,x1,x3), x1, x3)
-@test checkgrad(()->gemm('T','T',0.5,x1,x2), x1, x2)
-
-# cat
-x1 = Var(rand(T,10,5,2))
-x2 = Var(rand(T,10,5,2))
-x3 = Var(rand(T,10,5,2))
-for dim = 1:ndims(x1.data)+1
-    @test checkgrad(()->cat(dim,x1,x2,x3), x1, x2, x3)
+@testset "blas" for i = 1:5
+    A = Var(randn(T,10,5))
+    x = Var(randn(T,10))
+    B = Var(randn(T,10,5))
+    @testgrad BLAS.gemv('T',1,A,x) A x
+    @testgrad BLAS.gemm('T','N',1,A,B) A B
 end
 
-# crossentropy
-p = Var(rand(0:10,1,5))
-q = Var(rand(T,10,5))
-@test checkgrad(()->crossentropy(p,q), q)
-
-# getindex
-x = Var(rand(T,10,5))
-for i in ((1:3,5:5), (Colon(),2:5))
-    @test checkgrad(()->x[i...], x)
+@testset "cat" for i = 1:5
+    x1 = Var(randn(T,10,5,2))
+    x2 = Var(randn(T,10,5,2))
+    for dim = 1:3
+        @testgrad cat(dim,x1,x2) x1 x2
+    end
 end
 
-# linear
-x = Var(rand(T,10,10))
-f = Linear(T, 10, 7)
-@test checkgrad(()->f(x), x, f.w, f.b)
-
-# lookup
-x = Var(rand(1:10000,10,5))
-f = Lookup(T, 10000, 100)
-y = f(x)
-
-# lstm
-x = Var(rand(T,30,20))
-f = LSTM(T, 30, 10)
-h = Var(zeros(T,10))
-c = Var(zeros(T,10))
-f(x)
-@test checkgrad(()->f(x,h,c), x, f.w, f.b)
-# bilstm
-x = Var(rand(T,50,20))
-f = BiLSTM(T, 50, 30)
-#@test checkgrad(()->f(x), x, f.fw.w, f.fw.b, f.bw.w, f.bw.b)
-
-# math
-x = Var(rand(T,10,5)+1)
-for op in (exp,log,transpose)
-    @test checkgrad(()->op(x), x)
+@testset "cnn" for i = 1:5
+    x = Var(rand(T,10,15),[5,10])
+    f = Conv1D(T, 5, 10, 20, 2, 1)
+    @testgrad f(x) x f.w f.b
 end
 
-x1 = Var(rand(T,10,5))
-x2 = Var(rand(T,10,5))
-for op in (+, -, .*)
-    @test checkgrad(()->op(x1,x2), x1, x2)
-end
-@test checkgrad(()->-x1, x1)
-x3 = Var(rand(T,10,1))
-x4 = Var(rand(T,1,5))
-for op in (.+, .-, .*)
-    @test checkgrad(()->op(x1,x3), x1, x3)
-    @test checkgrad(()->op(x1,x4), x1, x4)
-end
-x5 = Var(rand(T,5,7))
-x6 = Var(rand(T,5))
-@test checkgrad(()->x1*x5, x1, x5)
-@test checkgrad(()->x1*x6, x1, x6)
-
-# reduce
-x = Var(rand(T,10,5))
-for dim = 1:ndims(x.data)
-    max(x, dim)
-    @test checkgrad(()->sum(x,dim), x)
+@testset "getindex" for i = 1:5
+    x = Var(rand(T,10,5))
+    @testgrad x[1:3,:] x
+    @testgrad x[2:10,3] x
 end
 
-# reshape
-x = Var(rand(T,5,4,3))
-@test checkgrad(()->reshape(x,3,4,5), x)
-@test checkgrad(()->reshape(x,4,3,5), x)
-
-# softmax
-x1 = Var(rand(T,10)+1)
-x2 = Var(rand(T,10,5)+1)
-for x in (x1,x2)
-    @test checkgrad(()->softmax(x), x)
-    @test checkgrad(()->logsoftmax(x), x, eps=1e-2)
+@testset "linear" for i = 1:5
+    x = Var(rand(T,10,5))
+    f = Linear(T, 10, 7)
+    @testgrad f(x) x f.w f.b
 end
 
-# window
-x = Var(rand(T,10,5))
-@test checkgrad(()->window(x,(10,)), x)
+@testset "lookup" for i = 1:5
+    x = Var(rand(1:100,10))
+    f = Lookup(T, 100, 10)
+    y = f(x)
+end
 
+@testset "loss" for i = 1:5
+    p = Var(rand(1:10,5))
+    q = Var(softmax(rand(T,10,5)))
+    # @testgrad crossentropy(p,q) q
+
+    # softmax_crossentropy
+    p1 = Var(rand(1:10,5))
+    p2 = Var(softmax(rand(T,10,5)))
+    q = Var(rand(T,10,5))
+    @testgrad softmax_crossentropy(p1,q) q
+    @testgrad softmax_crossentropy(p2,q) q
+end
+
+@testset "math" for i = 1:5
+    x = Var(rand(T,10,5))
+    @testgrad exp.(x) x
+    # @testgrad log.(x) x
+    @testgrad transpose(x) x
+    @testgrad -x x
+    #@testgrad x/2 x
+    # @testgrad x^3 x
+
+    x1 = Var(rand(T,10,5))
+    x2 = Var(rand(T,10,5))
+    x3 = Var(rand(T,10,1))
+    x4 = Var(rand(T,5,4))
+    @testgrad x1+x2 x1 x2
+    @testgrad x1-x2 x1 x2
+    #@testgrad x1.+x3 x1 x3
+    #@testgrad x1.-x3 x1 x3
+    @testgrad x1.*x2 x1 x3
+    @testgrad x1*x4 x1 x4
+end
+
+@testset "reduction" for i = 1:5
+    x = Var(rand(T,10,15)+1, [5,10])
+    for dim = 1:ndims(x.data)
+        max(x, dim)
+        #@testgrad sum(x,dim) x
+        #@testgrad mean(x,dim) x
+    end
+end
+
+@testset "reshape" for i = 1:5
+    x = Var(randn(T,10,5))
+    #@testgrad reshape(x,5,10) x
+end
+
+@testset "softmax" for i = 1:5
+    x1 = Var(randn(T,10))
+    x2 = Var(randn(T,10,5))
+    for x in (x1,x2)
+        @testgrad softmax(x) x
+        #@test checkgrad(()->logsoftmax(x), x, eps=1e-2)
+    end
+end
+
+@testset "standardize" for i = 1:5
+    x = Var(randn(T,1,5)*3+2)
+    f = Standardize(T,size(x.data))
+    @testgrad f(x) x f.scale f.bias
 end

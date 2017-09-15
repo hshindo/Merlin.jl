@@ -1,12 +1,10 @@
 docs/build/
 docs/site/
 /dataset
-/dev
 sandbox.jl
 benchmark.jl
 .data
-*.h5
 *.so
 *.dll
 /mkl
-examples/dev
+*.h5

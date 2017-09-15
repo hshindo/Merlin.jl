@@ -31,8 +31,7 @@ function (opt::SGD){T,N}(x::Array{T,N}, gx::Array{T,N})
         end
         m = T(opt.momentum)
         rate = T(opt.rate)
-        BLAS.scal!(length(v), m, v, 1)
-        BLAS.axpy!(-rate, gx, v)
+        v .= m .* v - rate * gx
         if opt.nesterov
             v = copy(v)
             BLAS.scal!(length(v), m, v, 1)
@@ -40,6 +39,7 @@ function (opt::SGD){T,N}(x::Array{T,N}, gx::Array{T,N})
         end
         BLAS.axpy!(T(1), v, x)
     else
+        # BLAS.axpy!(T(0.0005), x, gx)
         BLAS.axpy!(T(-opt.rate), gx, x)
     end
     fill!(gx, T(0))

@@ -1,127 +1,134 @@
-export Graph
+export Graph, Node, @graph
 
-type Graph
-    nodes::Vector{Var} # bottomup order
-    inids::Vector{Int}
-    outids::Vector{Int}
+mutable struct Node
     f
-end
-Graph(nodes, inputs, outputs) = Graph(nodes, inputs, outputs, nothing)
+    args::Tuple
+    name::String
 
-function Graph(inputs::Vector{Var}, outputs::Vector{Var})
-    nodes = topsort(outputs...)
+    Node(f, args...; name="") = new(f, args, name)
+end
+Node() = Node(nothing)
+
+mutable struct NodeId
+    id::Int
+end
+
+mutable struct Graph <: Functor
+    nodes::Vector{Node} # topological order
+    inputs::Vector{Int}
+    outputs::Vector{Int}
+    params::Vector
+end
+
+function Graph(inputs::Tuple{Vararg{Node}}, outputs::Tuple{Vararg{Node}})
+    length(outputs) == 1 || throw("Not implemented yet.")
+    nodes = topsort(outputs[1])
     node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
+    params = []
     nodes = map(nodes) do node
-        isempty(node.args) && return node
+        isa(node.f,Functor) && push!(params,node.f)
         args = map(node.args) do arg
-            isa(arg, Var) && return NodeId(node2id[arg])
-            arg
+            isa(arg,Node) ? NodeId(node2id[arg]) : arg
         end
-        Var(nothing, node.f, args)
+        Node(node.f, args...)
     end
-    inids = Int[node2id[x] for x in inputs]
-    outids = Int[node2id[x] for x in outputs]
-    Graph(nodes, inids, outids)
+    inputs = [map(x -> node2id[x], inputs)...]
+    outputs = [map(x -> node2id[x], outputs)...]
+    g = Graph(nodes, inputs, outputs, params)
+    compile!(g)
+    g
+end
+
+function compile!(g::Graph)
+    params = Var[]
+    for n in g.nodes
+        for arg in n.args
+            isa(arg,Var) && !isvoid(arg.grad) && push!(params,arg)
+        end
+    end
+    isempty(params) && return
+
+    len = sum(p -> length(p.data), params)
+    T = eltype(params[1].data)
+    var = zerograd(Array{T}(len))
+    i = 1
+    for p in params
+        subdata = unsafe_wrap(Array, pointer(var.data,i), size(p.data))
+        p.data = copy!(subdata, p.data)
+        subgrad = unsafe_wrap(Array, pointer(var.grad,i), size(p.data))
+        p.grad = copy!(subgrad, p.grad)
+        i += length(p.data)
+    end
+    push!(g.params, var)
+end
+
+"""
+```julia
+f = @graph n begin
+    Node(relu, n)
+end
+```
+"""
+macro graph(input, output)
+    if isa(input, Symbol)
+        input = Expr(:tuple, input)
+    end
+    input.head == :tuple || throw("not tuple")
+    exp = Expr(:block)
+    for arg in input.args
+        e = Expr(:(=), arg, Node()) # x = Node(), etc.
+        push!(exp.args, e)
+    end
+    quote
+        $(esc(exp))
+        x = $(esc(input))
+        y = $(esc(output))
+        isa(y,Node) && (y = (y,))
+        Graph(x, y)
+    end
+end
+
+function (g::Graph)(inputs::Var...)
+    vars = Array{Var}(length(g.nodes))
+    for i = 1:length(inputs)
+        vars[g.inputs[i]] = inputs[i]
+    end
+    for i = 1:length(g.nodes)
+        node = g.nodes[i]
+        if isempty(node.args)
+            isassigned(vars,i) || (vars[i] = node)
+        else
+            args = map(node.args) do arg
+                isa(arg,NodeId) ? vars[arg.id] : arg
+            end
+            vars[i] = node.f(args...)
+        end
+    end
+    outputs = map(id -> vars[id], g.outputs)
+    length(outputs) > 1 && throw("Not implemented yet.")
+    v = outputs[1]
+    Var(v.data, v.batchdims, g, inputs, work=vars)
+end
+
+function addgrad!(y::Var, g::Graph, xs::Var...)
+    vars = y.work
+    vars[end].grad = y.grad
+    for v in vars
+        !isempty(v.args) && isvoid(v.grad) && zerograd!(v)
+    end
+    for i = length(vars):-1:1
+        v = vars[i]
+        addgrad!(v)
+        isvoid(v.grad) && continue
+    end
 end
 
 function update!(g::Graph, opt)
-    for v in g.nodes
-        if isparam(v)
-            #println(v.grad)
-            #throw("")
-            opt(v.data, v.grad)
+    for p in g.params
+        if isa(p, Functor)
+            update!(p, opt)
+        elseif isa(p, Var)
+            opt(p.data, p.grad)
         end
     end
-end
-
-function (g::Graph)(args::Var...)
-    length(args) == length(g.inids) || throw("input length error.")
-    g.f == nothing && (g.f = compile(g))
-    g.f(args...)
-end
-
-#=
-function (g::Graph)(args::Var...)
-    length(args) == length(g.inids) || throw("input length error.")
-    g.f == nothing && (g.f = compile(g))
-    outputs = g.f(args...)
-
-    function backward!(gy, ppp...)
-        outputs[end].grad = gy
-        for v in outputs
-            isvoid(v.grad) && !isempty(v.args) && zerograd!(v)
-        end
-        for i = length(outputs):-1:1
-            v = outputs[i]
-            isvoid(v.df) && continue
-            args = Any[v.grad]
-            for arg in v.args
-                isa(arg, Var) && push!(args, arg.grad)
-                isa(arg, Vector{Var}) && push!(args, map(a -> a.grad, arg))
-            end
-            v.df(args...)
-        end
-    end
-    Var(outputs[end].data, g, args, backward!)
-end
-=#
-
-readas(::Type{Graph}, x) = Graph(x["nodes"], x["inids"], x["outids"])
-writeas(g::Graph) = Dict("nodes"=>g.nodes, "inids"=>g.inids, "outids"=>g.outids)
-
-type NodeId
-    value::Int
-end
-
-readas(::Type{NodeId}, x) = NodeId(x)
-writeas(x::NodeId) = x.value
-
-function compile2(g::Graph)
-    syms = [gensym() for i=1:length(g.nodes)]
-    indict = Dict(id=>id for id in g.inids)
-    calls = []
-    for i = 1:length(g.nodes)
-        haskey(indict, i) && continue
-        node = g.nodes[i]
-        if isempty(node.args)
-            push!(calls, Expr(:(=),syms[i],node))
-        else
-            nargs = map(node.args) do arg
-                isa(arg, NodeId) && return syms[arg.value]
-                isa(arg, Vector{NodeId}) && return Expr(:vect, map(x->syms[x.value],arg)...)
-                arg
-            end
-            expr = Expr(:call, node.f, nargs...)
-            push!(calls, Expr(:(=),syms[i],expr))
-        end
-    end
-
-    inputs = map(id -> syms[id], g.inids)
-    push!(calls, Expr(:vect, syms...))
-    expr = Expr(:->, Expr(:tuple, inputs...), Expr(:block, calls...))
-    eval(expr)
-end
-
-function compile(g::Graph)
-    calls = Array{Any}(length(g.nodes))
-    foreach(id -> calls[id] = gensym(), g.inids)
-    for i = 1:length(calls)
-        node = g.nodes[i]
-        if isempty(node.args)
-            isdefined(calls, i) || (calls[i] = node)
-        else
-            nargs = map(node.args) do arg
-                isa(arg, NodeId) && return calls[arg.value]
-                isa(arg, Vector{NodeId}) && return Expr(:vect, map(x->calls[x.value],arg)...)
-                arg
-            end
-            calls[i] = Expr(:call, node.f, nargs...)
-        end
-    end
-
-    inputs = map(x -> calls[x], g.inids)
-    outputs = map(x -> calls[x], g.outids)
-    e = length(outputs) == 1 ? outputs[1] : Expr(:tuple,outputs...)
-    expr = Expr(:->, Expr(:tuple, inputs...), e)
-    eval(expr)
 end

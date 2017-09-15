@@ -6,5 +6,5 @@ function orthogonal{T}(::Type{T}, dim1::Int, dim2::Int; scale=1.1)
     a = randn(T, dim1, dim2)
     u, _, v = svd(a)
     q = size(u) == (dim1,dim2) ? u : v
-    q * scale
+    q * T(scale)
 end

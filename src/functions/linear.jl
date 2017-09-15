@@ -1,18 +1,18 @@
-export Linear, linear
+export Linear
+export linear
 
-type Linear
+struct Linear
     w::Var
     b::Var
 end
 
 """
-    Linear(w::Var, b::Var)
-    Linear(T::Type, indim::Int, outdim::Int)
+    Linear(T::Type, dim1::Int, dim2::Int)
 
 Computes linear function (a.k.a. affine transformation).
 
-* indim: size of inout dimension
-* outdim: size of output dimension
+* dim1
+* dim2
 
 ```math
 f(x) = W^{T}x + b
@@ -26,38 +26,69 @@ f = Linear(T,10,7)
 y = f(x)
 ```
 """
-function Linear{T}(::Type{T}, indim::Int, outdim::Int)
-    r = sqrt(6 / (indim+outdim))
-    w = uniform(T, -r, r, outdim, indim)
-    b = fill(T(0), outdim, 1)
+function Linear{T}(::Type{T}, insize::Int, outsize::Int; init_w=Xavier())
+    w = sample(init_w, T, insize, outsize)
+    b = zeros(T, outsize)
+    Linear(zerograd(w), zerograd(b))
+end
+(f::Linear)(x) = linear(x, f.w, f.b)
+
+function linear(x::Var, w::Var, b::Var)
+    Var(linear(x.data,w.data,b.data), x.batchdims, linear, (x,w,b))
+end
+
+linear(x::Node, w, b; name="linear") = Node(linear, x, w, b, name=name)
+
+function linear(x::Array, w::Array, b::Array)
+    y = gemm('T', 'N', w, x)
+    broadcast!(+, y, y, b)
+    y
+end
+
+function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
+    ∇linear!(y.data, y.grad, x.data, x.grad, w.data, w.grad, b.data, b.grad)
+end
+
+function ∇linear!(y, gy, x, gx, w, gw, b, gb)
+    T = eltype(y)
+    isvoid(gx) || BLAS.gemm!('N', 'N', T(1), w, gy, T(1), gx)
+    isvoid(gw) || BLAS.gemm!('N', 'T', T(1), x, gy, T(1), gw)
+    if !isvoid(gb)
+        g = sum(gy, 2)
+        BLAS.axpy!(T(1), g, gb)
+    end
+end
+
+export NormLinear
+struct NormLinear
+    w
+    b
+end
+
+function NormLinear{T}(::Type{T}, insize::Int, outsize::Int)
+    w = randn(T,outsize,insize) * T(1 / insize)
+    b = fill(T(0), outsize)
     Linear(zerograd(w), zerograd(b))
 end
 
-(f::Linear)(x::Var) = linear(x, f.w, f.b)
+(f::NormLinear)(x) = normlinear(f.w, x, f.b)
 
-linear(x::Var, w::Var, b::Var) = w * x .+ b
-
-export GatedLinear
-function GatedLinear{T}(::Type{T}, indim::Int, outdim::Int)
-    x = Var()
-    #v1 = zerograd(randn(T,indim,outdim) * 0.05)
-    #g1 = zerograd(ones(T,1,outdim))
-    #w1 = normalize(v1) .* g1
-    #b1 = zerograd(zeros(T,outdim))
-    #y1 = linear(x, w1, b1)
-    y1 = Linear(T,indim,outdim)(x)
-
-    #v2 = zerograd(randn(T,indim,outdim) * 0.05)
-    #g2 = zerograd(ones(T,1,outdim))
-    #w2 = normalize(v1) .* g2
-    #b2 = zerograd(zeros(T,outdim))
-    #y2 = linear(x, w2, b2)
-    y2 = Linear(T,indim,outdim)(x)
-
-    h = y1 .* sigmoid(y2)
-    Graph(h, x)
+function normlinear(w::Var, x::Var, b::Var)
+    y = w.data * x.data .+ b.data
+    Var(y, normlinear, (w,x,b))
 end
 
+function addgrad!(y::Var, ::typeof(normlinear), w::Var, x::Var, b::Var)
+    T = eltype(y.data)
+    isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), y.grad, x.data, T(1), w.grad)
+    isvoid(x.grad) || BLAS.gemm!('T', 'N', T(1), w.data, y.grad, T(1), x.grad)
+    if !isvoid(b.grad)
+        g = sum(y.grad, 2)
+        BLAS.axpy!(T(1), g, b.grad)
+    end
+end
+
+#=
 export NormLinear
 type NormLinear
     v::Var
@@ -78,3 +109,4 @@ function normlinear(x::Var, v::Var, g::Var, b::Var)
     w = normalize(v) .* g
     linear(x, w, b)
 end
+=#

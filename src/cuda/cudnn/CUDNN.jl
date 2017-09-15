@@ -1,6 +1,6 @@
 module CUDNN
 
-using ..CUJulia
+using CUJulia
 
 if is_windows()
     const libcudnn = Libdl.find_library(["cudnn64_5"])
@@ -36,7 +36,7 @@ function handle(x)
     end
     handles[dev]
 end
-atexit(() -> foreach(cudnnDestroy, handles))
+atexit(() -> foreach(cudnnDestroy,handles))
 
 include("activation.jl")
 #include("batchnorm.jl")

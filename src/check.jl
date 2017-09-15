@@ -1,32 +1,48 @@
-export checkgrad
+export @testgrad
 
-function checkgrad(f, vars::Var...; eps=1e-3)
-    foreach(zerograd!, vars)
+using Base.Test
+
+macro testgrad(f, vars...)
+    vars = Expr(:tuple, vars...)
+    f = Expr(:->, Expr(:tuple), f) # convert f to anonymouos function i.e., () -> f
+    quote
+        f = $(esc(f))
+        vars = $(esc(vars))
+        @test all(vars) do v
+            checkgrad(f, v)
+        end
+    end
+end
+
+function checkgrad(f::Function, var::Var)
+    check_eps = 1e-3
+    zerograd!(var)
     y = f()
     gradient!(y)
-    gxs1 = map(x -> x.grad, vars)
-    gxs2 = map(vars) do v
-        x = v.data
-        gx = similar(x)
-        for k = 1:length(x)
-            xk = x[k]
-            x[k] = xk + eps
-            y1 = copy(f().data)
-            x[k] = xk - eps
-            y2 = copy(f().data)
-            x[k] = xk
-            gx[k] = sum(y1-y2) / 2eps
-        end
-        gx
+    gx1 = var.grad
+
+    x = var.data
+    gx2 = similar(x)
+    for k = 1:length(x)
+        xk = x[k]
+        x[k] = xk + check_eps
+        y1 = copy(f().data)
+        x[k] = xk - check_eps
+        y2 = copy(f().data)
+        x[k] = xk
+        gx2[k] = sum(y1-y2) / (2*check_eps)
     end
-    for i = 1:length(vars)
-        g1, g2 = gxs1[i], gxs2[i]
-        diff = g1 - g2
-        if any(d -> abs(d) > eps, diff)
-            println(maximum(d -> abs(d), diff))
-            println(diff)
-            throw("Gradient error.")
-        end
+    diff = gx1 - gx2
+    if maximum(abs,diff) >= check_eps
+        println(x)
+        println()
+        println(gx1)
+        println()
+        println(gx2)
+        println()
+        println(diff)
+        false
+    else
+        true
     end
-    true
 end
