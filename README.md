@@ -1,7 +1,5 @@
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/Merlin.png" width="150"></p>
 
-This is alpha version, but the [`examples`](examples/) are working.
-
 # Merlin: deep learning framework in Julia
 
 `Merlin` is a deep learning framework written in [Julia](http://julialang.org/).
@@ -9,7 +7,7 @@ This is alpha version, but the [`examples`](examples/) are working.
 It aims to provide a fast, flexible and compact deep learning library for machine learning.
 Our primary goal is to develop a natural language processing toolkit based on `Merlin`.
 
-`Merlin` is tested against Julia `0.5` on Linux, OS X, and Windows (x64).
+`Merlin` is tested against Julia `0.6` on Linux, OS X, and Windows (x64).
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/ks18dkc3gucf0yso?svg=true)](https://ci.appveyor.com/project/hshindo/merlin-jl)
