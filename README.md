@@ -20,7 +20,7 @@ Our primary goal is to develop a natural language processing toolkit based on `M
 - g++ (for OSX or Linux)
 
 ## Installation
-First, install [Julia](http://julialang.org/). Currently, version 0.5 is supported.
+First, install [Julia](http://julialang.org/). Currently, version 0.6 is supported.
 
 Then, clone and build the package.
 ```julia

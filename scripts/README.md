@@ -11,5 +11,5 @@ of 0.33973 -0.43478 -0.31086 -0.44999 -0.29486
 
 ### Run
 ```julia
-julia embeds2h5.jl <filename>
+julia embeds2h5.jl data/sample_wordembeds.txt
 ```
