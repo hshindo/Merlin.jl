@@ -26,8 +26,8 @@ f = Linear(T,10,7)
 y = f(x)
 ```
 """
-function Linear{T}(::Type{T}, insize::Int, outsize::Int; init=nothing)
-    w = random(Xavier(), T, insize, outsize)
+function Linear{T}(::Type{T}, insize::Int, outsize::Int; init_w=Xavier())
+    w = sample(init_w, T, insize, outsize)
     b = zeros(T, outsize)
     Linear(zerograd(w), zerograd(b))
 end

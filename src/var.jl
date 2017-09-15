@@ -1,5 +1,5 @@
 export Var
-export zerograd, batchsize
+export zerograd, data
 
 mutable struct Var <: AbstractVar
     data
@@ -17,7 +17,12 @@ function Var(data, batchdims=nothing, f=nothing, args=(); grad=nothing, work=not
     Var(data, batchdims, f, args, grad, work)
 end
 
-function zerograd(data::Array)
+Base.size(x::Var) = size(x.data)
+Base.size(x::Var, i::Int) = size(x.data, i)
+Base.length(x::Var) = length(x.data)
+data(x::Var) = x.data
+
+function zerograd(data)
     v = Var(data)
     v.grad = zeros(data)
     v

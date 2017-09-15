@@ -21,10 +21,9 @@ mutable struct Conv1D
 end
 
 function Conv1D{T}(::Type{T}, ksize::Int, insize::Int, outsize::Int, pad::Int, stride::Int;
-    dilation=1, init=nothing)
-    
-    init == nothing && (init = Xavier())
-    w = random(init, T, ksize*insize, outsize)
+    dilation=1, init_w=Xavier())
+
+    w = sample(init_w, T, ksize*insize, outsize)
     b = zeros(T, outsize)
     Conv1D(zerograd(w), zerograd(b), ksize, pad, stride, dilation)
 end

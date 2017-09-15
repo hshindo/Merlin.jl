@@ -1,29 +1,27 @@
 export LSTM
 
-"""
+doc"""
     LSTM(T::Type, xsize::Int, hsize::Int)
 
 Long Short-Term Memory network.
 
-# 👉 Example
 ```julia
 T = Float32
 lstm = LSTM(T, 100, 100)
 h = lstm(x)
 ```
 """
-type LSTM
-    w::Var
+struct LSTM
+    wu::Var
     b::Var
     h0::Var
     c0::Var
 end
 
-function LSTM{T}(::Type{T}, insize::Int, outsize::Int)
-    w = rand(T, 4outsize, insize)
-    w = w * T(0.002) - T(0.001)
-    u = orthogonal(T, 4outsize, outsize)
-    w = cat(2, w, u)
+function LSTM{T}(::Type{T}, insize::Int, outsize::Int; init_w=Uniform(0.001), init_u=Orthogonal())
+    w = random(init_w, T, 4outsize, insize)
+    u = random(init_u, T, 4outsize, insize)
+    wu = cat(2, w, u)
     b = zeros(T, size(w,1))
     b[1:outsize] = ones(T, outsize) # forget gate initializes to 1
     h0 = zeros(T, outsize)

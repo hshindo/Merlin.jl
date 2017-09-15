@@ -32,7 +32,10 @@ end
 abstract type Functor end
 
 include("hdf5.jl")
-include("initializer.jl")
+include("initializers/normal.jl")
+include("initializers/orthogonal.jl")
+include("initializers/uniform.jl")
+include("initializers/xavier.jl")
 include("util.jl")
 include("abstractvar.jl")
 include("var.jl")
