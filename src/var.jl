@@ -1,5 +1,5 @@
 export Var
-export zerograd, data
+export zerograd
 
 mutable struct Var <: AbstractVar
     data
@@ -18,7 +18,6 @@ Base.size(x::Var) = size(x.data)
 Base.size(x::Var, i::Int) = size(x.data, i)
 Base.length(x::Var) = length(x.data)
 Base.ndims(x::Var) = ndims(x.data)
-data(x::Var) = x.data
 
 isparam(x::Var) = isempty(x.args) && length(x.batchdims) == 1
 

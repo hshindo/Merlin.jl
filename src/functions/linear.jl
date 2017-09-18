@@ -24,8 +24,8 @@ y = f(x)
 ```
 """
 function Linear{T}(::Type{T}, insize::Int, outsize::Int; init_w=Xavier(), init_b=Zeros())
-    w = sample(init_w, T, insize, outsize)
-    b = sample(init_b, T, outsize)
+    w = init_w(T, insize, outsize)
+    b = init_b(T, outsize)
     Linear(zerograd(w), zerograd(b))
 end
 
