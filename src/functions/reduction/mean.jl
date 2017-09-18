@@ -1,12 +1,39 @@
 import Base.mean
 
 """
-    mean(x::Var, dim::Int)
+    mean(x, dim::Int)
 
-Returns the average over the given dimension.
+Computes the average over the given dimension.
 """
-mean(x::Var, dim::Int) = Var(mean(x.data,dim), mean, (x,dim))
+function mean(x::Var, dim::Int)
+    if dim == ndims(x)
+        y = mean_batch(x.data, x.batchdims)
+        batchdims = ones(Int, length(x.batchdims))
+    else
+        y = mean(x.data, dim)
+        batchdims = x.batchdims
+    end
+    Var(y, batchdims, mean, (x,dim))
+end
+
 mean(x::Node, dim::Int) = Node(mean, x, dim)
+
+function mean_batch{T,N}(x::Array{T,N}, batchdims::Vector{Int})
+    front = Base.front(size(x))
+    n = prod(front)
+    y = T[]
+
+    cumdim = 0
+    for i = 1:length(batchdims)
+        p = pointer(x, n*cumdim+1)
+        subx = unsafe_wrap(Array, p, (front...,batchdims[i]))
+
+        m = mean(subx, N)
+        append!(y, m)
+        cumdim += batchdims[i]
+    end
+    reshape(y, front..., length(batchdims))
+end
 
 function addgrad!(y::Var, ::typeof(mean), x::Var, dim::Int)
     isvoid(x.grad) || ∇mean!(y.grad, x.grad, dim)

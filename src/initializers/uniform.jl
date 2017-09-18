@@ -21,7 +21,7 @@ end
 
 Uniform(b) = Uniform(-b, b)
 
-function sample{T}(u::Uniform, ::Type{T}, dims::Int...)
+function (u::Uniform){T}(::Type{T}, dims::Int...)
     r = rand(T, dims)
     r .*= (u.b - u.a)
     r .-= u.a

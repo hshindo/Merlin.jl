@@ -132,3 +132,8 @@ function update!(g::Graph, opt)
         end
     end
 end
+
+Base.size(x::Node) = Node(size, x)
+Base.size(x::Node, i::Int) = Node(size, x, i)
+Base.length(x::Node) = Node(length, x)
+Base.ndims(x::Node) = Node(ndims, x)

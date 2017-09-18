@@ -68,7 +68,9 @@ end
 """
     transpose(x)
 """
-transpose(x::Var) = Var(transpose(x.data), x.batchdims, transpose, (x,))
+function transpose(x::Var)
+    Var(transpose(x.data), x.batchdims, transpose, (x,))
+end
 
 transpose(x::Node; name="transpose") = Node(transpose, x, name=name)
 
@@ -78,6 +80,8 @@ end
 
 """
     +(x1::Var, x2::Var)
+    +(a::Number, x::Var)
+    +(x::Var, a::Number)
 """
 function +(x1::Var, x2::Var)
     x1.batchdims == x2.batchdims || throw("Batchdims mismatch.")
@@ -244,8 +248,13 @@ end
     \*(A::Var, B::Var)
 """
 function *(A::Var, B::Var)
-    length(A.batchdims) == 1 || throw("")
-    Var(A.data * B.data, B.batchdims, *, (A,B))
+    if length(A.batchdims) == 1
+        y = A.data * B.data
+        batchdims = B.batchdims
+    else
+        throw("Not implemented yet.")
+    end
+    Var(y, batchdims, *, (A,B))
 end
 
 *(A::Node, B::Node; name="*") = Node(*, A, B, name=name)

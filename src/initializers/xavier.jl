@@ -8,7 +8,7 @@ Xavier initialization.
 struct Xavier
 end
 
-function sample{T}(x::Xavier, ::Type{T}, dims::Int...)
+function (::Xavier){T}(::Type{T}, dims::Int...)
     v = 2 / sum(dims)
-    sample(Normal(0,v), T, dims...)
+    Normal(0,v)(T, dims...)
 end

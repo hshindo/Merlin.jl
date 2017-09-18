@@ -1,17 +1,18 @@
 export softmax
 
 """
-    softmax(x)
+    softmax(x, dim::Int)
 
-Returns a softmax over the first dimension.
+Softmax function over the given dimension.
 
 ```math
 f(x) = \exp(x) \over \sum \exp(x)
 ```
-
-* x: Var of Matrix
 """
-softmax(x::Var) = Var(softmax(x.data), x.batchdims, softmax, (x,))
+function softmax(x::Var, dim::Int)
+    data = softmax(x.data, dim)
+    Var(data, x.batchdims, softmax, (x,))
+end
 
 softmax(x::Node, name="softmax") = Node(softmax, x, name=name)
 

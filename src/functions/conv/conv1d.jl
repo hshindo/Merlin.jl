@@ -1,13 +1,13 @@
 export Conv1D
 
 doc"""
-    Conv1D(T, ksize, insize, outsize, pad, stride; dilation=1)
+    Conv1D(T, ksize, insize, outsize, pad, stride; dilation=1, [init_w=Xavier()], [init_b=Zeros()])
 
 1-dimensional convolution function.
 
 ```julia
 x = Var(rand(Float32,10,5))
-f = Conv1D(x, 5, 10, 3, 2, 1)
+f = Conv1D(Float32, 5, 10, 3, 2, 1)
 y = f(x)
 ```
 """
@@ -21,18 +21,28 @@ mutable struct Conv1D
 end
 
 function Conv1D{T}(::Type{T}, ksize::Int, insize::Int, outsize::Int, pad::Int, stride::Int;
-    dilation=1, init_w=Xavier())
+    dilation=1, init_w=Xavier(), init_b=Zeros())
 
-    w = sample(init_w, T, ksize*insize, outsize)
-    b = zeros(T, outsize)
+    w = init_w(T, ksize*insize, outsize)
+    b = init_b(T, outsize)
     Conv1D(zerograd(w), zerograd(b), ksize, pad, stride, dilation)
 end
 
 (c::Conv1D)(x) = conv1d(x, c.w, c.b, c.ksize, c.pad, c.stride, c.dilation)
 
 function conv1d(x::Var, w::Var, b::Var, ksize, pad, stride, dilation)
-    batchdims = map(x.batchdims) do d
+    @assert all(s -> s[1] == x.sizes[1][1], x.sizes)
+    batchdims = map(x.sizes) do d
         (d + 2pad - ksize) ÷ stride + 1
+    end
+    if isvoid(x.sizes)
+        sizes = nothing
+        h = zeros(eltype(x.data), size(x.data,1)*ksize, sum())
+    else
+        sizes = map(x.sizes) do s
+            (s[2] + 2pad - ksize) ÷ stride + 1
+        end
+        
     end
     h = zeros(eltype(x.data), size(x.data,1)*ksize, sum(batchdims))
     window1d!(h, x.data, x.batchdims, ksize, pad, stride, dilation)

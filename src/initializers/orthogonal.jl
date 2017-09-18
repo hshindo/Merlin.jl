@@ -9,7 +9,7 @@ doc"""
 struct Orthogonal
 end
 
-function sample{T}(o::Orthogonal, ::Type{T}, dim1::Int, dim2::Int)
+function (::Orthogonal){T}(::Type{T}, dim1::Int, dim2::Int)
     a = randn(T, dim1, dim2)
     u, _, v = svd(a)
     q = size(u) == (dim1,dim2) ? u : v
