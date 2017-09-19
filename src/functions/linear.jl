@@ -29,15 +29,22 @@ function Linear{T}(::Type{T}, insize::Int, outsize::Int; init_w=Xavier(), init_b
     Linear(zerograd(w), zerograd(b))
 end
 
+(f::Linear)(x) = linear(x, f.w, f.b)
+
 function linear(x::Var, w::Var, b::Var)
-    length(w.batchdims) == 1 || throw("")
-    length(b.batchdims) == 1 || throw("")
-    y = gemm('T', 'N', w.data, x.data)
-    y = broadcast!(+, y, y, b.data)
-    Var(y, x.batchdims, linear, (x,w,b))
+    y = linear(x.data, w.data, b.data)
+    sizes = map(x.sizes) do s
+        size(w,2), s[2]
+    end
+    Var(y, sizes, linear, (x,w,b))
 end
 
 linear(x::Node, w, b; name="linear") = Node(linear, x, w, b, name=name)
+
+function linear(x::Matrix, w::Matrix, b::Vector)
+    y = gemm('T', 'N', w, x)
+    broadcast!(+, y, y, b)
+end
 
 function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
     ∇linear!(y.data, y.grad, x.data, x.grad, w.data, w.grad, b.data, b.grad)

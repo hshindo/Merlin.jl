@@ -12,7 +12,7 @@ function dropout(x::Var, rate::Float64)
         T = eltype(x.data)
         rx = rand(eltype(x.data), length(x.data))
         data = dropout(x.data, T(rate), rx)
-        Var(data, x.batchdims, dropout, (x,rate,rx))
+        Var(data, x.sizes, dropout, (x,rate,rx))
     else
         x
     end

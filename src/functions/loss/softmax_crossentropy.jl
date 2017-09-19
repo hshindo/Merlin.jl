@@ -19,9 +19,9 @@ y = softmax_crossentropy(p, x)
 ```
 """
 function softmax_crossentropy(p::Var, x::Var)
-    p.batchdims == x.batchdims || throw("Batchdims mismatch: $(p.batchdims), $(x.batchdims)")
+    # p.batchdims == x.batchdims || throw("Batchdims mismatch: $(p.batchdims), $(x.batchdims)")
     y, logx = softmax_crossentropy(p.data, x.data)
-    Var(y, x.batchdims, softmax_crossentropy, (p,x,logx))
+    Var(y, x.sizes, softmax_crossentropy, (p,x,logx))
 end
 
 softmax_crossentropy(p::Node, x::Node; name="softmax_crossentropy") = Node(softmax_crossentropy, p, x, name=name)

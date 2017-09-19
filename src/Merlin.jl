@@ -72,11 +72,11 @@ for name in [
 
     "argmax",
     "blas",
-    "cat",
+    "concat",
+    "embedding",
     "getindex",
     "linear",
     "logsoftmax",
-    "lookup",
     "math",
     "reshape",
     "softmax",

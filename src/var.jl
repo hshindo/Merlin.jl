@@ -11,6 +11,7 @@ mutable struct Var <: AbstractVar
 end
 
 function Var(data, sizes=nothing, f=nothing, args=(); grad=nothing, work=nothing)
+    sizes == nothing && (sizes = [size(data)])
     Var(data, sizes, f, args, grad, work)
 end
 

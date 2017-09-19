@@ -15,14 +15,15 @@ y = concat(2, x1, x2)
 function cat(dim::Int, xs::Var...)
     N = ndims(xs[1])
     if dim == N
-        batchdims = Int[]
-        foreach(x -> append!(batchdims,x.batchdims), xs)
+        throw("Not implemented yet.")
+        # batchdims = Int[]
+        # foreach(x -> append!(batchdims,x.batchdims), xs)
     else
-        all(x -> x.batchdims == xs[1].batchdims, xs) || throw("Invalid batchdims.")
-        batchdims = xs[1].batchdims
+        # all(x -> x.sizes == xs[1].sizes, xs) || throw("Invalid batchdims.")
+        sizes = xs[1].sizes
     end
     y = cat(dim, map(x -> x.data, xs)...)
-    Var(y, batchdims, cat, (dim,xs...))
+    Var(y, sizes, cat, (dim,xs...))
 end
 
 cat(dim::Int, xs::Node...; name="cat") = Node(cat, dim, xs..., name=name)

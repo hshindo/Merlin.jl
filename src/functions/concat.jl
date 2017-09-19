@@ -13,8 +13,17 @@ y = concat(2, x1, x2)
 ```
 """
 function concat(dim::Int, xs::Var...)
+    N = ndims(xs[1])
+    if dim == N
+        throw("Not implemented yet.")
+        # batchdims = Int[]
+        # foreach(x -> append!(batchdims,x.batchdims), xs)
+    else
+        # all(x -> x.sizes == xs[1].sizes, xs) || throw("Invalid batchdims.")
+        sizes = xs[1].sizes
+    end
     y = cat(dim, map(x -> x.data, xs)...)
-    Var(y, concat, (dim,xs...))
+    Var(y, sizes, concat, (dim,xs...))
 end
 
 concat(dim::Int, xs::Node...; name="concat") = Node(cat, dim, xs..., name=name)

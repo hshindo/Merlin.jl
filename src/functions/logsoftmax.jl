@@ -5,7 +5,7 @@ export logsoftmax
 
 Logarithm of softmax function.
 """
-logsoftmax(x::Var) = Var(logsoftmax(x.data), x.batchdims, logsoftmax, (x,))
+logsoftmax(x::Var) = Var(logsoftmax(x.data), x.sizes, logsoftmax, (x,))
 
 logsoftmax(x::Node; name="logsoftmax") = Node(logsoftmax, x, name=name)
 

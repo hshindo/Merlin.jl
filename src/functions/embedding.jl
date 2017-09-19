@@ -1,4 +1,5 @@
 export Embedding
+export lookup
 
 doc"""
     Embedding{T}(::Type{T}, insize::Int, outsize::Int)
@@ -8,9 +9,9 @@ doc"""
 
 ```julia
 T = Float32
-f = Embedding(T,10000,100) # 100-length vector, 10k vocabulary
+e = Embedding(T,10000,100) # 100-length vector, 10k vocabulary
 x = Var(rand(1:1000,5,3))
-y = f(x)
+y = lookup(e, x)
 ```
 """
 struct Embedding <: AbstractVar
@@ -18,18 +19,20 @@ struct Embedding <: AbstractVar
     idset::IntSet
 end
 
-function Embedding{T}(w::Matrix{T}; fixed=false)
-    w = fixed ? Var(w) : zerograd(w)
-    Embedding(w, IntSet())
-end
+Embedding(w::Var) = Embedding(w, IntSet())
 
-function Embedding{T}(::Type{T}, insize::Int, outsize::Int; fixed=false, init=Normal(0,0.01))
-    Embedding(w, fixed=fixed)
+function Embedding{T}(::Type{T}, insize::Int, outsize::Int; fixed=false, init_w=Normal(0,0.01))
+    w = init_w(T, outsize, insize)
+    w = fixed ? Var(w) : zerograd(w)
+    Embedding(w)
 end
 
 function lookup(e::Embedding, x::Var)
+    sizes = map(x.sizes) do s
+        (size(e.w,1), s...)
+    end
     y = lookup(e.w.data, x.data)
-    Var(y, x.batchdims, lookup, (x,))
+    Var(y, sizes, lookup, (x,))
 end
 
 lookup(e::Embedding, x::Node; name="lookup") = Node(lookup, e, x, name=name)
@@ -62,17 +65,20 @@ function ∇lookup!{T}(gy::Array{T}, gw::Matrix{T}, x::Array{Int})
 end
 
 function update!(e::Embedding, opt)
+    n = size(e.w, 1)
     for id in e.idset
-
-        p = f.params[id]
-        opt(p.data, p.grad)
+        p = pointer(e.w, (id-1)*n+1)
+        w = unsafe_wrap(Array, p, n)
+        p = pointer(e.gw, (id-1)*n+1)
+        gw = unsafe_wrap(Array, p, n)
+        opt(w, gw)
     end
-    empty!(f.idset)
+    empty!(e.idset)
 end
 
-function Base.convert(::Type{H5Object}, e::Embedding)
-    data = map(p -> p.data, f.params)
-    data = hcat(data...)
-    H5Object(Lookup, data)
-end
-Base.convert(::Type{Embedding}, o::H5Object) = Lookup(o.data)
+#function Base.convert(::Type{H5Object}, e::Embedding)
+#    data = map(p -> p.data, f.params)
+#    data = hcat(data...)
+#    H5Object(Lookup, data)
+#end
+#Base.convert(::Type{Embedding}, o::H5Object) = Lookup(o.data)

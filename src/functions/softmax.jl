@@ -9,9 +9,9 @@ Softmax function over the given dimension.
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
-function softmax(x::Var, dim::Int)
-    data = softmax(x.data, dim)
-    Var(data, x.batchdims, softmax, (x,))
+function softmax(x::Var)
+    data = softmax(x.data)
+    Var(data, x.sizes, softmax, (x,))
 end
 
 softmax(x::Node, name="softmax") = Node(softmax, x, name=name)

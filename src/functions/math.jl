@@ -84,8 +84,8 @@ end
     +(x::Var, a::Number)
 """
 function +(x1::Var, x2::Var)
-    x1.batchdims == x2.batchdims || throw("Batchdims mismatch.")
-    Var(x1.data + x2.data, x1.batchdims, +, (x1,x2))
+    x1.sizes == x2.sizes || throw("Batchdims mismatch.")
+    Var(x1.data + x2.data, x1.sizes, +, (x1,x2))
 end
 +(x1::Union{Number,Array}, x2::Var) = Var(x1) + x2
 +(x1::Var, x2::Union{Number,Array}) = x1 + Var(x2)
@@ -105,13 +105,13 @@ end
 """
 function -(x1::Var, x2::Var)
     if isa(x1.data,Array) && isa(x2.data,Array)
-        x1.batchdims == x2.batchdims || throw("Batchdims mismatch.")
+        x1.sizes == x2.sizes || throw("Batchdims mismatch.")
     end
-    Var(x1.data - x2.data, x2.batchdims, -, (x1,x2))
+    Var(x1.data - x2.data, x2.sizes, -, (x1,x2))
 end
 -(a::Number, x::Var) = Var(a) - x
 -(x::Var, a::Number) = x - Var(a)
--(x::Var) = Var(-x.data, x.batchdims, -, (x,))
+-(x::Var) = Var(-x.data, x.sizes, -, (x,))
 
 -(a::Number, x::Node) = Node(-, Var(a), x)
 -(x1::Node, x2::Node) = Node(-, x1, x2)
@@ -186,7 +186,8 @@ end
     \.\*(x1::Var, x2::Var)
 """
 function broadcast(::typeof(*), x1::Var, x2::Var)
-    x1.batchdims == x2.batchdims || throw("")
+    throw("Not implemented yet.")
+    x1.sizes == x2.sizes || throw("")
     Var(x1.data .* x2.data, x1.batchdims, broadcast, (*,x1,x2))
 end
 
@@ -248,6 +249,7 @@ end
     \*(A::Var, B::Var)
 """
 function *(A::Var, B::Var)
+    throw("Not implemented yet.")
     if length(A.batchdims) == 1
         y = A.data * B.data
         batchdims = B.batchdims

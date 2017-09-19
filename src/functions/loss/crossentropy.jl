@@ -19,8 +19,8 @@ y = crossentropy(p, q)
 ```
 """
 function crossentropy(p::Var, q::Var)
-    p.batchdims == q.batchdims || throw("Batchdims mismatch: $(p.batchdims) : $(q.batchdims)")
-    Var(crossentropy(p.data,q.data), p.batchdims, crossentropy, (p,q))
+    # p.batchdims == q.batchdims || throw("Batchdims mismatch: $(p.batchdims) : $(q.batchdims)")
+    Var(crossentropy(p.data,q.data), q.sizes, crossentropy, (p,q))
 end
 
 crossentropy(p::Node, q::Node; name="crossentropy") = Node(crossentropy, p, q, name=name)
