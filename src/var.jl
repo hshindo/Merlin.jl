@@ -1,5 +1,5 @@
 export Var
-export zerograd, data
+export zerograd
 
 mutable struct Var <: AbstractVar
     data
@@ -10,20 +10,14 @@ mutable struct Var <: AbstractVar
     work
 end
 
-function Var(data, batchdims=nothing, f=nothing, args=(); grad=nothing, work=nothing)
-    if isvoid(batchdims) && isa(data,Array)
-        batchdims = [size(data,ndims(data))]
-    end
+function Var(data, batchdims=nothing, f=nothing, args=(); hasgrad=false, work=nothing)
+    batchdims == nothing && (batchdims = [size(data)[end]])
+    grad = hasgrad ? zeros(data) : nothing
     Var(data, batchdims, f, args, grad, work)
 end
 
 Base.size(x::Var) = size(x.data)
 Base.size(x::Var, i::Int) = size(x.data, i)
 Base.length(x::Var) = length(x.data)
-data(x::Var) = x.data
-
-function zerograd(data)
-    v = Var(data)
-    v.grad = zeros(data)
-    v
-end
+Base.ndims(x::Var) = ndims(x.data)
+Base.eltype(x::Var) = eltype(x.data)

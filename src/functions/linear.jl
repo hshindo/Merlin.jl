@@ -7,12 +7,9 @@ struct Linear
 end
 
 """
-    Linear(T::Type, dim1::Int, dim2::Int)
+    Linear(T::Type, insize::Int, outsize::Int, [init_w=Xavier()], [init_b=Zeros()])
 
-Computes linear function (a.k.a. affine transformation).
-
-* dim1
-* dim2
+Linear function (a.k.a. affine transformation).
 
 ```math
 f(x) = W^{T}x + b
@@ -26,31 +23,31 @@ f = Linear(T,10,7)
 y = f(x)
 ```
 """
-function Linear{T}(::Type{T}, insize::Int, outsize::Int; init_w=Xavier())
-    w = sample(init_w, T, insize, outsize)
-    b = zeros(T, outsize)
-    Linear(zerograd(w), zerograd(b))
+function Linear{T}(::Type{T}, insize::Int, outsize::Int; init_w=Xavier(), init_b=Zeros())
+    w = init_w(T, insize, outsize)
+    b = init_b(T, outsize)
+    Linear(Var(w,hasgrad=true), Var(b,hasgrad=true))
 end
+
 (f::Linear)(x) = linear(x, f.w, f.b)
 
 function linear(x::Var, w::Var, b::Var)
-    Var(linear(x.data,w.data,b.data), x.batchdims, linear, (x,w,b))
+    y = linear(x.data, w.data, b.data)
+    Var(y, x.batchdims, linear, (x,w,b))
 end
 
 linear(x::Node, w, b; name="linear") = Node(linear, x, w, b, name=name)
 
-function linear(x::Array, w::Array, b::Array)
+function linear(x::Matrix, w::Matrix, b::Vector)
     y = gemm('T', 'N', w, x)
     broadcast!(+, y, y, b)
-    y
 end
 
 function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
     ∇linear!(y.data, y.grad, x.data, x.grad, w.data, w.grad, b.data, b.grad)
 end
 
-function ∇linear!(y, gy, x, gx, w, gw, b, gb)
-    T = eltype(y)
+function ∇linear!{T}(y::Matrix{T}, gy::Matrix, x::Matrix, gx::Matrix, w, gw, b, gb)
     isvoid(gx) || BLAS.gemm!('N', 'N', T(1), w, gy, T(1), gx)
     isvoid(gw) || BLAS.gemm!('N', 'T', T(1), x, gy, T(1), gw)
     if !isvoid(gb)

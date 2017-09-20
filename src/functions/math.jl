@@ -1,14 +1,14 @@
-import Base: broadcast, transpose
+import Base: exp, log, broadcast, transpose
 import Base: +, -, *, /, ^
 
 doc"""
-    exp.(x)
+    exp(x)
 """
-broadcast(::typeof(exp), x::Var) = Var(exp.(x.data), x.batchdims, broadcast, (exp,x))
+exp(x::Var) = Var(exp.(x.data), x.batchdims, exp, (x,))
 
-broadcast(::typeof(exp), x::Node; name="exp") = Node(broadcast, exp, x, name=name)
+exp(x::Node; name="exp") = Node(exp, x, name=name)
 
-function addgrad!(y::Var, ::typeof(broadcast), ::typeof(exp), x::Var)
+function addgrad!(y::Var, ::typeof(exp), x::Var)
     isvoid(x.grad) || ∇exp!(y.data, y.grad, x.grad)
 end
 
@@ -34,14 +34,14 @@ end
 =#
 
 """
-    log.(x)
+    log(x)
 """
-broadcast(::typeof(log), x::Var) = Var(log.(x.data), x.batchdims, broadcast, (log,x))
+log(x::Var) = Var(log.(x.data), x.batchdims, log, (x,))
 
-broadcast(::typeof(log), x::Node; name="log") = Node(broadcast, log, x, name=name)
+log(x::Node; name="log") = Node(log, x, name=name)
 
-function addgrad!(y::Var, ::typeof(broadcast), ::typeof(log), x::Var)
-    isvoid(x.grad) || ∇log!(y.grad,x.data,x.grad)
+function addgrad!(y::Var, ::typeof(log), x::Var)
+    isvoid(x.grad) || ∇log!(y.grad, x.data, x.grad)
 end
 
 function ∇log!{T}(gy::Array{T}, x::Array{T}, gx::Array{T})
@@ -68,7 +68,10 @@ end
 """
     transpose(x)
 """
-transpose(x::Var) = Var(transpose(x.data), x.batchdims, transpose, (x,))
+function transpose(x::Var)
+    throw("Not implemented yet.")
+    Var(transpose(x.data), x.batchdims, transpose, (x,))
+end
 
 transpose(x::Node; name="transpose") = Node(transpose, x, name=name)
 
@@ -78,6 +81,8 @@ end
 
 """
     +(x1::Var, x2::Var)
+    +(a::Number, x::Var)
+    +(x::Var, a::Number)
 """
 function +(x1::Var, x2::Var)
     x1.batchdims == x2.batchdims || throw("Batchdims mismatch.")
@@ -91,7 +96,7 @@ end
 +(x1::Node, x2::Node; name="+") = Node(+, x1, x2, name=name)
 
 function addgrad!(y::Var, ::typeof(+), x1::Var, x2::Var)
-    T = eltype(y.grad)
+    T = eltype(y)
     isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
     isvoid(x2.grad) || BLAS.axpy!(T(1), y.grad, x2.grad)
 end
@@ -100,10 +105,8 @@ end
     -(x1, x2)
 """
 function -(x1::Var, x2::Var)
-    if isa(x1.data,Array) && isa(x2.data,Array)
-        x1.batchdims == x2.batchdims || throw("Batchdims mismatch.")
-    end
-    Var(x1.data - x2.data, x2.batchdims, -, (x1,x2))
+    x1.batchdims == x2.batchdims || throw("Batchdims mismatch.")
+    Var(x1.data - x2.data, x1.batchdims, -, (x1,x2))
 end
 -(a::Number, x::Var) = Var(a) - x
 -(x::Var, a::Number) = x - Var(a)
@@ -114,13 +117,13 @@ end
 -(x::Node) = Node(-, x)
 
 function addgrad!(y::Var, ::typeof(-), x1::Var, x2::Var)
-    T = eltype(y.grad)
+    T = eltype(y)
     isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
     isvoid(x2.grad) || BLAS.axpy!(T(-1), y.grad, x2.grad)
 end
 
 function addgrad!(y::Var, ::typeof(-), x::Var)
-    T = eltype(y.grad)
+    T = eltype(y)
     isvoid(x.grad) || BLAS.axpy!(T(-1), y.grad, x.grad)
 end
 
@@ -182,7 +185,8 @@ end
     \.\*(x1::Var, x2::Var)
 """
 function broadcast(::typeof(*), x1::Var, x2::Var)
-    x1.batchdims == x2.batchdims || throw("")
+    throw("Not implemented yet.")
+    x1.sizes == x2.sizes || throw("")
     Var(x1.data .* x2.data, x1.batchdims, broadcast, (*,x1,x2))
 end
 
@@ -244,8 +248,14 @@ end
     \*(A::Var, B::Var)
 """
 function *(A::Var, B::Var)
-    length(A.batchdims) == 1 || throw("")
-    Var(A.data * B.data, B.batchdims, *, (A,B))
+    throw("Not implemented yet.")
+    if length(A.batchdims) == 1
+        y = A.data * B.data
+        batchdims = B.batchdims
+    else
+        throw("Not implemented yet.")
+    end
+    Var(y, batchdims, *, (A,B))
 end
 
 *(A::Node, B::Node; name="*") = Node(*, A, B, name=name)

@@ -1,3 +1,5 @@
+import Base.max
+
 """
     max(x, dim::Int)
 
@@ -9,9 +11,9 @@ x = Var(randn(Float32,10,5))
 y = max(x, 1)
 ```
 """
-function Base.max(x::Var, dim::Int)
-    if dim == ndims(x.data)
-        y, idx = findmax(x.data, x.batchdims)
+function max(x::Var, dim::Int)
+    if dim == ndims(x)
+        y, idx = max_batch(x.data, x.batchdims)
         batchdims = ones(Int, length(x.batchdims))
     else
         y, idx = findmax(x.data, dim)
@@ -20,9 +22,9 @@ function Base.max(x::Var, dim::Int)
     Var(y, batchdims, max, (x,idx))
 end
 
-Base.max(x::Node, dim::Int; name="max") = Node(max, x, dim, name=name)
+max(x::Node, dim::Int; name="max") = Node(max, x, dim, name=name)
 
-function Base.findmax{T,N}(x::Array{T,N}, batchdims::Vector{Int})
+function max_batch{T,N}(x::Array{T,N}, batchdims::Vector{Int})
     front = Base.front(size(x))
     n = prod(front)
     y = T[]

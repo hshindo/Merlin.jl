@@ -36,6 +36,7 @@ include("initializers/normal.jl")
 include("initializers/orthogonal.jl")
 include("initializers/uniform.jl")
 include("initializers/xavier.jl")
+include("initializers/const.jl")
 include("util.jl")
 include("abstractvar.jl")
 include("var.jl")
@@ -71,14 +72,15 @@ for name in [
 
     "argmax",
     "blas",
-    "cat",
+    "concat",
+    "embedding",
     "getindex",
     "linear",
     "logsoftmax",
-    "lookup",
     "math",
     "reshape",
     "softmax",
+    "split",
     "standardize"
     ]
     include("functions/$(name).jl")

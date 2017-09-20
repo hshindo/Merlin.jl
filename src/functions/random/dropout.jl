@@ -30,9 +30,7 @@ function dropout{T}(x::Array{T}, rate::T, rx::Vector{T})
 end
 
 function addgrad!(y::Var, ::typeof(dropout), x::Var, rate, rx)
-    isvoid(x.grad) && return
-    T = eltype(x.data)
-    ∇dropout!(y.grad, x.grad, T(rate), rx)
+    isvoid(x.grad) || ∇dropout!(y.grad, x.grad, eltype(x.data)(rate), rx)
 end
 
 function ∇dropout!{T}(gy::Array{T}, gx::Array{T}, rate::T, rx::Vector{T})
