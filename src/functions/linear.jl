@@ -26,17 +26,14 @@ y = f(x)
 function Linear{T}(::Type{T}, insize::Int, outsize::Int; init_w=Xavier(), init_b=Zeros())
     w = init_w(T, insize, outsize)
     b = init_b(T, outsize)
-    Linear(zerograd(w), zerograd(b))
+    Linear(Var(w,hasgrad=true), Var(b,hasgrad=true))
 end
 
 (f::Linear)(x) = linear(x, f.w, f.b)
 
 function linear(x::Var, w::Var, b::Var)
     y = linear(x.data, w.data, b.data)
-    sizes = map(x.sizes) do s
-        size(w,2), s[2]
-    end
-    Var(y, sizes, linear, (x,w,b))
+    Var(y, x.batchdims, linear, (x,w,b))
 end
 
 linear(x::Node, w, b; name="linear") = Node(linear, x, w, b, name=name)
@@ -50,8 +47,7 @@ function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
     ∇linear!(y.data, y.grad, x.data, x.grad, w.data, w.grad, b.data, b.grad)
 end
 
-function ∇linear!(y::Matrix, gy::Matrix, x::Matrix, gx::Matrix, w, gw, b, gb)
-    T = eltype(y)
+function ∇linear!{T}(y::Matrix{T}, gy::Matrix, x::Matrix, gx::Matrix, w, gw, b, gb)
     isvoid(gx) || BLAS.gemm!('N', 'N', T(1), w, gy, T(1), gx)
     isvoid(gw) || BLAS.gemm!('N', 'T', T(1), x, gy, T(1), gw)
     if !isvoid(gb)

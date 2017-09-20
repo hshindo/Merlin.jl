@@ -9,7 +9,7 @@ doc"""
 
 ```julia
 T = Float32
-e = Embedding(T,10000,100) # 100-length vector, 10k vocabulary
+e = Embedding(T,10000,100) # 100-length vector, 10000 vocabulary
 x = Var(rand(1:1000,5,3))
 y = lookup(e, x)
 ```
@@ -21,18 +21,14 @@ end
 
 Embedding(w::Var) = Embedding(w, IntSet())
 
-function Embedding{T}(::Type{T}, insize::Int, outsize::Int; fixed=false, init_w=Normal(0,0.01))
+function Embedding{T}(::Type{T}, insize::Int, outsize::Int; init_w=Normal(0,0.01))
     w = init_w(T, outsize, insize)
-    w = fixed ? Var(w) : zerograd(w)
-    Embedding(w)
+    Embedding(Var(w,hasgrad=true))
 end
 
 function lookup(e::Embedding, x::Var)
-    sizes = map(x.sizes) do s
-        (size(e.w,1), s...)
-    end
     y = lookup(e.w.data, x.data)
-    Var(y, sizes, lookup, (x,))
+    Var(y, x.batchdims, lookup, (x,))
 end
 
 lookup(e::Embedding, x::Node; name="lookup") = Node(lookup, e, x, name=name)

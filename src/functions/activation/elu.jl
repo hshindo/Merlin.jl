@@ -4,6 +4,7 @@ doc"""
     elu(x)
 
 Exponential Linear Unit.
+
 ```math
 f(x) =
 \begin{cases}

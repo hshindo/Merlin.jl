@@ -14,25 +14,27 @@ y = concat(2, x1, x2)
 """
 function concat(dim::Int, xs::Var...)
     N = ndims(xs[1])
+    batchdims1 = xs[1].batchdims
+    samesize = all(x -> x.batchdims == batchdims1, xs)
     if dim == N
         throw("Not implemented yet.")
-        # batchdims = Int[]
-        # foreach(x -> append!(batchdims,x.batchdims), xs)
+        batchdims = Int[]
+        foreach(x -> append!(batchdims,x.batchdims), xs)
     else
-        # all(x -> x.sizes == xs[1].sizes, xs) || throw("Invalid batchdims.")
-        sizes = xs[1].sizes
+        samesize || throw("Batchdims are not the same.")
+        batchdims = batchdims1
     end
     y = cat(dim, map(x -> x.data, xs)...)
-    Var(y, sizes, concat, (dim,xs...))
+    Var(y, batchdims, concat, (dim,xs...))
 end
 
 concat(dim::Int, xs::Node...; name="concat") = Node(cat, dim, xs..., name=name)
 
 function addgrad!(y::Var, ::typeof(concat), dim::Int, xs::Var...)
-    T, N = eltype(y.data), ndims(y.data)
+    T, N = eltype(y), ndims(y)
     offset = 1
     for x in xs
-        s = size(x.data, dim)
+        s = size(x, dim)
         if !isvoid(x.grad)
             range = ntuple(N) do i
                 i == dim ? (offset:(offset+s-1)) : Colon()

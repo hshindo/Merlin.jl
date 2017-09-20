@@ -11,7 +11,7 @@ f(x) = \exp(x) \over \sum \exp(x)
 """
 function softmax(x::Var)
     data = softmax(x.data)
-    Var(data, x.sizes, softmax, (x,))
+    Var(data, x.batchdims, softmax, (x,))
 end
 
 softmax(x::Node, name="softmax") = Node(softmax, x, name=name)

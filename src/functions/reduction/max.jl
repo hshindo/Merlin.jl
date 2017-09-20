@@ -13,14 +13,13 @@ y = max(x, 1)
 """
 function max(x::Var, dim::Int)
     if dim == ndims(x)
-        b = map(s -> s[dim], x.sizes)
-        y, idx = max_batch(x.data, b)
-        sizes = map(s -> (s[1],1), x.sizes)
+        y, idx = max_batch(x.data, x.batchdims)
+        batchdims = ones(Int, length(x.batchdims))
     else
         y, idx = findmax(x.data, dim)
-        sizes = x.sizes
+        batchdims = x.batchdims
     end
-    Var(y, sizes, max, (x,idx))
+    Var(y, batchdims, max, (x,idx))
 end
 
 max(x::Node, dim::Int; name="max") = Node(max, x, dim, name=name)

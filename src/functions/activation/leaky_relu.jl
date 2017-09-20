@@ -1,7 +1,7 @@
 export leaky_relu
 
 doc"""
-    leaky_relu(x)
+    leaky_relu(x, alpha=10)
 
 Leaky Rectified Linear Unit.
 ```math

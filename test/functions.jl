@@ -10,16 +10,16 @@ const T = Float32
     #@testgrad leaky_relu(x) x
     #@testgrad crelu(x) x
     #@testgrad selu(x) x
-    #@testgrad sigmoid(x) x
-    #@testgrad tanh(x) x
+    @testgrad sigmoid(x) x
+    @testgrad tanh(x) x
 end
 
 @testset "blas" for i = 1:5
     A = Var(randn(T,10,5))
     x = Var(randn(T,10))
     B = Var(randn(T,10,5))
-    #@testgrad BLAS.gemv('T',1,A,x) A x
-    #@testgrad BLAS.gemm('T','N',1,A,B) A B
+    @testgrad BLAS.gemv('T',1,A,x) A x
+    @testgrad BLAS.gemm('T','N',1,A,B) A B
 end
 
 @testset "concat" for i = 1:5
@@ -31,7 +31,7 @@ end
 end
 
 @testset "conv" for i = 1:5
-    x = Var(rand(T,10,15),[(10,5),(10,10)])
+    x = Var(rand(T,10,15),[10,5])
     f = Conv1D(T, 5, 10, 20, 2, 1)
     @testgrad f(x) x f.w f.b
 end
@@ -63,10 +63,10 @@ end
 
 @testset "math" for i = 1:5
     x = Var(rand(T,10,5))
-    # @testgrad exp.(x) x
-    # @testgrad log.(x) x
+    @testgrad exp(x) x
+    # @testgrad log(x) x
     # @testgrad transpose(x) x
-    # @testgrad -x x
+    @testgrad -x x
     #@testgrad x/2 x
     # @testgrad x^3 x
 
@@ -83,7 +83,7 @@ end
 end
 
 @testset "reduction" for i = 1:5
-    x = Var(rand(T,10,15)+1, [(10,5),(10,10)])
+    x = Var(rand(T,10,15)+1, [5,10])
     for dim = 1:ndims(x.data)
         max(x, dim)
         #@testgrad sum(x,dim) x
@@ -108,5 +108,5 @@ end
 @testset "standardize" for i = 1:5
     x = Var(randn(T,1,5)*3+2)
     f = Standardize(T,size(x.data))
-    #@testgrad f(x) x f.scale f.bias
+    @testgrad f(x) x f.scale f.bias
 end

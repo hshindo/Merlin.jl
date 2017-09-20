@@ -4,18 +4,20 @@ doc"""
     crelu(x)
 
 Concatenated Rectified Linear Unit.
+The output is twice the size of input.
+
 ```math
 f(x) = (\max(0,x), \max(0,-x))
 ```
 """
-crelu(x::Var) = Var(crelu(x.data), x.batchdims, crelu, (x,))
+function crelu(x::Var)
+    Var(crelu(x.data), x.batchdims, crelu, (x,))
+end
 
 crelu(x::Node; name="crelu") = Node(crelu, x, name=name)
 
 function crelu{T}(x::Array{T})
-    s = [size(x)...]
-    s[1] *= 2
-    y = Array{T}(s...)
+    y = Array{T}(2size(x,1), Base.tail(x)...)
     @inbounds for i = 1:length(x)
         k = (i-1)*2 + 1
         y[k] = max(x[i], T(0))

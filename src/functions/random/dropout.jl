@@ -12,7 +12,7 @@ function dropout(x::Var, rate::Float64)
         T = eltype(x.data)
         rx = rand(eltype(x.data), length(x.data))
         data = dropout(x.data, T(rate), rx)
-        Var(data, x.sizes, dropout, (x,rate,rx))
+        Var(data, x.batchdims, dropout, (x,rate,rx))
     else
         x
     end
@@ -30,9 +30,7 @@ function dropout{T}(x::Array{T}, rate::T, rx::Vector{T})
 end
 
 function addgrad!(y::Var, ::typeof(dropout), x::Var, rate, rx)
-    isvoid(x.grad) && return
-    T = eltype(x.data)
-    ∇dropout!(y.grad, x.grad, T(rate), rx)
+    isvoid(x.grad) || ∇dropout!(y.grad, x.grad, eltype(x.data)(rate), rx)
 end
 
 function ∇dropout!{T}(gy::Array{T}, gx::Array{T}, rate::T, rx::Vector{T})

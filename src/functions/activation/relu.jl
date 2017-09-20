@@ -8,7 +8,7 @@ Rectified Linear Unit.
 f(x) = \max(0, x)
 ```
 """
-relu(x::Var) = Var(relu(x.data), x.sizes, relu, (x,))
+relu(x::Var) = Var(relu(x.data), x.batchdims, relu, (x,))
 
 relu(x::Node; name="relu") = Node(relu, x, name=name)
 
