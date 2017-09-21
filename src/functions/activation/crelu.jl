@@ -4,7 +4,7 @@ doc"""
     crelu(x)
 
 Concatenated Rectified Linear Unit.
-The output is twice the size of input.
+The output is twice the size of the input.
 
 ```math
 f(x) = (\max(0,x), \max(0,-x))

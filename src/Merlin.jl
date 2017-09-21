@@ -41,7 +41,6 @@ include("util.jl")
 include("abstractvar.jl")
 include("var.jl")
 include("graph.jl")
-include("rand.jl")
 #include("native.jl")
 include("check.jl")
 include("train.jl")
@@ -73,10 +72,10 @@ for name in [
     "argmax",
     "blas",
     "concat",
-    "embedding",
     "getindex",
     "linear",
     "logsoftmax",
+    "lookup",
     "math",
     "reshape",
     "softmax",

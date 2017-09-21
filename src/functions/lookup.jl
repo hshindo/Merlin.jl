@@ -6,7 +6,7 @@ struct Lookup <: Functor
 end
 
 function Lookup(mat::Matrix)
-    params = Var[zerograd(mat[:,i]) for i=1:size(mat,2)]
+    params = Var[Var(mat[:,i],hasgrad=true) for i=1:size(mat,2)]
     Lookup(params, IntSet())
 end
 
