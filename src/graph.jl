@@ -50,7 +50,7 @@ function compile!(g::Graph)
 
     len = sum(p -> length(p.data), params)
     T = eltype(params[1].data)
-    var = zerograd(Array{T}(len))
+    var = Var(Array{T}(len), hasgrad=true)
     i = 1
     for p in params
         subdata = unsafe_wrap(Array, pointer(var.data,i), size(p.data))
@@ -89,7 +89,7 @@ macro graph(input, output)
 end
 
 function (g::Graph)(inputs::Var...)
-    vars = Array{Var}(length(g.nodes))
+    vars = Array{Any}(length(g.nodes))
     for i = 1:length(inputs)
         vars[g.inputs[i]] = inputs[i]
     end
@@ -102,12 +102,15 @@ function (g::Graph)(inputs::Var...)
                 isa(arg,NodeId) ? vars[arg.id] : arg
             end
             vars[i] = node.f(args...)
+            # println(node.f)
+            # println(typeof(vars[i]))
         end
     end
     outputs = map(id -> vars[id], g.outputs)
     length(outputs) > 1 && throw("Not implemented yet.")
     v = outputs[1]
-    Var(v.data, v.batchdims, g, inputs, work=vars)
+    v
+    #Var(v.data, v.batchdims, g, inputs, work=vars)
 end
 
 function addgrad!(y::Var, g::Graph, xs::Var...)
@@ -137,3 +140,5 @@ Base.size(x::Node) = Node(size, x)
 Base.size(x::Node, i::Int) = Node(size, x, i)
 Base.length(x::Node) = Node(length, x)
 Base.ndims(x::Node) = Node(ndims, x)
+
+batchsize(x::Node) = Node(batchsize, x)

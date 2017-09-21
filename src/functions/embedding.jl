@@ -28,7 +28,7 @@ end
 
 function lookup(e::Embedding, x::Var)
     y = lookup(e.w.data, x.data)
-    Var(y, x.batchdims, lookup, (x,))
+    Var(y, x.batchdims, lookup, (e,x))
 end
 
 lookup(e::Embedding, x::Node; name="lookup") = Node(lookup, e, x, name=name)

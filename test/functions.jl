@@ -105,6 +105,11 @@ end
     end
 end
 
+@testset "split" for i = 1:5
+    x = Var(randn(T,10,5))
+    @testgrad split(x,[2,3]) x
+end
+
 @testset "standardize" for i = 1:5
     x = Var(randn(T,1,5)*3+2)
     f = Standardize(T,size(x.data))

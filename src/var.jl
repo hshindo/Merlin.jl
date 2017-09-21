@@ -1,5 +1,5 @@
 export Var
-export zerograd
+export zerograd, batchsize
 
 mutable struct Var <: AbstractVar
     data
@@ -21,3 +21,5 @@ Base.size(x::Var, i::Int) = size(x.data, i)
 Base.length(x::Var) = length(x.data)
 Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
+
+batchsize(x::Var) = x.batchdims
