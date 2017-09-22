@@ -38,7 +38,6 @@ include("initializers/uniform.jl")
 include("initializers/xavier.jl")
 include("initializers/const.jl")
 include("util.jl")
-include("abstractvar.jl")
 include("var.jl")
 include("graph.jl")
 #include("native.jl")
@@ -72,10 +71,10 @@ for name in [
     "argmax",
     "blas",
     "concat",
+    "embedding",
     "getindex",
     "linear",
     "logsoftmax",
-    "lookup",
     "math",
     "reshape",
     "softmax",

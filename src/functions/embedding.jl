@@ -14,11 +14,12 @@ x = Var(rand(1:1000,5,3))
 y = lookup(e, x)
 ```
 """
-struct Embedding <: AbstractVar
+struct Embedding
     w::Var
     idset::IntSet
 end
 
+Embedding(x::Matrix) = Embedding(Var(x,hasgrad=true))
 Embedding(w::Var) = Embedding(w, IntSet())
 
 function Embedding{T}(::Type{T}, insize::Int, outsize::Int; init_w=Normal(0,0.01))
@@ -63,9 +64,9 @@ end
 function update!(e::Embedding, opt)
     n = size(e.w, 1)
     for id in e.idset
-        p = pointer(e.w, (id-1)*n+1)
+        p = pointer(e.w.data, (id-1)*n+1)
         w = unsafe_wrap(Array, p, n)
-        p = pointer(e.gw, (id-1)*n+1)
+        p = pointer(e.w.grad, (id-1)*n+1)
         gw = unsafe_wrap(Array, p, n)
         opt(w, gw)
     end
