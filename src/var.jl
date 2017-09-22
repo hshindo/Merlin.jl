@@ -44,7 +44,7 @@ end
 
 function update!(vars::Vector{Var}, opt)
     for v in vars
-        isa(v,Var) || continue
+        # isa(v,Var) || continue
         isempty(v.args) && !isvoid(v.grad) && opt(v.data,v.grad)
         #for arg in v.args
         #    applicable(update!,arg,opt) && update!(arg,opt)
