@@ -22,6 +22,7 @@ Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
 
 batchsize(x::Var) = x.batchdims
+batchsize(x::Var, i::Int) = x.batchdims[i]
 data(x::Var) = x.data
 isvoid(x) = x == nothing
 
@@ -44,7 +45,6 @@ end
 
 function update!(vars::Vector{Var}, opt)
     for v in vars
-        # isa(v,Var) || continue
         isempty(v.args) && !isvoid(v.grad) && opt(v.data,v.grad)
         #for arg in v.args
         #    applicable(update!,arg,opt) && update!(arg,opt)

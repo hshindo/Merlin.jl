@@ -16,7 +16,7 @@ end
 
 function checkgrad(f::Function, var::Var)
     check_eps = 1e-3
-    zerograd!(var)
+    var.grad = zeros(var.data)
     y = f()
     gradient!(y)
     gx1 = var.grad

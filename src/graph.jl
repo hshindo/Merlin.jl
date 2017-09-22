@@ -17,14 +17,13 @@ mutable struct Graph <: Functor
     nodes::Vector{Node} # topological order
     inputs::Vector{Int}
     outputs::Vector{Int}
-    params::Vector
+    param::Var
 end
 
 function Graph(inputs::Tuple{Vararg{Node}}, outputs::Tuple{Vararg{Node}})
     length(outputs) == 1 || throw("Not implemented yet.")
     nodes = topsort(outputs[1])
     node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
-    params = []
     nodes = map(nodes) do node
         isa(node.f,Functor) && push!(params,node.f)
         args = map(node.args) do arg
@@ -53,10 +52,10 @@ function compile!(g::Graph)
     var = Var(Array{T}(len), hasgrad=true)
     i = 1
     for p in params
-        subdata = unsafe_wrap(Array, pointer(var.data,i), size(p.data))
-        p.data = copy!(subdata, p.data)
-        subgrad = unsafe_wrap(Array, pointer(var.grad,i), size(p.data))
-        p.grad = copy!(subgrad, p.grad)
+        subx = unsafe_wrap(Array, pointer(var.data,i), size(p.data))
+        p.data = copy!(subx, p.data)
+        subgx = unsafe_wrap(Array, pointer(var.grad,i), size(p.grad))
+        p.grad = copy!(subgx, p.grad)
         i += length(p.data)
     end
     push!(g.params, var)

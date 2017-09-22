@@ -17,7 +17,7 @@ end
 crelu(x::Node; name="crelu") = Node(crelu, x, name=name)
 
 function crelu{T}(x::Array{T})
-    y = Array{T}(2size(x,1), Base.tail(x)...)
+    y = Array{T}(2size(x,1), Base.tail(size(x))...)
     @inbounds for i = 1:length(x)
         k = (i-1)*2 + 1
         y[k] = max(x[i], T(0))

@@ -77,6 +77,7 @@ for name in [
     "logsoftmax",
     "math",
     "reshape",
+    "resize",
     "softmax",
     "split",
     "standardize"

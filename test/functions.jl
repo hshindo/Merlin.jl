@@ -65,7 +65,7 @@ end
     x = Var(rand(T,10,5))
     @testgrad exp(x) x
     # @testgrad log(x) x
-    # @testgrad transpose(x) x
+    #@testgrad transpose(x) x
     @testgrad -x x
     #@testgrad x/2 x
     # @testgrad x^3 x
@@ -96,6 +96,11 @@ end
     #@testgrad reshape(x,5,10) x
 end
 
+@testset "resize" for i = 1:5
+    x = Var(randn(T,10,5),[2,3])
+    @testgrad resize(x,[4,1]) x
+end
+
 @testset "softmax" for i = 1:5
     x1 = Var(randn(T,10))
     x2 = Var(randn(T,10,5))
@@ -107,7 +112,7 @@ end
 
 @testset "split" for i = 1:5
     x = Var(randn(T,10,5))
-    @testgrad split(x,[2,3]) x
+    #@testgrad split(x,[2,3]) x
 end
 
 @testset "standardize" for i = 1:5
