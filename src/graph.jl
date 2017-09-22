@@ -102,8 +102,6 @@ function (g::Graph)(inputs::Var...)
                 isa(arg,NodeId) ? vars[arg.id] : arg
             end
             vars[i] = node.f(args...)
-            # println(node.f)
-            # println(typeof(vars[i]))
         end
     end
     outputs = map(id -> vars[id], g.outputs)

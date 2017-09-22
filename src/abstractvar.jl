@@ -15,8 +15,8 @@ function zerograd!(v::AbstractVar)
     v
 end
 
-function topsort{T}(top::T)
-    sorted = T[]
+function topsort(top::AbstractVar)
+    sorted = AbstractVar[]
     dict = ObjectIdDict()
     function visit(v::T)
         haskey(dict,v) && return
@@ -30,18 +30,17 @@ function topsort{T}(top::T)
     sorted
 end
 
-function addgrad!(v::AbstractVar)
-    isvoid(v.f) || addgrad!(v, v.f, v.args...)
-end
-
 function gradient!(top::AbstractVar)
     sorted = topsort(top)
     isvoid(top.grad) && (top.grad = ones(top.data))
     for v in sorted
-        !isempty(v.args) && isvoid(v.grad) && zerograd!(v)
+        if !isempty(v.args) && isvoid(v.grad)
+            zerograd!(v)
+        end
     end
     for i = length(sorted):-1:1
-        addgrad!(sorted[i])
+        v = sorted[i]
+        isvoid(v.f) || addgrad!(v, v.f, v.args...)
     end
     sorted
 end
