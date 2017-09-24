@@ -9,56 +9,30 @@ mutable struct Node
 end
 Node() = Node(nothing)
 
-mutable struct NodeId
+struct NodeId
     id::Int
 end
 
-mutable struct Graph <: Functor
+struct Graph
     nodes::Vector{Node} # topological order
     inputs::Vector{Int}
     outputs::Vector{Int}
-    param::Var
 end
 
 function Graph(inputs::Tuple{Vararg{Node}}, outputs::Tuple{Vararg{Node}})
     length(outputs) == 1 || throw("Not implemented yet.")
     nodes = topsort(outputs[1])
     node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
+
     nodes = map(nodes) do node
-        isa(node.f,Functor) && push!(params,node.f)
         args = map(node.args) do arg
             isa(arg,Node) ? NodeId(node2id[arg]) : arg
         end
-        Node(node.f, args...)
+        Node(node.f, args..., name=node.name)
     end
     inputs = [map(x -> node2id[x], inputs)...]
     outputs = [map(x -> node2id[x], outputs)...]
-    g = Graph(nodes, inputs, outputs, params)
-    compile!(g)
-    g
-end
-
-function compile!(g::Graph)
-    params = Var[]
-    for n in g.nodes
-        for arg in n.args
-            isa(arg,Var) && !isvoid(arg.grad) && push!(params,arg)
-        end
-    end
-    isempty(params) && return
-
-    len = sum(p -> length(p.data), params)
-    T = eltype(params[1].data)
-    var = Var(Array{T}(len), hasgrad=true)
-    i = 1
-    for p in params
-        subx = unsafe_wrap(Array, pointer(var.data,i), size(p.data))
-        p.data = copy!(subx, p.data)
-        subgx = unsafe_wrap(Array, pointer(var.grad,i), size(p.grad))
-        p.grad = copy!(subgx, p.grad)
-        i += length(p.data)
-    end
-    push!(g.params, var)
+    Graph(nodes, inputs, outputs)
 end
 
 """
@@ -87,55 +61,29 @@ macro graph(input, output)
     end
 end
 
-function (g::Graph)(inputs::Var...)
-    vars = Array{Any}(length(g.nodes))
-    for i = 1:length(inputs)
-        vars[g.inputs[i]] = inputs[i]
+function (g::Graph)(xs...)
+    temps = Array{Any}(length(g.nodes))
+    for i = 1:length(xs)
+        temps[g.inputs[i]] = xs[i]
     end
     for i = 1:length(g.nodes)
         node = g.nodes[i]
         if isempty(node.args)
-            isassigned(vars,i) || (vars[i] = node)
+            isassigned(temps,i) || (temps[i] = node)
         else
             args = map(node.args) do arg
-                isa(arg,NodeId) ? vars[arg.id] : arg
+                isa(arg,NodeId) ? temps[arg.id] : arg
             end
-            vars[i] = node.f(args...)
+            temps[i] = node.f(args...)
         end
     end
-    outputs = map(id -> vars[id], g.outputs)
+    outputs = map(id -> temps[id], g.outputs)
     length(outputs) > 1 && throw("Not implemented yet.")
     v = outputs[1]
     v
-    #Var(v.data, v.batchdims, g, inputs, work=vars)
-end
-
-function addgrad!(y::Var, g::Graph, xs::Var...)
-    vars = y.work
-    vars[end].grad = y.grad
-    for v in vars
-        !isempty(v.args) && isvoid(v.grad) && zerograd!(v)
-    end
-    for i = length(vars):-1:1
-        v = vars[i]
-        addgrad!(v)
-        isvoid(v.grad) && continue
-    end
-end
-
-function update!(g::Graph, opt)
-    for p in g.params
-        if isa(p, Functor)
-            update!(p, opt)
-        elseif isa(p, Var)
-            opt(p.data, p.grad)
-        end
-    end
 end
 
 Base.size(x::Node) = Node(size, x)
 Base.size(x::Node, i::Int) = Node(size, x, i)
 Base.length(x::Node) = Node(length, x)
 Base.ndims(x::Node) = Node(ndims, x)
-
-batchsize(x::Node) = Node(batchsize, x)

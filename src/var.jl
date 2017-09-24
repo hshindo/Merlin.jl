@@ -1,5 +1,5 @@
 export Var
-export zerograd, batchsize, data, isvoid, topsort, gradient!, update!
+export zerograd, batchsize, isvoid, topsort, gradient!, update!
 
 mutable struct Var
     data
@@ -9,9 +9,9 @@ mutable struct Var
     grad
 end
 
-function Var(data, batchdims=nothing, f=nothing, args=(); hasgrad=false)
-    batchdims == nothing && (batchdims = [size(data)[end]])
-    grad = hasgrad ? zeros(data) : nothing
+function Var(data, batchdims=nothing, f=nothing, args=(); fixed=true)
+    batchdims == nothing && (batchdims = [size(data,ndims(data))])
+    grad = fixed ? nothing : zeros(data)
     Var(data, batchdims, f, args, grad)
 end
 
@@ -23,10 +23,9 @@ Base.eltype(x::Var) = eltype(x.data)
 
 batchsize(x::Var) = x.batchdims
 batchsize(x::Var, i::Int) = x.batchdims[i]
-data(x::Var) = x.data
 isvoid(x) = x == nothing
 
-update!(x::Var, opt) = isempty(x.args) && !isvoid(x.grad) && opt(x.data,x.grad)
+update!(x::Var, opt) = opt(x.data, x.grad)
 
 function topsort{T}(top::T)
     sorted = T[]
@@ -35,21 +34,16 @@ function topsort{T}(top::T)
         haskey(dict,v) && return
         dict[v] = v
         for arg in v.args
-            isa(arg,T) && visit(arg)
+            if isa(arg, T)
+                visit(arg)
+            elseif isa(arg, Vector{T})
+                foreach(visit, arg)
+            end
         end
         push!(sorted, v)
     end
     visit(top)
     sorted
-end
-
-function update!(vars::Vector{Var}, opt)
-    for v in vars
-        isempty(v.args) && !isvoid(v.grad) && opt(v.data,v.grad)
-        #for arg in v.args
-        #    applicable(update!,arg,opt) && update!(arg,opt)
-        #end
-    end
 end
 
 function gradient!(top::Var)
@@ -64,5 +58,7 @@ function gradient!(top::Var)
         v = sorted[i]
         isvoid(v.f) || addgrad!(v, v.f, v.args...)
     end
-    sorted
+    filter(sorted) do v
+        isempty(v.args) && !isvoid(v.grad)
+    end
 end

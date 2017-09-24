@@ -26,7 +26,7 @@ y = f(x)
 function Linear{T}(::Type{T}, insize::Int, outsize::Int; init_w=Xavier(), init_b=Zeros())
     w = init_w(T, insize, outsize)
     b = init_b(T, outsize)
-    Linear(Var(w,hasgrad=true), Var(b,hasgrad=true))
+    Linear(Var(w,fixed=false), Var(b,fixed=false))
 end
 
 (f::Linear)(x) = linear(x, f.w, f.b)
