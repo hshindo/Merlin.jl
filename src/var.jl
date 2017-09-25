@@ -1,6 +1,11 @@
 export Var
-export zerograd, batchsize, isvoid, topsort, gradient!, update!
+export batchsize, isvoid, isfixed, isparam, gradient!
 
+"""
+    Var
+
+Variable struct.
+"""
 mutable struct Var
     data
     batchdims
@@ -20,12 +25,25 @@ Base.size(x::Var, i::Int) = size(x.data, i)
 Base.length(x::Var) = length(x.data)
 Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
-
-batchsize(x::Var) = x.batchdims
-batchsize(x::Var, i::Int) = x.batchdims[i]
 isvoid(x) = x == nothing
 
-update!(x::Var, opt) = opt(x.data, x.grad)
+"""
+    batchsize(x::Var)
+    batchsize(x::Var, i::Int)
+"""
+batchsize(x::Var) = x.batchdims
+batchsize(x::Var, i::Int) = x.batchdims[i]
+
+"""
+    isfixed(x::Var)::Bool
+"""
+isfixed(x::Var) = x.grad == nothing
+
+"""
+    isparam(x::Var)::Bool
+Returns whether `x` is a parameter or not
+"""
+isparam(x::Var) = !isfixed(x) && isempty(x.args)
 
 function topsort{T}(top::T)
     sorted = T[]
@@ -46,6 +64,9 @@ function topsort{T}(top::T)
     sorted
 end
 
+"""
+    gradient!(top::Var)
+"""
 function gradient!(top::Var)
     sorted = topsort(top)
     isvoid(top.grad) && (top.grad = ones(top.data))
@@ -58,7 +79,5 @@ function gradient!(top::Var)
         v = sorted[i]
         isvoid(v.f) || addgrad!(v, v.f, v.args...)
     end
-    filter(sorted) do v
-        isempty(v.args) && !isvoid(v.grad)
-    end
+    filter(isparam, sorted)
 end

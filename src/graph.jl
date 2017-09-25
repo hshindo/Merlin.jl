@@ -1,4 +1,4 @@
-export Graph, Node, @graph
+export Graph, Node, @graph, getparams
 
 mutable struct Node
     f
@@ -33,6 +33,16 @@ function Graph(inputs::Tuple{Vararg{Node}}, outputs::Tuple{Vararg{Node}})
     inputs = [map(x -> node2id[x], inputs)...]
     outputs = [map(x -> node2id[x], outputs)...]
     Graph(nodes, inputs, outputs)
+end
+
+function getparams(g::Graph)
+    params = Var[]
+    for n in g.nodes
+        for arg in n.args
+            isa(arg,Var) && isparam(arg) && push!(params,arg)
+        end
+    end
+    params
 end
 
 """
