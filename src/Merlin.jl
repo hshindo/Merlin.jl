@@ -81,6 +81,7 @@ for name in [
     "linear",
     "logsoftmax",
     "math",
+    "pairwise",
     "reshape",
     "resize",
     "softmax",

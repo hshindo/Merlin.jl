@@ -82,6 +82,12 @@ end
     #@testgrad x1*x4 x1 x4
 end
 
+@testset "pairwise" for i = 1:5
+    x1 = Var(rand(T,5,4))
+    x2 = Var(rand(T,5,4))
+    @testgrad pairwise(x1,x2) x1 x2
+end
+
 @testset "reduction" for i = 1:5
     x = Var(rand(T,10,15)+1, [5,10])
     for dim = 1:ndims(x.data)
