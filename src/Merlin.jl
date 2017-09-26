@@ -58,6 +58,8 @@ for name in [
     "activation/sigmoid",
     "activation/tanh",
 
+    "attention/add_attention",
+
     "conv/conv1d",
     "conv/gated_conv1d",
 
