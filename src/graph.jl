@@ -4,12 +4,9 @@ mutable struct Node
     f
     args::Tuple
     name::String
-
-    Node(f=nothing, args...; name="") = new(f, args, name)
-end
-
-struct NodeId
     id::Int
+
+    Node(f=nothing, args...; name="") = new(f, args, name, 0)
 end
 
 struct Graph
@@ -24,17 +21,18 @@ function Graph(; input=(), output=())
     isa(output,Tuple) || (output = (output,))
     nodes = topsort(output...)
     dict = Dict{String,Node}()
-    node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
-    for node in nodes
+    for i = 1:length(nodes)
+        node = nodes[i]
         isempty(node.name) || (dict[node.name] = node)
-        node.args = map(node.args) do arg
-            isa(arg,Node) ? NodeId(node2id[arg]) : arg
-        end
+        node.id = i
     end
-    input = map(x -> node2id[x], input)
-    output = map(x -> node2id[x], output)
+    input = map(x -> x.id, input)
+    output = map(x -> x.id, output)
     Graph(nodes, dict, input, output)
 end
+
+Base.getindex(g::Graph, i::Int) = g.nodes[i]
+Base.getindex(g::Graph, s::String) = g.dict[s]
 
 function (g::Graph)(xs...)
     @assert length(xs) == length(g.input)
@@ -48,7 +46,7 @@ function (g::Graph)(xs...)
             isassigned(temps,i) || (temps[i] = node)
         else
             args = map(node.args) do arg
-                isa(arg,NodeId) ? temps[arg.id] : arg
+                isa(arg,Node) ? temps[arg.id] : arg
             end
             temps[i] = node.f(args...)
         end
