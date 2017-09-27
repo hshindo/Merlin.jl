@@ -55,6 +55,10 @@ function (g::Graph)(xs...)
     length(o) == 1 ? o[1] : o
 end
 
+function saveparams(g::Graph)
+    
+end
+
 """
 ```julia
 f = @graph n begin
