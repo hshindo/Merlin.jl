@@ -45,7 +45,7 @@ Returns whether `x` is a parameter or not
 """
 isparam(x::Var) = !isfixed(x) && isempty(x.args)
 
-function topsort{T}(top::T)
+function topsort{T}(tops::T...)
     sorted = T[]
     dict = ObjectIdDict()
     function visit(v::T)
@@ -60,7 +60,7 @@ function topsort{T}(top::T)
         end
         push!(sorted, v)
     end
-    visit(top)
+    foreach(visit, tops)
     sorted
 end
 

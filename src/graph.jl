@@ -1,13 +1,12 @@
-export Graph, Node, @graph, getparams
+export Graph, Node
 
 mutable struct Node
     f
     args::Tuple
     name::String
 
-    Node(f, args...; name="") = new(f, args, name)
+    Node(f=nothing, args...; name="") = new(f, args, name)
 end
-Node() = Node(nothing)
 
 struct NodeId
     id::Int
@@ -15,34 +14,47 @@ end
 
 struct Graph
     nodes::Vector{Node} # topological order
-    inputs::Vector{Int}
-    outputs::Vector{Int}
+    dict::Dict{String,Node}
+    input::Tuple
+    output::Tuple
 end
 
-function Graph(inputs::Tuple{Vararg{Node}}, outputs::Tuple{Vararg{Node}})
-    length(outputs) == 1 || throw("Not implemented yet.")
-    nodes = topsort(outputs[1])
+function Graph(; input=(), output=())
+    isa(input,Tuple) || (input = (input,))
+    isa(output,Tuple) || (output = (output,))
+    nodes = topsort(output...)
+    dict = Dict{String,Node}()
     node2id = ObjectIdDict(nodes[i]=>i for i=1:length(nodes))
-
-    nodes = map(nodes) do node
-        args = map(node.args) do arg
+    for node in nodes
+        isempty(node.name) || (dict[node.name] = node)
+        node.args = map(node.args) do arg
             isa(arg,Node) ? NodeId(node2id[arg]) : arg
         end
-        Node(node.f, args..., name=node.name)
     end
-    inputs = [map(x -> node2id[x], inputs)...]
-    outputs = [map(x -> node2id[x], outputs)...]
-    Graph(nodes, inputs, outputs)
+    input = map(x -> node2id[x], input)
+    output = map(x -> node2id[x], output)
+    Graph(nodes, dict, input, output)
 end
 
-function getparams(g::Graph)
-    params = Var[]
-    for n in g.nodes
-        for arg in n.args
-            isa(arg,Var) && isparam(arg) && push!(params,arg)
+function (g::Graph)(xs...)
+    @assert length(xs) == length(g.input)
+    temps = Array{Any}(length(g.nodes))
+    for i = 1:length(xs)
+        temps[g.input[i]] = xs[i]
+    end
+    for i = 1:length(g.nodes)
+        node = g.nodes[i]
+        if isempty(node.args)
+            isassigned(temps,i) || (temps[i] = node)
+        else
+            args = map(node.args) do arg
+                isa(arg,NodeId) ? temps[arg.id] : arg
+            end
+            temps[i] = node.f(args...)
         end
     end
-    params
+    o = map(i -> temps[i], g.output)
+    length(o) == 1 ? o[1] : o
 end
 
 """
@@ -70,30 +82,3 @@ macro graph(input, output)
         Graph(x, y)
     end
 end
-
-function (g::Graph)(xs...)
-    temps = Array{Any}(length(g.nodes))
-    for i = 1:length(xs)
-        temps[g.inputs[i]] = xs[i]
-    end
-    for i = 1:length(g.nodes)
-        node = g.nodes[i]
-        if isempty(node.args)
-            isassigned(temps,i) || (temps[i] = node)
-        else
-            args = map(node.args) do arg
-                isa(arg,NodeId) ? temps[arg.id] : arg
-            end
-            temps[i] = node.f(args...)
-        end
-    end
-    outputs = map(id -> temps[id], g.outputs)
-    length(outputs) > 1 && throw("Not implemented yet.")
-    v = outputs[1]
-    v
-end
-
-Base.size(x::Node) = Node(size, x)
-Base.size(x::Node, i::Int) = Node(size, x, i)
-Base.length(x::Node) = Node(length, x)
-Base.ndims(x::Node) = Node(ndims, x)
