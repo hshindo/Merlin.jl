@@ -49,6 +49,11 @@ end
 end
 
 @testset "loss" for i = 1:5
+    # mse
+    x1 = Var(rand(T,10,5))
+    x2 = Var(rand(T,10,5))
+    @testgrad mse(x1,x2) x1 x2
+
     p = Var(rand(1:10,5))
     q = Var(softmax(rand(T,10,5)))
     # @testgrad crossentropy(p,q) q

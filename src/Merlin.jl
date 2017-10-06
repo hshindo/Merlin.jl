@@ -94,6 +94,11 @@ for name in [
     #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)
 end
 
+for name in [
+    "l2"]
+    include("regularizers/$(name).jl")
+end
+
 export update!
 for name in [
     "adagrad",

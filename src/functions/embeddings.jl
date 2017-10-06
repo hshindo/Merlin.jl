@@ -32,6 +32,7 @@ function addgrad!(y::Var, ::typeof(lookup), xs::Vector{Var})
     T = eltype(y.data)
     n = length(xs[1].data)
     for i = 1:length(xs)
+        isvoid(xs[i].grad) && continue
         py = pointer(y.grad, (i-1)*n+1)
         gx = xs[i].grad
         BLAS.axpy!(n, T(1), py, 1, pointer(gx), 1)

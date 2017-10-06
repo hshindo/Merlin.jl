@@ -55,8 +55,13 @@ function (g::Graph)(xs...)
     length(o) == 1 ? o[1] : o
 end
 
-function saveparams(g::Graph)
-    
+function getparams()
+end
+
+function save(dict::Dict, path::String)
+    for (k,v) in dict
+        h5write(path, string(k), v)
+    end
 end
 
 """
