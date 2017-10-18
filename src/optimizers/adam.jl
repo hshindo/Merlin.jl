@@ -4,17 +4,20 @@ export Adam
     Adam
 
 Adam: A Method for Stochastic Optimization
-See: http://arxiv.org/abs/1412.6980v8
+
+# References
+* http://arxiv.org/abs/1412.6980v8
 """
 type Adam
-  alpha::Float64
-  beta1::Float64
-  beta2::Float64
-  eps::Float64
-  states::ObjectIdDict
+    alpha::Float64
+    beta1::Float64
+    beta2::Float64
+    eps::Float64
+    states::ObjectIdDict
 end
 
 Adam() = Adam(0.001, 0.9, 0.999, 1e-8, ObjectIdDict())
+Adam(alpha)= Adam(alpha, 0.9, 0.999, 1e-8, ObjectIdDict())
 
 function (opt::Adam){T}(param::Array{T}, grad::Array{T})
     @assert length(param) == length(grad)

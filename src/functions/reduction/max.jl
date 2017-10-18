@@ -36,7 +36,7 @@ function max_batch{T,N}(x::Array{T,N}, batchdims::Vector{Int})
         subx = unsafe_wrap(Array, p, (front...,batchdims[i]))
 
         val, index = findmax(subx, N)
-        @inbounds for k = 1:length(index)
+        for k = 1:length(index)
             index[k] += n * cumdim
         end
         append!(y, val)

@@ -1,11 +1,12 @@
 import Base.split
+export unsafe_split
 
 function split(x::Var, dim::Int, size::Vector{Int})
     y = split(x.data, dim, size)
     Var(y, split, (x,))
 end
 
-function split{T,N}(x::Array{T,N}, dim::Int, size::Vector{Int})
+function unsafe_split{T,N}(x::Array{T,N}, dim::Int, size::Vector{Int})
     if dim == N
         front = Base.front(Base.size(x))
         m = prod(front)

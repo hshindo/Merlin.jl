@@ -19,17 +19,47 @@ function pad(x::Array, N::Int)
     end
 end
 
-function Base.rand{T<:AbstractFloat,N}(low::T, high::T, dims::NTuple{N,Int})
-    Array{T,N}(rand(T,dims) * (high-low) + low)
+function size3d(x::Array, dim::Int)
+    dim == 0 && return (1, length(x), 1)
+    dim1, dim2, dim3 = 1, size(x,dim), 1
+    for i = 1:dim-1
+        dim1 *= size(x, i)
+    end
+    for i = dim+1:ndims(x)
+        dim3 *= size(x, i)
+    end
+    (dim1, dim2, dim3)
 end
-Base.rand{T<:AbstractFloat}(low::T, high::T, dims::Int...) = rand(low, high, dims)
 
-Base.randn{T<:AbstractFloat,N}(::Type{T}, dims::NTuple{N,Int}) = Array{T,N}(randn(dims))
-Base.randn{T<:AbstractFloat}(::Type{T}, dims::Int...) = randn(T, dims)
-function Base.randn{T<:AbstractFloat,N}(low::T, high::T, dims::NTuple{N,Int})
-    Array{T,N}(randn(T,dims) * (high-low) + low)
+"""
+    redim(x, n, [pad])
+"""
+function redim{T,N}(x::Array{T,N}, n::Int; pad=0)
+    n == N && return x
+    dims = ntuple(n) do i
+        1 <= i-pad <= N ? size(x,i-pad) : 1
+    end
+    reshape(x, dims)
 end
-Base.randn{T<:AbstractFloat}(low::T, high::T, dims::Int...) = randn(low, high, dims)
+
+#=
+import Base: normalize, normalize!
+function normalize{T,N}(x::Array{T,N})
+    z = mapreducedim(v -> v*v, +, x, N-1)
+    @inbounds @simd for i = 1:length(z)
+        z[i] = 1 / sqrt(z[i]+1e-9)
+    end
+    x .* z
+end
+function normalize!{T,N}(x::Array{T,N})
+    z = mapreducedim(v -> v*v, +, x, N-1)
+    @inbounds @simd for i = 1:length(z)
+        z[i] = 1 / sqrt(z[i]+1e-9)
+    end
+    x .*= z
+    x
+end
+=#
 
 # Workaround a lack of optimization in gcc
 #const exp_cst1 = 2139095040.f0

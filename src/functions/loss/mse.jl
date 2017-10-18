@@ -16,28 +16,31 @@ mse(x1::Node, x2::Node) = Node(mse, x1, x2)
 
 function mse{T}(x1::Matrix{T}, x2::Matrix{T})
     size(x1) == size(x2) || throw("Size unmatch.")
-    res = similar(x1, size(x1,2))
-    @inbounds for j = 1:size(x1,2)
+    y = similar(x1, size(x1,2))
+    for j = 1:size(x1,2)
         v = T(0)
         for i = 1:size(x1,1)
-            diff = x2[i,j] - x1[i,j]
-            v += diff * diff
+            d = x1[i,j] - x2[i,j]
+            v += d * d
         end
-        res[j] = v / size(x1,1)
+        y[j] = v / size(x1,1)
     end
-    res
+    y
 end
 
 function addgrad!(y::Var, ::typeof(mse), x1::Var, x2::Var)
-    isvoid(x2.grad) || ∇mse!(y.grad, x1.data, x1.grad, x2.data)
+    T = eltype(y)
+    gx1 = isvoid(x1.grad) ? Array{T}(0,0) : x1.grad
+    gx2 = isvoid(x2.grad) ? Array{T}(0,0) : x2.grad
+    ∇mse!(y.grad, x1.data, gx1, x2.data, gx2)
 end
 
-function ∇mse!{T}(gy::Vector{T}, x1::Matrix{T}, gx1::Matrix{T}, x2::Matrix{T})
-    @inbounds for j = 1:size(x1,2)
+function ∇mse!{T}(gy::Vector{T}, x1::Matrix{T}, gx1::Matrix{T}, x2::Matrix{T}, gx2::Matrix{T})
+    for j = 1:size(x1,2)
         for i = 1:size(x1,1)
-            g = gy[j] * (x2[i,j] - x1[i,j]) * 2 / size(x1,1)
-            gx1[i,j] -= g
-            #gx2[i] += g
+            g = gy[j] * (x1[i,j]-x2[i,j]) * 2 / size(x1,1)
+            isempty(gx1) || (gx1[i,j] += g)
+            isempty(gx2) || (gx2[i,j] -= g)
         end
     end
 end

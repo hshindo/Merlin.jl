@@ -29,22 +29,25 @@ else
 end
 =#
 
+export Functor
 abstract type Functor end
 
 include("hdf5.jl")
-include("initializers/normal.jl")
-include("initializers/orthogonal.jl")
-include("initializers/uniform.jl")
-include("initializers/xavier.jl")
-include("initializers/const.jl")
-include("util.jl")
-include("abstractvar.jl")
 include("var.jl")
 include("graph.jl")
-include("rand.jl")
 #include("native.jl")
 include("check.jl")
-include("train.jl")
+#include("train.jl")
+
+for name in [
+    "const",
+    "normal",
+    "orthogonal",
+    "uniform",
+    "xavier"
+    ]
+    include("initializers/$(name).jl")
+end
 
 for name in [
     "activation/crelu",
@@ -54,6 +57,8 @@ for name in [
     "activation/selu",
     "activation/sigmoid",
     "activation/tanh",
+
+    "attention/add_attention",
 
     "conv/conv1d",
     "conv/gated_conv1d",
@@ -73,18 +78,25 @@ for name in [
     "argmax",
     "blas",
     "concat",
-    "embedding",
+    "embeddings",
     "getindex",
     "linear",
     "logsoftmax",
     "math",
+    "pairwise",
     "reshape",
+    "resize",
     "softmax",
     "split",
     "standardize"
     ]
     include("functions/$(name).jl")
     #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)
+end
+
+for name in [
+    "l2"]
+    include("regularizers/$(name).jl")
 end
 
 export update!

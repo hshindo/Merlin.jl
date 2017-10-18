@@ -5,11 +5,11 @@ const T = Float32
     for i = 1:length(x.data)
         abs(x.data[i]) < 0.1 && (x.data[i] += 1)
     end
-    #@testgrad elu(x) x
+    @testgrad elu(x) x
     @testgrad relu(x) x
-    #@testgrad leaky_relu(x) x
-    #@testgrad crelu(x) x
-    #@testgrad selu(x) x
+    @testgrad leaky_relu(x) x
+    @testgrad crelu(x) x
+    @testgrad selu(x) x
     @testgrad sigmoid(x) x
     @testgrad tanh(x) x
 end
@@ -49,6 +49,11 @@ end
 end
 
 @testset "loss" for i = 1:5
+    # mse
+    x1 = Var(rand(T,10,5))
+    x2 = Var(rand(T,10,5))
+    @testgrad mse(x1,x2) x1 x2
+
     p = Var(rand(1:10,5))
     q = Var(softmax(rand(T,10,5)))
     # @testgrad crossentropy(p,q) q
@@ -65,7 +70,7 @@ end
     x = Var(rand(T,10,5))
     @testgrad exp(x) x
     # @testgrad log(x) x
-    # @testgrad transpose(x) x
+    #@testgrad transpose(x) x
     @testgrad -x x
     #@testgrad x/2 x
     # @testgrad x^3 x
@@ -82,6 +87,12 @@ end
     #@testgrad x1*x4 x1 x4
 end
 
+@testset "pairwise" for i = 1:5
+    x1 = Var(rand(T,5,4))
+    x2 = Var(rand(T,5,4))
+    @testgrad pairwise(x1,x2) x1 x2
+end
+
 @testset "reduction" for i = 1:5
     x = Var(rand(T,10,15)+1, [5,10])
     for dim = 1:ndims(x.data)
@@ -96,6 +107,11 @@ end
     #@testgrad reshape(x,5,10) x
 end
 
+@testset "resize" for i = 1:5
+    x = Var(randn(T,10,5),[2,3])
+    @testgrad resize(x,[4,1]) x
+end
+
 @testset "softmax" for i = 1:5
     x1 = Var(randn(T,10))
     x2 = Var(randn(T,10,5))
@@ -103,6 +119,11 @@ end
         @testgrad softmax(x) x
         #@test checkgrad(()->logsoftmax(x), x, eps=1e-2)
     end
+end
+
+@testset "split" for i = 1:5
+    x = Var(randn(T,10,5))
+    #@testgrad split(x,[2,3]) x
 end
 
 @testset "standardize" for i = 1:5

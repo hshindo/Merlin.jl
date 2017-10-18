@@ -10,7 +10,7 @@ f(x) = \max(0, x)
 """
 relu(x::Var) = Var(relu(x.data), x.batchdims, relu, (x,))
 
-relu(x::Node; name="relu") = Node(relu, x, name=name)
+relu(x::Node; name="") = Node(relu, x, name=name)
 
 function relu{T}(x::Array{T})
     y = similar(x)

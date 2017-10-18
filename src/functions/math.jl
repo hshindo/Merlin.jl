@@ -69,14 +69,25 @@ end
     transpose(x)
 """
 function transpose(x::Var)
-    throw("Not implemented yet.")
-    Var(transpose(x.data), x.batchdims, transpose, (x,))
+    ys = Var[]
+    cumdim = 0
+    m = size(x, 1)
+    for s in x.batchdims
+        p = pointer(x.data, m*cumdim+1)
+        a = unsafe_wrap(Array, p, (m,s))
+        y = Var(transpose(a), [m], transpose, (x,cumdim,cumdim+s-1))
+        push!(ys, y)
+        cumdim += s
+    end
+    ys
 end
 
 transpose(x::Node; name="transpose") = Node(transpose, x, name=name)
 
-function addgrad!(y::Var, ::typeof(transpose), x::Var)
-    isvoid(x.grad) || BLAS.axpy!(eltype(x.data)(1), transpose(y.grad), x.grad)
+function addgrad!(y::Var, ::typeof(transpose), x::Var, s::Int, e::Int)
+    if !isvoid(x.grad)
+        x.grad[:,s:e] += transpose(y.grad)
+    end
 end
 
 """

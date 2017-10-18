@@ -11,8 +11,8 @@ end
 function Standardize{T}(::Type{T}, insize::Tuple)
     dim = 2
     dims = ntuple(i -> i == dim ? 1 : insize[i], length(insize))
-    scale = Var(ones(T,dims), hasgrad=true)
-    bias = Var(zeros(T,dims), hasgrad=true)
+    scale = Var(ones(T,dims), fixed=false)
+    bias = Var(zeros(T,dims), fixed=false)
     runmean = zeros(T, dims)
     runvar = ones(T, dims)
     Standardize(scale, bias, runmean, runvar)

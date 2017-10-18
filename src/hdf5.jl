@@ -2,6 +2,12 @@ using HDF5
 
 import Base.convert
 
+doc"""
+    H5Object
+
+* typename
+* data
+"""
 struct H5Object
     typename
     data
@@ -10,6 +16,7 @@ end
 convert(::Type{H5Object}, x::Union{Real,String}) = H5Object(typeof(x), x)
 convert(::Type{H5Object}, x::Union{Void,Char,Symbol,DataType}) = H5Object(typeof(x), string(x))
 convert(::Type{H5Object}, x::Function) = H5Object(Function, string(x))
+
 function convert(::Type{H5Object}, x::Array{T,N}) where {T,N}
     if T <: Union{Real,String}
         H5Object(typeof(x), x)
@@ -41,6 +48,7 @@ convert(::Type{T}, o::H5Object) where T<:Union{Void,DataType,Function} = eval(pa
 convert(::Type{Char}, o::H5Object) = Vector{Char}(o.data)[1]
 convert(::Type{Symbol}, o::H5Object) = parse(o.data)
 convert(::Type{Function}, o::H5Object) = eval(parse(o.data))
+
 function convert(::Type{Array{T,N}}, o::H5Object) where {T,N}
     if T <: Union{Real,String}
         o.data
@@ -55,6 +63,7 @@ function convert(::Type{Array{T,N}}, o::H5Object) where {T,N}
         throw("Not supported yet.")
     end
 end
+
 function convert(::Type{T}, o::H5Object) where T<:Tuple
     dict = o.data
     data = Array{Any}(length(dict))
@@ -63,11 +72,13 @@ function convert(::Type{T}, o::H5Object) where T<:Tuple
     end
     tuple(data...)
 end
+
 function convert(::Type{T}, o::H5Object) where T<:Dict
     dict = o.data
     keys, values = dict["keys"], dict["values"]
     Dict(k=>v for (k,v) in zip(keys,values))
 end
+
 function convert(::Type{T}, o::H5Object) where T
     m = Base.datatype_module(T)
     if m == Core || m == Base

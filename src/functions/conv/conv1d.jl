@@ -25,7 +25,7 @@ function Conv1D{T}(::Type{T}, ksize::Int, insize::Int, outsize::Int, pad::Int, s
 
     w = init_w(T, ksize*insize, outsize)
     b = init_b(T, outsize)
-    Conv1D(Var(w,hasgrad=true), Var(b,hasgrad=true), ksize, pad, stride, dilation)
+    Conv1D(Var(w,fixed=false), Var(b,fixed=false), ksize, pad, stride, dilation)
 end
 
 (c::Conv1D)(x) = conv1d(x, c.w, c.b, c.ksize, c.pad, c.stride, c.dilation)

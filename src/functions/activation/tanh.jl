@@ -7,7 +7,7 @@ Hyperbolic tangent function.
 """
 tanh(x::Var) = Var(tanh.(x.data), x.batchdims, tanh, (x,))
 
-tanh(x::Node; name="tanh") = Node(tanh, x, name=name)
+tanh(x::Node; name="") = Node(tanh, x, name=name)
 
 function addgrad!(y::Var, ::typeof(tanh), x::Var)
     isvoid(x.grad) || ∇tanh!(y.data, y.grad, x.data, x.grad)
