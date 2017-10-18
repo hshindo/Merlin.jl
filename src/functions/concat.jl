@@ -28,7 +28,7 @@ function concat(dim::Int, xs::Var...)
     Var(y, batchdims, concat, (dim,xs...))
 end
 
-concat(dim::Int, xs::Node...; name="concat") = Node(concat, dim, xs..., name=name)
+concat(dim::Int, xs::Node...; name="") = Node(concat, dim, xs..., name=name)
 
 function addgrad!(y::Var, ::typeof(concat), dim::Int, xs::Var...)
     T, N = eltype(y), ndims(y)

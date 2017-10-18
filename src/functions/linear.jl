@@ -38,7 +38,7 @@ function linear(x::Var, w::Var, b::Var)
     Var(y, x.batchdims, linear, (x,w,b))
 end
 
-linear(x::Node, w, b; name="linear") = Node(linear, x, w, b, name=name)
+linear(x::Node, w, b; name="") = Node(linear, x, w, b, name=name)
 
 function linear(x::Matrix, w::Matrix, b::Vector)
     y = gemm('T', 'N', w, x)

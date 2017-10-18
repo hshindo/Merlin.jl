@@ -18,7 +18,7 @@ function getindex(x::Var, inds::Tuple)
 end
 getindex(x::Var, inds::Union{Int,Range,Colon}...) = getindex(x, inds)
 
-getindex(x::Node, inds::Tuple; name="getindex") = Node(getindex, x, inds, name=name)
+getindex(x::Node, inds::Tuple; name="") = Node(getindex, x, inds, name=name)
 getindex(x::Node, inds::Union{Int,Range,Colon}...) = getindex(x, inds)
 
 function addgrad!(y::Var, ::typeof(getindex), x::Var, inds::Tuple)
