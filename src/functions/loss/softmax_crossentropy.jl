@@ -24,7 +24,7 @@ function softmax_crossentropy(p::Var, x::Var)
     Var(y, x.batchdims, softmax_crossentropy, (p,x,logx))
 end
 
-softmax_crossentropy(p::Node, x::Node; name="softmax_crossentropy") = Node(softmax_crossentropy, p, x, name=name)
+softmax_crossentropy(p::Node, x::Node; name="") = Node(softmax_crossentropy, p, x, name=name)
 
 function softmax_crossentropy{T}(p::Vector{Int}, x::Matrix{T})
     length(p) == size(x,2) || throw("Length unmatch.")

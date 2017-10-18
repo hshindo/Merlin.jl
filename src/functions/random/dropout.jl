@@ -18,7 +18,7 @@ function dropout(x::Var, rate::Float64)
     end
 end
 
-dropout(x::Node, rate::Float64; name="dropout") = Node(dropout, x, rate, name=name)
+dropout(x::Node, rate::Float64; name="") = Node(dropout, x, rate, name=name)
 
 function dropout{T}(x::Array{T}, rate::T, rx::Vector{T})
     scale = T(1 / (1-rate))

@@ -27,8 +27,8 @@ function train(model::Model, nepochs::Int)
         loss = 0.0
         for i in randperm(length(traindata))
             x, y = traindata[i]
-            h = model(x)
-            y = softmax_crossentropy(y, h)
+            h = model(Var(x))
+            y = softmax_crossentropy(Var(y), h)
             loss += sum(y.data)
             params = gradient!(y)
             foreach(p -> opt(p.data,p.grad), params)
@@ -38,26 +38,22 @@ function train(model::Model, nepochs::Int)
         println("Loss:\t$loss")
 
         # test
-        gold = Int[]
-        pred = Int[]
+        golds = Int[]
+        preds = Int[]
         for i = 1:length(testdata)
             x, y = testdata[i]
-            h = model(x)
+            h = model(Var(x))
             z = argmax(h.data, 1)
-            append!(gold, y)
-            append!(pred, z)
+            append!(golds, y)
+            append!(preds, z)
         end
-        continue
-        #loss = fit(train_x, train_y, model, opt)
-        #println("loss: $loss")
-
-        ys = cat(1, map(x -> vec(x.data), test_y)...)
-        zs = cat(1, map(x -> vec(model(x).data), test_x)...)
-        acc = mean(i -> ys[i] == zs[i] ? 1.0 : 0.0, 1:length(ys))
+        @assert length(golds) == length(preds)
+        acc = mean(i -> golds[i] == preds[i] ? 1.0 : 0.0, 1:length(golds))
         println("test accuracy: $acc")
+
+        Merlin.save("mnist_epoch$(epoch).h5", Dict("model"=>model))
         println()
     end
-    Merlin.save("mnist_epoch$(nepochs).h5", "model"=>model)
 end
 
 model = Model(Float32, 800)

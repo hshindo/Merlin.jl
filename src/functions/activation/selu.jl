@@ -17,7 +17,7 @@ Klambauer et al., [Self-Normalizing Neural Networks](https://arxiv.org/abs/1706.
 """
 selu(x::Var) = Var(selu(x.data), x.batchdims, selu, (x,))
 
-selu(x::Node; name="selu") = Node(selu, x, name=name)
+selu(x::Node; name="") = Node(selu, x, name=name)
 
 function selu{T}(x::Array{T})
     alpha = T(1.6733)

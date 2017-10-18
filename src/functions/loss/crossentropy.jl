@@ -23,7 +23,7 @@ function crossentropy(p::Var, q::Var)
     Var(crossentropy(p.data,q.data), q.batchdims, crossentropy, (p,q))
 end
 
-crossentropy(p::Node, q::Node; name="crossentropy") = Node(crossentropy, p, q, name=name)
+crossentropy(p::Node, q::Node; name="") = Node(crossentropy, p, q, name=name)
 
 function crossentropy{T}(p::Vector{Int}, q::Matrix{T})
     y = Array{T}(length(p))

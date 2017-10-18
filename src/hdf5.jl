@@ -30,9 +30,7 @@ end
 function convert(::Type{H5Object}, x::Tuple)
     H5Object(Tuple, Dict(string(i)=>x[i] for i=1:length(x)))
 end
-function convert(::Type{H5Object}, x::Dict)
-    H5Object(typeof(x), Dict("keys"=>collect(keys(x)), "values"=>collect(values(x))))
-end
+convert(::Type{H5Object}, x::Dict) = H5Object(typeof(x), x)
 function convert(::Type{H5Object}, x::T) where T
     m = Base.datatype_module(T)
     if m == Core || m == Base
@@ -97,9 +95,9 @@ Save an object in Merlin HDF5 format.
 * mode: "w" (overrite) or "r+" (append)
 """
 function save(path::String, obj, mode="w")
-    info("Saving the object...")
+    info("Saving the object to $path...")
     h5obj = convert(H5Object, obj)
-    h5open(path, mode) do h
+    h5open(path,mode) do h
         h["JULIA_VERSION"] = string(VERSION)
         h["MERLIN_VERSION"] = "0.1"
         if isa(h5obj.data, Dict)

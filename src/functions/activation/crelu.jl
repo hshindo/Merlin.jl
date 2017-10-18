@@ -14,7 +14,7 @@ function crelu(x::Var)
     Var(crelu(x.data), x.batchdims, crelu, (x,))
 end
 
-crelu(x::Node; name="crelu") = Node(crelu, x, name=name)
+crelu(x::Node; name="") = Node(crelu, x, name=name)
 
 function crelu{T}(x::Array{T})
     y = Array{T}(2size(x,1), Base.tail(size(x))...)
