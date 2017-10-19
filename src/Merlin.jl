@@ -10,13 +10,6 @@ else
     throw("Unsupported OS.")
 end
 
-mutable struct Config
-    train::Bool
-    debug::Bool
-    env::Dict
-end
-const config = Config(true, false, Dict())
-
 #=
 if haskey(ENV,"USE_CUDA") && ENV["USE_CUDA"]
     using CUJulia
@@ -37,7 +30,6 @@ include("var.jl")
 include("graph.jl")
 #include("native.jl")
 include("check.jl")
-#include("train.jl")
 
 for name in [
     "const",
