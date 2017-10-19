@@ -51,11 +51,11 @@ function train(model::Model, nepochs::Int)
         acc = mean(i -> golds[i] == preds[i] ? 1.0 : 0.0, 1:length(golds))
         println("test accuracy: $acc")
 
-        Merlin.save("mnist_epoch$(epoch).h5", Dict("model"=>model))
+        Merlin.save("mnist_epoch$(epoch).h5", Dict("g"=>model.g))
         println()
     end
 end
 
-model = Model(Float32, 800)
-#model = Merlin.load(joinpath(dirname(@__FILE__),"mnist_epoch10.h5"), "model")
-train(model, 10)
+#model = Model(Float32, 1000)
+g = Merlin.load("mnist_epoch4.h5")["g"]
+train(Model(g), 10)

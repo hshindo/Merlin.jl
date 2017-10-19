@@ -4,9 +4,17 @@ mutable struct Node
     f
     args::Tuple
     name::String
-    id::Int
 
-    Node(f=nothing, args...; name="") = new(f, args, name, 0)
+    Node(f=nothing, args...; name="") = new(f, args, name)
+end
+
+function Base.convert(::Type{Node}, o::H5Object)
+    dict = o.data
+    Node(dict["f"], dict["args"]..., name=dict["name"])
+end
+
+struct NodeId
+    id::Int
 end
 
 struct Graph
@@ -20,14 +28,18 @@ function Graph(; input=(), output=())
     isa(input,Tuple) || (input = (input,))
     isa(output,Tuple) || (output = (output,))
     nodes = topsort(output...)
+    node2id = Dict(nodes[i]=>i for i=1:length(nodes))
     dict = Dict{String,Node}()
     for i = 1:length(nodes)
         node = nodes[i]
         isempty(node.name) || (dict[node.name] = node)
-        node.id = i
+        args = map(node.args) do a
+            isa(a,Node) ? NodeId(node2id[a]) : a
+        end
+        nodes[i] = Node(node.f, args..., name=node.name)
     end
-    input = map(x -> x.id, input)
-    output = map(x -> x.id, output)
+    input = map(x -> node2id[x], input)
+    output = map(x -> node2id[x], output)
     Graph(nodes, dict, input, output)
 end
 
@@ -46,19 +58,13 @@ function (g::Graph)(xs...)
             isassigned(temps,i) || (temps[i] = node)
         else
             args = map(node.args) do arg
-                isa(arg,Node) ? temps[arg.id] : arg
+                isa(arg,NodeId) ? temps[arg.id] : arg
             end
             temps[i] = node.f(args...)
         end
     end
     o = map(i -> temps[i], g.output)
     length(o) == 1 ? o[1] : o
-end
-
-function save(dict::Dict, path::String)
-    for (k,v) in dict
-        h5write(path, string(k), v)
-    end
 end
 
 """

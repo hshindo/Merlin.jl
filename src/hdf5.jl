@@ -71,11 +71,7 @@ function convert(::Type{T}, o::H5Object) where T<:Tuple
     tuple(data...)
 end
 
-function convert(::Type{T}, o::H5Object) where T<:Dict
-    dict = o.data
-    keys, values = dict["keys"], dict["values"]
-    Dict(k=>v for (k,v) in zip(keys,values))
-end
+convert(::Type{Dict{K,V}}, o::H5Object) where {K,V} = Dict{K,V}(o.data)
 
 function convert(::Type{T}, o::H5Object) where T
     m = Base.datatype_module(T)
