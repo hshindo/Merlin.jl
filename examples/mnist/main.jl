@@ -25,9 +25,8 @@ function train(model::Model, nepochs::Int)
 
         prog = Progress(length(traindata))
         loss = 0.0
-        for i in randperm(length(traindata))
-            x, y = traindata[i]
-            h = model(Var(x))
+        for (x,y) in shuffle!(traindata)
+            h = model(Var(x); dev=GPU(0), train=true)
             y = softmax_crossentropy(Var(y), h)
             loss += sum(y.data)
             params = gradient!(y)
@@ -40,8 +39,7 @@ function train(model::Model, nepochs::Int)
         # test
         golds = Int[]
         preds = Int[]
-        for i = 1:length(testdata)
-            x, y = testdata[i]
+        for (x,y) in testdata
             h = model(Var(x))
             z = argmax(h.data, 1)
             append!(golds, y)
