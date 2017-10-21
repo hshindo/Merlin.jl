@@ -1,5 +1,5 @@
 export Var
-export batchsize, isvoid, isfixed, isparam, gradient!
+export batchsize, isvoid, isfixed, isparam, gradient!, setdevice!
 
 """
     Var
@@ -44,6 +44,15 @@ isfixed(x::Var) = x.grad == nothing
 Returns whether `x` is a parameter or not
 """
 isparam(x::Var) = !isfixed(x) && isempty(x.args)
+
+function setdevice!(x::Var, dev::String)
+    if dev == "cpu"
+        isa(x.data,CuArray) && (x.data = Array(x.data))
+    elseif startswith(dev, "gpu")
+    end
+    nothing
+end
+setdevice!(xs::Vector{Var}, dev) = foreach(x -> setdevice!(x,dev), xs)
 
 function topsort{T}(tops::T...)
     sorted = T[]
