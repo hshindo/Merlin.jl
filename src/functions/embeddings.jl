@@ -15,7 +15,7 @@ function lookup(embeds::Vector{Var}, x::Var)
     Var(y, x.batchdims, lookup, (xs,))
 end
 
-lookup(embeds::Vector{Var}, x::Node, name="") = Node(lookup, embeds, x, name=name)
+lookup(embeds::Vector{Var}, x::Node; name="") = Node(lookup, (embeds,x), name)
 
 function lookup(embeds::Vector{Var}, x::Array{Int})
     e1 = embeds[1].data

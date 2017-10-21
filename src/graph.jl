@@ -4,13 +4,6 @@ mutable struct Node
     f
     args::Tuple
     name::String
-
-    Node(f=nothing, args...; name="") = new(f, args, name)
-end
-
-function Base.convert(::Type{Node}, o::H5Object)
-    dict = o.data
-    Node(dict["f"], dict["args"]..., name=dict["name"])
 end
 
 struct NodeId

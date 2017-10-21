@@ -12,7 +12,7 @@ function mse(x1::Var, x2::Var)
     Var(mse(x1.data,x2.data), x1.batchdims, mse, (x1,x2))
 end
 
-mse(x1::Node, x2::Node) = Node(mse, x1, x2)
+mse(x1::Node, x2::Node; name="") = Node(mse, (x1,x2), name)
 
 function mse{T}(x1::Matrix{T}, x2::Matrix{T})
     size(x1) == size(x2) || throw("Size unmatch.")

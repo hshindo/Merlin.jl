@@ -15,7 +15,7 @@ x & x > 0 \\
 """
 elu(x::Var) = Var(elu(x.data), x.batchdims, elu, (x,))
 
-elu(x::Node; name="") = Node(elu, x, name=name)
+elu(x::Node; name="") = Node(elu, (x,), name)
 
 function elu{T}(x::Array{T})
     alpha = T(1)
