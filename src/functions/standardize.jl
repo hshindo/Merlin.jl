@@ -36,7 +36,6 @@ function standardize(x::Var, scale::Var, bias::Var, runmean, runvar; eps=1e-4, d
         Var(data, x.batchdims, standardize, (x,scale,bias))
     end
 end
-
 standardize(x::Node, scale, bias, runmean, runvar; name="") = Node(standardize, (x,scale,bias,runmean,runvar), name)
 
 function standardize{T}(x::Matrix{T}; eps=1e-4)
