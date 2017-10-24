@@ -14,7 +14,7 @@ x/\alpha & x \leq 0
 """
 leaky_relu(x::Var, alpha=10) = Var(leaky_relu(x.data,alpha), x.batchdims, leaky_relu, (x,alpha))
 
-leaky_relu(x::Node; name="") = Node(leaky_relu, x, name=name)
+leaky_relu(x::Node; name="") = Node(leaky_relu, (x,), name)
 
 function leaky_relu{T}(x::Array{T}, alpha::Number)
     y = similar(x)

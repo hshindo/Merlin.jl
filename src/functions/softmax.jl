@@ -14,7 +14,7 @@ function softmax(x::Var)
     Var(data, x.batchdims, softmax, (x,))
 end
 
-softmax(x::Node, name="") = Node(softmax, x, name=name)
+softmax(x::Node, name="") = Node(softmax, (x,), name)
 
 function softmax{T}(x::Vector{T})
     y = similar(x)

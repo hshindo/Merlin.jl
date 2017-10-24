@@ -16,7 +16,7 @@ function mean(x::Var, dim::Int)
     Var(y, batchdims, mean, (x,dim))
 end
 
-mean(x::Node, dim::Int) = Node(mean, x, dim)
+mean(x::Node, dim::Int; name="") = Node(mean, (x,dim), name)
 
 function mean_batch{T,N}(x::Array{T,N}, batchdims::Vector{Int})
     front = Base.front(size(x))

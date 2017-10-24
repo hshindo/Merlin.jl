@@ -10,7 +10,7 @@ f(x) = (1 + \exp(-x))^{-1}
 """
 sigmoid(x::Var) = Var(sigmoid(x.data), x.batchdims, sigmoid, (x,))
 
-sigmoid(x::Node; name="") = Node(sigmoid, x, name=name)
+sigmoid(x::Node; name="") = Node(sigmoid, (x,), name)
 
 function sigmoid{T}(x::Array{T})
     y = similar(x)

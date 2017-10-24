@@ -6,7 +6,7 @@ doc"""
 """
 exp(x::Var) = Var(exp.(x.data), x.batchdims, exp, (x,))
 
-exp(x::Node; name="") = Node(exp, x, name=name)
+exp(x::Node; name="") = Node(exp, (x,), name)
 
 function addgrad!(y::Var, ::typeof(exp), x::Var)
     isvoid(x.grad) || ∇exp!(y.data, y.grad, x.grad)

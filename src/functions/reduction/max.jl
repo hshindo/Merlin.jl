@@ -22,7 +22,7 @@ function max(x::Var, dim::Int)
     Var(y, batchdims, max, (x,idx))
 end
 
-max(x::Node, dim::Int; name="") = Node(max, x, dim, name=name)
+max(x::Node, dim::Int; name="") = Node(max, (x,dim), name)
 
 function max_batch{T,N}(x::Array{T,N}, batchdims::Vector{Int})
     front = Base.front(size(x))

@@ -7,7 +7,7 @@ Logarithm of softmax function.
 """
 logsoftmax(x::Var) = Var(logsoftmax(x.data), x.batchdims, logsoftmax, (x,))
 
-logsoftmax(x::Node; name="") = Node(logsoftmax, x, name=name)
+logsoftmax(x::Node; name="") = Node(logsoftmax, (x,), name)
 
 function logsoftmax{T}(x::Matrix{T})
     y = similar(x)

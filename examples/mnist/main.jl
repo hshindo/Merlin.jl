@@ -9,6 +9,7 @@ function setup_data(x::Array, y::Vector)
     x = Matrix{Float32}(x)
     batchsize = 200
     xs = [x[:,i:i+batchsize-1] for i=1:batchsize:size(x,2)]
+    setdevice!(xs, "cpu")
     y += 1 # Change label set: 0..9 -> 1..10
     ys = [y[i:i+batchsize-1] for i=1:batchsize:length(y)]
     collect(zip(xs,ys))
@@ -26,7 +27,7 @@ function train(model::Model, nepochs::Int)
         prog = Progress(length(traindata))
         loss = 0.0
         for (x,y) in shuffle!(traindata)
-            h = model(Var(x); dev=GPU(0), train=true)
+            h = model(Var(x))
             y = softmax_crossentropy(Var(y), h)
             loss += sum(y.data)
             params = gradient!(y)
