@@ -7,6 +7,8 @@ mutable struct Node
     name::String
 end
 
+Node(; name="") = Node(nothing, (), name)
+
 struct NodeId
     id::Int
 end
