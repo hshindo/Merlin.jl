@@ -5,14 +5,15 @@ export AdaGrad
 
 See: http://jmlr.org/papers/v12/duchi11a.html
 """
-type AdaGrad
+mutable struct AdaGrad
     alpha::Float64
     states::ObjectIdDict
 end
 
 AdaGrad(alpha::Float64) = AdaGrad(alpha, ObjectIdDict())
 
-function (opt::AdaGrad){T}(value::Array{T}, grad::Array{T})
+(opt::AdaGrad)(x::Var) = opt(x.data, x.grad)
+function (opt::AdaGrad)(value::Array{T}, grad::Array{T}) where T
     state = get!(opt.states, value, nothing)
     if state == nothing
         sqgrad = zeros(T, length(value))

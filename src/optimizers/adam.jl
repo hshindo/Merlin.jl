@@ -8,7 +8,7 @@ Adam: A Method for Stochastic Optimization
 # References
 * http://arxiv.org/abs/1412.6980v8
 """
-type Adam
+mutable struct Adam
     alpha::Float64
     beta1::Float64
     beta2::Float64
@@ -19,7 +19,8 @@ end
 Adam() = Adam(0.001, 0.9, 0.999, 1e-8, ObjectIdDict())
 Adam(alpha)= Adam(alpha, 0.9, 0.999, 1e-8, ObjectIdDict())
 
-function (opt::Adam){T}(param::Array{T}, grad::Array{T})
+(opt::Adam)(x::Var) = opt(x.data, x.grad)
+function (opt::Adam)(param::Array{T}, grad::Array{T}) where T
     @assert length(param) == length(grad)
     state = get!(opt.states, param, nothing)
     if state == nothing

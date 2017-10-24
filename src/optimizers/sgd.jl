@@ -10,7 +10,7 @@ Stochastic Gradient Descent.
 * [momentum::Float64]: momentum coefficient
 * [nesterov::Bool]: use nesterov acceleration or not
 """
-type SGD
+mutable struct SGD
     rate::Float64
     momentum::Float64
     nesterov::Bool
@@ -21,6 +21,7 @@ function SGD(rate=0.0; momentum=0.0, nesterov=false)
     SGD(rate, momentum, nesterov, ObjectIdDict())
 end
 
+(opt::SGD)(x::Var) = opt(x.data, x.grad)
 function (opt::SGD){T,N}(x::Array{T,N}, gx::Array{T,N})
     if opt.momentum > 0.0
         if haskey(opt.states, x)

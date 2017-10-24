@@ -3,8 +3,8 @@ export YellowFin
 """
     YellowFin
 
+## References
 Jian Zhang, Ioannis Mitliagkas, Christopher Ré, "YellowFin and the Art of Momentum Tuning", 2017
-
 """
 mutable struct YellowFin
     alpha::Float64
