@@ -1,5 +1,7 @@
 module Merlin
 
+const VERSION = v"0.1.0-dev"
+
 using Base.LinAlg.BLAS
 
 if is_windows()
