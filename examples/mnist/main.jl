@@ -21,7 +21,7 @@ function setup_model{T}(::Type{T}, hsize::Int)
     Graph(input=x, output=h)
 end
 
-function train(model::Graph, nepochs::Int)
+function train(traindata::Vector, testdata::Vector, model::Graph, nepochs::Int)
     params = getparams(model)
     opt = SGD(0.001)
     for epoch = 1:nepochs
@@ -52,7 +52,7 @@ function train(model::Graph, nepochs::Int)
         acc = mean(i -> golds[i] == preds[i] ? 1.0 : 0.0, 1:length(golds))
         println("test accuracy: $acc")
 
-        #Merlin.save("mnist_epoch$(epoch).h5", Dict("g"=>model.g))
+        Merlin.save("mnist_epoch$(epoch).h5", model)
         println()
     end
 end
@@ -60,6 +60,6 @@ end
 datapath = joinpath(dirname(@__FILE__), ".data")
 traindata = setup_data(get_traindata(datapath)...)
 testdata = setup_data(get_testdata(datapath)...)
-model = setup_model(Float32, 1000)
-# g = Merlin.load("mnist_epoch4.h5")["g"]
+#model = setup_model(Float32, 1000)
+model = Merlin.load("mnist_epoch3.h5")
 train(traindata, testdata, model, 10)

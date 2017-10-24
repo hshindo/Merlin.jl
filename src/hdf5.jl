@@ -94,8 +94,8 @@ function save(path::String, obj, mode="w")
     info("Saving the object to $path...")
     h5obj = convert(H5Object, obj)
     h5open(path,mode) do h
-        h["JULIA_VERSION"] = string(VERSION)
-        h["MERLIN_VERSION"] = "0.1"
+        h["JULIA_VERSION"] = string(Base.VERSION)
+        h["MERLIN_VERSION"] = string(Merlin.VERSION)
         if isa(h5obj.data, Dict)
             g = g_create(h, "OBJECT")
             h5save(g, h5obj)
@@ -126,7 +126,7 @@ end
 Load an object from Merlin HDF5 format.
 """
 function load(path::String)
-    info("Loading the object...")
+    info("Loading $path...")
     dict = h5open(path, "r") do h
         d = Dict{String,Any}()
         for name in names(h)
