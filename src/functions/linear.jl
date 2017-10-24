@@ -28,7 +28,7 @@ function Linear{T}(::Type{T}, insize::Int, outsize::Int;
 
     w = init_w(T, insize, outsize)
     b = init_b(T, outsize)
-    Linear(Var(w,fixed=false), Var(b,fixed=false))
+    Linear(zerograd(w), zerograd(b))
 end
 
 (f::Linear)(x) = linear(x, f.w, f.b)

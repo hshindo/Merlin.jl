@@ -1,5 +1,5 @@
 export Var
-export batchsize, isvoid, isfixed, isparam, gradient!
+export zrograd, batch, batchsize, isvoid, isparam, gradient!
 
 """
     Var
@@ -14,11 +14,12 @@ mutable struct Var
     grad
 end
 
-function Var(data, batchdims=nothing, f=nothing, args=(); fixed=true)
+function Var(data, batchdims=nothing, f=nothing, args=(); grad=nothing)
     batchdims == nothing && (batchdims = [size(data,ndims(data))])
-    grad = fixed ? nothing : zeros(data)
     Var(data, batchdims, f, args, grad)
 end
+
+zerograd(data) = Var(data, grad=zeros(data))
 
 Base.size(x::Var) = size(x.data)
 Base.size(x::Var, i::Int) = size(x.data, i)
@@ -35,15 +36,11 @@ batchsize(x::Var) = x.batchdims
 batchsize(x::Var, i::Int) = x.batchdims[i]
 
 """
-    isfixed(x::Var)::Bool
-"""
-isfixed(x::Var) = x.grad == nothing
-
-"""
     isparam(x::Var)::Bool
+
 Returns whether `x` is a parameter or not
 """
-isparam(x::Var) = !isfixed(x) && isempty(x.args)
+isparam(x::Var) = !isvoid(x.grad) && isempty(x.args)
 
 function topsort{T}(tops::T...)
     sorted = T[]
@@ -79,5 +76,23 @@ function gradient!(top::Var)
         v = sorted[i]
         isvoid(v.f) || addgrad!(v, v.f, v.args...)
     end
-    filter(isparam, sorted)
+    nothing
+end
+
+function batch(data::Vector{Var}; batchsize::Int=0)
+    batchsize == 0 && (batchsize = length(data))
+    batches = Var[]
+    for i = 1:batchsize:length(data)
+        T = eltype(data[i])
+        N = ndims(data[i])
+        batch = T[]
+        batchdims = Int[]
+        for k = i:min(i+batchsize-1,length(data))
+            append!(batch, data[k].data)
+            append!(batchdims, data[k].batchdims)
+        end
+        batch = reshape(batch, Base.front(size(data[i]))..., sum(batchdims))
+        push!(batches, Var(batch,batchdims))
+    end
+    batches
 end

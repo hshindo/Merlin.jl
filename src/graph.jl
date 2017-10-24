@@ -1,16 +1,10 @@
 export Graph, Node
+export getparams
 
 mutable struct Node
     f
     args::Tuple
     name::String
-
-    Node(f=nothing, args...; name="") = new(f, args, name)
-end
-
-function Base.convert(::Type{Node}, o::H5Object)
-    dict = o.data
-    Node(dict["f"], dict["args"]..., name=dict["name"])
 end
 
 struct NodeId
@@ -45,6 +39,21 @@ end
 
 Base.getindex(g::Graph, i::Int) = g.nodes[i]
 Base.getindex(g::Graph, s::String) = g.dict[s]
+
+"""
+    getparams(g::Graph)
+
+Get parameters from Graph `g`.
+"""
+function getparams(g::Graph)
+    dict = Dict{Var,Var}()
+    for node in g.nodes
+        for arg in node.args
+            isa(arg,Var) && isparam(arg) && (dict[arg]=arg)
+        end
+    end
+    collect(keys(dict))
+end
 
 function (g::Graph)(xs...)
     @assert length(xs) == length(g.input)

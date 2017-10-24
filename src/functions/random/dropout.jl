@@ -1,14 +1,14 @@
 export dropout
 
 doc"""
-    dropout(x, rate::Float64)
+    dropout(x::Var, rate::Float64)
 
 If config.train is true, drops elements randomly with probability ``rate`` and
 scales the other elements by factor ``1 / (1 - rate)``.
 Otherwise, it just returns x.
 """
-function dropout(x::Var, rate::Float64)
-    if config.train
+function dropout(x::Var, rate::Float64, train::Bool)
+    if train
         T = eltype(x.data)
         rx = rand(eltype(x.data), length(x.data))
         data = dropout(x.data, T(rate), rx)
@@ -18,7 +18,7 @@ function dropout(x::Var, rate::Float64)
     end
 end
 
-dropout(x::Node, rate::Float64; name="") = Node(dropout, x, rate, name=name)
+dropout(x::Node, rate::Float64; name="") = Node(dropout, (x,rate), name)
 
 function dropout{T}(x::Array{T}, rate::T, rx::Vector{T})
     scale = T(1 / (1-rate))
