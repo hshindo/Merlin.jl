@@ -1,7 +1,7 @@
 export embeddings, lookup
 
-function embeddings{T}(mat::Matrix{T}; fixed=false)
-    [Var(mat[:,i],fixed=fixed) for i=1:size(mat,2)]
+function embeddings{T}(mat::Matrix{T})
+    [zerograd(mat[:,i]) for i=1:size(mat,2)]
 end
 
 function embeddings{T}(::Type{T}, insize::Int, outsize::Int; init_w=Normal(0,0.01))

@@ -25,7 +25,7 @@ function Conv1D{T}(::Type{T}, ksize::Int, insize::Int, outsize::Int, pad::Int, s
 
     w = init_w(T, ksize*insize, outsize)
     b = init_b(T, outsize)
-    Conv1D(Var(w,fixed=false), Var(b,fixed=false), ksize, pad, stride, dilation)
+    Conv1D(zerograd(w), zerograd(b), ksize, pad, stride, dilation)
 end
 
 (c::Conv1D)(x) = conv1d(x, c.w, c.b, c.ksize, c.pad, c.stride, c.dilation)
@@ -40,7 +40,7 @@ function conv1d(x::Var, w::Var, b::Var, ksize::Int, pad::Int, stride::Int, dilat
     Var(y, batchdims, conv1d, (x,w,b,h,ksize,pad,stride,dilation))
 end
 
-conv1d(x::Node, args...; name="conv1d") = Node(conv1d, x, args..., name=name)
+conv1d(x::Node, args...; name="") = Node(conv1d, (x,args...), name)
 
 function addgrad!(y::Var, ::typeof(conv1d), x::Var, w::Var, b::Var, h, args...)
     gh = zeros(h)
