@@ -1,7 +1,19 @@
 using Merlin
 using ProgressMeter
+using JLD2, FileIO
 
 include("downloader.jl")
+
+function main()
+    nepochs = 10
+    datapath = joinpath(dirname(@__FILE__), ".data")
+    traindata = setup_data(get_traindata(datapath)...)
+    testdata = setup_data(get_testdata(datapath)...)
+    #model = setup_model(Float32, 1000)
+    model = load("mnist_epoch3.jld2", "model")
+    train(traindata, testdata, model, nepochs)
+    #save("mnist_epoch$(nepochs).jld2", "model", model)
+end
 
 function setup_data(x::Matrix{Float32}, y::Vector{Int})
     batchsize = 200
@@ -51,15 +63,8 @@ function train(traindata::Vector, testdata::Vector, model::Graph, nepochs::Int)
         @assert length(golds) == length(preds)
         acc = mean(i -> golds[i] == preds[i] ? 1.0 : 0.0, 1:length(golds))
         println("test accuracy: $acc")
-
-        Merlin.save("mnist_epoch$(epoch).h5", model)
         println()
     end
 end
 
-datapath = joinpath(dirname(@__FILE__), ".data")
-traindata = setup_data(get_traindata(datapath)...)
-testdata = setup_data(get_testdata(datapath)...)
-#model = setup_model(Float32, 1000)
-model = Merlin.load("mnist_epoch3.h5")
-train(traindata, testdata, model, 10)
+main()

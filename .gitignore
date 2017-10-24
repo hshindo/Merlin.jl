@@ -1,6 +1,5 @@
 docs/build/
 docs/site/
-/dataset
 sandbox.jl
 benchmark.jl
 .data
@@ -8,3 +7,4 @@ benchmark.jl
 *.dll
 /mkl
 *.h5
+*.jld2

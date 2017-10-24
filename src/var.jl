@@ -12,13 +12,15 @@ mutable struct Var
     f
     args
     grad
+    keepargs::Bool
 end
 
-function Var(data, batchdims=nothing, f=nothing, args=(); grad=nothing)
-    batchdims == nothing && (batchdims = [size(data,ndims(data))])
-    Var(data, batchdims, f, args, grad)
+function Var(data, batchdims=nothing, f=nothing, args=(); grad=nothing, keepargs=true)
+    if batchdims == nothing
+        batchdims = [size(data,ndims(data))]
+    end
+    Var(data, batchdims, f, args, grad, keepargs)
 end
-
 zerograd(data) = Var(data, grad=zeros(data))
 
 Base.size(x::Var) = size(x.data)
@@ -42,6 +44,11 @@ Returns whether `x` is a parameter or not
 """
 isparam(x::Var) = !isvoid(x.grad) && isempty(x.args)
 
+"""
+    topsort
+
+Topological sort.
+"""
 function topsort{T}(tops::T...)
     sorted = T[]
     dict = ObjectIdDict()

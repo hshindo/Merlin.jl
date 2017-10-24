@@ -14,7 +14,7 @@ struct H5Object
 end
 
 convert(::Type{H5Object}, x::Union{Real,String}) = H5Object(typeof(x), x)
-convert(::Type{H5Object}, x::Union{Void,Char,Symbol,DataType}) = H5Object(typeof(x), string(x))
+convert(::Type{H5Object}, x::Union{Void,Char,Symbol,DataType,Bool}) = H5Object(typeof(x), string(x))
 convert(::Type{H5Object}, x::Function) = H5Object(Function, string(x))
 
 function convert(::Type{H5Object}, x::Array{T,N}) where {T,N}
@@ -44,6 +44,7 @@ end
 convert(::Type{<:Union{Real,String}}, o::H5Object) = o.data
 convert(::Type{T}, o::H5Object) where T<:Union{Void,DataType,Function} = eval(parse(o.data))
 convert(::Type{Char}, o::H5Object) = Vector{Char}(o.data)[1]
+convert(::Type{Bool}, o::H5Object) = parse(Bool, o.data)
 convert(::Type{Symbol}, o::H5Object) = parse(o.data)
 convert(::Type{Function}, o::H5Object) = eval(parse(o.data))
 
@@ -91,7 +92,7 @@ Save an object in Merlin HDF5 format.
 * mode: "w" (overrite) or "r+" (append)
 """
 function save(path::String, obj, mode="w")
-    info("Saving the object to $path...")
+    info("Saving $path...")
     h5obj = convert(H5Object, obj)
     h5open(path,mode) do h
         h["JULIA_VERSION"] = string(Base.VERSION)

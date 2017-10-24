@@ -57,7 +57,7 @@ function getparams(g::Graph)
     collect(keys(dict))
 end
 
-function (g::Graph)(xs...)
+function (g::Graph)(xs...; debug=false, train=nothing)
     @assert length(xs) == length(g.input)
     temps = Array{Any}(length(g.nodes))
     for i = 1:length(xs)
@@ -103,3 +103,7 @@ macro graph(input, output)
         Graph(x, y)
     end
 end
+
+#function convert(::Type{H5Object}, x::Graph)
+#    H5Object(typeof(x), x)
+#end
