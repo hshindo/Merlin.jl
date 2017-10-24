@@ -1,5 +1,5 @@
 export Var
-export zrograd, batch, batchsize, isvoid, isparam, gradient!
+export zerograd, batch, batchsize, isvoid, isparam, gradient!
 
 """
     Var
