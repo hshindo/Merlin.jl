@@ -32,7 +32,7 @@ function Graph(; input=(), output=())
         args = map(node.args) do a
             isa(a,Node) ? NodeId(node2id[a]) : a
         end
-        nodes[i] = Node(node.f, args..., name=node.name)
+        nodes[i] = Node(node.f, args, node.name)
     end
     input = map(x -> node2id[x], input)
     output = map(x -> node2id[x], output)
