@@ -33,9 +33,13 @@ isvoid(x) = x == nothing
 """
     batchsize(x::Var)
     batchsize(x::Var, i::Int)
+    batchsize(x::Node)
+    batchsize(x::Node, i::Int)
 """
 batchsize(x::Var) = x.batchdims
 batchsize(x::Var, i::Int) = x.batchdims[i]
+batchsize(x::Node; name="") = Node(batchsize, (x,), name)
+batchsize(x::Node, i::Int; name="") = Node(batchsize, (x,i), name)
 
 """
     isparam(x::Var)::Bool
@@ -83,7 +87,7 @@ function gradient!(top::Var)
         v = sorted[i]
         isvoid(v.f) || addgrad!(v, v.f, v.args...)
     end
-    nothing
+    filter(isparam, sorted)
 end
 
 function batch(data::Vector{Var}; batchsize::Int=0)
