@@ -24,9 +24,6 @@ else
 end
 =#
 
-export Functor
-abstract type Functor end
-
 #include("hdf5.jl")
 include("graph.jl")
 include("var.jl")

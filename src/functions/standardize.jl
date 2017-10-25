@@ -8,20 +8,20 @@ struct Standardize
     runvar
 end
 
-function Standardize{T}(::Type{T}, insize::Tuple)
+function Standardize(::Type{T}, insize::Tuple) where T
     dim = 2
     dims = ntuple(i -> i == dim ? 1 : insize[i], length(insize))
-    scale = Var(ones(T,dims), fixed=false)
-    bias = Var(zeros(T,dims), fixed=false)
+    scale = zerograd(ones(T,dims))
+    bias = zerograd(zeros(T,dims))
     runmean = zeros(T, dims)
     runvar = ones(T, dims)
     Standardize(scale, bias, runmean, runvar)
 end
-(f::Standardize)(x) = standardize(x, f.scale, f.bias, f.runmean, f.runvar)
+(f::Standardize)(x, train) = standardize(x, train, f.scale, f.bias, f.runmean, f.runvar)
 
-function standardize(x::Var, scale::Var, bias::Var, runmean, runvar; eps=1e-4, decay=0.9)
+function standardize(x::Var, train::Bool, scale::Var, bias::Var, runmean, runvar; eps=1e-4, decay=0.9)
     T = eltype(x.data)
-    if config.train
+    if train
         xmean = mean(x.data, 2)
         xvar = varm(x.data, xmean, 2, corrected = size(x.data,2) > 1)
         n = length(xmean)
@@ -36,13 +36,7 @@ function standardize(x::Var, scale::Var, bias::Var, runmean, runvar; eps=1e-4, d
         Var(data, x.batchdims, standardize, (x,scale,bias))
     end
 end
-standardize(x::Node, scale, bias, runmean, runvar; name="") = Node(standardize, (x,scale,bias,runmean,runvar), name)
-
-function standardize{T}(x::Matrix{T}; eps=1e-4)
-    xmean = mean(x, 2)
-    xvar = varm(x, xmean, 2, corrected = size(x.data,2) > 1)
-    (x .- xmean) ./ sqrt.(xvar + T(eps))
-end
+standardize(x::Node, train, scale, bias, runmean, runvar; name="") = Node(standardize, (x,train,scale,bias,runmean,runvar), name)
 
 function addgrad!(y::Var, ::typeof(standardize), x::Var, scale::Var, bias::Var, invstd, xhat)
     T = eltype(y.data)

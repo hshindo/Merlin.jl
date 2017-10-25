@@ -18,9 +18,9 @@ function dropout(x::Var, rate::Float64, train::Bool)
     end
 end
 
-dropout(x::Node, rate::Float64; name="") = Node(dropout, (x,rate), name)
+dropout(x::Node, rate::Float64, train; name="") = Node(dropout, (x,rate,train), name)
 
-function dropout{T}(x::Array{T}, rate::T, rx::Vector{T})
+function dropout(x::Array{T}, rate::T, rx::Vector{T}) where T
     scale = T(1 / (1-rate))
     y = similar(x)
     @inbounds for i = 1:length(x)
@@ -33,7 +33,7 @@ function addgrad!(y::Var, ::typeof(dropout), x::Var, rate, rx)
     isvoid(x.grad) || ∇dropout!(y.grad, x.grad, eltype(x.data)(rate), rx)
 end
 
-function ∇dropout!{T}(gy::Array{T}, gx::Array{T}, rate::T, rx::Vector{T})
+function ∇dropout!(gy::Array{T}, gx::Array{T}, rate::T, rx::Vector{T}) where T
     scale = T(1 / (1-rate))
     @inbounds for i = 1:length(gx)
         gx[i] += ifelse(rx[i] <= rate, T(0), scale*gy[i])

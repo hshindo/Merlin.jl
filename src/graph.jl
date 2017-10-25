@@ -1,5 +1,4 @@
 export Graph, Node
-export getparams
 
 mutable struct Node
     f
@@ -42,22 +41,7 @@ end
 Base.getindex(g::Graph, i::Int) = g.nodes[i]
 Base.getindex(g::Graph, s::String) = g.dict[s]
 
-"""
-    getparams(g::Graph)
-
-Get parameters from Graph `g`.
-"""
-function getparams(g::Graph)
-    dict = Dict{Var,Var}()
-    for node in g.nodes
-        for arg in node.args
-            isa(arg,Var) && isparam(arg) && (dict[arg]=arg)
-        end
-    end
-    collect(keys(dict))
-end
-
-function (g::Graph)(xs...; debug=false, train=nothing)
+function (g::Graph)(xs...; train=true, debug=false)
     @assert length(xs) == length(g.input)
     temps = Array{Any}(length(g.nodes))
     for i = 1:length(xs)

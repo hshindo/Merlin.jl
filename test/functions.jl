@@ -129,5 +129,5 @@ end
 @testset "standardize" for i = 1:5
     x = Var(randn(T,1,5)*3+2)
     f = Standardize(T,size(x.data))
-    @testgrad f(x) x f.scale f.bias
+    @testgrad f(x,true) x f.scale f.bias
 end

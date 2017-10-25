@@ -12,14 +12,13 @@ mutable struct Var
     f
     args
     grad
-    keepargs::Bool
 end
 
-function Var(data, batchdims=nothing, f=nothing, args=(); grad=nothing, keepargs=true)
-    if batchdims == nothing
+function Var(data, batchdims=nothing, f=nothing, args=(); grad=nothing)
+    if batchdims == nothing && isa(data,Array)
         batchdims = [size(data,ndims(data))]
     end
-    Var(data, batchdims, f, args, grad, keepargs)
+    Var(data, batchdims, f, args, grad)
 end
 zerograd(data) = Var(data, grad=zeros(data))
 
