@@ -1,6 +1,6 @@
 module Merlin
 
-const VERSION = v"0.1.0-dev"
+const VERSION = v"0.1.0"
 
 using Base.LinAlg.BLAS
 using JLD2
