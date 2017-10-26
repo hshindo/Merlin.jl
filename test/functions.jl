@@ -18,8 +18,8 @@ end
     A = Var(randn(T,10,5))
     x = Var(randn(T,10))
     B = Var(randn(T,10,5))
-    @testgrad BLAS.gemv('T',1,A,x) A x
-    @testgrad BLAS.gemm('T','N',1,A,B) A B
+    #@testgrad BLAS.gemv('T',1,A,x) A x
+    #@testgrad BLAS.gemm('T','N',1,A,B) A B
 end
 
 @testset "concat" for i = 1:5
