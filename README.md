@@ -55,6 +55,9 @@ y = Linear(T,7,3)(y)
 
 params = gradient!(y)
 println(x.grad)
+
+opt = SGD(0.01)
+foreach(opt, params)
 ```
 If you don't need gradients of `x`, use `x = Var(rand(T,10,5))` where `x.grad` is set to `nothing`.
 
@@ -78,6 +81,9 @@ y = g(x)
 
 params = gradient!(y)
 println(x.grad)
+
+opt = SGD(0.01)
+foreach(opt, params)
 ```
 When the network structure can be represented as *static*, it is recommended to use this style.
 
