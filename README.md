@@ -12,7 +12,7 @@ It aims to provide a fast, flexible and compact deep learning library for machin
 [![Build status](https://ci.appveyor.com/api/projects/status/ks18dkc3gucf0yso?svg=true)](https://ci.appveyor.com/project/hshindo/merlin-jl)
 
 ## Documentation
-[![](https://img.shields.io/badge/docs-latest-blue.svg)](http://hshindo.github.io/Merlin.jl/stable/)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](http://hshindo.github.io/Merlin.jl/stable/)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](http://hshindo.github.io/Merlin.jl/latest/)
 
 ## Requirements
