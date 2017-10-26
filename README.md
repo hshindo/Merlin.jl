@@ -1,6 +1,6 @@
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/Merlin.png" width="150"></p>
 
-# Merlin: deep learning framework in Julia
+# Merlin: deep learning framework for Julia
 
 `Merlin` is a deep learning framework written in [Julia](http://julialang.org/).
 
@@ -16,7 +16,7 @@ It aims to provide a fast, flexible and compact deep learning library for machin
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](http://hshindo.github.io/Merlin.jl/latest/)
 
 ## Requirements
-- Julia 0.6
+- Julia 0.6.x
 - g++ (for OSX or Linux)
 
 ## Installation
