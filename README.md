@@ -5,7 +5,6 @@
 `Merlin` is a deep learning framework written in [Julia](http://julialang.org/).
 
 It aims to provide a fast, flexible and compact deep learning library for machine learning.
-Our primary goal is to develop a natural language processing toolkit based on `Merlin`.
 
 `Merlin` is tested against Julia `0.6` on Linux, OS X, and Windows (x64).
 
@@ -20,60 +19,67 @@ Our primary goal is to develop a natural language processing toolkit based on `M
 - g++ (for OSX or Linux)
 
 ## Installation
-First, install [Julia](http://julialang.org/). Currently, version 0.6 is supported.
-
+First, install [Julia](http://julialang.org/) 0.6.x.  
 Then, clone and build the package.
 ```julia
 julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
 julia> Pkg.build("Merlin")
 ```
 
-To run the Merlin examples, add `MLDatasets` package:
-```julia
-julia> Pkg.clone("https://github.com/JuliaML/MLDatasets.jl.git")
-```
-which provides an access to common machine learning datasets.
+## Examples
+* [MNIST](examples/mnist/)
 
 ## Quick Start
 Basically,
-
-1. Wrap your data with `Var` or `zerograd`.
-2. Apply functions to `Var`. `Var` memorizes a history of functional applications for auto-differentiation.
+1. Wrap your data with `Var` (Variable type).
+2. Apply functions to `Var`.  
+`Var` memorizes a history of function calls for auto-differentiation.
 3. Compute gradients if necessary.
+4. Update the parameters with an optimizer.
 
 Here is an example of three-layer network:
 
 <p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/feedforward.png" width="120"></p>
 
+`Merlin` supports both static and dynamic evaluation of neural networks.
+
+### Dynamic Evaluation
 ```julia
 using Merlin
 
 T = Float32
-x = zerograd(rand(T,10,5)) # initialize Var with zero gradient
+x = zerograd(rand(T,10,5)) # instanciate Var with zero gradients
 y = Linear(T,10,7)(x)
 y = relu(y)
 y = Linear(T,7,3)(y)
 
-gradient!(y)
+params = gradient!(y)
 println(x.grad)
 ```
-If you don't need gradients of `x`, use `x = Var(rand(T,10,5))`.
+If you don't need gradients of `x`, use `x = Var(rand(T,10,5))` where `x.grad` is set to `nothing`.
 
-When you apply `Var()` to a function, it's lazily evaluated.
+### Static Evalation
+For static evaluation, the process are as follows.
+1. Construct a `Graph`.
+2. Feed your data to the graph.
+
+When you apply `Node` to a function, it's lazily evaluated.
 ```julia
 T = Float32
-x = Var()
+x = Node()
 y = Linear(T,10,7)(x)
 y = relu(y)
 y = Linear(T,7,3)(y)
-@assert y.data == nothing
+@assert typeof(y) == Node
+g = Graph(input=x, output=y)
 
-f = compile(y, x) # output: y, input: x
 x = zerograd(rand(T,10,10))
-y = f(x)
+y = g(x)
+
+params = gradient!(y)
+println(x.grad)
 ```
-where `compile(y, x)` compiles the network structure from output variable: `y` and input variable: `x`, and create a `Graph` object.
-When the network structure is *static*, it is recommended to use this style.
+When the network structure can be represented as *static*, it is recommended to use this style.
 
 More examples can be found in [`examples`](examples/).
 
@@ -138,6 +144,3 @@ for epoch = 1:10
 end
 ```
 -->
-
-## Datasets
-Common datasets are available via [MLDatasets.jl](https://github.com/JuliaML/MLDatasets.jl).
