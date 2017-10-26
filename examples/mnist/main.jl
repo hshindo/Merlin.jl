@@ -6,7 +6,7 @@ include("MNIST.jl")
 
 function main()
     nepochs = 10
-    training = false
+    training = true
     datapath = joinpath(dirname(@__FILE__), ".data")
     traindata = setup_data(MNIST.traindata(datapath)...)
     testdata = setup_data(MNIST.testdata(datapath)...)
