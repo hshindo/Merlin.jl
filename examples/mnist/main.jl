@@ -3,26 +3,25 @@ using ProgressMeter
 using JLD2, FileIO
 
 include("MNIST.jl")
-const TX = Matrix{Float32}
-const TY = Vector{Int}
 
 function main()
     nepochs = 10
-    training = true
+    training = false
     datapath = joinpath(dirname(@__FILE__), ".data")
     traindata = setup_data(MNIST.traindata(datapath)...)
     testdata = setup_data(MNIST.testdata(datapath)...)
+    savefile = "mnist_epoch$(nepochs).jld2"
     if training
         model = setup_model()
         train(traindata, testdata, model, nepochs)
-        save("mnist_epoch$(nepochs).jld2", "model", model)
+        save(savefile, "model", model)
     else
-        model = load("mnist_epoch3.jld2","model")
-
+        model = load(savefile, "model")
+        test(model, testdata)
     end
 end
 
-function setup_data(x::TX, y::TY)
+function setup_data(x::Matrix{Float32}, y::Vector{Int})
     batchsize = 200
     xs = [x[:,i:i+batchsize-1] for i=1:batchsize:size(x,2)]
     y += 1 # Change label set: 0..9 -> 1..10
@@ -42,8 +41,7 @@ function setup_model()
     Graph(input=x, output=h)
 end
 
-function train(traindata::Vector, testdata::Vector, model::Graph, nepochs::Int)
-    params = getparams(model)
+function train(traindata::Vector, testdata::Vector, model, nepochs::Int)
     opt = SGD(0.001)
     for epoch = 1:nepochs
         println("epoch: $epoch")
@@ -53,25 +51,14 @@ function train(traindata::Vector, testdata::Vector, model::Graph, nepochs::Int)
             h = model(Var(x))
             y = softmax_crossentropy(Var(y), h)
             loss += sum(y.data)
-            gradient!(y)
+            params = gradient!(y)
             foreach(opt, params)
             ProgressMeter.next!(prog)
         end
         loss /= length(traindata)
         println("Loss:\t$loss")
 
-        # test
-        golds = Int[]
-        preds = Int[]
-        for (x,y) in testdata
-            h = model(Var(x))
-            z = argmax(h.data, 1)
-            append!(golds, y)
-            append!(preds, z)
-        end
-        @assert length(golds) == length(preds)
-        acc = mean(i -> golds[i] == preds[i] ? 1.0 : 0.0, 1:length(golds))
-        println("test accuracy: $acc")
+        test(model, testdata)
         println()
     end
 end
