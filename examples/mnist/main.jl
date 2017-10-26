@@ -6,13 +6,18 @@ include("downloader.jl")
 
 function main()
     nepochs = 10
+    training = true
     datapath = joinpath(dirname(@__FILE__), ".data")
     traindata = setup_data(get_traindata(datapath)...)
     testdata = setup_data(get_testdata(datapath)...)
-    #model = setup_model(Float32, 1000)
-    model = load("mnist_epoch3.jld2", "model")
-    train(traindata, testdata, model, nepochs)
-    #save("mnist_epoch$(nepochs).jld2", "model", model)
+    if training
+        model = setup_model()
+        train(traindata, testdata, model, nepochs)
+        save("mnist_epoch$(nepochs).jld2", "model", model)
+    else
+        model = load("mnist_epoch3.jld2","model")
+
+    end
 end
 
 function setup_data(x::Matrix{Float32}, y::Vector{Int})
