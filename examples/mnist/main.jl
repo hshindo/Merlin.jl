@@ -2,14 +2,14 @@ using Merlin
 using ProgressMeter
 using JLD2, FileIO
 
-include("downloader.jl")
+include("MNIST.jl")
 
 function main()
     nepochs = 10
     training = true
     datapath = joinpath(dirname(@__FILE__), ".data")
-    traindata = setup_data(get_traindata(datapath)...)
-    testdata = setup_data(get_testdata(datapath)...)
+    traindata = setup_data(MNIST.traindata(datapath)...)
+    testdata = setup_data(MNIST.testdata(datapath)...)
     if training
         model = setup_model()
         train(traindata, testdata, model, nepochs)
@@ -28,7 +28,9 @@ function setup_data(x::Matrix{Float32}, y::Vector{Int})
     collect(zip(xs,ys))
 end
 
-function setup_model{T}(::Type{T}, hsize::Int)
+function setup_model()
+    T = Float32
+    hsize = 1000
     x = Node()
     h = Linear(T,28*28,hsize)(x)
     h = relu(h)
@@ -50,7 +52,7 @@ function train(traindata::Vector, testdata::Vector, model::Graph, nepochs::Int)
             y = softmax_crossentropy(Var(y), h)
             loss += sum(y.data)
             gradient!(y)
-            foreach(p -> opt(p.data,p.grad), params)
+            foreach(opt, params)
             ProgressMeter.next!(prog)
         end
         loss /= length(traindata)

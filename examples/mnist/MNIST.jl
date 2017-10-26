@@ -1,6 +1,8 @@
+module MNIST
+
 using GZip
 
-function get_traindata(path::String)
+function traindata(path::String)
     x = gzread(path,"train-images-idx3-ubyte.gz")[17:end]
     x = reshape(x/255, 28*28, 60000)
     x = Matrix{Float32}(x)
@@ -9,7 +11,7 @@ function get_traindata(path::String)
     x, y
 end
 
-function get_testdata(path::String)
+function testdata(path::String)
     data = gzread(path,"t10k-images-idx3-ubyte.gz")[17:end]
     x = reshape(data/255, 28*28, 10000)
     x = Matrix{Float32}(x)
@@ -26,4 +28,6 @@ function gzread(path::String, filename::String)
         download("http://yann.lecun.com/exdb/mnist/$filename", path)
     end
     gzopen(read, path)
+end
+
 end
