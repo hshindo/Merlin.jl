@@ -3,12 +3,12 @@ export SGD
 """
     SGD
 
-Stochastic Gradient Descent.
+Stochastic Gradient Descent Optimizer.
 
 ## Arguments
 * rate: learning rate
-* [momentum::Float64]: momentum coefficient
-* [nesterov::Bool]: use nesterov acceleration or not
+* [momentum=0.0]: momentum coefficient
+* [nesterov=false]: use nesterov acceleration or not
 """
 mutable struct SGD
     rate::Float64
@@ -21,8 +21,7 @@ function SGD(rate=0.0; momentum=0.0, nesterov=false)
     SGD(rate, momentum, nesterov, ObjectIdDict())
 end
 
-(opt::SGD)(x::Var) = opt(x.data, x.grad)
-function (opt::SGD){T,N}(x::Array{T,N}, gx::Array{T,N})
+function (opt::SGD)(x::Array{T,N}, gx::Array{T,N}) where {T,N}
     if opt.momentum > 0.0
         if haskey(opt.states, x)
             v = opt.states[x]
@@ -45,3 +44,4 @@ function (opt::SGD){T,N}(x::Array{T,N}, gx::Array{T,N})
     end
     fill!(gx, T(0))
 end
+(opt::SGD)(x::Var) = opt(x.data, x.grad)

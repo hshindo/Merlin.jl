@@ -89,8 +89,7 @@ function gradient!(top::Var)
     filter(isparam, sorted)
 end
 
-function batch(data::Vector{Var}; batchsize::Int=0)
-    batchsize == 0 && (batchsize = length(data))
+function batch(data::Vector{Var}, batchsize::Int)
     batches = Var[]
     for i = 1:batchsize:length(data)
         T = eltype(data[i])
@@ -105,4 +104,14 @@ function batch(data::Vector{Var}; batchsize::Int=0)
         push!(batches, Var(batch,batchdims))
     end
     batches
+end
+
+function batch(data::Vector{NTuple{N,Var}}, batchsize::Int) where N
+    res = []
+    for i = 1:N
+        vars = map(x -> x[i], data)
+        batches = batch(vars, batchsize)
+        push!(res, batches)
+    end
+    collect(zip(res...))
 end

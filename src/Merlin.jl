@@ -3,6 +3,7 @@ module Merlin
 const VERSION = v"0.1.0-dev"
 
 using Base.LinAlg.BLAS
+using JLD2
 
 if is_windows()
     const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.dll"))
@@ -100,6 +101,6 @@ end
 
 #include("caffe/Caffe.jl")
 
-info("# Threads: $(Threads.nthreads())")
+info("#Threads: $(Threads.nthreads())")
 
 end

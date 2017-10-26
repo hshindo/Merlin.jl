@@ -3,3 +3,4 @@ ProtoBuf
 ProgressMeter
 @windows WinRPM
 GZip
+JLD2
