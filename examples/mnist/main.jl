@@ -3,6 +3,8 @@ using ProgressMeter
 using JLD2, FileIO
 
 include("MNIST.jl")
+const TX = Matrix{Float32}
+const TY = Vector{Int}
 
 function main()
     nepochs = 10
@@ -20,7 +22,7 @@ function main()
     end
 end
 
-function setup_data(x::Matrix{Float32}, y::Vector{Int})
+function setup_data(x::TX, y::TY)
     batchsize = 200
     xs = [x[:,i:i+batchsize-1] for i=1:batchsize:size(x,2)]
     y += 1 # Change label set: 0..9 -> 1..10
@@ -72,6 +74,20 @@ function train(traindata::Vector, testdata::Vector, model::Graph, nepochs::Int)
         println("test accuracy: $acc")
         println()
     end
+end
+
+function test(model, data::Vector)
+    golds = Int[]
+    preds = Int[]
+    for (x,y) in data
+        h = model(Var(x))
+        z = argmax(h.data, 1)
+        append!(golds, y)
+        append!(preds, z)
+    end
+    @assert length(golds) == length(preds)
+    acc = mean(i -> golds[i] == preds[i] ? 1.0 : 0.0, 1:length(golds))
+    println("test accuracy: $acc")
 end
 
 main()
