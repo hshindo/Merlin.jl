@@ -1,6 +1,6 @@
 export relu
 
-doc"""
+"""
     relu(x)
 
 Rectified Linear Unit.

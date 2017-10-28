@@ -20,11 +20,8 @@ It aims to provide a fast, flexible and compact deep learning library for machin
 - g++ (for OSX or Linux)
 
 ## Installation
-First, install [Julia](http://julialang.org/) 0.6.x.  
-Then, clone and build the package.
 ```julia
-julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
-julia> Pkg.build("Merlin")
+julia> Pkg.add("Merlin")
 ```
 
 ## Examples
@@ -69,6 +66,8 @@ For static evaluation, the process are as follows.
 
 When you apply `Node` to a function, it's lazily evaluated.
 ```julia
+using Merlin
+
 T = Float32
 x = Node()
 y = Linear(T,10,7)(x)

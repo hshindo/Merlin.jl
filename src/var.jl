@@ -5,6 +5,13 @@ export zerograd, batch, batchsize, isvoid, isparam, gradient!
     Var
 
 Variable struct.
+
+`Var` contains the following members:
+* data
+* batchdims
+* f
+* args
+* grad
 """
 mutable struct Var
     data
@@ -73,6 +80,8 @@ end
 
 """
     gradient!(top::Var)
+
+Compute gradients.
 """
 function gradient!(top::Var)
     sorted = topsort(top)
@@ -89,6 +98,12 @@ function gradient!(top::Var)
     filter(isparam, sorted)
 end
 
+"""
+    batch(data::Vector{Var}, batchsize::Int)
+    batch(data::Vector{NTuple{N,Var}}, batchsize::Int) where N
+
+Create batch from variables.
+"""
 function batch(data::Vector{Var}, batchsize::Int)
     batches = Var[]
     for i = 1:batchsize:length(data)

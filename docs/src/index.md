@@ -7,11 +7,6 @@ It aims to provide a fast, flexible and compact deep learning library for machin
 - g++ (for OSX or Linux)
 
 ## Installation
-First, install [Julia](http://julialang.org/).  
-Currently, version 0.6 is supported.
-
-Then, clone and build the package.
 ```julia
-julia> Pkg.clone("https://github.com/hshindo/Merlin.jl.git")
-julia> Pkg.build("Merlin")
+julia> Pkg.add("Merlin")
 ```
