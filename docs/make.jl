@@ -8,11 +8,12 @@ makedocs(
     sitename = "Merlin.jl",
     pages = [
         "Home" => "index.md",
+        "Var" => "var.md",
         "Functions" => "functions.md",
+        "Graph" => "graph.md",
         "Initializaters" => "initializers.md",
-        #"Graph" => "graph.md",
-        #"Optimizers" => "optimizers.md",
-        #"Save and Load" => "save_load.md",
+        "Optimizers" => "optimizers.md",
+        "Save and Load" => "save_load.md",
     ]
 )
 

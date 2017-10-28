@@ -1,4 +1,4 @@
-# Variable
+# Var
 
 ```@autodocs
 Pages   = ["var.jl"]
