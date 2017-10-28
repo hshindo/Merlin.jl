@@ -29,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Installation",
     "category": "section",
-    "text": "First, install Julia.   Currently, version 0.6 is supported.Then, clone and build the package.julia> Pkg.clone(\"https://github.com/hshindo/Merlin.jl.git\")\njulia> Pkg.build(\"Merlin\")"
+    "text": "julia> Pkg.add(\"Merlin\")"
 },
 
 {
