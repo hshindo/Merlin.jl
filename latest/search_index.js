@@ -33,6 +33,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "var.html#",
+    "page": "Var",
+    "title": "Var",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "var.html#Var-1",
+    "page": "Var",
+    "title": "Var",
+    "category": "section",
+    "text": "Pages   = [\"var.jl\"]"
+},
+
+{
     "location": "functions.html#",
     "page": "Functions",
     "title": "Functions",
@@ -265,6 +281,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "graph.html#",
+    "page": "Graph",
+    "title": "Graph",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "graph.html#Graph-1",
+    "page": "Graph",
+    "title": "Graph",
+    "category": "section",
+    "text": "Graph represents a computational graph.using Merlin\n\nT = Float32\nx = Node()\ny = Linear(T,10,7)(x)\ny = relu(y)\ny = Linear(T,7,3)(y)\n@assert typeof(y) == Node\ng = Graph(input=x, output=y)\n\nx = zerograd(rand(T,10,10))\ny = g(x)\n\nparams = gradient!(y)\nprintln(x.grad)\n\nopt = SGD(0.01)\nforeach(opt, params)"
+},
+
+{
     "location": "initializers.html#",
     "page": "Initializaters",
     "title": "Initializaters",
@@ -313,11 +345,59 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "initializers.html#Custom-Initializer-1",
-    "page": "Initializaters",
-    "title": "Custom Initializer",
+    "location": "optimizers.html#",
+    "page": "Optimizers",
+    "title": "Optimizers",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "optimizers.html#Merlin.AdaGrad",
+    "page": "Optimizers",
+    "title": "Merlin.AdaGrad",
+    "category": "Type",
+    "text": "AdaGrad\n\nSee: http://jmlr.org/papers/v12/duchi11a.html\n\n\n\n"
+},
+
+{
+    "location": "optimizers.html#Merlin.Adam",
+    "page": "Optimizers",
+    "title": "Merlin.Adam",
+    "category": "Type",
+    "text": "Adam\n\nAdam: A Method for Stochastic Optimization\n\nReferences\n\nhttp://arxiv.org/abs/1412.6980v8\n\n\n\n"
+},
+
+{
+    "location": "optimizers.html#Merlin.SGD",
+    "page": "Optimizers",
+    "title": "Merlin.SGD",
+    "category": "Type",
+    "text": "SGD\n\nStochastic Gradient Descent Optimizer.\n\nArguments\n\nrate: learning rate\n[momentum=0.0]: momentum coefficient\n[nesterov=false]: use nesterov acceleration or not\n\n\n\n"
+},
+
+{
+    "location": "optimizers.html#Optimizers-1",
+    "page": "Optimizers",
+    "title": "Optimizers",
     "category": "section",
-    "text": "import Merlin.random\n\nstruct CustomRand\nend\n\nfunction random{T}(init, ::Type{T}, dims...)\n    # code\nend"
+    "text": "x = zerograd(rand(Float32,5,4))\nopt = SGD(0.001)\nopt(x)AdaGrad\nAdam\nSGD"
+},
+
+{
+    "location": "save_load.html#",
+    "page": "Save and Load",
+    "title": "Save and Load",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "save_load.html#Save-and-Load-1",
+    "page": "Save and Load",
+    "title": "Save and Load",
+    "category": "section",
+    "text": "It is recommended to use JLD2 for object serialization."
 },
 
 ]}
