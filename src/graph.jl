@@ -4,13 +4,11 @@ mutable struct Node
     f
     args::Tuple
     name::String
+    id::Int
 end
 
 Node(; name="") = Node(nothing, (), name)
-
-struct NodeId
-    id::Int
-end
+Node(f, args, name) = Node(f, args, name, 0)
 
 struct Graph
     nodes::Vector{Node} # topological order
@@ -27,11 +25,11 @@ function Graph(; input=(), output=())
     dict = Dict{String,Node}()
     for i = 1:length(nodes)
         node = nodes[i]
-        isempty(node.name) || (dict[node.name] = node)
-        args = map(node.args) do a
-            isa(a,Node) ? NodeId(node2id[a]) : a
+        if node.id != 0
+            throw("Node $(node) is already used.")
         end
-        nodes[i] = Node(node.f, args, node.name)
+        node.id = i
+        isempty(node.name) || (dict[node.name] = node)
     end
     input = map(x -> node2id[x], input)
     output = map(x -> node2id[x], output)
@@ -41,7 +39,7 @@ end
 Base.getindex(g::Graph, i::Int) = g.nodes[i]
 Base.getindex(g::Graph, s::String) = g.dict[s]
 
-function (g::Graph)(xs...; train=true, debug=false)
+function (g::Graph)(xs...)
     @assert length(xs) == length(g.input)
     temps = Array{Any}(length(g.nodes))
     for i = 1:length(xs)
@@ -53,7 +51,7 @@ function (g::Graph)(xs...; train=true, debug=false)
             isassigned(temps,i) || (temps[i] = node)
         else
             args = map(node.args) do arg
-                isa(arg,NodeId) ? temps[arg.id] : arg
+                isa(arg,Node) ? temps[arg.id] : arg
             end
             temps[i] = node.f(args...)
         end
@@ -62,13 +60,7 @@ function (g::Graph)(xs...; train=true, debug=false)
     length(o) == 1 ? o[1] : o
 end
 
-"""
-```julia
-f = @graph n begin
-    Node(relu, n)
-end
-```
-"""
+#=
 macro graph(input, output)
     if isa(input, Symbol)
         input = Expr(:tuple, input)
@@ -87,6 +79,7 @@ macro graph(input, output)
         Graph(x, y)
     end
 end
+=#
 
 #function convert(::Type{H5Object}, x::Graph)
 #    H5Object(typeof(x), x)
