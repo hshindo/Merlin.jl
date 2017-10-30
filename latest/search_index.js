@@ -385,6 +385,70 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "datasets.html#",
+    "page": "Datasets",
+    "title": "Datasets",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "datasets.html#Datasets-1",
+    "page": "Datasets",
+    "title": "Datasets",
+    "category": "section",
+    "text": "Merlin provides an access to common machine learning datasets for Julia."
+},
+
+{
+    "location": "datasets.html#Example-1",
+    "page": "Datasets",
+    "title": "Example",
+    "category": "section",
+    "text": "using Merlin\nusing Merlin.Datasets\nusing Merlin.Datasets.MNIST\n\ndir = \"mnist\"\ntrain_x, train_y = MNIST.traindata(dir)\ntest_x, test_y = MNIST.testdata(dir)"
+},
+
+{
+    "location": "datasets.html#Available-Datasets-1",
+    "page": "Datasets",
+    "title": "Available Datasets",
+    "category": "section",
+    "text": ""
+},
+
+{
+    "location": "datasets.html#CIFAR10-1",
+    "page": "Datasets",
+    "title": "CIFAR10",
+    "category": "section",
+    "text": "The CIFAR-10 dataset consists of 60000 32x32 color images in 10 classes."
+},
+
+{
+    "location": "datasets.html#CIFAR100-1",
+    "page": "Datasets",
+    "title": "CIFAR100",
+    "category": "section",
+    "text": "The CIFAR-100 dataset consists of 600 32x32 color images in 100 classes. The 100 classes are grouped into 20 superclasses (fine and coarse labels)."
+},
+
+{
+    "location": "datasets.html#MNIST-1",
+    "page": "Datasets",
+    "title": "MNIST",
+    "category": "section",
+    "text": "The MNIST dataset consists of 60000 28x28 images of handwritten digits."
+},
+
+{
+    "location": "datasets.html#PTBLM-1",
+    "page": "Datasets",
+    "title": "PTBLM",
+    "category": "section",
+    "text": "The PTBLM dataset consists of Penn Treebank sentences for language modeling, available from tomsercu/lstm. The unknown words are replaced with <unk> so that the total vocaburary size becomes 10000.This is the first sentence of the PTBLM dataset.dir = \"ptblm\"\nx, y = PTBLM.traindata(dir)\n\nx[1]\n> [\"no\", \"it\", \"was\", \"n't\", \"black\", \"monday\"]\ny[1]\n> [\"it\", \"was\", \"n't\", \"black\", \"monday\", \"<eos>\"]where MLDataset adds the special word: <eos> to the end of y."
+},
+
+{
     "location": "save_load.html#",
     "page": "Save and Load",
     "title": "Save and Load",
