@@ -89,7 +89,6 @@ for name in [
     include("regularizers/$(name).jl")
 end
 
-export update!
 for name in [
     "adagrad",
     "adam",
@@ -97,6 +96,7 @@ for name in [
     include("optimizers/$(name).jl")
 end
 
+include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")
 
 info("#Threads: $(Threads.nthreads())")
