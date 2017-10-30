@@ -2,9 +2,7 @@ module CIFAR10
 
 using BinDeps
 
-const defdir = joinpath(Pkg.dir("MLDatasets"), "datasets", "cifar10")
-
-function getdata(dir)
+function getdata(dir::String)
     mkpath(dir)
     path = download("https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz")
     run(unpack_cmd(path,dir,".gz",".tar"))
@@ -23,7 +21,7 @@ function readdata(data::Vector{UInt8})
     x, y
 end
 
-function traindata(dir=defdir)
+function traindata(dir::String)
     files = [joinpath(dir,"cifar-10-batches-bin","data_batch_$i.bin") for i=1:5]
     all(isfile, files) || getdata(dir)
     data = UInt8[]
@@ -33,7 +31,7 @@ function traindata(dir=defdir)
     readdata(data)
 end
 
-function testdata(dir=defdir)
+function testdata(dir::String)
     file = joinpath(dir,"cifar-10-batches-bin","test_batch.bin")
     isfile(file) || getdata(dir)
     readdata(open(read,file))

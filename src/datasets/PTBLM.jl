@@ -1,20 +1,18 @@
 module PTBLM
 
-const defdir = joinpath(Pkg.dir("MLDatasets"), "datasets", "ptblm")
-
-function traindata(dir=defdir)
+function traindata(dir::String)
     xs = readdata(dir, "ptb.train.txt")
     ys = makeys(xs)
     xs, ys
 end
 
-function testdata(dir=defdir)
+function testdata(dir::String)
     xs = readdata(dir, "ptb.test.txt")
     ys = makeys(xs)
     xs, ys
 end
 
-function readdata(dir, filename)
+function readdata(dir::String, filename::String)
     mkpath(dir)
     url = "https://raw.githubusercontent.com/tomsercu/lstm/master/data"
     path = joinpath(dir, filename)
