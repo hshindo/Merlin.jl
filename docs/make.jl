@@ -3,7 +3,6 @@ using Merlin
 
 makedocs(
     modules = [Merlin],
-    clean = false,
     format = :html,
     sitename = "Merlin.jl",
     pages = [
