@@ -12,6 +12,7 @@ makedocs(
         "Graph" => "graph.md",
         "Initializaters" => "initializers.md",
         "Optimizers" => "optimizers.md",
+        "Datasets" => "datasets.md",
         "Save and Load" => "save_load.md",
     ]
 )
