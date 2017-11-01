@@ -24,7 +24,7 @@ end
 
 max(x::Node, dim::Int; name="") = Node(max, (x,dim), name)
 
-function max_batch{T,N}(x::Array{T,N}, batchdims::Vector{Int})
+function max_batch(x::Array{T,N}, batchdims::Vector{Int}) where {T,N}
     front = Base.front(size(x))
     n = prod(front)
     y = T[]
