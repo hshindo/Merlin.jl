@@ -1,18 +1,20 @@
 export embeddings, lookup
 
-function embeddings(mat::Matrix)
-    [zerograd(mat[:,i]) for i=1:size(mat,2)]
-end
-
 function embeddings(::Type{T}, insize::Int, outsize::Int; init_w=Normal(0,0.01)) where T
     w = init_w(T, outsize, insize)
-    embeddings(w)
+    [zerograd(w[:,i]) for i=1:size(w,2)]
 end
 
 function lookup(embeds::Vector{Var}, x::Var)
     y = lookup(embeds, x.data)
     xs = map(i -> embeds[i], vec(x.data))
     Var(y, x.batchdims, lookup, (xs,))
+end
+
+function lookup(w::Var, x::Var)
+    @assert w.grad == nothing
+    y = lookup(w.data, x.data)
+    Var(y, x.batchdims, lookup, ())
 end
 
 lookup(embeds::Vector{Var}, x::Node; name="") = Node(lookup, (embeds,x), name)
@@ -28,6 +30,17 @@ function lookup(embeds::Vector{Var}, x::Array{Int})
     y
 end
 
+function lookup(w::Matrix{T}, x::Array{Int}) where T
+    n = size(w, 1)
+    y = Array{T}(n, size(x)...)
+    for i = 1:length(x)
+        yi = (i-1) * n + 1
+        wi = (x[i]-1) * n + 1
+        copy!(y, yi, w, wi, n)
+    end
+    y
+end
+
 function addgrad!(y::Var, ::typeof(lookup), xs::Vector{Var})
     T = eltype(y.data)
     n = length(xs[1].data)
@@ -38,12 +51,3 @@ function addgrad!(y::Var, ::typeof(lookup), xs::Vector{Var})
         BLAS.axpy!(n, T(1), py, 1, pointer(gx), 1)
     end
 end
-
-#=
-function Base.convert(::Type{H5Object}, f::Lookup)
-    data = map(p -> p.data, f.params)
-    data = hcat(data...)
-    H5Object(Lookup, data)
-end
-Base.convert(::Type{Lookup}, o::H5Object) = Lookup(o.data)
-=#
