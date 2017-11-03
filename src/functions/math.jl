@@ -125,7 +125,7 @@ end
 
 -(a::Number, x::Node; name="") = Node(-, (Var(a),x), name)
 -(x1::Node, x2::Node; name="") = Node(-, (x1,x2), name)
--(x::Node; name="") = Node(-, (x,), name)
+#-(x::Node; name="") = Node(-, (x,), name)
 
 function addgrad!(y::Var, ::typeof(-), x1::Var, x2::Var)
     T = eltype(y)

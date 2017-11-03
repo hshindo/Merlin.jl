@@ -93,6 +93,7 @@ function gradient!(top::Var)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
+        isvoid(v.grad) && continue
         isvoid(v.f) || addgrad!(v, v.f, v.args...)
     end
     filter(isparam, sorted)
