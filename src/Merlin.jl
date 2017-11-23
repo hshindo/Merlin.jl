@@ -46,6 +46,7 @@ for name in [
     "activation/leaky_relu",
     "activation/selu",
     "activation/sigmoid",
+    "activation/swish",
     "activation/tanh",
 
     "attention/add_attention",

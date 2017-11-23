@@ -11,6 +11,8 @@ const T = Float32
     @testgrad crelu(x) x
     @testgrad selu(x) x
     @testgrad sigmoid(x) x
+    beta = Var([T(1)])
+    @testgrad swish(x,beta) x beta
     @testgrad tanh(x) x
 end
 
