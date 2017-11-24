@@ -35,7 +35,7 @@ end
 @testset "conv" for i = 1:5
     x = Var(rand(T,10,15),[10,5])
     f = Conv1D(T, 5, 10, 20, 2, 1)
-    @testgrad f(x) x f.w f.b
+    @testgrad f(x) x f.W f.b
 end
 
 @testset "getindex" for i = 1:5
@@ -47,7 +47,7 @@ end
 @testset "linear" for i = 1:5
     x = Var(rand(T,10,5))
     f = Linear(T, 10, 7)
-    @testgrad f(x) x f.w f.b
+    @testgrad f(x) x f.W f.b
 end
 
 @testset "loss" for i = 1:5
