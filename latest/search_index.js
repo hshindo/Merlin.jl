@@ -353,51 +353,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "initializers.html#Merlin.Fill",
-    "page": "Initializaters",
-    "title": "Merlin.Fill",
-    "category": "Type",
-    "text": "Fill(x)\n\nFill initializer.\n\n\n\n"
-},
-
-{
-    "location": "initializers.html#Merlin.Normal",
-    "page": "Initializaters",
-    "title": "Merlin.Normal",
-    "category": "Type",
-    "text": "Normal(mean, var)\n\nGenerator of ndarray with a normal distribution.\n\nArguments\n\nmean: Mean of the random values.\nvar: Variance of the random values.\n\n\n\n"
-},
-
-{
-    "location": "initializers.html#Merlin.Orthogonal",
-    "page": "Initializaters",
-    "title": "Merlin.Orthogonal",
-    "category": "Type",
-    "text": "Orthogonal()\n\nReferences\n\nSaxe et al., Exact solutions to the nonlinear dynamics of learning in deep linear neural networks\n\n\n\n"
-},
-
-{
-    "location": "initializers.html#Merlin.Uniform",
-    "page": "Initializaters",
-    "title": "Merlin.Uniform",
-    "category": "Type",
-    "text": "Uniform(a, b)\nUniform(b)\n\nGenerator of ndarray with a uniform distribution.\n\nArguments\n\na: Lower bound of the range of random values.\nb: Upper bound of the range of random values.\n\n\n\n"
-},
-
-{
-    "location": "initializers.html#Merlin.Xavier",
-    "page": "Initializaters",
-    "title": "Merlin.Xavier",
-    "category": "Type",
-    "text": "Xavier()\n\nXavier initialization.\n\n\n\n"
-},
-
-{
     "location": "initializers.html#Initializers-1",
     "page": "Initializaters",
     "title": "Initializers",
     "category": "section",
-    "text": "Pages = [\"initializers.md\"]Fill\nNormal\nOrthogonal\nUniform\nXavier"
+    "text": "Pages = [\"initializers.md\"]Modules = [Merlin]\nPages = [\"initializers.jl\"]"
 },
 
 {
@@ -409,35 +369,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "optimizers.html#Merlin.AdaGrad",
-    "page": "Optimizers",
-    "title": "Merlin.AdaGrad",
-    "category": "Type",
-    "text": "AdaGrad\n\nSee: http://jmlr.org/papers/v12/duchi11a.html\n\n\n\n"
-},
-
-{
-    "location": "optimizers.html#Merlin.Adam",
-    "page": "Optimizers",
-    "title": "Merlin.Adam",
-    "category": "Type",
-    "text": "Adam\n\nAdam: A Method for Stochastic Optimization\n\nReferences\n\nhttp://arxiv.org/abs/1412.6980v8\n\n\n\n"
-},
-
-{
-    "location": "optimizers.html#Merlin.SGD",
-    "page": "Optimizers",
-    "title": "Merlin.SGD",
-    "category": "Type",
-    "text": "SGD\n\nStochastic Gradient Descent Optimizer.\n\nArguments\n\nrate: learning rate\n[momentum=0.0]: momentum coefficient\n[nesterov=false]: use nesterov acceleration or not\n\n\n\n"
-},
-
-{
     "location": "optimizers.html#Optimizers-1",
     "page": "Optimizers",
     "title": "Optimizers",
     "category": "section",
-    "text": "x = zerograd(rand(Float32,5,4))\nopt = SGD(0.001)\nopt(x)AdaGrad\nAdam\nSGD"
+    "text": "x = zerograd(rand(Float32,5,4))\nopt = SGD(0.001)\nopt(x)Pages = [\"optimizers.md\"]Modules = [Merlin]\nPages = [\"optimizers.jl\"]"
 },
 
 {
