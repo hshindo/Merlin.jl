@@ -1,5 +1,5 @@
 # Var
 
 ```@autodocs
-Pages   = ["var.jl"]
+Pages = ["var.jl"]
 ```
