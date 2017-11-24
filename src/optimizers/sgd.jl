@@ -44,4 +44,3 @@ function (opt::SGD)(x::Array{T,N}, gx::Array{T,N}) where {T,N}
     end
     fill!(gx, T(0))
 end
-(opt::SGD)(x::Var) = opt(x.data, x.grad)
