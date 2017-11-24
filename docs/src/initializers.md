@@ -1,6 +1,7 @@
 # Initializers
 
 ```@index
+Modules = [Merlin]
 Pages = ["initializers.md"]
 ```
 

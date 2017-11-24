@@ -7,6 +7,7 @@ opt(x)
 ```
 
 ```@index
+Modules = [Merlin]
 Pages = ["optimizers.md"]
 ```
 
