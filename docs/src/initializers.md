@@ -4,6 +4,10 @@
 Pages = ["initializers.md"]
 ```
 
-```@autodocs
-Pages = ["initializers.jl"]
+```@docs
+Fill
+Normal
+Orthogonal
+Uniform
+Xavier
 ```
