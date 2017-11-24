@@ -1,7 +1,7 @@
 export Var
 export zerograd, batch, batchsize, isvoid, isparam, gradient!
 
-"""
+doc"""
     Var
 
 Variable struct.
