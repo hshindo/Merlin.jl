@@ -1,26 +1,26 @@
 export LSTM
 
 doc"""
-    LSTM(T::Type, xsize::Int, hsize::Int)
+    LSTM(::Type{T}, insize::Int, outsize::Int, [init_W=Uniform(0.001), init_U=Orthogonal()])
 
 Long Short-Term Memory network.
 
 ```julia
 T = Float32
-lstm = LSTM(T, 100, 100)
-h = lstm(x)
+f = LSTM(T, 100, 100)
+h = f(x)
 ```
 """
 struct LSTM
-    wu::Var
+    WU::Var
     b::Var
     h0::Var
     c0::Var
 end
 
-function LSTM{T}(::Type{T}, insize::Int, outsize::Int; init_w=Uniform(0.001), init_u=Orthogonal())
-    w = random(init_w, T, 4outsize, insize)
-    u = random(init_u, T, 4outsize, insize)
+function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=Uniform(0.001), init_U=Orthogonal()) where T
+    W = random(init_W, T, 4outsize, insize)
+    U = random(init_U, T, 4outsize, insize)
     wu = cat(2, w, u)
     b = zeros(T, size(w,1))
     b[1:outsize] = ones(T, outsize) # forget gate initializes to 1

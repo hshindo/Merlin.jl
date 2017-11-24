@@ -23,7 +23,7 @@ f = Linear(T,10,7)
 y = f(x)
 ```
 """
-function Linear{T}(::Type{T}, insize::Int, outsize::Int; init_w=Xavier(), init_b=Zeros())
+function Linear{T}(::Type{T}, insize::Int, outsize::Int; init_w=Xavier(), init_b=Fill(0))
     w = init_w(T, insize, outsize)
     b = init_b(T, outsize)
     Linear(zerograd(w), zerograd(b))

@@ -21,7 +21,7 @@ mutable struct Conv1D
 end
 
 function Conv1D{T}(::Type{T}, ksize::Int, insize::Int, outsize::Int, pad::Int, stride::Int;
-    dilation=1, init_w=Xavier(), init_b=Zeros())
+    dilation=1, init_w=Xavier(), init_b=Fill(0))
 
     w = init_w(T, ksize*insize, outsize)
     b = init_b(T, outsize)

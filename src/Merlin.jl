@@ -28,7 +28,8 @@ include("graph.jl")
 include("var.jl")
 #include("native.jl")
 include("check.jl")
-
+include("initializers/initializers.jl")
+#=
 for name in [
     "const",
     "normal",
@@ -38,6 +39,7 @@ for name in [
     ]
     include("initializers/$(name).jl")
 end
+=#
 
 for name in [
     "activation/crelu",
@@ -100,6 +102,6 @@ end
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")
 
-info("#Threads: $(Threads.nthreads())")
+#info("#Threads: $(Threads.nthreads())")
 
 end

@@ -19,7 +19,7 @@ struct Normal
     end
 end
 
-function (n::Normal){T}(::Type{T}, dims::Int...)
+function (n::Normal)(::Type{T}, dims::Int...) where T
     r = randn(T, dims)
     r .*= sqrt(n.var)
     r .+= n.mean

@@ -2,6 +2,7 @@ export Uniform
 
 doc"""
     Uniform(a, b)
+    Uniform(b)
 
 Generator of ndarray with a uniform distribution.
 
@@ -21,7 +22,7 @@ end
 
 Uniform(b) = Uniform(-b, b)
 
-function (u::Uniform){T}(::Type{T}, dims::Int...)
+function (u::Uniform)(::Type{T}, dims::Int...) where T
     r = rand(T, dims)
     r .*= (u.b - u.a)
     r .-= u.a
