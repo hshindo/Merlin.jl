@@ -1,11 +1,6 @@
 # Initializers
 
-```@index
-Modules = [Merlin]
-Pages = ["initializers.md"]
-```
-
 ```@autodocs
-Modules = [Merlin]
+Private = false
 Pages = ["initializers.jl"]
 ```
