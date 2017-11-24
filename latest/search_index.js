@@ -357,7 +357,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Initializaters",
     "title": "Initializers",
     "category": "section",
-    "text": "Private = false\nPages = [\"initializers.jl\"]"
+    "text": "Modules = [Merlin]\nPrivate = false\nPages = [\"initializers.jl\"]"
 },
 
 {
@@ -373,7 +373,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Optimizers",
     "title": "Optimizers",
     "category": "section",
-    "text": "x = zerograd(rand(Float32,5,4))\nopt = SGD(0.001)\nopt(x)Modules = [Merlin]\nPages = [\"optimizers.md\"]Modules = [Merlin]\nPages = [\"optimizers.jl\"]"
+    "text": "x = zerograd(rand(Float32,5,4))\nopt = SGD(0.001)\nopt(x)Modules = [Merlin]\nPages = [\"optimizers.jl\"]"
 },
 
 {
