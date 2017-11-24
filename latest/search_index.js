@@ -357,7 +357,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Initializaters",
     "title": "Initializers",
     "category": "section",
-    "text": "Modules = [Merlin]\nPages = [\"initializers.md\"]Modules = [Merlin]\nPages = [\"initializers.jl\"]"
+    "text": "Private = false\nPages = [\"initializers.jl\"]"
 },
 
 {
