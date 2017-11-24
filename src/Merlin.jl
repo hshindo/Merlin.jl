@@ -29,17 +29,7 @@ include("var.jl")
 #include("native.jl")
 include("check.jl")
 include("initializers/initializers.jl")
-#=
-for name in [
-    "const",
-    "normal",
-    "orthogonal",
-    "uniform",
-    "xavier"
-    ]
-    include("initializers/$(name).jl")
-end
-=#
+include("optimizers/optimizers.jl")
 
 for name in [
     "activation/crelu",
@@ -90,13 +80,6 @@ end
 for name in [
     "l2"]
     include("regularizers/$(name).jl")
-end
-
-for name in [
-    "adagrad",
-    "adam",
-    "sgd"]
-    include("optimizers/$(name).jl")
 end
 
 include("datasets/Datasets.jl")

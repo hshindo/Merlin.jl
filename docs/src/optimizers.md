@@ -6,8 +6,11 @@ opt = SGD(0.001)
 opt(x)
 ```
 
-```@docs
-AdaGrad
-Adam
-SGD
+```@index
+Pages = ["optimizers.md"]
+```
+
+```@autodocs
+Modules = [Merlin]
+Pages = ["optimizers.jl"]
 ```

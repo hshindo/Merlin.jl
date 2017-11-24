@@ -4,10 +4,7 @@
 Pages = ["initializers.md"]
 ```
 
-```@docs
-Fill
-Normal
-Orthogonal
-Uniform
-Xavier
+```@autodocs
+Modules = [Merlin]
+Pages = ["initializers.jl"]
 ```
