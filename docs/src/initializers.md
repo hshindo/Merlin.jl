@@ -1,6 +1,13 @@
 # Initializers
 
-```@autodocs
-Modules = [Merlin]
-Pages = ["initializers.jl"]
+```@index
+Pages = ["initializers.md"]
+```
+
+```@docs
+Fill
+Normal
+Orthogonal
+Uniform
+Xavier
 ```

@@ -28,7 +28,13 @@ include("graph.jl")
 include("var.jl")
 #include("native.jl")
 include("check.jl")
-include("initializers/initializers.jl")
+
+include("initializers/fill.jl")
+include("initializers/normal.jl")
+include("initializers/orthogonal.jl")
+include("initializers/uniform.jl")
+include("initializers/xavier.jl")
+
 include("optimizers/optimizers.jl")
 
 for name in [
