@@ -1,4 +1,5 @@
 # Optimizers
+Optimizers provides a way to update the weights of `Merlin.Var`.
 
 ```julia
 x = zerograd(rand(Float32,5,4))
