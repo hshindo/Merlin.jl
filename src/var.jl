@@ -36,7 +36,7 @@ Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
 isvoid(x) = x == nothing
 
-"""
+doc"""
     batchsize(x::Var)
     batchsize(x::Var, i::Int)
     batchsize(x::Node)
@@ -47,14 +47,14 @@ batchsize(x::Var, i::Int) = x.batchdims[i]
 batchsize(x::Node; name="") = Node(batchsize, (x,), name)
 batchsize(x::Node, i::Int; name="") = Node(batchsize, (x,i), name)
 
-"""
+doc"""
     isparam(x::Var)::Bool
 
 Returns whether `x` is a parameter or not
 """
 isparam(x::Var) = !isvoid(x.grad) && isempty(x.args)
 
-"""
+doc"""
     topsort
 
 Topological sort.
@@ -78,7 +78,7 @@ function topsort{T}(tops::T...)
     sorted
 end
 
-"""
+doc"""
     gradient!(top::Var)
 
 Compute gradients.
@@ -99,7 +99,7 @@ function gradient!(top::Var)
     filter(isparam, sorted)
 end
 
-"""
+doc"""
     batch(data::Vector{Var}, batchsize::Int)
     batch(data::Vector{NTuple{N,Var}}, batchsize::Int) where N
 
