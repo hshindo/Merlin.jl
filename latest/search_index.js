@@ -45,7 +45,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Var",
     "title": "Var",
     "category": "section",
-    "text": "Pages   = [\"var.jl\"]"
+    "text": "Pages = [\"var.jl\"]"
 },
 
 {
@@ -305,43 +305,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "initializers.html#Merlin.Uniform",
-    "page": "Initializaters",
-    "title": "Merlin.Uniform",
-    "category": "Type",
-    "text": "Uniform(a, b)\nUniform(b)\n\nGenerator of ndarray with a uniform distribution.\n\nArguments\n\na: Lower bound of the range of random values.\nb: Upper bound of the range of random values.\n\n\n\n"
-},
-
-{
-    "location": "initializers.html#Merlin.Normal",
-    "page": "Initializaters",
-    "title": "Merlin.Normal",
-    "category": "Type",
-    "text": "Normal(mean, var)\n\nGenerator of ndarray with a normal distribution.\n\nArguments\n\nmean: Mean of the random values.\nvar: Variance of the random values.\n\n\n\n"
-},
-
-{
-    "location": "initializers.html#Merlin.Xavier",
-    "page": "Initializaters",
-    "title": "Merlin.Xavier",
-    "category": "Type",
-    "text": "Xavier()\n\nXavier initialization.\n\n\n\n"
-},
-
-{
-    "location": "initializers.html#Merlin.Orthogonal",
-    "page": "Initializaters",
-    "title": "Merlin.Orthogonal",
-    "category": "Type",
-    "text": "Orthogonal()\n\nReferences\n\nSaxe et al., Exact solutions to the nonlinear dynamics of learning in deep linear neural networks\n\n\n\n"
-},
-
-{
     "location": "initializers.html#Initializers-1",
     "page": "Initializaters",
     "title": "Initializers",
     "category": "section",
-    "text": "Pages = [\"initializers.md\"]Uniform\nNormal\nXavier\nOrthogonal"
+    "text": "Pages = [\"initializers.md\"]Pages = [\"initializers.jl\"]"
 },
 
 {
