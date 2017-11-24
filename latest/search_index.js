@@ -261,7 +261,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.LSTM",
     "category": "Type",
-    "text": "LSTM(T::Type, xsize::Int, hsize::Int)\n\nLong Short-Term Memory network.\n\nT = Float32\nlstm = LSTM(T, 100, 100)\nh = lstm(x)\n\n\n\n"
+    "text": "LSTM(::Type{T}, insize::Int, outsize::Int, [init_W=Uniform(0.001), init_U=Orthogonal()])\n\nLong Short-Term Memory network.\n\nT = Float32\nf = LSTM(T, 100, 100)\nh = f(x)\n\n\n\n"
 },
 
 {
@@ -309,7 +309,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Initializaters",
     "title": "Merlin.Uniform",
     "category": "Type",
-    "text": "Uniform(a, b)\n\nGenerator of ndarray with a uniform distribution.\n\nArguments\n\na: Lower bound of the range of random values.\nb: Upper bound of the range of random values.\n\n\n\n"
+    "text": "Uniform(a, b)\nUniform(b)\n\nGenerator of ndarray with a uniform distribution.\n\nArguments\n\na: Lower bound of the range of random values.\nb: Upper bound of the range of random values.\n\n\n\n"
 },
 
 {
