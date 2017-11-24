@@ -173,7 +173,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.Conv1D",
     "category": "Type",
-    "text": "Conv1D(T, ksize, insize, outsize, pad, stride; dilation=1, [init_w=Xavier()], [init_b=Zeros()])\n\n1-dimensional convolution function.\n\nx = Var(rand(Float32,10,5))\nf = Conv1D(Float32, 5, 10, 3, 2, 1)\ny = f(x)\n\n\n\n"
+    "text": "Conv1D(T, ksize, insize, outsize, pad, stride, [dilation=1, init_W=Xavier(), init_b=Fill(0)])\n\n1-dimensional convolution function.\n\nT = Float32\nx = Var(rand(T,10,5))\nf = Conv1D(T, 5, 10, 3, 2, 1)\ny = f(x)\n\n\n\n"
 },
 
 {
@@ -397,7 +397,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Initializaters",
     "title": "Initializers",
     "category": "section",
-    "text": "Pages = [\"initializers.md\"]Fill\nNormal\nOrthogonal\nUniform\nXavier"
+    "text": "Initializers provides the way to set the initial random weights of Merlin functions.f = Linear(Float32, 100, 100, init_W=Xavier(), init_b=Fill(0))Pages = [\"initializers.md\"]Fill\nNormal\nOrthogonal\nUniform\nXavier"
 },
 
 {
