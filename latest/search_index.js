@@ -41,11 +41,59 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "var.html#Merlin.Var",
+    "page": "Var",
+    "title": "Merlin.Var",
+    "category": "Type",
+    "text": "Var\n\nVariable struct.\n\nVar contains the following members:\n\ndata\nbatchdims\nf\nargs\ngrad\n\n\n\n"
+},
+
+{
+    "location": "var.html#Merlin.batch-Tuple{Array{Merlin.Var,1},Int64}",
+    "page": "Var",
+    "title": "Merlin.batch",
+    "category": "Method",
+    "text": "batch(data::Vector{Var}, batchsize::Int)\nbatch(data::Vector{NTuple{N,Var}}, batchsize::Int) where N\n\nCreate batch from variables.\n\n\n\n"
+},
+
+{
+    "location": "var.html#Merlin.batchsize-Tuple{Merlin.Var}",
+    "page": "Var",
+    "title": "Merlin.batchsize",
+    "category": "Method",
+    "text": "batchsize(x::Var)\nbatchsize(x::Var, i::Int)\nbatchsize(x::Node)\nbatchsize(x::Node, i::Int)\n\n\n\n"
+},
+
+{
+    "location": "var.html#Merlin.gradient!-Tuple{Merlin.Var}",
+    "page": "Var",
+    "title": "Merlin.gradient!",
+    "category": "Method",
+    "text": "gradient!(top::Var)\n\nCompute gradients.\n\n\n\n"
+},
+
+{
+    "location": "var.html#Merlin.isparam-Tuple{Merlin.Var}",
+    "page": "Var",
+    "title": "Merlin.isparam",
+    "category": "Method",
+    "text": "isparam(x::Var)::Bool\n\nReturns whether x is a parameter or not\n\n\n\n"
+},
+
+{
+    "location": "var.html#Merlin.topsort-Union{Tuple{T}, Tuple{Vararg{T,N} where N}} where T",
+    "page": "Var",
+    "title": "Merlin.topsort",
+    "category": "Method",
+    "text": "topsort\n\nTopological sort.\n\n\n\n"
+},
+
+{
     "location": "var.html#Var-1",
     "page": "Var",
     "title": "Var",
     "category": "section",
-    "text": "Pages = [\"var.jl\"]"
+    "text": "Modules = [Merlin]\nPages = [\"var.jl\"]"
 },
 
 {
@@ -305,11 +353,51 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "initializers.html#Merlin.Fill",
+    "page": "Initializaters",
+    "title": "Merlin.Fill",
+    "category": "Type",
+    "text": "Fill(x)\n\nFill initializer.\n\n\n\n"
+},
+
+{
+    "location": "initializers.html#Merlin.Normal",
+    "page": "Initializaters",
+    "title": "Merlin.Normal",
+    "category": "Type",
+    "text": "Normal(mean, var)\n\nGenerator of ndarray with a normal distribution.\n\nArguments\n\nmean: Mean of the random values.\nvar: Variance of the random values.\n\n\n\n"
+},
+
+{
+    "location": "initializers.html#Merlin.Orthogonal",
+    "page": "Initializaters",
+    "title": "Merlin.Orthogonal",
+    "category": "Type",
+    "text": "Orthogonal()\n\nReferences\n\nSaxe et al., Exact solutions to the nonlinear dynamics of learning in deep linear neural networks\n\n\n\n"
+},
+
+{
+    "location": "initializers.html#Merlin.Uniform",
+    "page": "Initializaters",
+    "title": "Merlin.Uniform",
+    "category": "Type",
+    "text": "Uniform(a, b)\nUniform(b)\n\nGenerator of ndarray with a uniform distribution.\n\nArguments\n\na: Lower bound of the range of random values.\nb: Upper bound of the range of random values.\n\n\n\n"
+},
+
+{
+    "location": "initializers.html#Merlin.Xavier",
+    "page": "Initializaters",
+    "title": "Merlin.Xavier",
+    "category": "Type",
+    "text": "Xavier()\n\nXavier initialization.\n\n\n\n"
+},
+
+{
     "location": "initializers.html#Initializers-1",
     "page": "Initializaters",
     "title": "Initializers",
     "category": "section",
-    "text": "Pages = [\"initializers.md\"]Pages = [\"initializers.jl\"]"
+    "text": "Pages = [\"initializers.md\"]Fill\nNormal\nOrthogonal\nUniform\nXavier"
 },
 
 {
