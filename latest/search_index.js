@@ -317,7 +317,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.LSTM",
     "category": "Type",
-    "text": "LSTM(::Type{T}, insize::Int, outsize::Int, [init_W=Uniform(0.001), init_U=Orthogonal()])\n\nLong Short-Term Memory network.\n\nx_t in R^d: input vector to the LSTM block\nf_t in R^h: forget gate's activation vector\ni_t in R^h: input gate's activation vector\no_t in R^h: output gate's activation vector\nh_t in R^h: output vector of the LSTM block\nc_t in R^h: cell state vector\nW in R^h times d, U in R^h times h and b in R^h: weight matrices and bias vector parameters which need to be learned during traning\n\nT = Float32\nf = LSTM(T, 100, 100)\nh = f(x)\n\n\n\n"
+    "text": "LSTM(::Type{T}, insize::Int, outsize::Int, [init_W=Uniform(0.001), init_U=Orthogonal()])\n\nLong Short-Term Memory network.\n\nbeginalign*\nmathbff_t  =sigma_g(W_fmathbfx_t+U_fmathbfh_t-1+mathbfb_f)\nmathbfi_t  =sigma_g(W_imathbfx_t+U_imathbfh_t-1+mathbfb_i)\nmathbfo_t  =sigma_g(W_omathbfx_t+U_omathbfh_t-1+mathbfb_o)\nmathbfc_t  =mathbff_todotmathbfc_t-1+mathbfi_todotsigma_c(W_cmathbfx_t+U_cmathbfh_t-1+mathbfb_c)\nmathbfh_t  =mathbfo_todotsigma_h(mathbfc_t)\nendalign*\n\nx_t in R^d: input vector to the LSTM block\nf_t in R^h: forget gate's activation vector\ni_t in R^h: input gate's activation vector\no_t in R^h: output gate's activation vector\nh_t in R^h: output vector of the LSTM block\nc_t in R^h: cell state vector\nW in R^h times d, U in R^h times h and b in R^h: weight matrices and bias vectors\nsigma_g: sigmoid function\nsigma_c: hyperbolic tangent function\nsigma_h: hyperbolic tangent function\n\n👉 Example\n\nT = Float32\nf = LSTM(T, 100, 100)\nh = f(x)\n\n\n\n"
 },
 
 {
