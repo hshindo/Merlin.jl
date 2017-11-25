@@ -317,7 +317,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.LSTM",
     "category": "Type",
-    "text": "LSTM(::Type{T}, insize::Int, outsize::Int, [init_W=Uniform(0.001), init_U=Orthogonal()])\n\nLong Short-Term Memory network.\n\nT = Float32\nf = LSTM(T, 100, 100)\nh = f(x)\n\n\n\n"
+    "text": "LSTM(::Type{T}, insize::Int, outsize::Int, [init_W=Uniform(0.001), init_U=Orthogonal()])\n\nLong Short-Term Memory network.\n\nx_t in R^d: input vector to the LSTM block\nf_t in R^h: forget gate's activation vector\ni_t in R^h: input gate's activation vector\no_t in R^h: output gate's activation vector\nh_t in R^h: output vector of the LSTM block\nc_t in R^h: cell state vector\nW in R^h times d, U in R^h times h and b in R^h: weight matrices and bias vector parameters which need to be learned during traning\n\nT = Float32\nf = LSTM(T, 100, 100)\nh = f(x)\n\n\n\n"
 },
 
 {
