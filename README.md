@@ -16,7 +16,7 @@ It aims to provide a fast, flexible and compact deep learning library for machin
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](http://hshindo.github.io/Merlin.jl/latest/)
 
 ## Requirements
-- Julia 0.6.x
+- Julia 0.6
 - g++ (for OSX or Linux)
 
 ## Installation
@@ -88,65 +88,3 @@ foreach(opt, params)
 When the network structure can be represented as *static*, it is recommended to use this style.
 
 More examples can be found in [`examples`](examples/).
-
-<!---
-### Example2: Recurrent Neural Network (RNN)
-<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/rnn.png" width="270"></p>
-
-Dynamic network structures such as recurrent neural network (RNN) can be easily described with Julia's standard control-flow constructs (`for`, `if`, etc.).
-
-```julia
-using Merlin
-
-T = Float32
-f_h = @graph ... # function for hidden unit
-f_y = @graph ... # function for output unit
-
-h = Var(rand(T,50,1)) # initial hidden vector
-xs = [constant(rand(T,50,1)) for i=1:10] # input data
-ys = map(xs) do x
-    c = concat(1, x, h) # concatanate x and h along the first dimension.
-    h = f_h(c)
-    f_y(h)
-end
-```
--->
-
-<!---
-### Training
-Merlin provides a `fit` function to train your model.
-```julia
-traindata = []
-train_x = [Var(rand(Float32,10,5)) for i=1:100] # input data
-train_y = [Var([1,2,3]) for i=1:100] # correct labels
-
-f = begin
-    T = Float32
-    x = Var()
-    y = Linear(T,10,7)(x)
-    y = relu(y)
-    y = Linear(T,7,3)(y)
-    compile(y, x)
-end
-
-opt = SGD(0.0001)
-for epoch = 1:10
-    println("epoch: $epoch")
-    loss = 0.0
-    for (w,cs,y) in shuffle(traindata)
-        z = model(w, cs, y)
-        loss += sum(z.data)
-        vars = gradient!(z)
-        foreach(v -> opt(v.data,v.grad), vars)
-        next!(prog)
-    end
-    loss /= length(traindata)
-    println("loss: $loss")
-end
-for epoch = 1:10
-  println("epoch: $(epoch)")
-  loss = fit(train_x, train_y, f, crossentropy, opt)
-  println("loss: $(loss)")
-end
-```
--->
