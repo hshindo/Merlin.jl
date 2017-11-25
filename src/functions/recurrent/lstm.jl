@@ -5,6 +5,14 @@ doc"""
 
 Long Short-Term Memory network.
 
+* ``x_t \in R^{d}``: input vector to the LSTM block
+* ``f_t \in R^{h}``: forget gate's activation vector
+* ``i_t \in R^{h}``: input gate's activation vector
+* ``o_t \in R^{h}``: output gate's activation vector
+* ``h_t \in R^{h}``: output vector of the LSTM block
+* ``c_t \in R^{h}``: cell state vector
+* ``W \in R^{h \times d}``, ``U \in R^{h \times h}`` and ``b \in R^{h}``: weight matrices and bias vector parameters which need to be learned during traning
+
 ```julia
 T = Float32
 f = LSTM(T, 100, 100)
