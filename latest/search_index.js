@@ -185,6 +185,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#Merlin.l2",
+    "page": "Functions",
+    "title": "Merlin.l2",
+    "category": "Function",
+    "text": "l2(x::Var, lambda::Float64)\n\nL2 regularization.\n\ny = fraclambda2leftVert mathbfx rightVert ^2\n\nx = Var(rand(Float32,10,5))\ny = l2(x, 0.01)\n\n\n\n"
+},
+
+{
     "location": "functions.html#Merlin.crossentropy",
     "page": "Functions",
     "title": "Merlin.crossentropy",
@@ -213,7 +221,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Loss",
     "category": "section",
-    "text": "crossentropy\nmse\nsoftmax_crossentropy"
+    "text": "l2\ncrossentropy\nmse\nsoftmax_crossentropy"
 },
 
 {
