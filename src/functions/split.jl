@@ -6,22 +6,18 @@ function split(x::Var, dim::Int, size::Vector{Int})
     Var(y, split, (x,))
 end
 
-function unsafe_split{T,N}(x::Array{T,N}, dim::Int, size::Vector{Int})
-    if dim == N
-        front = Base.front(Base.size(x))
-        m = prod(front)
-        cumsize = 0
-        ys = Array{T,N}[]
-        for s in size
-            p = pointer(x, m*cumsize+1)
-            y = unsafe_wrap(Array, p, (front...,s))
-            push!(ys, y)
-            cumsize += s
-        end
-        ys
-    else
-        throw("Not implemented yet.")
+function unsafe_split(x::Array{T,N}, dims::Vector{Int}) where {T,N}
+    front = Base.front(size(x))
+    m = prod(front)
+    cumdim = 0
+    ys = Array{T,N}[]
+    for d in dims
+        p = pointer(x, m*cumdim+1)
+        y = unsafe_wrap(Array, p, (front...,d))
+        push!(ys, y)
+        cumdim += d
     end
+    ys
 end
 
 function split(x::Array, dim::Int, size::Int)

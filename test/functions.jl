@@ -39,8 +39,8 @@ end
 end
 
 @testset "getindex" for i = 1:5
-    x = Var(rand(T,10,5))
-    #@testgrad x[1:3,:] x
+    x = Var(rand(T,10,10),[5,5])
+    @testgrad x[1:3,:] x
     #@testgrad x[2:10,3] x
 end
 
