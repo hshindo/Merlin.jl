@@ -5,14 +5,28 @@ doc"""
 
 Long Short-Term Memory network.
 
+```math
+\begin{align*}
+\mathbf{f}_{t} & =\sigma_{g}(W_{f}\mathbf{x}_{t}+U_{f}\mathbf{h}_{t-1}+\mathbf{b}_{f})\\
+\mathbf{i}_{t} & =\sigma_{g}(W_{i}\mathbf{x}_{t}+U_{i}\mathbf{h}_{t-1}+\mathbf{b}_{i})\\
+\mathbf{o}_{t} & =\sigma_{g}(W_{o}\mathbf{x}_{t}+U_{o}\mathbf{h}_{t-1}+\mathbf{b}_{o})\\
+\mathbf{c}_{t} & =\mathbf{f}_{t}\odot\mathbf{c}_{t-1}+\mathbf{i}_{t}\odot\sigma_{c}(W_{c}\mathbf{x}_{t}+U_{c}\mathbf{h}_{t-1}+\mathbf{b}_{c})\\
+\mathbf{h}_{t} & =\mathbf{o}_{t}\odot\sigma_{h}(\mathbf{c}_{t})
+\end{align*}
+```
+
 * ``x_t \in R^{d}``: input vector to the LSTM block
 * ``f_t \in R^{h}``: forget gate's activation vector
 * ``i_t \in R^{h}``: input gate's activation vector
 * ``o_t \in R^{h}``: output gate's activation vector
 * ``h_t \in R^{h}``: output vector of the LSTM block
 * ``c_t \in R^{h}``: cell state vector
-* ``W \in R^{h \times d}``, ``U \in R^{h \times h}`` and ``b \in R^{h}``: weight matrices and bias vector parameters which need to be learned during traning
+* ``W \in R^{h \times d}``, ``U \in R^{h \times h}`` and ``b \in R^{h}``: weight matrices and bias vectors
+* ``\sigma_g``: sigmoid function
+* ``\sigma_c``: hyperbolic tangent function
+* ``\sigma_h``: hyperbolic tangent function
 
+# 👉 Example
 ```julia
 T = Float32
 f = LSTM(T, 100, 100)
