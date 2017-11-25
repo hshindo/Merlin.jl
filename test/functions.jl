@@ -51,6 +51,10 @@ end
 end
 
 @testset "loss" for i = 1:5
+    # l2
+    x = Var(rand(T,10,5))
+    @testgrad l2(x,0.01) x
+
     # mse
     x1 = Var(rand(T,10,5))
     x2 = Var(rand(T,10,5))

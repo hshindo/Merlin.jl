@@ -55,6 +55,7 @@ for name in [
     "conv/gated_conv1d",
 
     "loss/crossentropy",
+    "loss/l2",
     "loss/mse",
     "loss/softmax_crossentropy",
 
@@ -83,11 +84,6 @@ for name in [
     ]
     include("functions/$(name).jl")
     #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)
-end
-
-for name in [
-    "l2"]
-    include("regularizers/$(name).jl")
 end
 
 include("datasets/Datasets.jl")

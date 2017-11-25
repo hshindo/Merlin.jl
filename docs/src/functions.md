@@ -21,6 +21,7 @@ Conv1D
 
 ## Loss
 ```@docs
+l2
 crossentropy
 mse
 softmax_crossentropy
