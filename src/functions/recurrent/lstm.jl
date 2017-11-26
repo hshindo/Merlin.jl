@@ -29,6 +29,7 @@ Long Short-Term Memory network.
 # 👉 Example
 ```julia
 T = Float32
+x = Var(rand(T,100,10))
 f = LSTM(T, 100, 100)
 h = f(x)
 ```
@@ -41,18 +42,18 @@ struct LSTM
 end
 
 function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=Uniform(0.001), init_U=Orthogonal()) where T
-    W = random(init_W, T, 4outsize, insize)
-    U = random(init_U, T, 4outsize, insize)
-    wu = cat(2, w, u)
-    b = zeros(T, size(w,1))
+    W = init_W(T, 4outsize, insize)
+    U = init_U(T, 4outsize, insize)
+    WU = cat(2, W, U)
+    b = zeros(T, size(W,1))
     b[1:outsize] = ones(T, outsize) # forget gate initializes to 1
     h0 = zeros(T, outsize)
     c0 = zeros(T, outsize)
-    LSTM(zerograd(w), zerograd(b), zerograd(h0), zerograd(c0))
+    LSTM(zerograd(WU), zerograd(b), zerograd(h0), zerograd(c0))
 end
 
 function (lstm::LSTM)(x::Var, h::Var, c::Var)
-    a = lstm.w * cat(1,x,h) + lstm.b
+    a = lstm.WU * concat(1,x,h) + lstm.b
     n = size(h.data, 1)
     f = sigmoid(a[1:n])
     i = sigmoid(a[n+1:2n])
@@ -62,83 +63,31 @@ function (lstm::LSTM)(x::Var, h::Var, c::Var)
     h, c
 end
 
+function batchsort(x::Var; rev=false)
+    issorted(x.batchdims,rev=rev) && return x
+    perm = sortperm(x.batchdims, rev=rev)
+    s = unsafe_split(x.data, x.batchdims)
+    y = cat(ndims(x), s[perm]...)
+    Var(y, x.batchdims[perm], batchsort, (x,perm))
+end
+
+function addgrad!(y::Var, ::typeof(batchsort), x::Var, perm::Vector{Int})
+    if !isvoid(x.grad)
+        s = unsafe_split(y.grad, y.batchdims)
+        gy = cat(ndims(y), s[perm]...)
+        BLAS.axpy!(x.grad)
+    end
+end
+
 function (lstm::LSTM)(x::Var)
+    x = batchsort(x, rev=true)
     h, c = lstm.h0, lstm.c0
-    n = size(x.data, 1)
     hs = Var[]
-    for i = 1:size(x.data,2)
-        h, c = lstm(x[(i-1)*n+1:i*n], h, c)
+    for i = 1:size(x,2)
+        h, c = lstm(x[:,i], h, c)
         push!(hs, h)
     end
     cat(2, hs...)
 end
 
-function lstm_fast{T}(out::Var, x::Matrix{T}, h::Vector{T}, c::Vector{T})
-    fio = lstm.w * cat(1,x,h) + lstm.b
-    n = size(h.data, 1)
-    @inbounds for i = 1:3n
-        a[i] = sigmoid(a[i])
-    end
-    @inbounds for i = 3n+1:4n
-        a[i] = tanh(a[i])
-    end
-    for i = 1:n
-        cc[i] = fio[i] * c[i] + i[i+n] * tanh(fio)
-    end
-end
-
-#=
-"""
-Batched LSTM
-"""
-function (f::LSTM)(xs::Vector{Var}, h::Var, c::Var; rev=false)
-    y = Var(nothing, f, (xs,h,c))
-
-    rev && (xs = reverse(xs))
-    ys = Array{Var}(length(xs))
-    for i = 1:length(xs)
-        h, c = f(xs[i], h, c)
-        ys[i] = h
-    end
-    rev && (ys = reverse(ys))
-    cat(2, ys)
-end
-
-function (f::LSTM)(x::Var, h::Var, c::Var; rev=false)
-    ys = Var[]
-    if rev == false
-        for i = 1:size(x.data,2)
-            h, c = onestep(f, x[:,i], h, c)
-            push!(ys, h)
-        end
-    else
-        for i = size(x.data,2):-1:1
-            h, c = onestep(f, x[:,i], h, c)
-            push!(ys, h)
-        end
-        ys = reverse(ys)
-    end
-    cat(2, ys...)
-end
-
-function (f::LSTM)(x::Var; rev=false)
-    T = eltype(x.data)
-    n = size(f.w.data,1) ÷ 4
-    h = Var(zeros(T,n))
-    c = Var(zeros(T,n))
-    f(x, h, c, rev=rev)
-end
-=#
-
-#=
-function onestep(lstm::LSTM, x::Var, h::Var, c::Var)
-    n = size(h.data, 1)
-    a = lstm.w * cat(1,x,h) + lstm.b
-    f = sigmoid(a[1:n])
-    i = sigmoid(a[n+1:2n])
-    o = sigmoid(a[2n+1:3n])
-    c = f .* c + i .* tanh(a[3n+1:4n])
-    h = o .* tanh(c)
-    h, c
-end
-=#
+(lstm::LSTM)(x::Node; name="") = Node(lstm, (x,), name)

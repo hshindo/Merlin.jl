@@ -15,7 +15,7 @@ struct BiLSTM
     rnn2::LSTM
 end
 
-function BiLSTM{T}(::Type{T}, insize::Int, outsize::Int)
+function BiLSTM(::Type{T}, insize::Int, outsize::Int) where T
     BiLSTM(LSTM(T,insize,outsize), LSTM(T,insize,outsize))
 end
 
