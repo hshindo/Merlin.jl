@@ -381,7 +381,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Initializaters",
     "title": "Merlin.Orthogonal",
     "category": "Type",
-    "text": "Orthogonal()\n\nReferences\n\nSaxe et al., Exact solutions to the nonlinear dynamics of learning in deep linear neural networks\n\n\n\n"
+    "text": "Orthogonal([gain=1.0])\n\nReferences\n\nSaxe et al., Exact solutions to the nonlinear dynamics of learning in deep linear neural networks\n\n\n\n"
 },
 
 {
