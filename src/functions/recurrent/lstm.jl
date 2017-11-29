@@ -63,23 +63,8 @@ function (lstm::LSTM)(x::Var, h::Var, c::Var)
     h, c
 end
 
-function batchsort(x::Var; rev=false)
-    issorted(x.batchdims,rev=rev) && return x
-    perm = sortperm(x.batchdims, rev=rev)
-    s = unsafe_split(x.data, x.batchdims)
-    y = cat(ndims(x), s[perm]...)
-    Var(y, x.batchdims[perm], batchsort, (x,perm))
-end
-
-function addgrad!(y::Var, ::typeof(batchsort), x::Var, perm::Vector{Int})
-    if !isvoid(x.grad)
-        s = unsafe_split(y.grad, y.batchdims)
-        gy = cat(ndims(y), s[perm]...)
-        BLAS.axpy!(x.grad)
-    end
-end
-
 function (lstm::LSTM)(x::Var)
+    perm = sortperm(x.batchdims, rev=rev)
     x = batchsort(x, rev=true)
     h, c = lstm.h0, lstm.c0
     hs = Var[]

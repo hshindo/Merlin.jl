@@ -68,6 +68,7 @@ for name in [
     "recurrent/bilstm",
 
     "argmax",
+    "batchsort",
     "blas",
     "concat",
     "embeddings",
