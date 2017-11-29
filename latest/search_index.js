@@ -333,7 +333,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Reduction",
     "category": "section",
-    "text": "max\nmax_batchgemm\ngemv\nconcat\ngetindex\nLinear\nlogsoftmax\nlookup\nreshape\nsoftmax\nstandardize\nwindow1d"
+    "text": "max\nmax_batchgemm\ngemv\nbatchsort\nconcat\ngetindex\nLinear\nlogsoftmax\nlookup\nreshape\nsoftmax\nstandardize\nwindow1d"
 },
 
 {
