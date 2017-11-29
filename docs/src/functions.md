@@ -58,6 +58,7 @@ max_batch
 ```@docs
 gemm
 gemv
+batchsort
 concat
 getindex
 Linear
