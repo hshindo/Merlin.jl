@@ -52,6 +52,8 @@ function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=Uniform(0.001), init_
     LSTM(zerograd(W), zerograd(U), zerograd(b), zerograd(h0), zerograd(c0))
 end
 
+(lstm::LSTM)(x::Node; name="") = Node(lstm, (x,), name)
+
 function (lstm::LSTM)(x::Var)
     batchdims = x.batchdims
     cumdims = Array{Int}(length(batchdims)+1)
