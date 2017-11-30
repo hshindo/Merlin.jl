@@ -13,19 +13,21 @@ y = concat(2, x1, x2)
 ```
 """
 function concat(dim::Int, xs::Var...)
-    N = ndims(xs[1])
-    batchdims1 = xs[1].batchdims
-    samesize = all(x -> x.batchdims == batchdims1, xs)
-    if dim == N
-        throw("Not implemented yet.")
+    @assert all(x -> ndims(x) == ndims(xs[1]), xs)
+    if dim == ndims(xs[1])
         batchdims = Int[]
-        foreach(x -> append!(batchdims,x.batchdims), xs)
+        for x in xs
+             append!(batchdims, x.batchdims)
+        end
+        y = cat(dim, map(x -> x.data, xs)...)
+        Var(y, batchdims, concat, (dim,xs...))
     else
-        samesize || throw("Batchdims are not the same.")
-        batchdims = batchdims1
+        batchdims1 = xs[1].batchdims
+        all(x -> x.batchdims == batchdims1, xs) || throw("Batchdims are not the same: $(map(x -> x.batchdims, xs))")
+        y = cat(dim, map(x -> x.data, xs)...)
+        Var(y, batchdims1, concat, (dim,xs...))
     end
-    y = cat(dim, map(x -> x.data, xs)...)
-    Var(y, batchdims, concat, (dim,xs...))
+
 end
 
 concat(dim::Int, xs::Node...; name="") = Node(concat, (dim,xs...), name)
