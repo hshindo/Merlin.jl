@@ -37,9 +37,10 @@ function linear(x::Var, W::Var, b::Var)
 end
 linear(x::Node, W::Var, b::Var; name="") = Node(linear, (x,W,b), name)
 
-function linear(x::Matrix, W::Matrix, b::Vector)
-    y = gemm('T', 'N', W, x)
-    broadcast!(+, y, y, b)
+function linear(x::Matrix, W::Matrix, b)
+    y = BLAS.gemm('T', 'N', W, x)
+    isvoid(b) || broadcast!(+, y, y, b)
+    y
 end
 
 function addgrad!(y::Var, ::typeof(linear), x::Var, W::Var, b::Var)
