@@ -33,7 +33,7 @@ end
 end
 =#
 
-"""
+doc"""
     log(x)
 """
 log(x::Var) = Var(log.(x.data), x.batchdims, log, (x,))
@@ -65,10 +65,11 @@ end
 end
 =#
 
-"""
+doc"""
     transpose(x)
 """
 function transpose(x::Var)
+    throw("Not implemented yet.")
     ys = Var[]
     cumdim = 0
     m = size(x, 1)
@@ -90,7 +91,7 @@ function addgrad!(y::Var, ::typeof(transpose), x::Var, s::Int, e::Int)
     end
 end
 
-"""
+doc"""
     +(x1::Var, x2::Var)
     +(a::Number, x::Var)
     +(x::Var, a::Number)
@@ -112,7 +113,7 @@ function addgrad!(y::Var, ::typeof(+), x1::Var, x2::Var)
     isvoid(x2.grad) || BLAS.axpy!(T(1), y.grad, x2.grad)
 end
 
-"""
+doc"""
     -(x1, x2)
 """
 function -(x1::Var, x2::Var)
@@ -138,12 +139,14 @@ function addgrad!(y::Var, ::typeof(-), x::Var)
     isvoid(x.grad) || BLAS.axpy!(T(-1), y.grad, x.grad)
 end
 
-"""
+doc"""
     .+(x1::Var, x2::Var)
 """
 function broadcast(::typeof(+), x1::Var, x2::Var)
-    throw("Not implemented yet.")
-    Var(x1.data .+ x2.data, broadcast, (+,x1,x2))
+    @assert nbatchdims(x1) == 1 || nbatchdims(x2) == 1
+    y = x1.data .+ x2.data
+    batchdims = nbatchdims(x1) == 1 ? x2.batchdims : x1.batchdims
+    Var(y, batchdims, broadcast, (+,x1,x2))
 end
 
 broadcast(::typeof(+), x1::Node, x2::Node; name="") = Node(broadcast, (+,x1,x2), name)
@@ -153,20 +156,22 @@ function addgrad!(y::Var, ::typeof(broadcast), ::typeof(+), x1::Var, x2::Var)
     isvoid(x2.grad) || ∇elemplus!(y.grad, x2.grad)
 end
 
-function ∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T,N})
-    for i = 1:N
-        size(gx,i) == 1 && size(gy,i) > 1 && (gy = sum(gy,i))
+function ∇elemplus!(gy::Array{T}, gx::Array{T}) where T
+    dims = Int[]
+    for i = 1:ndims(gy)
+        size(gx,i) == 1 && size(gy,i) > 1 && push!(dims,i)
     end
-    BLAS.axpy!(T(1), gy, gx)
+    BLAS.axpy!(T(1), sum(gy,dims), gx)
 end
-#∇elemplus!{T,N}(gy::Array{T,N}, gx::Array{T}) = ∇elemplus!(gy, redim(gx,N))
 
-"""
+doc"""
     .-(x1::Var, x2::Var)
 """
 function broadcast(::typeof(-), x1::Var, x2::Var)
-    throw("Not implemented yet.")
-    Var(x1.data .- x2.data, broadcast, (-,x1,x2))
+    @assert nbatchdims(x1) == 1 || nbatchdims(x2) == 1
+    y = x1.data .- x2.data
+    batchdims = nbatchdims(x1) == 1 ? x2.batchdims : x1.batchdims
+    Var(y, batchdims, broadcast, (-,x1,x2))
 end
 
 broadcast(::typeof(-), x1::Node, x2::Node; name="") = Node(broadcast, (-,x1,x2), name)
@@ -176,29 +181,22 @@ function addgrad!(y::Var, ::typeof(broadcast), ::typeof(-), x1::Var, x2::Var)
     isvoid(x2.grad) || ∇elemminus!(y.grad, x2.grad)
 end
 
-function ∇elemminus!{T,N}(gy::Array{T,N}, gx::Array{T,N})
-    for i = 1:N
-        size(gx,i) == 1 && size(gy,i) > 1 && (gy = sum(gy,i))
+function ∇elemminus!(gy::Array{T}, gx::Array{T}) where T
+    dims = Int[]
+    for i = 1:ndims(gy)
+        size(gx,i) == 1 && size(gy,i) > 1 && push!(dims,i)
     end
-    BLAS.axpy!(T(-1), gy, gx)
+    BLAS.axpy!(T(-1), sum(gy,dims), gx)
 end
 
-#=
-function ∇elemminus!{T}(gy::Array{T}, gx::Array{T})
-    ind_gx = CartesianIndex(size(gx))
-    @inbounds @simd for I in CartesianRange(size(gy))
-        gx[min(ind_gx,I)] -= gy[I]
-    end
-end
-=#
-
-"""
+doc"""
     \.\*(x1::Var, x2::Var)
 """
 function broadcast(::typeof(*), x1::Var, x2::Var)
-    throw("Not implemented yet.")
-    x1.sizes == x2.sizes || throw("")
-    Var(x1.data .* x2.data, x1.batchdims, broadcast, (*,x1,x2))
+    @assert nbatchdims(x1) == 1 || nbatchdims(x2) == 1
+    y = x1.data .* x2.data
+    batchdims = nbatchdims(x1) == 1 ? x2.batchdims : x1.batchdims
+    Var(y, batchdims, broadcast, (*,x1,x2))
 end
 
 broadcast(::typeof(*), x1::Node, x2::Node; name="") = Node(broadcast, (*,x1,x2), name)
@@ -208,18 +206,13 @@ function addgrad!(y::Var, ::typeof(broadcast), ::typeof(*), x1::Var, x2::Var)
     isvoid(x2.grad) || ∇elemtimes!(y.grad, x1.data, x2.grad)
 end
 
-function ∇elemtimes!{T,N}(gy::Array{T,N}, x2::Array{T,N}, gx1::Array{T,N})
-    if size(x2) == size(gx1)
-        @inbounds for i = 1:length(gy)
-            gx1[i] += gy[i] * x2[i]
-        end
-    else
-        gx = gy .* x2
-        for i = 1:N
-            size(gx1,i) == 1 && size(gx,i) > 1 && (gx = sum(gx,i))
-        end
-        BLAS.axpy!(T(1), gx, gx1)
+function ∇elemtimes!(gy::Array{T}, x2::Array{T}, gx1::Array{T}) where T
+    g = gy .* x2
+    dims = Int[]
+    for i = 1:ndims(gy)
+        size(gx1,i) == 1 && size(g,i) > 1 && push!(dims,i)
     end
+    BLAS.axpy!(T(1), sum(g,dims), gx1)
 end
 
 #=
@@ -255,29 +248,27 @@ function ∇elemtimes!{T}(gy::Array{T}, x2::Array{T}, gx1::Array{T})
 end
 =#
 
-"""
+doc"""
     \*(A::Var, B::Var)
 """
 function *(A::Var, B::Var)
-    throw("Not implemented yet.")
     if length(A.batchdims) == 1
         y = A.data * B.data
-        batchdims = B.batchdims
+        Var(y, B.batchdims, *, (A,B))
     else
         throw("Not implemented yet.")
     end
-    Var(y, batchdims, *, (A,B))
 end
 
 *(A::Node, B::Node; name="") = Node(*, (A,B), name)
 
 function addgrad!(C::Var, ::typeof(*), A::Var, B::Var)
-    T = eltype(C.data)
+    T = eltype(C)
     isvoid(A.grad) || BLAS.gemm!('N', 'T', T(1), C.grad, B.data, T(1), A.grad)
     isvoid(B.grad) || BLAS.gemm!('T', 'N', T(1), A.data, C.grad, T(1), B.grad)
 end
 
-"""
+doc"""
     /(x1::Var, a)
 """
 /(x::Var, a::Number) = Var(x.data, x.batchdims, /, (x,a))
@@ -285,7 +276,7 @@ end
 /(x::Node, a::Number; name="") = Node(/, (x,a), name)
 
 function addgrad!(y::Var, ::typeof(/), x::Var, a::Number)
-    T = eltype(x.data)
+    T = eltype(x)
     isvoid(x.grad) || ∇divide!(y.grad, x.grad, T(a))
 end
 
@@ -295,14 +286,14 @@ function ∇divide!{T}(gy::Array{T}, gx::Array{T}, a::T)
     end
 end
 
-"""
+doc"""
     ^(x::Var, a::Number)
 """
 ^(x::Var, a::Number) = Var(x.data ^ a, ^, (x,a))
 ^(x::Node, a::Number; name="") = Node(^, (x,a), name)
 
 function addgrad!(y::Var, ::typeof(^), x::Var, a::Number)
-    T = eltype(x.data)
+    T = eltype(x)
     isvoid(x.grad) || ∇elempow!(T(a), x.data, x.grad, y.data, y.grad)
 end
 
