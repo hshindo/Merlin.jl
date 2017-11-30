@@ -35,25 +35,50 @@ h = f(x)
 ```
 """
 struct LSTM
-    WU::Var
+    W::Var
+    U::Var
     b::Var
     h0::Var
     c0::Var
 end
 
 function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=Uniform(0.001), init_U=Orthogonal()) where T
-    W = init_W(T, 4outsize, insize)
-    U = init_U(T, 4outsize, insize)
-    WU = cat(2, W, U)
-    b = zeros(T, size(W,1))
+    W = init_W(T, insize, 4outsize)
+    U = init_U(T, insize, 4outsize)
+    b = zeros(T, 4outsize)
     b[1:outsize] = ones(T, outsize) # forget gate initializes to 1
     h0 = zeros(T, outsize)
     c0 = zeros(T, outsize)
-    LSTM(zerograd(WU), zerograd(b), zerograd(h0), zerograd(c0))
+    LSTM(zerograd(W), zerograd(U), zerograd(b), zerograd(h0), zerograd(c0))
 end
 
-function (lstm::LSTM)(x::Var, h::Var, c::Var)
-    a = lstm.WU * concat(1,x,h) + lstm.b
+function (lstm::LSTM)(x::Var)
+    batchdims = x.batchdims
+    cumdims = Array{Int}(length(batchdims)+1)
+    cumdims[1] = 1
+    for i = 1:length(batchdims)
+        cumdims[i+1] = cumdims[i] + batchdims[i]
+    end
+    perm = sortperm(batchdims, rev=true)
+    x = resize(x, [sum(batchdims)])
+    h, c = lstm.h0, lstm.c0
+
+    for t = 1:batchdims[perm[1]]
+        xts = Var[]
+        for p in perm
+            i = cumdims[p] + t - 1
+            i >= cumdims[p+1] && break
+            push!(xts, x[:,i])
+        end
+        xt = concat(2, xts...)
+        h, c = lstm(xt, h, c)
+    end
+    h
+end
+
+function (lstm::LSTM)(xt::Var, h::Var, c::Var)
+    a = linear(xt, lstm.W, lstm.b)
+    a = a .+ BLAS.gemv('T', 1, lstm.U, h)
     n = size(h.data, 1)
     f = sigmoid(a[1:n])
     i = sigmoid(a[n+1:2n])
@@ -62,17 +87,3 @@ function (lstm::LSTM)(x::Var, h::Var, c::Var)
     h = o .* tanh(c)
     h, c
 end
-
-function (lstm::LSTM)(x::Var)
-    perm = sortperm(x.batchdims, rev=rev)
-    x = batchsort(x, rev=true)
-    h, c = lstm.h0, lstm.c0
-    hs = Var[]
-    for i = 1:size(x,2)
-        h, c = lstm(x[:,i], h, c)
-        push!(hs, h)
-    end
-    cat(2, hs...)
-end
-
-(lstm::LSTM)(x::Node; name="") = Node(lstm, (x,), name)

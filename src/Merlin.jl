@@ -23,6 +23,10 @@ else
 end
 =#
 
+struct SizeException <: Exception
+    message::String
+end
+
 #include("hdf5.jl")
 include("graph.jl")
 include("var.jl")
@@ -69,7 +73,6 @@ for name in [
 
     "argmax",
     "batchsort",
-    "blas",
     "concat",
     "embeddings",
     "getindex",
@@ -86,6 +89,9 @@ for name in [
     include("functions/$(name).jl")
     #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)
 end
+
+include("functions/blas/gemv.jl")
+include("functions/blas/gemm.jl")
 
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")

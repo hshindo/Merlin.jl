@@ -44,10 +44,9 @@ end
     @testgrad f(x) x f.W f.b
 end
 
-@testset "getindex" for i = 1:5
+@testset "index" for i = 1:5
     x = Var(rand(T,10,10),[5,5])
     @testgrad x[1:3,:] x
-    #@testgrad x[2:10,3] x
 end
 
 @testset "linear" for i = 1:5
@@ -89,20 +88,32 @@ end
 
     x1 = Var(rand(T,10,5))
     x2 = Var(rand(T,10,5))
-    x3 = Var(rand(T,10,1))
-    x4 = Var(rand(T,5,4))
     @testgrad x1+x2 x1 x2
     @testgrad x1-x2 x1 x2
-    #@testgrad x1.+x3 x1 x3
-    #@testgrad x1.-x3 x1 x3
-    #@testgrad x1.*x2 x1 x3
-    #@testgrad x1*x4 x1 x4
+
+    x1.batchdims = [2,3]
+    x3 = Var(rand(T,10,1))
+    x4 = Var(rand(T,10))
+    x5 = Var(rand(T,5,4))
+
+    @testgrad x1.+x3 x1 x3
+    @testgrad x1.+x4 x1 x4
+    @testgrad x1.-x3 x1 x3
+    @testgrad x1.-x4 x1 x4
+    @testgrad x1.*x2 x1 x2
+    @testgrad x1.*x3 x1 x3
 end
 
 @testset "pairwise" for i = 1:5
     x1 = Var(rand(T,5,4))
     x2 = Var(rand(T,5,4))
     @testgrad pairwise(x1,x2) x1 x2
+end
+
+@testset "recurrent" for i = 1:5
+    x = Var(rand(T,20,10), [3,2,5])
+    f = LSTM(T, 20, 20)
+    @testgrad f(x) x
 end
 
 @testset "reduction" for i = 1:5
