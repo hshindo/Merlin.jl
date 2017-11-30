@@ -7,6 +7,7 @@ function split(x::Var, dim::Int, size::Vector{Int})
 end
 
 function unsafe_split(x::Array{T,N}, dims::Vector{Int}) where {T,N}
+    length(dims) == 1 && return [x]
     front = Base.front(size(x))
     m = prod(front)
     cumdim = 0
