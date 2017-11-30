@@ -1,5 +1,5 @@
 export Var
-export zerograd, batch, batchsize, isvoid, isparam, gradient!
+export zerograd, batch, batchsize, isvoid, isparam, gradient!, nbatchdims
 
 doc"""
     Var
@@ -34,6 +34,7 @@ Base.size(x::Var, i::Int) = size(x.data, i)
 Base.length(x::Var) = length(x.data)
 Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
+nbatchdims(x::Var) = length(x.batchdims)
 isvoid(x) = x == nothing
 
 doc"""
