@@ -229,7 +229,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.broadcast",
     "category": "Function",
-    "text": ".+(x1::Var, x2::Var)\n\n\n\n.-(x1::Var, x2::Var)\n\n\n\n.*(x1::Var, x2::Var)\n\n\n\n"
+    "text": ".+(x1::Var, x2::Var)\n\n\n\n.-(x1::Var, x2::Var)\n\n\n\n\\.\\*(x1::Var, x2::Var)\n\n\n\n"
 },
 
 {
@@ -253,7 +253,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.:*",
     "category": "Function",
-    "text": "*(A::Var, B::Var)\n\n\n\n"
+    "text": "\\*(A::Var, B::Var)\n\n\n\n"
 },
 
 {
