@@ -125,7 +125,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.elu",
     "category": "Method",
-    "text": "elu(x::Var)\n\nExponential Linear Unit.\n\nReferences\n\nClevert et al., [\"Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)\"], arXiv 2015.\n\nf(x) =\nbegincases\nx  x  0 \nalpha (e^x-1)  xleq0\nendcases\n\nwhere alpha=1.\n\n\n\n"
+    "text": "elu(x::Var)\n\nExponential Linear Unit.\n\nReferences\n\nClevert et al., \"Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)\", arXiv 2015.\n\nf(x) =\nbegincases\nx  x  0 \nalpha (e^x-1)  xleq0\nendcases\n\nwhere alpha=1.\n\n\n\n"
 },
 
 {
@@ -149,7 +149,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.selu",
     "category": "Method",
-    "text": "selu(x::Var)\n\nScaled Exponential Linear Unit.\n\nf(x) = lambda\nbegincases\nx  x  0 \nalpha e^x-alpha  xleq0\nendcases\n\nwhere alpha=16733 and beta=10507.\n\nReferences\n\nKlambauer et al., \"Self-Normalizing Neural Networks\", NIPS 2017.\n\n\n\n"
+    "text": "selu(x::Var)\n\nScaled Exponential Linear Unit.\n\nf(x) = lambda\nbegincases\nx  x  0 \nalpha e^x-alpha  xleq0\nendcases\n\nwhere lambda=10507 and alpha=16733.\n\nReferences\n\nKlambauer et al., \"Self-Normalizing Neural Networks\", NIPS 2017.\n\n\n\n"
 },
 
 {
@@ -349,7 +349,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Reduction",
     "category": "section",
-    "text": "max\nmax_batchgemm\ngemv\nbatchsort\nconcat\ngetindex\nLinear\nlogsoftmax\nlookup\nreshape\nsoftmax\nstandardize\nwindow1d"
+    "text": "max\nmax_batch"
+},
+
+{
+    "location": "functions.html#Misc-1",
+    "page": "Functions",
+    "title": "Misc",
+    "category": "section",
+    "text": "argmax\nbatchsort\nconcat\ngetindex\nLinear\nlogsoftmax\nlookup\nreshape\nsoftmax\nstandardize\nwindow1d"
 },
 
 {
