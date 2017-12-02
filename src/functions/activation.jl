@@ -2,7 +2,7 @@ export crelu, elu, leaky_relu, relu, selu, sigmoid, swish
 import Base.tanh
 
 doc"""
-    crelu(x)
+    crelu(x::Var)
 
 Concatenated Rectified Linear Unit.
 The output is twice the size of the input.
@@ -10,11 +10,13 @@ The output is twice the size of the input.
 ```math
 f(x) = (\max(0,x), \max(0,-x))
 ```
+
+# References
+* Shang et al., ["Understanding and Improving Convolutional Neural Networks via Concatenated Rectified Linear Units"](https://arxiv.org/abs/1603.05201), arXiv 2016.
 """
 function crelu(x::Var)
     Var(crelu(x.data), x.batchdims, crelu, (x,))
 end
-
 crelu(x::Node; name="") = Node(crelu, (x,), name)
 
 function crelu(x::Array{T}) where T
@@ -39,9 +41,12 @@ function ∇crelu!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
 end
 
 doc"""
-    elu(x)
+    elu(x::Var)
 
 Exponential Linear Unit.
+
+# References
+* Clevert et al., ["Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)"], arXiv 2015.
 
 ```math
 f(x) =
@@ -50,19 +55,11 @@ x & x > 0 \\
 \alpha (e^{x}-1) & x\leq0
 \end{cases}
 ```
+where ``\alpha=1``.
 """
-elu(x::Var) = Var(elu(x.data), x.batchdims, elu, (x,))
-
+elu(x::Var) = Var(elu.(x.data), x.batchdims, elu, (x,))
 elu(x::Node; name="") = Node(elu, (x,), name)
-
-function elu(x::Array{T}) where T
-    alpha = T(1)
-    y = similar(x)
-    @inbounds for i = 1:length(x)
-        y[i] = x[i] > 0 ? x[i] : alpha*T(exp(x[i])-1)
-    end
-    y
-end
+elu(x::T) where T = x > T(0) ? x : exp(x)-1
 
 function addgrad!(y::Var, ::typeof(elu), x::Var)
     isvoid(x.grad) || ∇elu!(y.data, y.grad, x.data, x.grad)
@@ -76,6 +73,92 @@ function ∇elu!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
 end
 
 doc"""
+    leaky_relu(x::Var, alpha::Float64=0.2)
+
+Leaky Rectified Linear Unit.
+
+```math
+f(x) =
+\begin{cases}
+x & x > 0 \\
+x/\alpha & x \leq 0
+\end{cases}
+```
+
+# References
+* Maas et al., ["Rectifier Nonlinearities Improve Neural Network Acoustic Models"](http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf), ICML 2013.
+"""
+leaky_relu(x::Var, alpha::Float64=0.2) = Var(leaky_relu.(x.data,eltype(x)(alpha)), x.batchdims, leaky_relu, (x,alpha))
+leaky_relu(x::Node; name="") = Node(leaky_relu, (x,), name)
+leaky_relu(x::T, alpha::T) where T = x >= T(0) ? x : x*alpha
+
+function addgrad!(y::Var, ::typeof(leaky_relu), x::Var, alpha::Float64)
+    isvoid(x.grad) || ∇leaky_relu!(y.grad, x.data, x.grad, eltype(x)(alpha))
+end
+
+function ∇leaky_relu!(gy::Array{T}, x::Array{T}, gx::Array{T}, alpha::T) where T
+    @inbounds for i = 1:length(x)
+        gx[i] += x[i] >= T(0) ? gy[i] : gy[i]*alpha
+    end
+end
+
+"""
+    relu(x::Var)
+
+Rectified Linear Unit.
+
+```math
+f(x) = \max(0, x)
+```
+"""
+relu(x::Var) = Var(relu.(x.data), x.batchdims, relu, (x,))
+relu(x::Node; name="") = Node(relu, (x,), name)
+relu(x::T) where T = max(x, T(0))
+
+function addgrad!(y::Var, ::typeof(relu), x::Var)
+    isvoid(x.grad) || ∇relu!(y.grad, x.data, x.grad)
+end
+
+function ∇relu!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
+    @inbounds for i = 1:length(x)
+        gx[i] += x[i] > T(0) ? gy[i] : T(0)
+    end
+end
+
+doc"""
+    selu(x::Var)
+
+Scaled Exponential Linear Unit.
+
+```math
+f(x) = \lambda
+\begin{cases}
+x & x > 0 \\
+\alpha e^{x}-\alpha & x\leq0
+\end{cases}
+```
+where ``\alpha=1.6733`` and ``\beta=1.0507``.
+
+# References
+Klambauer et al., ["Self-Normalizing Neural Networks"](https://arxiv.org/abs/1706.02515), NIPS 2017
+"""
+selu(x::Var) = Var(selu.(x.data), x.batchdims, selu, (x,))
+selu(x::Node; name="") = Node(selu, (x,), name)
+selu(x::T) where T = x > 0 ? T(1.0507)*x : T(1.0507)*T(1.6733)*(exp(x)-1)
+
+function addgrad!(y::Var, ::typeof(selu), x::Var)
+    isvoid(x.grad) || ∇selu!(y.data, y.grad, x.data, x.grad)
+end
+
+function ∇selu!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
+    alpha = T(1.6733)
+    lambda = T(1.0507)
+    @inbounds for i = 1:length(x)
+        gx[i] +=  x[i] > 0 ? gy[i]*lambda : gy[i]*(y[i]+lambda*alpha)
+    end
+end
+
+doc"""
     sigmoid(x)
 
 Sigmoid logistic function.
@@ -85,9 +168,7 @@ f(x) = (1 + \exp(-x))^{-1}
 ```
 """
 sigmoid(x::Var) = Var(sigmoid.(x.data), x.batchdims, sigmoid, (x,))
-
 sigmoid(x::Node; name="") = Node(sigmoid, (x,), name)
-
 sigmoid(x::T) where T<:AbstractFloat = 1 / (1 + exp(-x))
 
 function addgrad!(y::Var, ::typeof(sigmoid), x::Var)
@@ -100,20 +181,54 @@ function ∇sigmoid!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where
     end
 end
 
+"""
+    swish(x::Var, beta::Var)
+
+Swish activation function.
+
+```math
+f(x) = x \cdot \sigma (\beta x)
+```
+
+# References
+* Ramachandran et al. ["Searching for Activation Functions"](https://arxiv.org/abs/1710.05941), arXiv 2017.
+"""
+swish(x::Var, beta::Var) = Var(swish.(x.data,beta.data), x.batchdims, swish, (x,beta))
+swish(x::Node, beta::Var; name="") = Node(swish, (x,beta), name)
+swish(x::T, beta::T) where T = x * sigmoid(beta*x)
+
+function addgrad!(y::Var, ::typeof(swish), x::Var, beta::Var)
+    isvoid(x.grad) || ∇swish_x!(y.data, y.grad, x.data, x.grad, beta.data)
+    isvoid(beta.grad) || ∇swish_beta!(y.data, y.grad, x.data, beta.data, beta.grad)
+end
+
+function ∇swish_x!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}, beta::Vector{T}) where T
+    @inbounds for i = 1:length(x)
+        s = sigmoid(beta[1] * x[i])
+        gx[i] += gy[i] * (s + beta[1]*x[i] * s * (1-s))
+    end
+end
+
+function ∇swish_beta!(y::Array{T}, gy::Array{T}, x::Array{T}, beta::Vector{T}, gbeta::Vector{T}) where T
+    @inbounds for i = 1:length(gy)
+        s = sigmoid(beta[1] * x[i])
+        gbeta[1] += gy[i] * x[i] * x[i] * s * (1-s)
+    end
+end
+
 doc"""
     tanh(x)
 
 Hyperbolic tangent function.
 """
 tanh(x::Var) = Var(tanh.(x.data), x.batchdims, tanh, (x,))
-
 tanh(x::Node; name="") = Node(tanh, (x,), name)
 
 function addgrad!(y::Var, ::typeof(tanh), x::Var)
     isvoid(x.grad) || ∇tanh!(y.data, y.grad, x.data, x.grad)
 end
 
-function ∇tanh!{T}(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T})
+function ∇tanh!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
     @inbounds for i = 1:length(gx)
         gx[i] += gy[i] * (T(1) - y[i] * y[i])
     end

@@ -5,15 +5,16 @@ const T = Float32
     for i = 1:length(x.data)
         abs(x.data[i]) < 0.1 && (x.data[i] += 1)
     end
-    @testgrad elu(x) x
-    #@testgrad relu(x) x
-    #@testgrad leaky_relu(x) x
+    beta = Var([T(1)])
+
     @testgrad crelu(x) x
-    #@testgrad selu(x) x
+    @testgrad elu(x) x
+    @testgrad leaky_relu(x) x
+    @testgrad relu(x) x
+    @testgrad selu(x) x
     @testgrad sigmoid(x) x
-    #beta = Var([T(1)])
-    #@testgrad swish(x,beta) x beta
-    #@testgrad tanh(x) x
+    @testgrad swish(x,beta) x beta
+    @testgrad tanh(x) x
 end
 
 @testset "batchsort" for i = 1:5

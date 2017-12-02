@@ -44,15 +44,6 @@ include("optimizers/adam.jl")
 include("optimizers/sgd.jl")
 
 for name in [
-    #"activation/crelu",
-    #"activation/elu",
-    #"activation/relu",
-    #"activation/leaky_relu",
-    #"activation/selu",
-    #"activation/sigmoid",
-    #"activation/swish",
-    #"activation/tanh",
-
     "attention/add_attention",
 
     "conv/conv1d",
