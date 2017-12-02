@@ -113,50 +113,34 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Merlin.crelu",
+    "location": "functions.html#Merlin.crelu-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.crelu",
-    "category": "Function",
+    "category": "Method",
     "text": "crelu(x)\n\nConcatenated Rectified Linear Unit. The output is twice the size of the input.\n\nf(x) = (max(0x) max(0-x))\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Merlin.elu",
+    "location": "functions.html#Merlin.elu-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.elu",
-    "category": "Function",
+    "category": "Method",
     "text": "elu(x)\n\nExponential Linear Unit.\n\nf(x) =\nbegincases\nx  x  0 \nalpha (e^x-1)  xleq0\nendcases\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Merlin.relu",
-    "page": "Functions",
-    "title": "Merlin.relu",
-    "category": "Function",
-    "text": "relu(x)\n\nRectified Linear Unit.\n\nf(x) = max(0 x)\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.selu",
-    "page": "Functions",
-    "title": "Merlin.selu",
-    "category": "Function",
-    "text": "selu(x)\n\nScaled Exponential Linear Unit.\n\nf(x) = lambda\nbegincases\nx  x  0 \nalpha e^x-alpha  xleq0\nendcases\n\nReferences\n\nKlambauer et al., Self-Normalizing Neural Networks, NIPS 2017\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.sigmoid",
+    "location": "functions.html#Merlin.sigmoid-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.sigmoid",
-    "category": "Function",
+    "category": "Method",
     "text": "sigmoid(x)\n\nSigmoid logistic function.\n\nf(x) = (1 + exp(-x))^-1\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Base.tanh",
+    "location": "functions.html#Base.tanh-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Base.tanh",
-    "category": "Function",
+    "category": "Method",
     "text": "tanh(x)\n\nHyperbolic tangent function.\n\n\n\n"
 },
 
@@ -165,7 +149,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Activation",
     "category": "section",
-    "text": "crelu\nelu\nrelu\nselu\nsigmoid\ntanh"
+    "text": "Modules = [Merlin]\nPages   = [\"activation.jl\"]"
 },
 
 {
