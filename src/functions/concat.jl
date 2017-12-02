@@ -27,7 +27,6 @@ function concat(dim::Int, xs::Var...)
         y = cat(dim, map(x -> x.data, xs)...)
         Var(y, batchdims1, concat, (dim,xs...))
     end
-
 end
 
 concat(dim::Int, xs::Node...; name="") = Node(concat, (dim,xs...), name)

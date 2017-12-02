@@ -51,9 +51,9 @@ max
 max_batch
 ```
 
+## Misc
 ```@docs
-gemm
-gemv
+argmax
 batchsort
 concat
 getindex

@@ -46,7 +46,7 @@ doc"""
 Exponential Linear Unit.
 
 # References
-* Clevert et al., ["Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)"], arXiv 2015.
+* Clevert et al., ["Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)"](https://arxiv.org/abs/1511.07289), arXiv 2015.
 
 ```math
 f(x) =
@@ -137,7 +137,7 @@ x & x > 0 \\
 \alpha e^{x}-\alpha & x\leq0
 \end{cases}
 ```
-where ``\alpha=1.6733`` and ``\beta=1.0507``.
+where ``\lambda=1.0507`` and ``\alpha=1.6733``.
 
 # References
 Klambauer et al., ["Self-Normalizing Neural Networks"](https://arxiv.org/abs/1706.02515), NIPS 2017.

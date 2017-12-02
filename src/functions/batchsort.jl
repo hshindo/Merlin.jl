@@ -4,7 +4,6 @@ doc"""
     batchsort(x::Var, perm::Vector{Int})
 
 Sort batched data according to the permutation vector of indices.
-This is useful for sorting variable-length mini-batch data in e.g. descending order.
 
 # 👉 Example
 ```julia
