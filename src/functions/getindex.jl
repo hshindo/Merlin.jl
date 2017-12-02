@@ -35,7 +35,3 @@ function addgrad!(y::Var, ::typeof(getindex), x::Var, inds::Tuple)
         end
     end
 end
-
-validindex(dim::Int, ind::Int) = dim >= ind
-validindex(dim::Int, ind::Range) = dim >= last(ind)
-validindex(dim::Int, ind::Colon) = true
