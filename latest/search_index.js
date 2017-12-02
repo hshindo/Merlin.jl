@@ -117,7 +117,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.crelu",
     "category": "Method",
-    "text": "crelu(x)\n\nConcatenated Rectified Linear Unit. The output is twice the size of the input.\n\nf(x) = (max(0x) max(0-x))\n\n\n\n"
+    "text": "crelu(x::Var)\n\nConcatenated Rectified Linear Unit. The output is twice the size of the input.\n\nf(x) = (max(0x) max(0-x))\n\nReferences\n\nShang et al., \"Understanding and Improving Convolutional Neural Networks via Concatenated Rectified Linear Units\", arXiv 2016.\n\n\n\n"
 },
 
 {
@@ -125,7 +125,31 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.elu",
     "category": "Method",
-    "text": "elu(x)\n\nExponential Linear Unit.\n\nf(x) =\nbegincases\nx  x  0 \nalpha (e^x-1)  xleq0\nendcases\n\n\n\n"
+    "text": "elu(x::Var)\n\nExponential Linear Unit.\n\nReferences\n\nClevert et al., [\"Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)\"], arXiv 2015.\n\nf(x) =\nbegincases\nx  x  0 \nalpha (e^x-1)  xleq0\nendcases\n\nwhere alpha=1.\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Merlin.leaky_relu",
+    "page": "Functions",
+    "title": "Merlin.leaky_relu",
+    "category": "Function",
+    "text": "leaky_relu(x::Var, alpha::Float64=0.2)\n\nLeaky Rectified Linear Unit.\n\nf(x) =\nbegincases\nx  x  0 \nxalpha  x leq 0\nendcases\n\nReferences\n\nMaas et al., \"Rectifier Nonlinearities Improve Neural Network Acoustic Models\", ICML 2013.\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Merlin.relu-Tuple{Merlin.Var}",
+    "page": "Functions",
+    "title": "Merlin.relu",
+    "category": "Method",
+    "text": "relu(x::Var)\n\nRectified Linear Unit.\n\nf(x) = max(0 x)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Merlin.selu-Tuple{Merlin.Var}",
+    "page": "Functions",
+    "title": "Merlin.selu",
+    "category": "Method",
+    "text": "selu(x::Var)\n\nScaled Exponential Linear Unit.\n\nf(x) = lambda\nbegincases\nx  x  0 \nalpha e^x-alpha  xleq0\nendcases\n\nwhere alpha=16733 and beta=10507.\n\nReferences\n\nKlambauer et al., \"Self-Normalizing Neural Networks\", NIPS 2017\n\n\n\n"
 },
 
 {
@@ -134,6 +158,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Merlin.sigmoid",
     "category": "Method",
     "text": "sigmoid(x)\n\nSigmoid logistic function.\n\nf(x) = (1 + exp(-x))^-1\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Merlin.swish-Tuple{Merlin.Var,Merlin.Var}",
+    "page": "Functions",
+    "title": "Merlin.swish",
+    "category": "Method",
+    "text": "swish(x::Var, beta::Var)\n\nSwish activation function.\n\nf(x) = x cdot sigma (eta x)\n\nReferences\n\nRamachandran et al. \"Searching for Activation Functions\", arXiv 2017.\n\n\n\n"
 },
 
 {
