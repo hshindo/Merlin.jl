@@ -133,7 +133,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.leaky_relu",
     "category": "Function",
-    "text": "leaky_relu(x::Var, alpha::Float64=0.2)\n\nLeaky Rectified Linear Unit.\n\nf(x) =\nbegincases\nx  x  0 \nxalpha  x leq 0\nendcases\n\nReferences\n\nMaas et al., \"Rectifier Nonlinearities Improve Neural Network Acoustic Models\", ICML 2013.\n\n\n\n"
+    "text": "leaky_relu(x::Var, alpha::Float64=0.2)\n\nLeaky Rectified Linear Unit.\n\nf(x) =\nbegincases\nx  x  0 \nalpha x  x leq 0\nendcases\n\nReferences\n\nMaas et al., \"Rectifier Nonlinearities Improve Neural Network Acoustic Models\", ICML 2013.\n\n\n\n"
 },
 
 {
@@ -149,7 +149,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.selu",
     "category": "Method",
-    "text": "selu(x::Var)\n\nScaled Exponential Linear Unit.\n\nf(x) = lambda\nbegincases\nx  x  0 \nalpha e^x-alpha  xleq0\nendcases\n\nwhere alpha=16733 and beta=10507.\n\nReferences\n\nKlambauer et al., \"Self-Normalizing Neural Networks\", NIPS 2017\n\n\n\n"
+    "text": "selu(x::Var)\n\nScaled Exponential Linear Unit.\n\nf(x) = lambda\nbegincases\nx  x  0 \nalpha e^x-alpha  xleq0\nendcases\n\nwhere alpha=16733 and beta=10507.\n\nReferences\n\nKlambauer et al., \"Self-Normalizing Neural Networks\", NIPS 2017.\n\n\n\n"
 },
 
 {
@@ -161,11 +161,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Merlin.swish-Tuple{Merlin.Var,Merlin.Var}",
+    "location": "functions.html#Merlin.Swish",
     "page": "Functions",
-    "title": "Merlin.swish",
-    "category": "Method",
-    "text": "swish(x::Var, beta::Var)\n\nSwish activation function.\n\nf(x) = x cdot sigma (eta x)\n\nReferences\n\nRamachandran et al. \"Searching for Activation Functions\", arXiv 2017.\n\n\n\n"
+    "title": "Merlin.Swish",
+    "category": "Type",
+    "text": "Swish\n\nSwish activation function.\n\nf(x) = x cdot sigma (beta x)\n\nwhere beta is a leanable parameter.\n\nReferences\n\nRamachandran et al. \"Searching for Activation Functions\", arXiv 2017.\n\n\n\n"
 },
 
 {
@@ -173,7 +173,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.tanh",
     "category": "Method",
-    "text": "tanh(x)\n\nHyperbolic tangent function.\n\n\n\n"
+    "text": "tanh(x::Var)\n\nHyperbolic tangent function.\n\n\n\n"
 },
 
 {
