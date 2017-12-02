@@ -81,7 +81,7 @@ Leaky Rectified Linear Unit.
 f(x) =
 \begin{cases}
 x & x > 0 \\
-x/\alpha & x \leq 0
+\alpha x & x \leq 0
 \end{cases}
 ```
 
@@ -102,7 +102,7 @@ function ∇leaky_relu!(gy::Array{T}, x::Array{T}, gx::Array{T}, alpha::T) where
     end
 end
 
-"""
+doc"""
     relu(x::Var)
 
 Rectified Linear Unit.
@@ -140,7 +140,7 @@ x & x > 0 \\
 where ``\alpha=1.6733`` and ``\beta=1.0507``.
 
 # References
-Klambauer et al., ["Self-Normalizing Neural Networks"](https://arxiv.org/abs/1706.02515), NIPS 2017
+Klambauer et al., ["Self-Normalizing Neural Networks"](https://arxiv.org/abs/1706.02515), NIPS 2017.
 """
 selu(x::Var) = Var(selu.(x.data), x.batchdims, selu, (x,))
 selu(x::Node; name="") = Node(selu, (x,), name)
@@ -181,18 +181,25 @@ function ∇sigmoid!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where
     end
 end
 
-"""
-    swish(x::Var, beta::Var)
+doc"""
+    Swish
 
 Swish activation function.
 
 ```math
 f(x) = x \cdot \sigma (\beta x)
 ```
+where ``\beta`` is a leanable parameter.
 
 # References
 * Ramachandran et al. ["Searching for Activation Functions"](https://arxiv.org/abs/1710.05941), arXiv 2017.
 """
+struct Swish
+    beta::Var
+end
+Swish(::Type{T}) where T = Swish(zerograd(ones(T,1)))
+(f::Swish)(x) = swish(x, f.beta)
+
 swish(x::Var, beta::Var) = Var(swish.(x.data,beta.data), x.batchdims, swish, (x,beta))
 swish(x::Node, beta::Var; name="") = Node(swish, (x,beta), name)
 swish(x::T, beta::T) where T = x * sigmoid(beta*x)
@@ -217,7 +224,7 @@ function ∇swish_beta!(y::Array{T}, gy::Array{T}, x::Array{T}, beta::Vector{T},
 end
 
 doc"""
-    tanh(x)
+    tanh(x::Var)
 
 Hyperbolic tangent function.
 """
