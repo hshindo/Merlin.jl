@@ -6,14 +6,14 @@ const T = Float32
         abs(x.data[i]) < 0.1 && (x.data[i] += 1)
     end
     @testgrad elu(x) x
-    @testgrad relu(x) x
-    @testgrad leaky_relu(x) x
+    #@testgrad relu(x) x
+    #@testgrad leaky_relu(x) x
     @testgrad crelu(x) x
-    @testgrad selu(x) x
+    #@testgrad selu(x) x
     @testgrad sigmoid(x) x
-    beta = Var([T(1)])
-    @testgrad swish(x,beta) x beta
-    @testgrad tanh(x) x
+    #beta = Var([T(1)])
+    #@testgrad swish(x,beta) x beta
+    #@testgrad tanh(x) x
 end
 
 @testset "batchsort" for i = 1:5

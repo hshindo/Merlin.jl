@@ -44,14 +44,14 @@ include("optimizers/adam.jl")
 include("optimizers/sgd.jl")
 
 for name in [
-    "activation/crelu",
-    "activation/elu",
-    "activation/relu",
-    "activation/leaky_relu",
-    "activation/selu",
-    "activation/sigmoid",
-    "activation/swish",
-    "activation/tanh",
+    #"activation/crelu",
+    #"activation/elu",
+    #"activation/relu",
+    #"activation/leaky_relu",
+    #"activation/selu",
+    #"activation/sigmoid",
+    #"activation/swish",
+    #"activation/tanh",
 
     "attention/add_attention",
 
@@ -89,7 +89,7 @@ for name in [
     include("functions/$(name).jl")
     #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)
 end
-
+include("functions/activation.jl")
 include("functions/blas/gemv.jl")
 include("functions/blas/gemm.jl")
 

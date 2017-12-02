@@ -5,13 +5,9 @@ Pages = ["functions.md"]
 ```
 
 ## Activation
-```@docs
-crelu
-elu
-relu
-selu
-sigmoid
-tanh
+```@autodocs
+Modules = [Merlin]
+Pages   = ["activation.jl"]
 ```
 
 ## Convolution
