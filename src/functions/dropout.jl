@@ -1,18 +1,18 @@
 export dropout
 
 doc"""
-    dropout(x::Var, rate::Float64)
+    dropout(x::Var, rate::Float64, train::Bool)
 
-If config.train is true, drops elements randomly with probability ``rate`` and
+If `train` is true, drops elements randomly with probability ``rate`` and
 scales the other elements by factor ``1 / (1 - rate)``.
-Otherwise, it just returns x.
+Otherwise, it just returns `x`.
 """
 function dropout(x::Var, rate::Float64, train::Bool)
     if train
-        T = eltype(x.data)
-        rx = rand(eltype(x.data), length(x.data))
-        data = dropout(x.data, T(rate), rx)
-        Var(data, x.batchdims, dropout, (x,rate,rx))
+        T = eltype(x)
+        rx = rand(T, length(x.data))
+        y = dropout(x.data, T(rate), rx)
+        Var(y, x.batchdims, dropout, (x,rate,rx))
     else
         x
     end

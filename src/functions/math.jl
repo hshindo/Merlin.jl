@@ -12,7 +12,7 @@ function addgrad!(y::Var, ::typeof(exp), x::Var)
     isvoid(x.grad) || ∇exp!(y.data, y.grad, x.grad)
 end
 
-function ∇exp!{T}(y::Array{T}, gy::Array{T}, gx::Array{T})
+function ∇exp!(y::Array{T}, gy::Array{T}, gx::Array{T}) where T
     @inbounds for i = 1:length(gx)
         gx[i] += gy[i] * y[i]
     end
@@ -44,7 +44,7 @@ function addgrad!(y::Var, ::typeof(log), x::Var)
     isvoid(x.grad) || ∇log!(y.grad, x.data, x.grad)
 end
 
-function ∇log!{T}(gy::Array{T}, x::Array{T}, gx::Array{T})
+function ∇log!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
     @inbounds for i = 1:length(gx)
         gx[i] += gy[i] / x[i]
     end

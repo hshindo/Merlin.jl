@@ -2,23 +2,25 @@ export recurrent
 export LSTM, BiLSTM
 
 function recurrent(f, x::Var, h0::Var; rev=false)
+    batchdims = x.batchdims
     cumdims = Array{Int}(nbatchdims(x)+1)
     cumdims[1] = 1
     for i = 1:nbatchdims(x)
-        cumdims[i+1] = cumdims[i] + x.batchdims[i]
+        cumdims[i+1] = cumdims[i] + batchdims[i]
     end
-    perm = sortperm(x.batchdims, rev=true)
-    x = resize(x, [size(x)[end]])
+    perm = sortperm(batchdims, rev=true)
+    x = merge(x)
     h = h0
     for t = 1:batchdims[perm[1]]
         xts = Var[]
         for p in perm
-            t > x.batchdims[p] && break
+            t > batchdims[p] && break
             i = cumdims[p]
-            i += rev ? length(x.batchdims[p])-t : t-1
+            i += rev ? length(batchdims[p])-t : t-1
             push!(xts, x[:,i])
         end
         xt = concat(1, xts...)
+        xt = reshape(xt, size(xt), fill(size(xt,1)÷length(batchdims),length(batchdims)))
         xt = concat(1, xt, h)
         h = f(xt)
     end
@@ -80,9 +82,10 @@ end
 
 function (lstm::LSTM)(x::Var)
     c = lstm.c0
-    hcs = recurrent(x, lstm.h0) do
+    hcs = recurrent(x, lstm.h0) do xt
         a = linear(xt, lstm.WU, lstm.b)
-        n = size(h.data, 1)
+        n = batchsize(xt, 1) ÷ 4
+        println(n)
         f = sigmoid(a[1:n])
         i = sigmoid(a[n+1:2n])
         o = sigmoid(a[2n+1:3n])

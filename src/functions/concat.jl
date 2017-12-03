@@ -2,7 +2,6 @@ export concat
 
 """
     concat(dim::Int, xs::Var...)
-    concat(dim::Int, xs::Vector{Var})
 
 Concatenate arrays over the given dimension.
 
@@ -34,16 +33,16 @@ end
 concat(dim::Int, xs::Node...; name="") = Node(concat, (dim,xs...), name)
 
 function addgrad!(y::Var, ::typeof(concat), dim::Int, xs::Var...)
-    T, N = eltype(y), ndims(y)
-    offset = 1
-    for x in xs
-        s = size(x, dim)
-        if !isvoid(x.grad)
-            range = ntuple(N) do i
-                i == dim ? (offset:(offset+s-1)) : Colon()
-            end
-            BLAS.axpy!(T(1), y.grad[range...], x.grad)
+    n = maximum(nbatchdims, xs)
+    splits_x = map(xs) do x
+        nbatchdims(x) == 1 ? fill(x.grad,n) : unsafe_split(x.grad,x.batchdims)
+    end
+    splits_y = unsafe_split(y.grad, y.batchdims)
+    for s in zip(splits_y, splits_x...)
+        splitdims = [size(s[k],dim) for k=2:length(s)]
+        gys = split(s[1], dim, splitdims)
+        for j = 1:length(gys)
+            BLAS.axpy!(1, gys[j], s[j+1])
         end
-        offset += s
     end
 end

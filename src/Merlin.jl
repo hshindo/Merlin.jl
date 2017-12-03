@@ -49,11 +49,8 @@ for name in [
     "conv/conv1d",
     "conv/gated_conv1d",
 
-    "random/dropout",
-    
     "pairwise",
     "split",
-    "standardize"
     ]
     include("functions/$(name).jl")
     #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)
@@ -62,6 +59,7 @@ include("functions/activation.jl")
 include("functions/argmax.jl")
 include("functions/batchsort.jl")
 include("functions/concat.jl")
+include("functions/dropout.jl")
 include("functions/embeddings.jl")
 include("functions/getindex.jl")
 include("functions/linear.jl")
@@ -71,6 +69,7 @@ include("functions/recurrent.jl")
 include("functions/reduce.jl")
 include("functions/reshape.jl")
 include("functions/softmax.jl")
+include("functions/standardize.jl")
 
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")

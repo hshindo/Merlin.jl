@@ -32,8 +32,8 @@ end
 end
 
 @testset "concat" for i = 1:5
-    x1 = Var(randn(T,10,5,2))
-    x2 = Var(randn(T,10,5,2))
+    x1 = zerograd(randn(T,10,5,2))
+    x2 = zerograd(randn(T,10,5,2))
     for dim = 1:2
         @testgrad concat(dim,x1,x2) x1 x2
     end

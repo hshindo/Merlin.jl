@@ -1,4 +1,4 @@
-import Base.reshape
+import Base: reshape, merge
 
 doc"""
     reshape(x, dims::Tuple, batchdims::Vector{Int})
@@ -23,4 +23,28 @@ function addgrad!(y::Var, ::typeof(reshape), x::Var)
         T = eltype(x)
         BLAS.axpy!(T(1), y.grad, x.grad)
     end
+end
+
+doc"""
+    merge(x::Var)
+"""
+merge(x::Var) = reshape(x, size(x), [sum(x.batchdims)])
+
+merge(x::Node; name="") = Node(merge, (x,), name)
+
+doc"""
+    promote_size(x::Var)
+"""
+function promote_size(x::Var)
+    dims = x.batchdims
+    all(d -> d == dims[1], dims) || return x
+    s = Base.front(size(x))..., dims[1], size(x,ndims(x))÷dims[1]
+    reshape(x, s, [s[end]])
+end
+
+function promote_size(x::Array, batchdims::Vector{Int})
+    dims = batchdims
+    all(d -> d == dims[1], dims) || return x
+    s = Base.front(size(x))..., dims[1], size(x,ndims(x))÷dims[1]
+    reshape(x, s)
 end
