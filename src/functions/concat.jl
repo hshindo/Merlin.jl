@@ -16,7 +16,10 @@ y = concat(2, x1, x2)
 function concat(dim::Int, xs::Var...)
     N = ndims(xs[1])
     all(x -> ndims(x) == N, xs) || throw("All `ndims` must be the same: $(map(ndims,xs)).")
-    aa = map(x -> unsafe_split(x.data,x.batchdims), xs)
+    n = maximum(nbatchdims, xs)
+    aa = map(xs) do x
+        nbatchdims(x) == 1 ? fill(x.data,n) : unsafe_split(x.data,x.batchdims)
+    end
     ys = []
     for p in zip(aa...)
         push!(ys, cat(dim,p...))
