@@ -49,19 +49,8 @@ for name in [
     "conv/conv1d",
     "conv/gated_conv1d",
 
-    "loss/crossentropy",
-    "loss/l2",
-    "loss/mse",
-    "loss/softmax_crossentropy",
-
     "random/dropout",
-
-    "argmax",
-    "batchsort",
-    "concat",
-    "embeddings",
-    "linear",
-    "math",
+    
     "pairwise",
     "split",
     "standardize"
@@ -70,9 +59,14 @@ for name in [
     #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)
 end
 include("functions/activation.jl")
+include("functions/argmax.jl")
+include("functions/batchsort.jl")
+include("functions/concat.jl")
+include("functions/embeddings.jl")
 include("functions/getindex.jl")
-include("functions/blas/gemv.jl")
-include("functions/blas/gemm.jl")
+include("functions/linear.jl")
+include("functions/loss.jl")
+include("functions/math.jl")
 include("functions/recurrent.jl")
 include("functions/reduce.jl")
 include("functions/reshape.jl")

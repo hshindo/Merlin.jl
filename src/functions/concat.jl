@@ -17,31 +17,18 @@ function concat(dim::Int, xs::Var...)
     N = ndims(xs[1])
     all(x -> ndims(x) == N, xs) || throw("All `ndims` must be the same: $(map(ndims,xs)).")
     n = maximum(nbatchdims, xs)
-    aa = map(xs) do x
+    splits = map(xs) do x
         nbatchdims(x) == 1 ? fill(x.data,n) : unsafe_split(x.data,x.batchdims)
     end
     ys = []
-    for p in zip(aa...)
-        push!(ys, cat(dim,p...))
+    batchdims = Int[]
+    for s in zip(splits...)
+        y = cat(dim, s...)
+        push!(ys, y)
+        push!(batchdims, size(y,ndims(y)))
     end
-    cat(dim, ys...)
-
-    if dim == N
-        batchdims = Int[]
-        for x in xs
-             append!(batchdims, x.batchdims)
-        end
-        y = cat(dim, map(x -> x.data, xs)...)
-        Var(y, batchdims, concat, (dim,xs...))
-    elseif length(xs) == 2
-        nbatchdims(xs[1]) == 1
-
-
-        batchdims1 = xs[1].batchdims
-        all(x -> x.batchdims == batchdims1, xs) || throw("Batchdims are not the same: $(map(x -> x.batchdims, xs))")
-        y = cat(dim, map(x -> x.data, xs)...)
-        Var(y, batchdims1, concat, (dim,xs...))
-    end
+    y = cat(ndims(ys[1]), ys...)
+    Var(y, batchdims, concat, (dim,xs...))
 end
 
 concat(dim::Int, xs::Node...; name="") = Node(concat, (dim,xs...), name)
