@@ -1,11 +1,13 @@
 module CIFAR100
 
-using BinDeps
+import ..Datasets.unpack
 
 function getdata(dir::String)
     mkpath(dir)
-    path = download("https://www.cs.toronto.edu/~kriz/cifar-100-binary.tar.gz")
-    run(unpack_cmd(path,dir,".gz",".tar"))
+    url = "https://www.cs.toronto.edu/~kriz/cifar-100-binary.tar.gz"
+    println("Downloading $url...")
+    path = download(url)
+    run(unpack(path,dir,".gz",".tar"))
 end
 
 function readdata(data::Vector{UInt8})
