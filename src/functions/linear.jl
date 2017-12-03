@@ -16,6 +16,7 @@ f(x) = W^{T}x + b
 ```
 where ``W`` is a weight matrix and ``b`` is a bias vector.
 
+# Example
 ```julia
 T = Float32
 x = Var(rand(T,10,5))

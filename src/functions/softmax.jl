@@ -1,4 +1,4 @@
-export softmax
+export softmax, logsoftmax
 
 """
     softmax(x, dim::Int)
@@ -10,13 +10,12 @@ f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
 function softmax(x::Var)
-    data = softmax(x.data)
-    Var(data, x.batchdims, softmax, (x,))
+    Var(softmax(x.data), x.batchdims, softmax, (x,))
 end
 
 softmax(x::Node, name="") = Node(softmax, (x,), name)
 
-function softmax{T}(x::Vector{T})
+function softmax(x::Vector{T}) where T
     y = similar(x)
     maxv = x[1]
     @inbounds for i = 1:length(x)
@@ -35,7 +34,7 @@ function softmax{T}(x::Vector{T})
     y
 end
 
-function softmax{T}(x::Matrix{T})
+function softmax(x::Matrix{T}) where T
     y = similar(x)
     @inbounds for j = 1:size(x,2)
         maxv = x[1,j]
@@ -60,7 +59,7 @@ function addgrad!(y::Var, ::typeof(softmax), x::Var)
     isvoid(x.grad) || ∇softmax!(y.data, y.grad, x.grad)
 end
 
-function ∇softmax!{T}(y::Vector{T}, gy::Vector{T}, gx::Vector{T})
+function ∇softmax!(y::Vector{T}, gy::Vector{T}, gx::Vector{T}) where T
     sum = T(0)
     @inbounds for i = 1:length(y)
         sum += gy[i] * y[i]
@@ -70,7 +69,7 @@ function ∇softmax!{T}(y::Vector{T}, gy::Vector{T}, gx::Vector{T})
     end
 end
 
-function ∇softmax!{T}(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T})
+function ∇softmax!(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T}) where T
     @inbounds for j = 1:size(y,2)
         sum = T(0)
         for i = 1:size(y,1)
@@ -78,6 +77,47 @@ function ∇softmax!{T}(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T})
         end
         for i = 1:size(y,1)
             gx[i,j] += y[i,j] * (gy[i,j]-sum)
+        end
+    end
+end
+
+"""
+    logsoftmax(x)
+
+Logarithm of softmax function.
+"""
+logsoftmax(x::Var) = Var(logsoftmax(x.data), x.batchdims, logsoftmax, (x,))
+
+logsoftmax(x::Node; name="") = Node(logsoftmax, (x,), name)
+
+function logsoftmax(x::Matrix{T}) where T
+    y = similar(x)
+    max = maximum(x, 1)
+    @inbounds for j = 1:size(x,2)
+        sum = T(1e-10)
+        for i = 1:size(x,1)
+            sum += exp(x[i,j] - max[j])
+        end
+        logz = log(sum)
+        for i = 1:size(x,1)
+            y[i,j] = x[i,j] - max[j] - logz
+        end
+    end
+    y
+end
+
+function addgrad!(y::Var, ::typeof(logsoftmax), x::Var)
+    isvoid(x.grad) || ∇logsoftmax!(y.data, y.grad, x.grad)
+end
+
+function ∇logsoftmax!(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T}) where T
+    @inbounds for j = 1:size(y,2)
+        sum = T(0)
+        for i = 1:size(y,1)
+            sum += gy[i,j]
+        end
+        for i = 1:size(y,1)
+            gx[i,j] += gy[i,j] - exp(y[i,j]) * sum
         end
     end
 end

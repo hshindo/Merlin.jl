@@ -56,24 +56,13 @@ for name in [
 
     "random/dropout",
 
-    "reduction/max",
-    "reduction/sum",
-
-    "recurrent/lstm",
-    "recurrent/bilstm",
-
     "argmax",
     "batchsort",
     "concat",
     "embeddings",
-    "getindex",
     "linear",
-    "logsoftmax",
     "math",
     "pairwise",
-    "reshape",
-    "resize",
-    "softmax",
     "split",
     "standardize"
     ]
@@ -81,8 +70,13 @@ for name in [
     #isfile(joinpath(dirname(@__FILE__),cudafile)) && include(cudafile)
 end
 include("functions/activation.jl")
+include("functions/getindex.jl")
 include("functions/blas/gemv.jl")
 include("functions/blas/gemm.jl")
+include("functions/recurrent.jl")
+include("functions/reduce.jl")
+include("functions/reshape.jl")
+include("functions/softmax.jl")
 
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")

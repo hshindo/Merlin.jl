@@ -6,6 +6,7 @@ export concat
 
 Concatenate arrays over the given dimension.
 
+# Example
 ```julia
 x1 = Var(rand(Float32,4,3))
 x2 = Var(rand(Float32,4,5))
@@ -13,15 +14,26 @@ y = concat(2, x1, x2)
 ```
 """
 function concat(dim::Int, xs::Var...)
-    @assert all(x -> ndims(x) == ndims(xs[1]), xs)
-    if dim == ndims(xs[1])
+    N = ndims(xs[1])
+    all(x -> ndims(x) == N, xs) || throw("All `ndims` must be the same: $(map(ndims,xs)).")
+    aa = map(x -> unsafe_split(x.data,x.batchdims), xs)
+    ys = []
+    for p in zip(aa...)
+        push!(ys, cat(dim,p...))
+    end
+    cat(dim, ys...)
+
+    if dim == N
         batchdims = Int[]
         for x in xs
              append!(batchdims, x.batchdims)
         end
         y = cat(dim, map(x -> x.data, xs)...)
         Var(y, batchdims, concat, (dim,xs...))
-    else
+    elseif length(xs) == 2
+        nbatchdims(xs[1]) == 1
+
+
         batchdims1 = xs[1].batchdims
         all(x -> x.batchdims == batchdims1, xs) || throw("Batchdims are not the same: $(map(x -> x.batchdims, xs))")
         y = cat(dim, map(x -> x.data, xs)...)
