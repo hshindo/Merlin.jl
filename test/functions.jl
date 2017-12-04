@@ -17,12 +17,6 @@ const T = Float32
     @testgrad tanh(x) x
 end
 
-@testset "batchsort" for i = 1:5
-    x = Var(rand(T,10,15), [1,2,3,4,5])
-    perm = sortperm(x.batchdims, rev=true)
-    @testgrad batchsort(x,perm) x
-end
-
 @testset "blas" for i = 1:5
     A = Var(randn(T,10,5))
     x = Var(randn(T,10))

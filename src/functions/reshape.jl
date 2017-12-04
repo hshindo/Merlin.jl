@@ -32,9 +32,7 @@ merge(x::Var) = reshape(x, size(x), [sum(x.batchdims)])
 
 merge(x::Node; name="") = Node(merge, (x,), name)
 
-doc"""
-    promote_size(x::Var)
-"""
+#=
 function promote_size(x::Var)
     dims = x.batchdims
     all(d -> d == dims[1], dims) || return x
@@ -48,3 +46,4 @@ function promote_size(x::Array, batchdims::Vector{Int})
     s = Base.front(size(x))..., dims[1], size(x,ndims(x))÷dims[1]
     reshape(x, s)
 end
+=#

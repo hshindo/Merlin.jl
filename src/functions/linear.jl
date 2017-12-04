@@ -33,9 +33,7 @@ end
 (f::Linear)(x) = linear(x, f.W, f.b)
 
 function linear(x::Var, W::Var, b::Var)
-    xdata = x.data
-    ndims(x) == 1 && (xdata = promote_size(x.data, x.batchdims))
-    y = linear(xdata, W.data, b.data)
+    y = linear(x.data, W.data, b.data)
     Var(y, x.batchdims, linear, (x,W,b))
 end
 
@@ -48,12 +46,8 @@ function linear(x::Matrix, W::Matrix, b)
 end
 
 function addgrad!(y::Var, ::typeof(linear), x::Var, W::Var, b::Var)
-    xdata = x.data
-    ndims(x) == 1 && (xdata = promote_size(x.data, x.batchdims))
-    xgrad = x.grad
-    ndims(x) == 1 && (xgrad = isvoid(x.grad) ? nothing : promote_size(x.grad, x.batchdims))
     T = eltype(y)
-    isvoid(x.grad) || BLAS.gemm!('N', 'N', T(1), W.data, y.grad, T(1), xgrad)
-    isvoid(W.grad) || BLAS.gemm!('N', 'T', T(1), xdata, y.grad, T(1), W.grad)
+    isvoid(x.grad) || BLAS.gemm!('N', 'N', T(1), W.data, y.grad, T(1), x.grad)
+    isvoid(W.grad) || BLAS.gemm!('N', 'T', T(1), x.data, y.grad, T(1), W.grad)
     isvoid(b.grad) || BLAS.axpy!(T(1), sum(y.grad,2), b.grad)
 end

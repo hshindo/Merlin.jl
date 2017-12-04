@@ -20,8 +20,11 @@ function recurrent(f, x::Var, h0::Var; rev=false)
             push!(xts, x[:,i])
         end
         xt = concat(1, xts...)
-        xt = reshape(xt, size(xt), fill(size(xt,1)÷length(batchdims),length(batchdims)))
+        println(xt.batchdims)
         xt = concat(1, xt, h)
+        println(xt.batchdims)
+        xt = reshape(xt, size(xt), ones(Int,size(xt,2)))
+        println(xt.batchdims)
         h = f(xt)
     end
 end
