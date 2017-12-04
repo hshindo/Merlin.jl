@@ -19,12 +19,15 @@ function recurrent(f, x::Var, h0::Var; rev=false)
             i += rev ? length(batchdims[p])-t : t-1
             push!(xts, x[:,i])
         end
-        xt = concat(1, xts...)
+        xt = concat(2, xts...)
+        xt = reshape(xt, (length(xts[1]),length(xts)), ones(Int,length(xts)))
         println(xt.batchdims)
+        println(size(xt))
+        println(h.batchdims)
+        println(size(h))
         xt = concat(1, xt, h)
         println(xt.batchdims)
-        xt = reshape(xt, size(xt), ones(Int,size(xt,2)))
-        println(xt.batchdims)
+        println(size(xt))
         h = f(xt)
     end
 end
@@ -76,8 +79,8 @@ function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=Uniform(0.001), init_
     WU = cat(1, W, U)
     b = zeros(T, 4outsize)
     b[1:outsize] = ones(T, outsize) # forget gate initializes to 1
-    h0 = zeros(T, outsize)
-    c0 = zeros(T, outsize)
+    h0 = zeros(T, outsize, 1)
+    c0 = zeros(T, outsize, 1)
     LSTM(zerograd(WU), zerograd(b), zerograd(h0), zerograd(c0))
 end
 
@@ -87,8 +90,7 @@ function (lstm::LSTM)(x::Var)
     c = lstm.c0
     hcs = recurrent(x, lstm.h0) do xt
         a = linear(xt, lstm.WU, lstm.b)
-        n = batchsize(xt, 1) ÷ 4
-        println(n)
+        n = batchsize(xt,1)
         f = sigmoid(a[1:n])
         i = sigmoid(a[n+1:2n])
         o = sigmoid(a[2n+1:3n])
