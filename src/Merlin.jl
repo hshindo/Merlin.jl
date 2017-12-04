@@ -57,7 +57,6 @@ for name in [
 end
 include("functions/activation.jl")
 include("functions/argmax.jl")
-include("functions/batchsort.jl")
 include("functions/concat.jl")
 include("functions/dropout.jl")
 include("functions/embeddings.jl")
