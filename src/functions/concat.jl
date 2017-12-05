@@ -14,17 +14,10 @@ y = concat(2, x1, x2)
 """
 function concat(dim::Int, xs::Var...)
     N = ndims(xs[1])
-
     n = maximum(nbatchdims, xs)
     splits = map(xs) do x
         nbatchdims(x) == 1 ? fill(x.data,n) : unsafe_split(x.data,x.batchdims)
     end
-    y = similar(xs[1])
-    for i = 1:length(splits[1])
-        
-    end
-
-
     ys = []
     batchdims = Int[]
     for s in zip(splits...)

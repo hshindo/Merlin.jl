@@ -20,7 +20,12 @@ function recurrent(f, x::Var, h0::Var; rev=false)
             push!(xts, x[:,i])
         end
         xt = concat(2, xts...)
-        size(h,2) == size(xt,2) || (h = h[:,1:size(xt,2)])
+        if size(h,2) < size(xt,2)
+            @assert size(h,2) == 1
+            h = concat(2, ntuple(_ -> h, size(xt,2))...)
+        elseif size(h,2) > size(xt,2)
+            h = h[:,1:size(xt,2)]
+        end
         xt = concat(1, xt, h)
         h = f(xt)
     end
@@ -86,10 +91,20 @@ function (lstm::LSTM)(x::Var)
     h = recurrent(x, lstm.h0) do xt
         a = linear(xt, lstm.WU, lstm.b)
         n = size(a,1) ÷ 4
-        f = sigmoid(a[1:n])
-        i = sigmoid(a[n+1:2n])
-        o = sigmoid(a[2n+1:3n])
-        c = f .* c + i .* tanh(a[3n+1:4n])
+        f = sigmoid(a[1:n,:])
+        i = sigmoid(a[n+1:2n,:])
+        o = sigmoid(a[2n+1:3n,:])
+        if size(c,2) < size(xt,2)
+            @assert size(c,2) == 1
+            c = concat(2, ntuple(_ -> c, size(xt,2))...)
+        elseif size(c,2) > size(xt,2)
+            c = c[:,1:size(xt,2)]
+        end
+        println(size(c))
+        println(c.batchdims)
+        println(size(f))
+        println(f.batchdims)
+        c = f .* c + i .* tanh(a[3n+1:4n,:])
         h = o .* tanh(c)
         h
     end

@@ -1,4 +1,4 @@
-import Base: reshape, merge, repmat
+import Base: reshape, merge, repeat
 
 doc"""
     reshape(x, dims::Tuple, batchdims::Vector{Int})
@@ -32,12 +32,21 @@ merge(x::Var) = reshape(x, size(x), [sum(x.batchdims)])
 
 merge(x::Node; name="") = Node(merge, (x,), name)
 
-function repmat(x::Var, m::Int, n=1)
+doc"""
+    repeat(x::Var, nums::Int...)
+"""
+function repeat(x::Var, nums::Int...)
+    y = similar(x.data, ntuple(i -> size(x,i)*nums[i], length(nums)))
+    s = unsafe_split(x.data, x.batchdims)
+    for i = 1:length(s)
+        y[] = s[i]
+    end
+
     y = repmat(x.data, m, n)
-    Var(y, )
+    Var(y, x.batchdims, repmat, (x,m,n))
 end
 
-repmat(x::Node; name="") = Node(repmat, (x,), name)
+repmat(x::Node, m::Int, n::Int=1, name="") = Node(repmat, (x,m,n), name)
 
 #=
 function promote_size(x::Var)
