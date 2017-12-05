@@ -11,13 +11,14 @@ function recurrent(f, x::Var, h0::Var; rev=false)
     perm = sortperm(batchdims, rev=true)
     x = merge(x)
     h = h0
+    hs = Var[]
     for t = 1:batchdims[perm[1]]
         xts = Var[]
         for p in perm
             t > batchdims[p] && break
             i = cumdims[p]
             i += rev ? length(batchdims[p])-t : t-1
-            push!(xts, x[:,i])
+            push!(xts, x[:,i:i])
         end
         xt = concat(2, xts...)
         if size(h,2) < size(xt,2)
@@ -28,8 +29,9 @@ function recurrent(f, x::Var, h0::Var; rev=false)
         end
         xt = concat(1, xt, h)
         h = f(xt)
+        push!(hs, h)
     end
-    h
+    concat(2, hs...)
 end
 
 doc"""
@@ -100,10 +102,6 @@ function (lstm::LSTM)(x::Var)
         elseif size(c,2) > size(xt,2)
             c = c[:,1:size(xt,2)]
         end
-        println(size(c))
-        println(c.batchdims)
-        println(size(f))
-        println(f.batchdims)
         c = f .* c + i .* tanh(a[3n+1:4n,:])
         h = o .* tanh(c)
         h

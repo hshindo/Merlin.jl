@@ -40,7 +40,7 @@ end
 end
 
 @testset "index" for i = 1:5
-    x = Var(rand(T,10,10),[5,5])
+    x = Var(rand(T,10,10),[2,3,5])
     @testgrad x[1:3,:] x
 end
 
@@ -106,7 +106,7 @@ end
 end
 
 @testset "recurrent" for i = 1:5
-    x = Var(rand(T,20,10), [3,2,5])
+    x = Var(rand(T,20,10), [10])
     f = LSTM(T, 20, 20)
     @testgrad f(x) x
 end
@@ -121,13 +121,8 @@ end
 end
 
 @testset "reshape" for i = 1:5
-    x = Var(randn(T,10,5))
-    #@testgrad reshape(x,5,10) x
-end
-
-@testset "resize" for i = 1:5
     x = Var(randn(T,10,5),[2,3])
-    @testgrad resize(x,[4,1]) x
+    @testgrad reshape(x,(5,10),[2,3,5]) x
 end
 
 @testset "softmax" for i = 1:5
