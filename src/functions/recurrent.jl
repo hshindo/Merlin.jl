@@ -20,16 +20,11 @@ function recurrent(f, x::Var, h0::Var; rev=false)
             push!(xts, x[:,i])
         end
         xt = concat(2, xts...)
-        xt = reshape(xt, (length(xts[1]),length(xts)), ones(Int,length(xts)))
-        println(xt.batchdims)
-        println(size(xt))
-        println(h.batchdims)
-        println(size(h))
+        size(h,2) == size(xt,2) || (h = h[:,1:size(xt,2)])
         xt = concat(1, xt, h)
-        println(xt.batchdims)
-        println(size(xt))
         h = f(xt)
     end
+    h
 end
 
 doc"""
@@ -88,9 +83,9 @@ end
 
 function (lstm::LSTM)(x::Var)
     c = lstm.c0
-    hcs = recurrent(x, lstm.h0) do xt
+    h = recurrent(x, lstm.h0) do xt
         a = linear(xt, lstm.WU, lstm.b)
-        n = batchsize(xt,1)
+        n = size(a,1) ÷ 4
         f = sigmoid(a[1:n])
         i = sigmoid(a[n+1:2n])
         o = sigmoid(a[2n+1:3n])
@@ -98,6 +93,7 @@ function (lstm::LSTM)(x::Var)
         h = o .* tanh(c)
         h
     end
+    h
 end
 
 doc"""

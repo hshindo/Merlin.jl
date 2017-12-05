@@ -15,7 +15,7 @@ f(x) = (\max(0,x), \max(0,-x))
 * Shang et al., ["Understanding and Improving Convolutional Neural Networks via Concatenated Rectified Linear Units"](https://arxiv.org/abs/1603.05201), arXiv 2016.
 """
 function crelu(x::Var)
-    batchdims = ndims(x) == 1 ? 2*x.batchdims : x.batchdims
+    batchdims = nbatchdims(x) == 1 ? 2*x.batchdims : x.batchdims
     Var(crelu(x.data), batchdims, crelu, (x,))
 end
 crelu(x::Node; name="") = Node(crelu, (x,), name)

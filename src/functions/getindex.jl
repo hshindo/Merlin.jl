@@ -16,8 +16,8 @@ function getindex(x::Var, inds::Tuple)
     for xx in unsafe_split(x.data,x.batchdims)
         push!(ys, xx[inds...])
     end
-    y = cat(ndims(ys[1]), ys...)
-    batchdims = map(y -> size(y)[end], ys)
+    y = cat(ndims(x), ys...)
+    batchdims = map(y -> size(y,ndims(x)), ys)
     Var(y, batchdims, getindex, (x,inds))
 end
 getindex(x::Var, inds::Union{Int,Range,Colon}...) = getindex(x, inds)

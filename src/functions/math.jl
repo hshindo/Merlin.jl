@@ -193,7 +193,7 @@ doc"""
     \.\*(x1::Var, x2::Var)
 """
 function broadcast(::typeof(*), x1::Var, x2::Var)
-    @assert nbatchdims(x1) == 1 || nbatchdims(x2) == 1
+    #@assert nbatchdims(x1) == 1 || nbatchdims(x2) == 1
     y = x1.data .* x2.data
     batchdims = nbatchdims(x1) == 1 ? x2.batchdims : x1.batchdims
     Var(y, batchdims, broadcast, (*,x1,x2))
