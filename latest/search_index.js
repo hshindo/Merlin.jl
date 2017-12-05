@@ -309,7 +309,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.dropout",
     "category": "Function",
-    "text": "dropout(x::Var, rate::Float64)\n\nIf config.train is true, drops elements randomly with probability rate and scales the other elements by factor 1  (1 - rate). Otherwise, it just returns x.\n\n\n\n"
+    "text": "dropout(x::Var, rate::Float64, train::Bool)\n\nIf train is true, drops elements randomly with probability rate and scales the other elements by factor 1  (1 - rate). Otherwise, it just returns x.\n\n\n\n"
 },
 
 {
@@ -325,7 +325,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.BiLSTM",
     "category": "Type",
-    "text": "BiLSTM(x)\n\nBidirectional Long Short-Term Memory network.\n\n👉 Example\n\nx = Var(rand(Float32,10,5))\n\n\n\n"
+    "text": "BiLSTM(::Type{T}, insize::Int, outsize::Int, [init_W=Uniform(0.001), init_U=Orthogonal()])\n\nBi-directional Long Short-Term Memory network. See LSTM for more details.\n\n\n\n"
 },
 
 {
