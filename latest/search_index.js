@@ -437,7 +437,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Initializaters",
     "title": "Initializers",
     "category": "section",
-    "text": "Initializers provides a way to set the initial weights of Merlin functions.f = Linear(Float32, 100, 100, init_W=Xavier(), init_b=Fill(0))Pages = [\"initializers.md\"]Fill\nNormal\nOrthogonal\nUniform\nXavier"
+    "text": "Initializers provides a way to set the initial weights of Merlin functions.f = Linear(Float32, 100, 100, init_W=Xavier(), init_b=Fill(0))Pages = [\"initializers.md\"]Modules = [Merlin]\nPages   = [\"initializer.jl\"]"
 },
 
 {
@@ -449,11 +449,35 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "optimizers.html#Merlin.AdaGrad",
+    "page": "Optimizers",
+    "title": "Merlin.AdaGrad",
+    "category": "Type",
+    "text": "AdaGrad\n\nAdaGrad Optimizer.\n\nReferences\n\nDuchi t al., \"Adaptive Subgradient Methods for Online Learning and Stochastic Optimization\", JMLR 2011.\n\n\n\n"
+},
+
+{
+    "location": "optimizers.html#Merlin.Adam",
+    "page": "Optimizers",
+    "title": "Merlin.Adam",
+    "category": "Type",
+    "text": "Adam\n\nAdam Optimizer\n\nReferences\n\nKingma and Ba, \"Adam: A Method for Stochastic Optimization\", ICLR 2015.\n\n\n\n"
+},
+
+{
+    "location": "optimizers.html#Merlin.SGD",
+    "page": "Optimizers",
+    "title": "Merlin.SGD",
+    "category": "Type",
+    "text": "SGD\n\nStochastic Gradient Descent Optimizer.\n\nArguments\n\nrate: learning rate\n[momentum=0.0]: momentum coefficient\n[nesterov=false]: use nesterov acceleration or not\n\n\n\n"
+},
+
+{
     "location": "optimizers.html#Optimizers-1",
     "page": "Optimizers",
     "title": "Optimizers",
     "category": "section",
-    "text": "Optimizers provides a way to update the weights of Merlin.Var.x = zerograd(rand(Float32,5,4))\nopt = SGD(0.001)\nopt(x.data, x.grad)Pages = [\"optimizers.md\"]Adagrad\nAdam\nSGD"
+    "text": "Optimizers provides a way to update the weights of Merlin.Var.x = zerograd(rand(Float32,5,4))\nopt = SGD(0.001)\nopt(x)\nprintln(x.grad)Pages = [\"optimizers.md\"]Modules = [Merlin]\nPages   = [\"optimizer.jl\"]"
 },
 
 {
