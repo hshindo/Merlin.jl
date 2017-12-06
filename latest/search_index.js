@@ -337,6 +337,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#Base.max",
+    "page": "Functions",
+    "title": "Base.max",
+    "category": "Function",
+    "text": "max(x::Var, dim::Int)\n\nReturns the maximum value over the given dimension.\n\n👉 Example\n\nx = Var(rand(Float32,10,5))\ny = max(x, 1)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Merlin.max_batch",
+    "page": "Functions",
+    "title": "Merlin.max_batch",
+    "category": "Function",
+    "text": "max_batch(x::Var, dims::Vector{Int})\n\n\n\n"
+},
+
+{
     "location": "functions.html#Reduction-1",
     "page": "Functions",
     "title": "Reduction",
