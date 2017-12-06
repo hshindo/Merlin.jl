@@ -4,8 +4,7 @@ import Base: +, -, *, /, ^
 doc"""
     exp(x)
 """
-exp(x::Var) = Var(exp.(x.data), x.batchdims, exp, (x,))
-
+exp(x::Var) = Var(exp.(x.data), exp, (x,))
 exp(x::Node; name="") = Node(exp, (x,), name)
 
 function addgrad!(y::Var, ::typeof(exp), x::Var)
@@ -36,8 +35,7 @@ end
 doc"""
     log(x)
 """
-log(x::Var) = Var(log.(x.data), x.batchdims, log, (x,))
-
+log(x::Var) = Var(log.(x.data), log, (x,))
 log(x::Node; name="") = Node(log, (x,), name)
 
 function addgrad!(y::Var, ::typeof(log), x::Var)
@@ -82,7 +80,6 @@ function transpose(x::Var)
     end
     ys
 end
-
 transpose(x::Node; name="") = Node(transpose, (x,), name)
 
 function addgrad!(y::Var, ::typeof(transpose), x::Var, s::Int, e::Int)

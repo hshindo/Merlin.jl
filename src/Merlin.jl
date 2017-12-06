@@ -46,9 +46,6 @@ include("optimizers/sgd.jl")
 for name in [
     "attention/add_attention",
 
-    "conv/conv1d",
-    "conv/gated_conv1d",
-
     "pairwise",
     "split",
     ]
@@ -57,7 +54,9 @@ for name in [
 end
 include("functions/activation.jl")
 include("functions/argmax.jl")
-include("functions/concat.jl")
+include("functions/blas.jl")
+include("functions/cat.jl")
+include("functions/conv.jl")
 include("functions/dropout.jl")
 include("functions/embeddings.jl")
 include("functions/getindex.jl")

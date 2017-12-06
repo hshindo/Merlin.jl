@@ -15,17 +15,13 @@ Variable struct.
 """
 mutable struct Var
     data
-    batchdims
     f
     args
     grad
 end
 
-function Var(data, batchdims=nothing, f=nothing, args=(); grad=nothing)
-    if batchdims == nothing && isa(data,Array)
-        batchdims = [size(data,ndims(data))]
-    end
-    Var(data, batchdims, f, args, grad)
+function Var(data, f=nothing, args=(); grad=nothing)
+    Var(data, f, args, grad)
 end
 zerograd(data) = Var(data, grad=zeros(data))
 
@@ -36,54 +32,7 @@ Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
 Base.strides(x::Var) = strides(x.data)
 Base.stride(x::Var, i::Int) = stride(x.data, i)
-nbatchdims(x::Var) = length(x.batchdims)
 isvoid(x) = x == nothing
-
-doc"""
-    batchsize(x::Var)
-    batchsize(x::Var, i::Int)
-    batchsize(x::Node)
-    batchsize(x::Node, i::Int)
-"""
-batchsize(x::Var) = x.batchdims
-batchsize(x::Var, i::Int) = x.batchdims[i]
-batchsize(x::Node; name="") = Node(batchsize, (x,), name)
-batchsize(x::Node, i::Int; name="") = Node(batchsize, (x,i), name)
-
-function Base.unsafe_wrap(x::Var, i::Int)
-    s = stride(x, ndims(x))
-    ind = x.batchinds[i]
-    p = pointer(x.data, s*(ind-1)+1)
-    unsafe_wrap(Array, p, (front...,d))
-
-    m = prod(front)
-    cumdim = 0
-    ys = Array{T,N}[]
-    for d in splitdims
-
-        y = unsafe_wrap(Array, p, (front...,d))
-        push!(ys, y)
-        cumdim += d
-    end
-end
-
-function broadcast_batch(xs::Var...)
-    cumdims = zeros(Int, length(xs))
-    strides = map(x -> stride(x,ndims(x)), xs)
-    ys = Tuple[]
-    for i = 1:maximum(nbatchdims,xs)
-        a = ntuple(length(xs)) do k
-            x = xs[k]
-            s = strides[k]
-            ind = cumdims[k]
-            nbatchdims(x) == 1 && return x.data
-            p = pointer(x.data, s*ind+1)
-            unsafe_wrap(Array, p, (front...,d))
-        end
-        f(xs...)
-    end
-    cat(ys)
-end
 
 doc"""
     isparam(x::Var)::Bool

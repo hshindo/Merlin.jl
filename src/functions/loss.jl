@@ -19,15 +19,13 @@ y = crossentropy(p, q)
 ```
 """
 function crossentropy(p::Var, q::Var)
-    p.batchdims == q.batchdims || throw("Batchdims mismatch: $(p.batchdims) : $(q.batchdims)")
-    Var(crossentropy(p.data,q.data), q.batchdims, crossentropy, (p,q))
+    Var(crossentropy(p.data,q.data), crossentropy, (p,q))
 end
-
 crossentropy(p::Node, q::Node; name="") = Node(crossentropy, (p,q), name)
 
-function crossentropy{T}(p::Vector{Int}, q::Matrix{T})
+function crossentropy(p::Vector{Int}, q::Matrix{T}) where T
     y = Array{T}(length(p))
-    for i = 1:length(p)
+    @inbounds for i = 1:length(p)
         y[i] = p[i] > 0 ? -log(q[p[i],i]) : T(0)
     end
     y
@@ -37,7 +35,7 @@ function addgrad!(y::Var, ::typeof(crossentropy), p::Var, q::Var)
     isvoid(q.grad) || ∇crossentropy!(y.grad, p.data, q.data, q.grad)
 end
 
-function ∇crossentropy!{T}(gy::Vector{T}, p::Vector{Int}, q::Matrix{T}, gq::Matrix{T})
+function ∇crossentropy!(gy::Vector{T}, p::Vector{Int}, q::Matrix{T}, gq::Matrix{T}) where T
     @inbounds for i = 1:length(p)
         if p[i] > 0
             gq[p[i],i] -= gy[i] / q[p[i],i]
@@ -83,13 +81,13 @@ y = l2(x, 0.01)
 """
 function l2(x::Var, lambda::Float64)
     T = eltype(x)
-    lambda = T(lambda)
-    y = mapreduce(x -> x*x, +, x.data) * lambda / 2
-    Var([y], [1], l2, (x,lambda))
+    y = mapreduce(x -> x*x, +, x.data) * T(lambda) / 2
+    Var([y], l2, (x,lambda))
 end
 
-function addgrad!(y::Var, ::typeof(l2), x::Var, lambda)
-    isvoid(y.grad) || ∇l2!(y.grad, x.data, x.grad, lambda)
+function addgrad!(y::Var, ::typeof(l2), x::Var, lambda::Float64)
+    T = eltype(y)
+    isvoid(y.grad) || ∇l2!(y.grad, x.data, x.grad, T(lambda))
 end
 
 function ∇l2!(gy::Vector{T}, x::Array{T}, gx::Array{T}, lambda::T) where T
@@ -106,13 +104,11 @@ The mean is calculated over the minibatch.
 Note that the error is not scaled by 1/2.
 """
 function mse(x1::Var, x2::Var)
-    x1.batchdims == x2.batchdims || throw("Batchdims mismatch: $(x1.batchdims) : $(x2.batchdims)")
-    Var(mse(x1.data,x2.data), x1.batchdims, mse, (x1,x2))
+    Var(mse(x1.data,x2.data), mse, (x1,x2))
 end
-
 mse(x1::Node, x2::Node; name="") = Node(mse, (x1,x2), name)
 
-function mse{T}(x1::Matrix{T}, x2::Matrix{T})
+function mse(x1::Matrix{T}, x2::Matrix{T}) where T
     size(x1) == size(x2) || throw("Size unmatch.")
     y = similar(x1, size(x1,2))
     for j = 1:size(x1,2)
@@ -133,7 +129,7 @@ function addgrad!(y::Var, ::typeof(mse), x1::Var, x2::Var)
     ∇mse!(y.grad, x1.data, gx1, x2.data, gx2)
 end
 
-function ∇mse!{T}(gy::Vector{T}, x1::Matrix{T}, gx1::Matrix{T}, x2::Matrix{T}, gx2::Matrix{T})
+function ∇mse!(gy::Vector{T}, x1::Matrix{T}, gx1::Matrix{T}, x2::Matrix{T}, gx2::Matrix{T}) where T
     for j = 1:size(x1,2)
         for i = 1:size(x1,1)
             g = gy[j] * (x1[i,j]-x2[i,j]) * 2 / size(x1,1)
@@ -162,14 +158,12 @@ y = softmax_crossentropy(p, x)
 ```
 """
 function softmax_crossentropy(p::Var, x::Var)
-    p.batchdims == x.batchdims || throw("Batchdims mismatch: $(p.batchdims), $(x.batchdims)")
     y, logx = softmax_crossentropy(p.data, x.data)
-    Var(y, x.batchdims, softmax_crossentropy, (p,x,logx))
+    Var(y, softmax_crossentropy, (p,x,logx))
 end
-
 softmax_crossentropy(p::Node, x::Node; name="") = Node(softmax_crossentropy, (p,x), name)
 
-function softmax_crossentropy{T}(p::Vector{Int}, x::Matrix{T})
+function softmax_crossentropy(p::Vector{Int}, x::Matrix{T}) where T
     length(p) == size(x,2) || throw("Length unmatch.")
     logx = logsoftmax(x)
     y = Array{T}(length(p))
@@ -179,7 +173,7 @@ function softmax_crossentropy{T}(p::Vector{Int}, x::Matrix{T})
     y, logx
 end
 
-function softmax_crossentropy{T}(p::Matrix{T}, x::Matrix{T})
+function softmax_crossentropy(p::Matrix{T}, x::Matrix{T}) where T
     size(p) == size(x) || throw("Size mismatch.")
     logx = logsoftmax(x)
     y = Array{T}(size(p,2))
@@ -216,7 +210,7 @@ end
 end
 =#
 
-function ∇softmax_crossentropy!{T}(gy::Vector{T}, p::Vector{Int}, logq::Matrix{T}, gq::Matrix{T})
+function ∇softmax_crossentropy!(gy::Vector{T}, p::Vector{Int}, logq::Matrix{T}, gq::Matrix{T}) where T
     @inbounds for j = 1:length(p)
         p[j] > 0 || continue
         for i = 1:size(logq,1)
@@ -226,7 +220,7 @@ function ∇softmax_crossentropy!{T}(gy::Vector{T}, p::Vector{Int}, logq::Matrix
     end
 end
 
-function ∇softmax_crossentropy!{T}(gy::Vector{T}, p::Matrix{T}, logx::Matrix{T}, gx::Matrix{T})
+function ∇softmax_crossentropy!(gy::Vector{T}, p::Matrix{T}, logx::Matrix{T}, gx::Matrix{T}) where T
     @inbounds for j = 1:size(p,2)
         for i = 1:size(logx,1)
             gx[i,j] += gy[j] * (exp(logx[i,j]) - p[i,j])
@@ -234,7 +228,7 @@ function ∇softmax_crossentropy!{T}(gy::Vector{T}, p::Matrix{T}, logx::Matrix{T
     end
 end
 
-function ∇softmax_crossentropy!{T}(gy::Matrix{T}, p::Matrix{Int}, q::Matrix{T}, gq::Matrix{T})
+function ∇softmax_crossentropy!(gy::Matrix{T}, p::Matrix{Int}, q::Matrix{T}, gq::Matrix{T}) where T
     @inbounds for i = 1:length(p)
         p[i] > 0 || continue
         if q[p[i],i] < T(-1e-10) || q[p[i],i] > T(1e-10)

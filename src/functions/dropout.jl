@@ -12,7 +12,7 @@ function dropout(x::Var, rate::Float64, train::Bool)
         T = eltype(x)
         rx = rand(T, length(x.data))
         y = dropout(x.data, T(rate), rx)
-        Var(y, x.batchdims, dropout, (x,rate,rx))
+        Var(y, dropout, (x,rate,rx))
     else
         x
     end

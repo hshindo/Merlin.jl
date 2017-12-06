@@ -21,27 +21,29 @@ end
     A = Var(randn(T,10,5))
     x = Var(randn(T,10))
     B = Var(randn(T,10,5))
-    #@testgrad BLAS.gemv('T',1,A,x) A x
-    #@testgrad BLAS.gemm('T','N',1,A,B) A B
+    @testgrad BLAS.gemm('T','N',1,A,B) A B
+    @testgrad BLAS.gemv('T',1,A,x) A x
 end
 
-@testset "concat" for i = 1:5
+@testset "cat" for i = 1:5
     x1 = zerograd(randn(T,10,5,2))
     x2 = zerograd(randn(T,10,5,2))
-    for dim = 1:2
-        @testgrad concat(dim,x1,x2) x1 x2
+    for dim = 1:3
+        @testgrad cat(dim,x1,x2) x1 x2
     end
 end
 
 @testset "conv" for i = 1:5
-    x = Var(rand(T,10,15),[10,5])
+    x = Var(rand(T,10,15))
     f = Conv1D(T, 5, 10, 20, 2, 1)
-    @testgrad f(x) x f.W f.b
+    @testgrad f(x,[10,5]) x f.W f.b
 end
 
-@testset "index" for i = 1:5
-    x = Var(rand(T,10,10),[2,3,5])
+@testset "getindex" for i = 1:5
+    x = Var(rand(T,10,10))
     @testgrad x[1:3,:] x
+    @testgrad x[:,1:5] x
+    @testgrad x[3:7,2:8] x
 end
 
 @testset "linear" for i = 1:5
@@ -62,7 +64,7 @@ end
 
     p = Var(rand(1:10,5))
     q = Var(softmax(rand(T,10,5)))
-    # @testgrad crossentropy(p,q) q
+    #@testgrad crossentropy(p,q) q
 
     # softmax_crossentropy
     p1 = Var(rand(1:10,5))
@@ -70,77 +72,4 @@ end
     q = Var(rand(T,10,5))
     @testgrad softmax_crossentropy(p1,q) q
     @testgrad softmax_crossentropy(p2,q) q
-end
-
-@testset "math" for i = 1:5
-    x = Var(rand(T,10,5))
-    @testgrad exp(x) x
-    # @testgrad log(x) x
-    #@testgrad transpose(x) x
-    @testgrad -x x
-    #@testgrad x/2 x
-    # @testgrad x^3 x
-
-    x1 = Var(rand(T,10,5))
-    x2 = Var(rand(T,10,5))
-    @testgrad x1+x2 x1 x2
-    @testgrad x1-x2 x1 x2
-
-    x1.batchdims = [2,3]
-    x3 = Var(rand(T,10,1))
-    x4 = Var(rand(T,10))
-    x5 = Var(rand(T,5,4))
-
-    @testgrad x1.+x3 x1 x3
-    @testgrad x1.+x4 x1 x4
-    @testgrad x1.-x3 x1 x3
-    @testgrad x1.-x4 x1 x4
-    @testgrad x1.*x2 x1 x2
-    @testgrad x1.*x3 x1 x3
-end
-
-@testset "pairwise" for i = 1:5
-    x1 = Var(rand(T,5,4))
-    x2 = Var(rand(T,5,4))
-    @testgrad pairwise(x1,x2) x1 x2
-end
-
-@testset "recurrent" for i = 1:5
-    x = Var(rand(T,20,10), [10])
-    f = LSTM(T, 20, 20)
-    @testgrad f(x) x
-end
-
-@testset "reduction" for i = 1:5
-    x = Var(rand(T,10,15)+1, [5,10])
-    for dim = 1:ndims(x.data)
-        max(x, dim)
-        #@testgrad sum(x,dim) x
-        #@testgrad mean(x,dim) x
-    end
-end
-
-@testset "reshape" for i = 1:5
-    x = Var(randn(T,10,5),[2,3])
-    @testgrad reshape(x,(5,10),[2,3,5]) x
-end
-
-@testset "softmax" for i = 1:5
-    x1 = Var(randn(T,10))
-    x2 = Var(randn(T,10,5))
-    for x in (x1,x2)
-        @testgrad softmax(x) x
-        #@test checkgrad(()->logsoftmax(x), x, eps=1e-2)
-    end
-end
-
-@testset "split" for i = 1:5
-    x = Var(randn(T,10,5))
-    #@testgrad split(x,[2,3]) x
-end
-
-@testset "standardize" for i = 1:5
-    x = Var(randn(T,1,5)*3+2)
-    f = Standardize(T,size(x.data))
-    @testgrad f(x,true) x f.scale f.bias
 end

@@ -8,15 +8,14 @@ end
 function lookup(embeds::Vector{Var}, x::Var)
     y = lookup(embeds, x.data)
     xs = map(i -> embeds[i], vec(x.data))
-    Var(y, x.batchdims, lookup, (xs,))
+    Var(y, lookup, (xs,))
 end
 
 function lookup(w::Var, x::Var)
     @assert w.grad == nothing
     y = lookup(w.data, x.data)
-    Var(y, x.batchdims, lookup, ())
+    Var(y, lookup, ())
 end
-
 lookup(embeds::Vector{Var}, x::Node; name="") = Node(lookup, (embeds,x), name)
 lookup(w::Var, x::Node; name="") = Node(lookup, (w,x), name)
 
