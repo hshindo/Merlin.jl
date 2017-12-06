@@ -57,14 +57,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "var.html#Merlin.batchsize-Tuple{Merlin.Var}",
-    "page": "Var",
-    "title": "Merlin.batchsize",
-    "category": "Method",
-    "text": "batchsize(x::Var)\nbatchsize(x::Var, i::Int)\nbatchsize(x::Node)\nbatchsize(x::Node, i::Int)\n\n\n\n"
-},
-
-{
     "location": "var.html#Merlin.gradient!-Tuple{Merlin.Var}",
     "page": "Var",
     "title": "Merlin.gradient!",
