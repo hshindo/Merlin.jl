@@ -16,7 +16,6 @@ function cat(dim::Int, xs::Var...)
     y = cat(dim, map(x -> x.data, xs)...)
     Var(y, cat, (dim,xs...))
 end
-
 cat(dim::Int, xs::Node...; name="") = Node(cat, (dim,xs...), name)
 
 function addgrad!(y::Var, ::typeof(cat), dim::Int, xs::Var...)

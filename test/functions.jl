@@ -73,3 +73,60 @@ end
     @testgrad softmax_crossentropy(p1,q) q
     @testgrad softmax_crossentropy(p2,q) q
 end
+
+@testset "math" for i = 1:5
+    x = Var(rand(T,10,5))
+    @testgrad exp(x) x
+    # @testgrad log(x) x
+    #@testgrad transpose(x) x
+    @testgrad -x x
+    #@testgrad x/2 x
+    # @testgrad x^3 x
+
+    x1 = Var(rand(T,10,5))
+    x2 = Var(rand(T,10,5))
+    x3 = Var(rand(T,10,1))
+    x4 = Var(rand(T,5,4))
+    @testgrad x1+x2 x1 x2
+    @testgrad x1-x2 x1 x2
+    @testgrad x1.+x3 x1 x3
+    @testgrad x1.-x3 x1 x3
+    @testgrad x1.*x2 x1 x3
+    @testgrad x1*x4 x1 x4
+end
+
+@testset "recurrent" for i = 1:5
+    x = Var(rand(T,20,15))
+    f = LSTM(T, 20, 20)
+    @testgrad f(x,[2,3,5]) x
+end
+
+@testset "reduction" for i = 1:5
+    x = Var(rand(T,10,15)+1)
+    max_batch(x, [2,3,5])
+    for dim = 1:ndims(x.data)
+        max(x, dim)
+        #@testgrad sum(x,dim) x
+        #@testgrad mean(x,dim) x
+    end
+end
+
+@testset "reshape" for i = 1:5
+    x = Var(randn(T,10,5))
+    @testgrad reshape(x,5,10) x
+end
+
+@testset "softmax" for i = 1:5
+    x1 = Var(randn(T,10)+3)
+    x2 = Var(randn(T,10,5)+3)
+    for x in (x1,x2)
+        @testgrad softmax(x) x
+        #@testgrad logsoftmax(x) x
+    end
+end
+
+@testset "standardize" for i = 1:5
+    x = Var(randn(T,1,5)*3+2)
+    f = Standardize(T,size(x.data))
+    @testgrad f(x,true) x f.scale f.bias
+end

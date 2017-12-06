@@ -1,15 +1,13 @@
 export recurrent
 export LSTM, BiLSTM
 
-function recurrent(f, x::Var, h0::Var; rev=false)
-    batchdims = x.batchdims
-    cumdims = Array{Int}(nbatchdims(x)+1)
+function recurrent(f, x::Var, batchdims::Vector{Int}, h0::Var; rev=false)
+    cumdims = Array{Int}(length(batchdims)+1)
     cumdims[1] = 1
-    for i = 1:nbatchdims(x)
+    for i = 1:length(batchdims)
         cumdims[i+1] = cumdims[i] + batchdims[i]
     end
     perm = sortperm(batchdims, rev=true)
-    x = merge(x)
     h = h0
     hs = Var[]
     for t = 1:batchdims[perm[1]]
@@ -20,18 +18,18 @@ function recurrent(f, x::Var, h0::Var; rev=false)
             i += rev ? length(batchdims[p])-t : t-1
             push!(xts, x[:,i:i])
         end
-        xt = concat(2, xts...)
+        xt = cat(2, xts...)
         if size(h,2) < size(xt,2)
             @assert size(h,2) == 1
-            h = concat(2, ntuple(_ -> h, size(xt,2))...)
+            h = cat(2, ntuple(_ -> h, size(xt,2))...)
         elseif size(h,2) > size(xt,2)
             h = h[:,1:size(xt,2)]
         end
-        xt = concat(1, xt, h)
+        xt = cat(1, xt, h)
         h = f(xt)
         push!(hs, h)
     end
-    concat(2, hs...)
+    cat(2, hs...)
 end
 
 doc"""
@@ -85,12 +83,11 @@ function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=Uniform(0.001), init_
     c0 = zeros(T, outsize, 1)
     LSTM(zerograd(WU), zerograd(b), zerograd(h0), zerograd(c0))
 end
-
 (lstm::LSTM)(x::Node; name="") = Node(lstm, (x,), name)
 
-function (lstm::LSTM)(x::Var)
+function (lstm::LSTM)(x::Var, batchdims)
     c = lstm.c0
-    h = recurrent(x, lstm.h0) do xt
+    h = recurrent(x, batchdims, lstm.h0) do xt
         a = linear(xt, lstm.WU, lstm.b)
         n = size(a,1) ÷ 4
         f = sigmoid(a[1:n,:])
@@ -98,7 +95,7 @@ function (lstm::LSTM)(x::Var)
         o = sigmoid(a[2n+1:3n,:])
         if size(c,2) < size(xt,2)
             @assert size(c,2) == 1
-            c = concat(2, ntuple(_ -> c, size(xt,2))...)
+            c = cat(2, ntuple(_ -> c, size(xt,2))...)
         elseif size(c,2) > size(xt,2)
             c = c[:,1:size(xt,2)]
         end

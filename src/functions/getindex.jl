@@ -11,12 +11,8 @@ y = x[2:2]
 Note that `y = x[i]` throws an error since `y` is not a vector but a scholar.
 Instead, use `y = x[i:i]`.
 """
-function getindex(x::Var, inds::Tuple)
-    y = x.data[inds...]
-    Var(y, getindex, (x,inds))
-end
+getindex(x::Var, inds::Tuple) = Var(x.data[inds...], getindex, (x,inds))
 getindex(x::Var, inds...) = getindex(x, inds)
-
 getindex(x::Node, inds::Tuple; name="") = Node(getindex, (x,inds), name)
 
 function addgrad!(y::Var, ::typeof(getindex), x::Var, inds::Tuple)

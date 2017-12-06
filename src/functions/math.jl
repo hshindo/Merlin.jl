@@ -93,10 +93,7 @@ doc"""
     +(a::Number, x::Var)
     +(x::Var, a::Number)
 """
-function +(x1::Var, x2::Var)
-    x1.batchdims == x2.batchdims || throw("Batchdims mismatch.")
-    Var(x1.data + x2.data, x1.batchdims, +, (x1,x2))
-end
++(x1::Var, x2::Var) = Var(x1.data+x2.data, +, (x1,x2))
 +(x1::Union{Number,Array}, x2::Var) = Var(x1) + x2
 +(x1::Var, x2::Union{Number,Array}) = x1 + Var(x2)
 
@@ -113,24 +110,21 @@ end
 doc"""
     -(x1, x2)
 """
-function -(x1::Var, x2::Var)
-    x1.batchdims == x2.batchdims || throw("Batchdims mismatch.")
-    Var(x1.data - x2.data, x1.batchdims, -, (x1,x2))
-end
+-(x1::Var, x2::Var) = Var(x1.data-x2.data, -, (x1,x2))
 -(a::Number, x::Var) = Var(a) - x
 -(x::Var, a::Number) = x - Var(a)
--(x::Var) = Var(-x.data, x.batchdims, -, (x,))
-
+-(x::Var) = Var(-x.data, -, (x,))
 -(a::Number, x::Node; name="") = Node(-, (Var(a),x), name)
 -(x1::Node, x2::Node; name="") = Node(-, (x1,x2), name)
-#-(x::Node; name="") = Node(-, (x,), name)
+function -(x::Node; name="")
+    Node(-, (x,), name)
+end
 
 function addgrad!(y::Var, ::typeof(-), x1::Var, x2::Var)
     T = eltype(y)
     isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
     isvoid(x2.grad) || BLAS.axpy!(T(-1), y.grad, x2.grad)
 end
-
 function addgrad!(y::Var, ::typeof(-), x::Var)
     T = eltype(y)
     isvoid(x.grad) || BLAS.axpy!(T(-1), y.grad, x.grad)
@@ -139,21 +133,17 @@ end
 doc"""
     .+(x1::Var, x2::Var)
 """
-function broadcast(::typeof(+), x1::Var, x2::Var)
-    @assert nbatchdims(x1) == 1 || nbatchdims(x2) == 1
-    y = x1.data .+ x2.data
-    batchdims = nbatchdims(x1) == 1 ? x2.batchdims : x1.batchdims
-    Var(y, batchdims, broadcast, (+,x1,x2))
-end
-
+broadcast(::typeof(+), x1::Var, x2::Var) = Var(broadcast(+,x1.data,x2.data), broadcast, (+,x1,x2))
 broadcast(::typeof(+), x1::Node, x2::Node; name="") = Node(broadcast, (+,x1,x2), name)
+broadcast(::typeof(+), x1::Node, x2::Var; name="") = Node(broadcast, (+,x1,x2), name)
+broadcast(::typeof(+), x1::Var, x2::Node; name="") = Node(broadcast, (+,x1,x2), name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(+), x1::Var, x2::Var)
-    isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
-    isvoid(x2.grad) || ∇elemplus!(y.grad, x2.grad)
+    isvoid(x1.grad) || ∇broadcast_plus!(y.grad, x1.grad)
+    isvoid(x2.grad) || ∇broadcast_plus!(y.grad, x2.grad)
 end
 
-function ∇elemplus!(gy::Array{T}, gx::Array{T}) where T
+function ∇broadcast_plus!(gy::Array{T}, gx::Array{T}) where T
     dims = Int[]
     for i = 1:ndims(gy)
         size(gx,i) == 1 && size(gy,i) > 1 && push!(dims,i)
@@ -164,21 +154,17 @@ end
 doc"""
     .-(x1::Var, x2::Var)
 """
-function broadcast(::typeof(-), x1::Var, x2::Var)
-    @assert nbatchdims(x1) == 1 || nbatchdims(x2) == 1
-    y = x1.data .- x2.data
-    batchdims = nbatchdims(x1) == 1 ? x2.batchdims : x1.batchdims
-    Var(y, batchdims, broadcast, (-,x1,x2))
-end
-
+broadcast(::typeof(-), x1::Var, x2::Var) = Var(broadcast(-,x1.data,x2.data), broadcast, (-,x1,x2))
 broadcast(::typeof(-), x1::Node, x2::Node; name="") = Node(broadcast, (-,x1,x2), name)
+broadcast(::typeof(-), x1::Node, x2::Var; name="") = Node(broadcast, (-,x1,x2), name)
+broadcast(::typeof(-), x1::Var, x2::Node; name="") = Node(broadcast, (-,x1,x2), name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(-), x1::Var, x2::Var)
-    isvoid(x1.grad) || ∇elemplus!(y.grad, x1.grad)
-    isvoid(x2.grad) || ∇elemminus!(y.grad, x2.grad)
+    isvoid(x1.grad) || ∇broadcast_plus!(y.grad, x1.grad)
+    isvoid(x2.grad) || ∇broadcast_minus!(y.grad, x2.grad)
 end
 
-function ∇elemminus!(gy::Array{T}, gx::Array{T}) where T
+function ∇broadcast_minus!(gy::Array{T}, gx::Array{T}) where T
     dims = Int[]
     for i = 1:ndims(gy)
         size(gx,i) == 1 && size(gy,i) > 1 && push!(dims,i)
@@ -189,21 +175,17 @@ end
 doc"""
     \.\*(x1::Var, x2::Var)
 """
-function broadcast(::typeof(*), x1::Var, x2::Var)
-    #@assert nbatchdims(x1) == 1 || nbatchdims(x2) == 1
-    y = x1.data .* x2.data
-    batchdims = nbatchdims(x1) == 1 ? x2.batchdims : x1.batchdims
-    Var(y, batchdims, broadcast, (*,x1,x2))
-end
-
+broadcast(::typeof(*), x1::Var, x2::Var) = Var(broadcast(*,x1.data,x2.data), broadcast, (*,x1,x2))
 broadcast(::typeof(*), x1::Node, x2::Node; name="") = Node(broadcast, (*,x1,x2), name)
+broadcast(::typeof(*), x1::Node, x2::Var; name="") = Node(broadcast, (*,x1,x2), name)
+broadcast(::typeof(*), x1::Var, x2::Node; name="") = Node(broadcast, (*,x1,x2), name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(*), x1::Var, x2::Var)
-    isvoid(x1.grad) || ∇elemtimes!(y.grad, x2.data, x1.grad)
-    isvoid(x2.grad) || ∇elemtimes!(y.grad, x1.data, x2.grad)
+    isvoid(x1.grad) || ∇broadcast_times!(y.grad, x2.data, x1.grad)
+    isvoid(x2.grad) || ∇broadcast_times!(y.grad, x1.data, x2.grad)
 end
 
-function ∇elemtimes!(gy::Array{T}, x2::Array{T}, gx1::Array{T}) where T
+function ∇broadcast_times!(gy::Array{T}, x2::Array{T}, gx1::Array{T}) where T
     g = gy .* x2
     dims = Int[]
     for i = 1:ndims(gy)
@@ -248,16 +230,10 @@ end
 doc"""
     \*(A::Var, B::Var)
 """
-function *(A::Var, B::Var)
-    if length(A.batchdims) == 1
-        y = A.data * B.data
-        Var(y, B.batchdims, *, (A,B))
-    else
-        throw("Not implemented yet.")
-    end
-end
-
+*(A::Var, B::Var) = Var(*(A.data,B.data), *, (A,B))
 *(A::Node, B::Node; name="") = Node(*, (A,B), name)
+*(A::Var, B::Node; name="") = Node(*, (A,B), name)
+*(A::Node, B::Var; name="") = Node(*, (A,B), name)
 
 function addgrad!(C::Var, ::typeof(*), A::Var, B::Var)
     T = eltype(C)
@@ -268,8 +244,7 @@ end
 doc"""
     /(x1::Var, a)
 """
-/(x::Var, a::Number) = Var(x.data, x.batchdims, /, (x,a))
-
+/(x::Var, a::Number) = Var(x.data, /, (x,a))
 /(x::Node, a::Number; name="") = Node(/, (x,a), name)
 
 function addgrad!(y::Var, ::typeof(/), x::Var, a::Number)
@@ -277,7 +252,7 @@ function addgrad!(y::Var, ::typeof(/), x::Var, a::Number)
     isvoid(x.grad) || ∇divide!(y.grad, x.grad, T(a))
 end
 
-function ∇divide!{T}(gy::Array{T}, gx::Array{T}, a::T)
+function ∇divide!(gy::Array{T}, gx::Array{T}, a::T) where T
     @inbounds for i = 1:length(gy)
         gx[i] += gy[i] / a
     end
@@ -286,7 +261,7 @@ end
 doc"""
     ^(x::Var, a::Number)
 """
-^(x::Var, a::Number) = Var(x.data ^ a, ^, (x,a))
+^(x::Var, a::Number) = Var(x.data^a, ^, (x,a))
 ^(x::Node, a::Number; name="") = Node(^, (x,a), name)
 
 function addgrad!(y::Var, ::typeof(^), x::Var, a::Number)
@@ -294,7 +269,7 @@ function addgrad!(y::Var, ::typeof(^), x::Var, a::Number)
     isvoid(x.grad) || ∇elempow!(T(a), x.data, x.grad, y.data, y.grad)
 end
 
-function ∇elempow!{T}(a::T, x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
+function ∇elempow!(a::T, x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T}) where T
    @inbounds for i = 1:length(gx)
        gx[i] += gy[i] * a * y[i] / x[i]
    end

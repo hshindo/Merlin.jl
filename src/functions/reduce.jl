@@ -1,4 +1,5 @@
 import Base: max, mean, sum
+export max_batch
 
 doc"""
     max(x::Var, dim::Int)
@@ -12,28 +13,40 @@ y = max(x, 1)
 ```
 """
 function max(x::Var, dim::Int)
-    if dim == ndims(x)
-        y, idx = max_batch(x.data, x.batchdims)
-        batchdims = ones(Int, length(x.batchdims))
-    else
-        y, idx = findmax(x.data, dim)
-        batchdims = x.batchdims
-    end
-    Var(y, batchdims, max, (x,idx))
+    y, idx = findmax(x.data, dim)
+    Var(y, max, (x,idx))
 end
-
 max(x::Node, dim::Int; name="") = Node(max, (x,dim), name)
 
-function max_batch(x::Array{T,N}, batchdims::Vector{Int}) where {T,N}
+function addgrad!(y::Var, ::typeof(max), x::Var, idx)
+    isvoid(x.grad) || ∇max!(y.grad, x.grad, idx)
+end
+
+function ∇max!(gy::Array{T}, gx::Array{T}, idx::Array{Int}) where T
+    for i = 1:length(idx)
+        gx[idx[i]] += gy[i]
+    end
+end
+
+doc"""
+    max_batch(x::Var, dims::Vector{Int})
+"""
+function max_batch(x::Var, dims::Vector{Int})
+    y, idx = max_batch(x.data, dims)
+    Var(y, max, (x,idx))
+end
+max_batch(x::Node, dims::Vector{Int}; name="") = Node(max_batch, (x,dims), name)
+
+function max_batch(x::Array{T,N}, dims::Vector{Int}) where {T,N}
     front = Base.front(size(x))
     n = prod(front)
     y = T[]
     idx = Int[]
 
     cumdim = 0
-    for i = 1:length(batchdims)
+    for i = 1:length(dims)
         p = pointer(x, n*cumdim+1)
-        subx = unsafe_wrap(Array, p, (front...,batchdims[i]))
+        subx = unsafe_wrap(Array, p, (front...,dims[i]))
 
         val, index = findmax(subx, N)
         for k = 1:length(index)
@@ -41,20 +54,14 @@ function max_batch(x::Array{T,N}, batchdims::Vector{Int}) where {T,N}
         end
         append!(y, val)
         append!(idx, index)
-        cumdim += batchdims[i]
+        cumdim += dims[i]
     end
-    y = reshape(y, front..., length(batchdims))
+    y = reshape(y, front..., length(dims))
     y, idx
 end
 
-function addgrad!(y::Var, ::typeof(max), x::Var, idx)
+function addgrad!(y::Var, ::typeof(max_batch), x::Var, idx)
     isvoid(x.grad) || ∇max!(y.grad, x.grad, idx)
-end
-
-function ∇max!{T}(gy::Array{T}, gx::Array{T}, idx::Array{Int})
-    for i = 1:length(idx)
-        gx[idx[i]] += gy[i]
-    end
 end
 
 doc"""
@@ -107,10 +114,5 @@ doc"""
 Returns the sum over the given dimension.
 """
 function sum(x::Var, dim::Int)
-    y = Var(nothing, sum, (x,dim))
-    y.data = sum(x.data, dim)
-    y.df! = () -> begin
-        isvoid(x.grad) || broadcast!(+, x.grad, x.grad, y.grad)
-    end
-    y
+    throw("Not implemented yet.")
 end
