@@ -15,7 +15,6 @@ end
 
 AdaGrad(alpha::Float64) = AdaGrad(alpha, ObjectIdDict())
 
-(opt::AdaGrad)(x::Var) = opt(x.data, x.grad)
 function (opt::AdaGrad)(value::Array{T}, grad::Array{T}) where T
     state = get!(opt.states, value, nothing)
     if state == nothing
@@ -53,7 +52,6 @@ end
 Adam() = Adam(0.001, 0.9, 0.999, 1e-8, ObjectIdDict())
 Adam(alpha)= Adam(alpha, 0.9, 0.999, 1e-8, ObjectIdDict())
 
-(opt::Adam)(x::Var) = opt(x.data, x.grad)
 function (opt::Adam)(param::Array{T}, grad::Array{T}) where T
     @assert length(param) == length(grad)
     state = get!(opt.states, param, nothing)
@@ -78,6 +76,7 @@ function (opt::Adam)(param::Array{T}, grad::Array{T}) where T
     opt.states[param] = (m, v, t + 1)
     fill!(grad, T(0.0))
 end
+(opt::Adam)(x::Var) = opt(x.data, x.grad)
 
 function update_slow!{T}(opt::Adam, param::Array{T}, grad::Array{T})
     state = get!(opt.states, param, nothing)
