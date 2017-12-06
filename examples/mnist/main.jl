@@ -1,13 +1,12 @@
 using Merlin
+using Merlin.Datasets.MNIST
 using ProgressMeter
 using JLD2, FileIO
-
-include("MNIST.jl")
 
 function main()
     nepochs = 10
     training = true
-    datapath = joinpath(dirname(@__FILE__), ".data")
+    datapath = joinpath(@__DIR__, ".data")
     traindata = setup_data(MNIST.traindata(datapath)...)
     testdata = setup_data(MNIST.testdata(datapath)...)
     savefile = "mnist_epoch$(nepochs).jld2"

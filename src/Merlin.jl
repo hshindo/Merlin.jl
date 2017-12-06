@@ -39,9 +39,7 @@ include("initializers/orthogonal.jl")
 include("initializers/uniform.jl")
 include("initializers/xavier.jl")
 
-include("optimizers/adagrad.jl")
-include("optimizers/adam.jl")
-include("optimizers/sgd.jl")
+include("optimizer.jl")
 
 for name in [
     "attention/add_attention",
