@@ -9,10 +9,7 @@ f = Linear(Float32, 100, 100, init_W=Xavier(), init_b=Fill(0))
 Pages = ["initializers.md"]
 ```
 
-```@docs
-Fill
-Normal
-Orthogonal
-Uniform
-Xavier
+```@autodocs
+Modules = [Merlin]
+Pages   = ["initializer.jl"]
 ```

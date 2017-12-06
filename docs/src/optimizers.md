@@ -4,15 +4,15 @@ Optimizers provides a way to update the weights of `Merlin.Var`.
 ```julia
 x = zerograd(rand(Float32,5,4))
 opt = SGD(0.001)
-opt(x.data, x.grad)
+opt(x)
+println(x.grad)
 ```
 
 ```@index
 Pages = ["optimizers.md"]
 ```
 
-```@docs
-Adagrad
-Adam
-SGD
+```@autodocs
+Modules = [Merlin]
+Pages   = ["optimizer.jl"]
 ```
