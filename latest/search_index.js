@@ -49,14 +49,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "var.html#Merlin.batch-Tuple{Array{Merlin.Var,1},Int64}",
-    "page": "Var",
-    "title": "Merlin.batch",
-    "category": "Method",
-    "text": "batch(data::Vector{Var}, batchsize::Int)\nbatch(data::Vector{NTuple{N,Var}}, batchsize::Int) where N\n\nCreate batch from variables.\n\n\n\n"
-},
-
-{
     "location": "var.html#Merlin.gradient!-Tuple{Merlin.Var}",
     "page": "Var",
     "title": "Merlin.gradient!",
