@@ -96,7 +96,6 @@ function update_slow!{T}(opt::Adam, param::Array{T}, grad::Array{T})
     opt.states[param] = (m, v, t + 1)
     fill!(grad, T(0.0))
 end
-(opt::Adam)(x::Var) = opt(x.data, x.grad)
 
 """
     SGD
