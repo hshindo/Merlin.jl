@@ -31,13 +31,13 @@ end
 function setup_model()
     T = Float32
     hsize = 1000
-    x = Node(name="x")
-    h = Linear(T,28*28,hsize)(x)
-    h = relu(h)
-    h = Linear(T,hsize,hsize)(h)
-    h = relu(h)
-    h = Linear(T,hsize,10)(h)
-    Graph(h)
+    x = Node("x")
+    x = Linear(T,28*28,hsize)(x)
+    x = relu(x)
+    x = Linear(T,hsize,hsize)(x)
+    x = relu(x)
+    x = Linear(T,hsize,10)(x)
+    Graph(x)
 end
 
 function train(traindata::Vector, testdata::Vector, model, nepochs::Int)

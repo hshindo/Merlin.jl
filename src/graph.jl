@@ -7,7 +7,7 @@ mutable struct Node
     id::Int
 end
 
-Node(; name="") = Node(nothing, (), name)
+Node(name::String) = Node(nothing, (), name)
 Node(f, args, name) = Node(f, args, name, 0)
 
 struct Graph

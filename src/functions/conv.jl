@@ -37,7 +37,7 @@ function (f::Conv1D)(x::Var, batchdims::Vector{Int})
     y = linear(h, f.W.data, f.b.data)
     Var(y, f, (x,batchdims,h))
 end
-(f::Conv1D)(x::Node, batchdims::Vector{Int}; name="") = Node(f, (x,batchdims), name)
+(f::Conv1D)(x::Node, batchdims::Node; name="") = Node(f, (x,batchdims), name)
 
 function addgrad!(y::Var, f::Conv1D, x::Var, batchdims::Vector{Int}, h)
     gh = zeros(h)
