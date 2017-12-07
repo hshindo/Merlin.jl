@@ -1,5 +1,5 @@
 export Var
-export zerograd, batch, batchsize, isvoid, isparam, gradient!, nbatchdims
+export zerograd, isvoid, isparam, gradient!
 
 doc"""
     Var
@@ -86,6 +86,7 @@ function gradient!(top::Var)
     filter(isparam, sorted)
 end
 
+#=
 doc"""
     batch(data::Vector{Var}, batchsize::Int)
     batch(data::Vector{NTuple{N,Var}}, batchsize::Int) where N
@@ -118,3 +119,4 @@ function batch(data::Vector{NTuple{N,Var}}, batchsize::Int) where N
     end
     collect(zip(res...))
 end
+=#
