@@ -13,13 +13,10 @@ Node(f, args, name) = Node(f, args, name, 0)
 struct Graph
     nodes::Vector{Node} # topological order
     dict::Dict{String,Node}
-    input::Tuple
     output::Tuple
 end
 
-function Graph(; input=(), output=())
-    isa(input,Tuple) || (input = (input,))
-    isa(output,Tuple) || (output = (output,))
+function Graph(output::Node...)
     nodes = topsort(output...)
     node2id = Dict(nodes[i]=>i for i=1:length(nodes))
     dict = Dict{String,Node}()
@@ -31,19 +28,17 @@ function Graph(; input=(), output=())
         node.id = i
         isempty(node.name) || (dict[node.name] = node)
     end
-    input = map(x -> node2id[x], input)
     output = map(x -> node2id[x], output)
-    Graph(nodes, dict, input, output)
+    Graph(nodes, dict, output)
 end
 
 Base.getindex(g::Graph, i::Int) = g.nodes[i]
 Base.getindex(g::Graph, s::String) = g.dict[s]
 
-function (g::Graph)(xs...)
-    @assert length(xs) == length(g.input)
+function (g::Graph)(xs::Pair...)
     temps = Array{Any}(length(g.nodes))
-    for i = 1:length(xs)
-        temps[g.input[i]] = xs[i]
+    for x in xs
+        temps[g.dict[x[1]].id] = x[2]
     end
     for i = 1:length(g.nodes)
         node = g.nodes[i]

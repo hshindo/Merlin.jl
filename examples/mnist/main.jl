@@ -31,13 +31,13 @@ end
 function setup_model()
     T = Float32
     hsize = 1000
-    x = Node()
+    x = Node(name="x")
     h = Linear(T,28*28,hsize)(x)
     h = relu(h)
     h = Linear(T,hsize,hsize)(h)
     h = relu(h)
     h = Linear(T,hsize,10)(h)
-    Graph(input=x, output=h)
+    Graph(h)
 end
 
 function train(traindata::Vector, testdata::Vector, model, nepochs::Int)
@@ -47,7 +47,7 @@ function train(traindata::Vector, testdata::Vector, model, nepochs::Int)
         prog = Progress(length(traindata))
         loss = 0.0
         for (x,y) in shuffle!(traindata)
-            h = model(Var(x))
+            h = model("x"=>Var(x))
             y = softmax_crossentropy(Var(y), h)
             loss += sum(y.data)
             params = gradient!(y)
@@ -66,7 +66,7 @@ function test(model, data::Vector)
     golds = Int[]
     preds = Int[]
     for (x,y) in data
-        h = model(Var(x))
+        h = model("x"=>Var(x))
         z = argmax(h.data, 1)
         append!(golds, y)
         append!(preds, z)
