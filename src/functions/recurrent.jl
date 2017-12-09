@@ -2,6 +2,7 @@ export recurrent
 export LSTM, BiLSTM
 
 function recurrent(f, x::Var, batchdims::Vector{Int}, h0::Var; rev=false)
+    @assert sum(batchdims) == size(x,2)
     cumdims = Array{Int}(length(batchdims)+1)
     cumdims[1] = 1
     for i = 1:length(batchdims)
@@ -9,7 +10,7 @@ function recurrent(f, x::Var, batchdims::Vector{Int}, h0::Var; rev=false)
     end
     perm = sortperm(batchdims, rev=true)
     h = h0
-    hs = Var[]
+    hs = Array{Var}(size(x,2))
     for t = 1:batchdims[perm[1]]
         xts = Var[]
         for p in perm
@@ -27,7 +28,13 @@ function recurrent(f, x::Var, batchdims::Vector{Int}, h0::Var; rev=false)
         end
         xt = cat(1, xt, h)
         h = f(xt)
-        push!(hs, h)
+        for j = 1:length(perm)
+            p = perm[j]
+            t > batchdims[p] && break
+            i = cumdims[p]
+            i += rev ? batchdims[p]-t : t-1
+            hs[i] = h[:,j:j]
+        end
     end
     cat(2, hs...)
 end
@@ -73,7 +80,7 @@ mutable struct LSTM
     c0::Var
 end
 
-function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=Uniform(0.001), init_U=Orthogonal()) where T
+function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=Xavier(), init_U=Orthogonal()) where T
     W = init_W(T, insize, 4outsize)
     U = init_U(T, insize, 4outsize)
     WU = cat(1, W, U)
