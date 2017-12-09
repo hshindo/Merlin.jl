@@ -99,6 +99,8 @@ end
     x = Var(rand(T,20,15))
     f = LSTM(T, 20, 20)
     @testgrad f(x,[2,3,5]) x
+    f = BiLSTM(T, 20, 20)
+    @testgrad f(x,[2,3,5]) x
 end
 
 @testset "reduction" for i = 1:5

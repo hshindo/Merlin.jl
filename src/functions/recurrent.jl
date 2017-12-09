@@ -15,7 +15,7 @@ function recurrent(f, x::Var, batchdims::Vector{Int}, h0::Var; rev=false)
         for p in perm
             t > batchdims[p] && break
             i = cumdims[p]
-            i += rev ? length(batchdims[p])-t : t-1
+            i += rev ? batchdims[p]-t : t-1
             push!(xts, x[:,i:i])
         end
         xt = cat(2, xts...)
@@ -83,11 +83,11 @@ function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=Uniform(0.001), init_
     c0 = zeros(T, outsize, 1)
     LSTM(zerograd(WU), zerograd(b), zerograd(h0), zerograd(c0))
 end
-(lstm::LSTM)(x::Node; name="") = Node(lstm, (x,), name)
+(lstm::LSTM)(x::Node, batchdims; name="") = Node(lstm, (x,batchdims), name)
 
-function (lstm::LSTM)(x::Var, batchdims)
+function (lstm::LSTM)(x::Var, batchdims; rev=false)
     c = lstm.c0
-    h = recurrent(x, batchdims, lstm.h0) do xt
+    h = recurrent(x, batchdims, lstm.h0, rev=rev) do xt
         a = linear(xt, lstm.WU, lstm.b)
         n = size(a,1) ÷ 4
         f = sigmoid(a[1:n,:])
@@ -118,13 +118,14 @@ mutable struct BiLSTM
 end
 
 function BiLSTM(::Type{T}, insize::Int, outsize::Int; init_W=Uniform(0.001), init_U=Orthogonal()) where T
-    LSTM()
+    fwd = LSTM(T, insize, outsize, init_W=init_W, init_U=init_U)
+    bwd = LSTM(T, insize, outsize, init_W=init_W, init_U=init_U)
+    BiLSTM(fwd, bwd)
 end
+(bilstm::BiLSTM)(x::Node, batchdims; name="") = Node(bilstm, (x,batchdims), name)
 
-(bilstm::BiLSTM)(x::Node; name="") = Node(bilstm, (x,), name)
-
-function (bilstm::BiLSTM)(x::Var)
-    h1 = recurrent(bilstm.fwd, x)
-    h2 = recurrent(bilstm.bwd, x, rev=true)
-    concat(1, h1, h2)
+function (bilstm::BiLSTM)(x::Var, batchdims)
+    h1 = bilstm.fwd(x, batchdims)
+    h2 = bilstm.bwd(x, batchdims, rev=true)
+    cat(1, h1, h2)
 end
