@@ -35,13 +35,13 @@ function (f::Conv1D)(x::Var, batchdims::Vector{Int})
     end
     h = window1d(f, x.data, batchdims_y)
     y = linear(h, f.W.data, f.b.data)
-    Var(y, f, (x,batchdims,h))
+    Var(y, f, (x,f.W,f.b,batchdims,h))
 end
 (f::Conv1D)(x::Node, batchdims::Node; name="") = Node(f, (x,batchdims), name)
 
-function addgrad!(y::Var, f::Conv1D, x::Var, batchdims::Vector{Int}, h)
+function addgrad!(y::Var, f::Conv1D, x::Var, W::Var, b::Var, batchdims::Vector{Int}, h)
     gh = zeros(h)
-    addgrad!(y, linear, Var(h,grad=gh), f.W, f.b)
+    addgrad!(y, linear, Var(h,grad=gh), W, b)
     isvoid(x.grad) || ∇window1d!(gh, f, x.grad, batchdims)
 end
 
