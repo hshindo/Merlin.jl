@@ -96,11 +96,11 @@ end
 end
 
 @testset "recurrent" for i = 1:5
-    x = Var(rand(T,20,15))
+    x = Var(rand(T,20,10))
     f = LSTM(T, 20, 20)
-    @testgrad f(x,[2,3,5]) x
-    f = BiLSTM(T, 20, 20)
-    @testgrad f(x,[2,3,5]) x
+    @testgrad f(x,[2,3,5]) x f.WU f.b f.h0 f.c0
+    #f = BiLSTM(T, 20, 20)
+    #@testgrad f(x,[2,3,5]) x f.WU f.b f.h0 f.c0
 end
 
 @testset "reduction" for i = 1:5
