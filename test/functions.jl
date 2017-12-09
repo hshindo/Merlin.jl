@@ -99,12 +99,13 @@ end
     x = Var(rand(T,20,10))
     f = LSTM(T, 20, 20)
     @testgrad f(x,[2,3,5]) x f.WU f.b f.h0 f.c0
+    @testgrad f(x,[2,3,5], rev=true) x f.WU f.b f.h0 f.c0
     #f = BiLSTM(T, 20, 20)
     #@testgrad f(x,[2,3,5]) x f.WU f.b f.h0 f.c0
 end
 
-@testset "reduction" for i = 1:5
-    x = Var(rand(T,10,15)+1)
+@testset "reduce" for i = 1:5
+    x = Var(rand(T,10,10)+1)
     max_batch(x, [2,3,5])
     for dim = 1:ndims(x.data)
         max(x, dim)
