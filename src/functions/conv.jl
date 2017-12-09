@@ -30,6 +30,7 @@ function Conv1D(::Type{T}, ksize::Int, insize::Int, outsize::Int, pad::Int, stri
 end
 
 function (f::Conv1D)(x::Var, batchdims::Vector{Int})
+    @assert sum(batchdims) == size(x)[end]
     batchdims_y = map(batchdims) do d
         (d + 2*f.pad - f.ksize) ÷ f.stride + 1
     end

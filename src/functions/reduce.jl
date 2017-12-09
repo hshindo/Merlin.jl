@@ -32,6 +32,7 @@ doc"""
     max_batch(x::Var, dims::Vector{Int})
 """
 function max_batch(x::Var, dims::Vector{Int})
+    @assert sum(dims) == size(x)[end]
     y, idx = max_batch(x.data, dims)
     Var(y, max, (x,idx))
 end
