@@ -8,13 +8,13 @@ scales the other elements by factor ``1 / (1 - rate)``.
 Otherwise, it just returns `x`.
 """
 function dropout(x::Var, rate::Float64, train::Bool)
-    if train
+    if rates == 0.0 || !train
+        x
+    else
         T = eltype(x)
         rx = rand(T, length(x.data))
         y = dropout(x.data, T(rate), rx)
         Var(y, dropout, (x,rate,rx))
-    else
-        x
     end
 end
 dropout(x::Node, rate::Float64, train::Node; name="") = Node(dropout, (x,rate,train), name)
