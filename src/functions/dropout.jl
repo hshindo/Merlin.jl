@@ -8,7 +8,7 @@ scales the other elements by factor ``1 / (1 - rate)``.
 Otherwise, it just returns `x`.
 """
 function dropout(x::Var, rate::Float64, train::Bool)
-    if rates == 0.0 || !train
+    if rate == 0.0 || !train
         x
     else
         T = eltype(x)
