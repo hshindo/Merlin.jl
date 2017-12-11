@@ -14,6 +14,7 @@ function BLAS.gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
     y = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
     Var(y, BLAS.gemm, (tA,tB,alpha,A,B))
 end
+BLAS.gemm(tA::Char, tB::Char, alpha::Number, A::Node, B::Node; name="") = Node(BLAS.gemm, (tA,tB,alpha,A,B), name)
 
 function addgrad!(C::Var, ::typeof(BLAS.gemm), tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
     T = eltype(C.data)
