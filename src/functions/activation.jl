@@ -14,8 +14,10 @@ f(x) = (\max(0,x), \max(0,-x))
 # References
 * Shang et al., ["Understanding and Improving Convolutional Neural Networks via Concatenated Rectified Linear Units"](https://arxiv.org/abs/1603.05201), arXiv 2016.
 """
-crelu(x::Var) = Var(crelu(x.data), crelu, (x,))
-crelu(x::Node; name="") = Node(crelu, (x,), name)
+function crelu(x::Var)
+    y = isvoid(x.data) ? nothing : crelu(x.data)
+    Var(y, (crelu,x))
+end
 
 function crelu(x::Array{T}) where T
     y = Array{T}(2size(x,1), Base.tail(size(x))...)
@@ -55,8 +57,10 @@ x & x > 0 \\
 ```
 where ``\alpha=1``.
 """
-elu(x::Var) = Var(elu.(x.data), elu, (x,))
-elu(x::Node; name="") = Node(elu, (x,), name)
+function elu(x::Var)
+    y = isvoid(x.data) ? nothing : elu.(x.data)
+    Var(y, (elu,x))
+end
 elu(x::T) where T = x > T(0) ? x : exp(x)-1
 
 function addgrad!(y::Var, ::typeof(elu), x::Var)
@@ -86,8 +90,10 @@ x & x > 0 \\
 # References
 * Maas et al., ["Rectifier Nonlinearities Improve Neural Network Acoustic Models"](http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf), ICML 2013.
 """
-leaky_relu(x::Var, alpha::Float64=0.1) = Var(leaky_relu.(x.data,eltype(x)(alpha)), leaky_relu, (x,alpha))
-leaky_relu(x::Node; name="") = Node(leaky_relu, (x,), name)
+function leaky_relu(x::Var, alpha::Float64=0.1)
+    y = isvoid(x.data) ? nothing : leaky_relu.(x.data,eltype(x.data)(alpha))
+    Var(y, (leaky_relu,x,alpha))
+end
 leaky_relu(x::T, alpha::T) where T = x >= T(0) ? x : x*alpha
 
 function addgrad!(y::Var, ::typeof(leaky_relu), x::Var, alpha::Float64)
@@ -109,8 +115,10 @@ Rectified Linear Unit.
 f(x) = \max(0, x)
 ```
 """
-relu(x::Var) = Var(relu.(x.data), relu, (x,))
-relu(x::Node; name="") = Node(relu, (x,), name)
+function relu(x::Var)
+    y = isvoid(x.data) ? nothing : relu.(x.data)
+    Var(y, (relu,x))
+end
 relu(x::T) where T = max(x, T(0))
 
 function addgrad!(y::Var, ::typeof(relu), x::Var)
@@ -140,8 +148,10 @@ where ``\lambda=1.0507`` and ``\alpha=1.6733``.
 # References
 Klambauer et al., ["Self-Normalizing Neural Networks"](https://arxiv.org/abs/1706.02515), NIPS 2017.
 """
-selu(x::Var) = Var(selu.(x.data), selu, (x,))
-selu(x::Node; name="") = Node(selu, (x,), name)
+function selu(x::Var)
+    y = isvoid(x.data) ? nothing : selu.(x.data)
+    Var(y, (selu,x))
+end
 selu(x::T) where T = x > 0 ? T(1.0507)*x : T(1.0507)*T(1.6733)*(exp(x)-1)
 
 function addgrad!(y::Var, ::typeof(selu), x::Var)
@@ -165,8 +175,10 @@ Sigmoid logistic function.
 f(x) = (1 + \exp(-x))^{-1}
 ```
 """
-sigmoid(x::Var) = Var(sigmoid.(x.data), sigmoid, (x,))
-sigmoid(x::Node; name="") = Node(sigmoid, (x,), name)
+function sigmoid(x::Var)
+    y = isvoid(x.data) ? nothing : sigmoid.(x.data)
+    Var(y, (sigmoid,x))
+end
 sigmoid(x::T) where T<:AbstractFloat = 1 / (1 + exp(-x))
 
 function addgrad!(y::Var, ::typeof(sigmoid), x::Var)
@@ -198,8 +210,10 @@ end
 Swish(::Type{T}) where T = Swish(zerograd(ones(T,1)))
 (f::Swish)(x) = swish(x, f.beta)
 
-swish(x::Var, beta::Var) = Var(swish.(x.data,beta.data), swish, (x,beta))
-swish(x::Node, beta::Var; name="") = Node(swish, (x,beta), name)
+function swish(x::Var, beta::Var)
+    y = isvoid(x.data) ? nothing : swish.(x.data,beta.data)
+    Var(y, (swish,x,beta))
+end
 swish(x::T, beta::T) where T = x * sigmoid(beta*x)
 
 function addgrad!(y::Var, ::typeof(swish), x::Var, beta::Var)
@@ -226,8 +240,10 @@ doc"""
 
 Hyperbolic tangent function.
 """
-tanh(x::Var) = Var(tanh.(x.data), tanh, (x,))
-tanh(x::Node; name="") = Node(tanh, (x,), name)
+function tanh(x::Var)
+    y = isvoid(x.data) ? nothing : tanh.(x.data)
+    Var(y, (tanh,x))
+end
 
 function addgrad!(y::Var, ::typeof(tanh), x::Var)
     isvoid(x.grad) || ∇tanh!(y.data, y.grad, x.data, x.grad)

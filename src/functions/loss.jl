@@ -19,9 +19,9 @@ y = crossentropy(p, q)
 ```
 """
 function crossentropy(p::Var, q::Var)
-    Var(crossentropy(p.data,q.data), crossentropy, (p,q))
+    y = isvoid(p.data,q:data) ? nothing : crossentropy(p.data,q.data)
+    Var(y, (crossentropy,p,q))
 end
-crossentropy(p::Node, q::Node; name="") = Node(crossentropy, (p,q), name)
 
 function crossentropy(p::Vector{Int}, q::Matrix{T}) where T
     y = Array{T}(length(p))
@@ -80,9 +80,13 @@ y = l2(x, 0.01)
 ```
 """
 function l2(x::Var, lambda::Float64)
-    T = eltype(x)
-    y = mapreduce(x -> x*x, +, x.data) * T(lambda) / 2
-    Var([y], l2, (x,lambda))
+    if isvoid(x.data)
+        y = nothing
+    else
+        T = eltype(x)
+        y = [mapreduce(x -> x*x, +, x.data) * T(lambda) / 2]
+    end
+    Var(y, (l2,x,lambda))
 end
 
 function addgrad!(y::Var, ::typeof(l2), x::Var, lambda::Float64)
@@ -104,9 +108,9 @@ The mean is calculated over the minibatch.
 Note that the error is not scaled by 1/2.
 """
 function mse(x1::Var, x2::Var)
-    Var(mse(x1.data,x2.data), mse, (x1,x2))
+    y = isvoid(x1.data,x2.data) ? nothing : mse(x1.data,x2.data)
+    Var(y, (mse,x1,x2))
 end
-mse(x1::Node, x2::Node; name="") = Node(mse, (x1,x2), name)
 
 function mse(x1::Matrix{T}, x2::Matrix{T}) where T
     size(x1) == size(x2) || throw("Size unmatch.")
@@ -158,10 +162,10 @@ y = softmax_crossentropy(p, x)
 ```
 """
 function softmax_crossentropy(p::Var, x::Var)
+    isvoid(p.data,x.data) && return Var(nothing,(softmax_crossentropy,p,x))
     y, logx = softmax_crossentropy(p.data, x.data)
-    Var(y, softmax_crossentropy, (p,x,logx))
+    Var(y, (softmax_crossentropy,p,x,logx))
 end
-softmax_crossentropy(p::Node, x::Node; name="") = Node(softmax_crossentropy, (p,x), name)
 
 function softmax_crossentropy(p::Vector{Int}, x::Matrix{T}) where T
     length(p) == size(x,2) || throw("Length unmatch.")

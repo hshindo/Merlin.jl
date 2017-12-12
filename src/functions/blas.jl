@@ -10,11 +10,14 @@ C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
 ```
 """
 function BLAS.gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
-    T = eltype(A)
-    y = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
-    Var(y, BLAS.gemm, (tA,tB,alpha,A,B))
+    if isvoid(A.data, B.data)
+        y = nothing
+    else
+        T = eltype(A)
+        y = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
+    end
+    Var(y, (BLAS.gemm,tA,tB,alpha,A,B))
 end
-BLAS.gemm(tA::Char, tB::Char, alpha::Number, A::Node, B::Node; name="") = Node(BLAS.gemm, (tA,tB,alpha,A,B), name)
 
 function addgrad!(C::Var, ::typeof(BLAS.gemm), tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
     T = eltype(C.data)
@@ -40,9 +43,13 @@ y = \alpha \times \textrm{tA}(A) \times x
 ```
 """
 function BLAS.gemv(tA::Char, alpha::Number, A::Var, x::Var)
-    T = eltype(A)
-    y = BLAS.gemv(tA, T(alpha), A.data, x.data)
-    Var(y, BLAS.gemv, (tA,alpha,A,x))
+    if isvoid(A.data, x.data)
+        y = nothing
+    else
+        T = eltype(A)
+        y = BLAS.gemv(tA, T(alpha), A.data, x.data)
+    end
+    Var(y, (BLAS.gemv,tA,alpha,A,x))
 end
 
 function addgrad!(y::Var, ::typeof(BLAS.gemv), tA::Char, alpha::Number, A::Var, x::Var)

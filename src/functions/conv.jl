@@ -1,4 +1,5 @@
-export Conv1D, Conv2D
+export Conv1D
+export conv1d
 
 doc"""
     Conv1D(T, ksize, insize, outsize, pad, stride, [dilation=1, init_W=Xavier(), init_b=Fill(0)])
@@ -28,29 +29,30 @@ function Conv1D(::Type{T}, ksize::Int, insize::Int, outsize::Int, pad::Int, stri
     b = init_b(T, outsize)
     Conv1D(zerograd(W), zerograd(b), ksize, pad, stride, dilation)
 end
+(f::Conv1D)(args...) = conv1d(args..., f.W, f.b, f.ksize, f.pad, f.stride, f.dilation)
 
-function (f::Conv1D)(x::Var, batchdims::Vector{Int})
-    @assert sum(batchdims) == size(x)[end]
-    batchdims_y = map(batchdims) do d
-        (d + 2*f.pad - f.ksize) ÷ f.stride + 1
+function conv1d(x::Var, batchdims::Vector{Int}, W::Var, b::Var, ksize::Int, pad::Int, stride::Int, dilation::Int)
+    if isvoid(x.data)
+        h = nothing
+        y = nothing
+    else
+        @assert sum(batchdims) == size(x)[end]
+        batchdims_y = map(batchdims) do d
+            (d + 2pad - ksize) ÷ stride + 1
+        end
+        h = window1d(x.data, batchdims_y, ksize, pad, stride, dilation)
+        y = linear(h, W.data, b.data)
     end
-    h = window1d(f, x.data, batchdims_y)
-    y = linear(h, f.W.data, f.b.data)
-    Var(y, f, (x,f.W,f.b,batchdims,h))
+    Var(y, (conv1d,x,batchdims,W,b,ksize,pad,stride,dilation,h))
 end
-(f::Conv1D)(x::Node, batchdims::Node; name="") = Node(f, (x,batchdims), name)
 
-function addgrad!(y::Var, f::Conv1D, x::Var, W::Var, b::Var, batchdims::Vector{Int}, h)
+function addgrad!(y::Var, ::typeof(conv1d), x::Var, batchdims, W::Var, b::Var, ksize, pad, stride, dilation, h)
     gh = zeros(h)
     addgrad!(y, linear, Var(h,grad=gh), W, b)
-    isvoid(x.grad) || ∇window1d!(gh, f, x.grad, batchdims)
+    isvoid(x.grad) || ∇window1d!(gh, x.grad, batchdims, ksize, pad, stride, dilation)
 end
 
-function window1d(f::Conv1D, x::Matrix{T}, batchdims::Vector{Int}) where T
-    ksize = f.ksize
-    pad = f.pad
-    stride = f.stride
-    dilation = f.dilation
+function window1d(x::Matrix{T}, batchdims::Vector{Int}, ksize::Int, pad::Int, stride::Int, dilation::Int) where T
     y = zeros(T, size(x,1)*ksize, sum(batchdims))
     yi = 1
     s = 1
@@ -74,11 +76,7 @@ function window1d(f::Conv1D, x::Matrix{T}, batchdims::Vector{Int}) where T
     y
 end
 
-function ∇window1d!(gy::Matrix{T}, f::Conv1D, gx::Matrix{T}, batchdims::Vector{Int}) where T
-    ksize = f.ksize
-    pad = f.pad
-    stride = f.stride
-    dilation = f.dilation
+function ∇window1d!(gy::Matrix{T}, gx::Matrix{T}, batchdims::Vector{Int}, ksize::Int, pad::Int, stride::Int, dilation::Int) where T
     yi = 1
     s = 1
     for dim in batchdims

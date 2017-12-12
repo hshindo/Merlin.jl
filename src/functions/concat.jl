@@ -1,7 +1,7 @@
-import Base.cat
+export concat
 
 """
-    cat(dim::Int, xs::Var...)
+    concat(dim::Int, xs::Var...)
 
 Concatenate arrays over the given dimension.
 
@@ -9,20 +9,24 @@ Concatenate arrays over the given dimension.
 ```julia
 x1 = Var(rand(Float32,4,3))
 x2 = Var(rand(Float32,4,5))
-y = cat(2, x1, x2)
+y = concat(2, x1, x2)
 ```
 """
-function cat(dim::Int, xs::Var...)
-    y = cat(dim, map(x -> x.data, xs)...)
-    Var(y, cat, (dim,xs...))
+function concat(dim::Int, xs::Vector{Var})
+    if any(x -> isvoid(x.data), xs)
+        y = nothing
+    else
+        y = cat(dim, map(x -> x.data, xs)...)
+    end
+    Var(y, (concat,dim,xs))
 end
-cat(dim::Int, xs::Node...; name="") = Node(cat, (dim,xs...), name)
+concat(dim::Int, xs::Var...) = concat(dim, [xs...])
 
-function addgrad!(y::Var, ::typeof(cat), dim::Int, xs::Var...)
+function addgrad!(y::Var, ::typeof(concat), dim::Int, xs::Vector{Var})
     T, N = eltype(y), ndims(y)
     offset = 1
     for x in xs
-        s = size(x, dim)
+        s = size(x.data, dim)
         if !isvoid(x.grad)
             range = ntuple(N) do i
                 i == dim ? (offset:(offset+s-1)) : Colon()

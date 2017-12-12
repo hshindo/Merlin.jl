@@ -47,7 +47,7 @@ end
 include("functions/activation.jl")
 include("functions/argmax.jl")
 include("functions/blas.jl")
-include("functions/cat.jl")
+include("functions/concat.jl")
 include("functions/conv.jl")
 include("functions/dropout.jl")
 include("functions/embeddings.jl")

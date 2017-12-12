@@ -2,18 +2,17 @@ import Base.split
 export unsafe_split
 
 function split(x::Var, dims::Vector{Int})
-    @assert sum(dims) == size(x)[end]
-    front = Base.front(size(x))
-    s = stride(x, ndims(x))
-    cumdim = 0
-    ys = Array{eltype(x),ndims(x)}[]
+    isvoid(x.data) && return Var(nothing,(split,x,dims))
+    @assert sum(dims) == size(x.data)[end]
+    front = ntuple(_ -> :, size(x.data,2))
+    cumdim = 1
+    ys = Var[]
     for d in dims
-        p = pointer(x, s*cumdim+1)
-        y = unsafe_wrap(Array, p, (front...,d))
-        push!(ys, y)
+        range = cumdim:cumdim+d-1
+        push!(ys, x[front...,range])
         cumdim += d
     end
-    Var(ys, split, (x,dims))
+    ys
 end
 
 #=

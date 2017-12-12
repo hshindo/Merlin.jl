@@ -9,8 +9,10 @@ Softmax function over the given dimension.
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
-softmax(x::Var) = Var(softmax(x.data), softmax, (x,))
-softmax(x::Node, name="") = Node(softmax, (x,), name)
+function softmax(x::Var)
+    y = isvoid(x.data) ? nothing : softmax(x.data)
+    Var(y, (softmax,x))
+end
 
 function softmax(x::Vector{T}) where T
     y = similar(x)
@@ -83,8 +85,10 @@ end
 
 Logarithm of softmax function.
 """
-logsoftmax(x::Var) = Var(logsoftmax(x.data), logsoftmax, (x,))
-logsoftmax(x::Node; name="") = Node(logsoftmax, (x,), name)
+function logsoftmax(x::Var)
+    y = isvoid(x.data) ? nothing : logsoftmax(x.data)
+    Var(y, (logsoftmax,x))
+end
 
 function logsoftmax(x::Matrix{T}) where T
     y = similar(x)

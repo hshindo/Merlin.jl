@@ -15,15 +15,13 @@ Variable struct.
 """
 mutable struct Var
     data
-    f
     args
     grad
+    name
 end
 
-function Var(data, f=nothing, args=(); grad=nothing)
-    Var(data, f, args, grad)
-end
-zerograd(data) = Var(data, grad=zeros(data))
+Var(data, args=(); grad=nothing, name="") = Var(data, args, grad, name)
+zerograd(data, args=(); grad=nothing, name="") = Var(data, args, grad=zeros(data), name=name)
 
 Base.size(x::Var) = size(x.data)
 Base.size(x::Var, i::Int) = size(x.data, i)
@@ -33,6 +31,9 @@ Base.eltype(x::Var) = eltype(x.data)
 Base.strides(x::Var) = strides(x.data)
 Base.stride(x::Var, i::Int) = stride(x.data, i)
 isvoid(x) = x == nothing
+isvoid(x1,x2) = isvoid(x1) || isvoid(x2)
+isvoid(x1,x2,x3) = isvoid(x1) || isvoid(x2) || isvoid(x3)
+isvoid(x1,x2,x3,x4) = isvoid(x1) || isvoid(x2) || isvoid(x3) || isvoid(x4)
 
 doc"""
     isparam(x::Var)::Bool
@@ -81,7 +82,7 @@ function gradient!(top::Var)
     for i = length(sorted):-1:1
         v = sorted[i]
         isvoid(v.grad) && continue
-        isvoid(v.f) || addgrad!(v, v.f, v.args...)
+        isempty(v.args) || addgrad!(v, v.args...)
     end
     filter(isparam, sorted)
 end

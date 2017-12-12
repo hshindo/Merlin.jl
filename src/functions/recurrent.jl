@@ -19,14 +19,14 @@ function recurrent(f, x::Var, batchdims::Vector{Int}, h0::Var; rev=false)
             i += rev ? batchdims[p]-t : t-1
             push!(xts, x[:,i:i])
         end
-        xt = cat(2, xts...)
+        xt = concat(2, xts...)
         if size(h,2) < size(xt,2)
             @assert size(h,2) == 1
-            h = cat(2, ntuple(_ -> h, size(xt,2))...)
+            h = concat(2, ntuple(_ -> h, size(xt,2))...)
         elseif size(h,2) > size(xt,2)
             h = h[:,1:size(xt,2)]
         end
-        xt = cat(1, xt, h)
+        xt = concat(1, xt, h)
         h = f(xt)
         for j = 1:length(perm)
             p = perm[j]
@@ -36,7 +36,7 @@ function recurrent(f, x::Var, batchdims::Vector{Int}, h0::Var; rev=false)
             hs[i] = h[:,j:j]
         end
     end
-    cat(2, hs...)
+    concat(2, hs...)
 end
 
 doc"""
@@ -90,9 +90,9 @@ function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=Xavier(), init_U=Orth
     c0 = zeros(T, outsize, 1)
     LSTM(zerograd(WU), zerograd(b), zerograd(h0), zerograd(c0))
 end
-(lstm::LSTM)(x::Node, batchdims; name="") = Node(lstm, (x,batchdims), name)
 
 function (lstm::LSTM)(x::Var, batchdims; rev=false)
+    isvoid(x.data) && return Var(nothing,(lstm,x,batchdims,(:rev,rev)))
     c = lstm.c0
     h = recurrent(x, batchdims, lstm.h0, rev=rev) do xt
         a = linear(xt, lstm.WU, lstm.b)
@@ -102,7 +102,7 @@ function (lstm::LSTM)(x::Var, batchdims; rev=false)
         o = sigmoid(a[2n+1:3n,:])
         if size(c,2) < size(xt,2)
             @assert size(c,2) == 1
-            c = cat(2, ntuple(_ -> c, size(xt,2))...)
+            c = concat(2, ntuple(_ -> c, size(xt,2))...)
         elseif size(c,2) > size(xt,2)
             c = c[:,1:size(xt,2)]
         end
@@ -129,10 +129,10 @@ function BiLSTM(::Type{T}, insize::Int, outsize::Int; init_W=Uniform(0.001), ini
     bwd = LSTM(T, insize, outsize, init_W=init_W, init_U=init_U)
     BiLSTM(fwd, bwd)
 end
-(bilstm::BiLSTM)(x::Node, batchdims; name="") = Node(bilstm, (x,batchdims), name)
 
 function (bilstm::BiLSTM)(x::Var, batchdims)
+    isvoid(x.data) && return Var(nothing,(bilstm,x,batchdims))
     h1 = bilstm.fwd(x, batchdims)
     h2 = bilstm.bwd(x, batchdims, rev=true)
-    cat(1, h1, h2)
+    concat(1, h1, h2)
 end

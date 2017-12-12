@@ -32,10 +32,9 @@ end
 (f::Linear)(x) = linear(x, f.W, f.b)
 
 function linear(x::Var, W::Var, b::Var)
-    y = linear(x.data, W.data, b.data)
-    Var(y, linear, (x,W,b))
+    y = isvoid(x.data,W.data) ? nothing : linear(x.data,W.data,b.data)
+    Var(y, (linear,x,W,b))
 end
-linear(x::Node, W::Var, b::Var; name="") = Node(linear, (x,W,b), name)
 
 function linear(x::Matrix, W::Matrix, b)
     y = BLAS.gemm('T', 'N', W, x)
