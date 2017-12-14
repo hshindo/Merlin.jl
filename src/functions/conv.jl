@@ -29,21 +29,21 @@ function Conv1D(::Type{T}, ksize::Int, insize::Int, outsize::Int, pad::Int, stri
     b = init_b(T, outsize)
     Conv1D(zerograd(W), zerograd(b), ksize, pad, stride, dilation)
 end
-(f::Conv1D)(args...) = conv1d(args..., f.W, f.b, f.ksize, f.pad, f.stride, f.dilation)
+(f::Conv1D)(x, batchdims) = conv1d(x, batchdims, f.W, f.b, f.ksize, f.pad, f.stride, f.dilation)
 
-function conv1d(x::Var, batchdims::Vector{Int}, W::Var, b::Var, ksize::Int, pad::Int, stride::Int, dilation::Int)
+function conv1d(x::Var, batchdims::Var, W::Var, b::Var, ksize::Int, pad::Int, stride::Int, dilation::Int)
     if isvoid(x.data)
-        h = nothing
-        y = nothing
+        Var(nothing, (conv1d,x,batchdims,W,b,ksize,pad,stride,dilation))
     else
+        batchdims = batchdims.data
         @assert sum(batchdims) == size(x)[end]
         batchdims_y = map(batchdims) do d
             (d + 2pad - ksize) ÷ stride + 1
         end
         h = window1d(x.data, batchdims_y, ksize, pad, stride, dilation)
         y = linear(h, W.data, b.data)
+        Var(y, (conv1d,x,batchdims,W,b,ksize,pad,stride,dilation,h))
     end
-    Var(y, (conv1d,x,batchdims,W,b,ksize,pad,stride,dilation,h))
 end
 
 function addgrad!(y::Var, ::typeof(conv1d), x::Var, batchdims, W::Var, b::Var, ksize, pad, stride, dilation, h)

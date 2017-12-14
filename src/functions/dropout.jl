@@ -7,9 +7,9 @@ If `train` is true, drops elements randomly with probability ``rate`` and
 scales the other elements by factor ``1 / (1 - rate)``.
 Otherwise, it just returns `x`.
 """
-function dropout(x::Var, rate::Float64, train::Bool)
-    isvoid(x.data) && return Var(y, (dropout,x,rate,train))
-    if rate == 0.0 || !train
+function dropout(x::Var, rate::Float64, train::Var)
+    isvoid(x.data,train.data) && return Var(nothing, (dropout,x,rate,train))
+    if rate == 0.0 || !train.data
         x
     else
         T = eltype(x)

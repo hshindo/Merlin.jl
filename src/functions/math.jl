@@ -84,7 +84,6 @@ function transpose(x::Var)
     end
     ys
 end
-transpose(x::Node; name="") = Node(transpose, (x,), name)
 
 function addgrad!(y::Var, ::typeof(transpose), x::Var, s::Int, e::Int)
     if !isvoid(x.grad)

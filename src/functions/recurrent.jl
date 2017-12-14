@@ -1,8 +1,9 @@
 export recurrent
 export LSTM, BiLSTM
 
-function recurrent(f, x::Var, batchdims::Vector{Int}, h0::Var; rev=false)
-    @assert sum(batchdims) == size(x,2)
+function recurrent(f, x::Var, batchdims::Var, h0::Var; rev=false)
+    batchdims = batchdims.data
+    @assert sum(batchdims) == size(x.data,2)
     cumdims = Array{Int}(length(batchdims)+1)
     cumdims[1] = 1
     for i = 1:length(batchdims)

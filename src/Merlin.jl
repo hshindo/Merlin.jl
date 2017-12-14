@@ -28,8 +28,8 @@ struct SizeException <: Exception
 end
 
 #include("hdf5.jl")
-include("graph.jl")
 include("var.jl")
+include("graph.jl")
 #include("native.jl")
 include("check.jl")
 include("initializer.jl")

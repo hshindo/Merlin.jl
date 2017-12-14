@@ -2,7 +2,7 @@ export embeddings, lookup
 
 function embeddings(::Type{T}, insize::Int, outsize::Int; init_W=Normal(0,0.01)) where T
     W = init_W(T, outsize, insize)
-    [zerograd(w[:,i]) for i=1:size(w,2)]
+    [zerograd(W[:,i]) for i=1:size(W,2)]
 end
 
 function lookup(embeds::Vector{Var}, x::Var)

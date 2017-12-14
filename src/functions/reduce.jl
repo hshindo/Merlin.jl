@@ -29,12 +29,12 @@ function ∇max!(gy::Array{T}, gx::Array{T}, idx::Array{Int}) where T
 end
 
 doc"""
-    max_batch(x::Var, dims::Vector{Int})
+    max_batch(x::Var, dims::Var)
 """
-function max_batch(x::Var, dims::Vector{Int})
+function max_batch(x::Var, dims::Var)
     isvoid(x.data) && return Var(nothing,(max_batch,x,dims))
-    @assert sum(dims) == size(x)[end]
-    y, idx = max_batch(x.data, dims)
+    @assert sum(dims.data) == size(x.data)[end]
+    y, idx = max_batch(x.data, dims.data)
     Var(y, (max_batch,x,idx))
 end
 
@@ -81,8 +81,6 @@ function mean(x::Var, dim::Int)
     end
     Var(y, batchdims, mean, (x,dim))
 end
-
-mean(x::Node, dim::Int; name="") = Node(mean, (x,dim), name)
 
 function mean_batch{T,N}(x::Array{T,N}, batchdims::Vector{Int})
     front = Base.front(size(x))

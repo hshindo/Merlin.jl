@@ -31,7 +31,7 @@ end
 function setup_model()
     T = Float32
     hsize = 1000
-    x = Node("x")
+    x = Var(name="x")
     x = Linear(T,28*28,hsize)(x)
     x = relu(x)
     x = Linear(T,hsize,hsize)(x)

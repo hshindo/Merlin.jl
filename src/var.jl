@@ -20,7 +20,7 @@ mutable struct Var
     name
 end
 
-Var(data, args=(); grad=nothing, name="") = Var(data, args, grad, name)
+Var(data=nothing, args=(); grad=nothing, name="") = Var(data, args, grad, name)
 zerograd(data, args=(); grad=nothing, name="") = Var(data, args, grad=zeros(data), name=name)
 
 Base.size(x::Var) = size(x.data)
