@@ -12,6 +12,10 @@ Node(name::String) = Node(nothing, (), name)
 Node(f, args, name) = Node(f, args, name, 0)
 =#
 
+struct NodeId
+    id::Int
+end
+
 struct Graph
     nodes::Vector{Var} # topological order
     node2id::Dict{Var,Int}
@@ -25,6 +29,15 @@ function Graph(output::Var...)
     name2id = Dict{String,Int}()
     for i = 1:length(nodes)
         node = nodes[i]
+        node.args = map(node.args) do a
+            if isa(a,Var)
+                NodeId(node2id[a])
+            elseif isa(a,Vector{Var})
+                map(x -> NodeId(node2id[x]), a)
+            else
+                a
+            end
+        end
         isempty(node.name) || (name2id[node.name] = i)
     end
     output = map(x -> node2id[x], output)
@@ -47,10 +60,10 @@ function (g::Graph)(xs::Pair...)
         else
             args = ntuple(length(node.args)-1) do i
                 arg = node.args[i+1]
-                if isa(arg, Var)
-                    temps[g.node2id[arg]]
-                elseif isa(arg, Vector{Var})
-                    map(x -> temps[g.node2id[x]], arg)
+                if isa(arg, NodeId)
+                    temps[arg.id]
+                elseif isa(arg, Vector{NodeId})
+                    map(x -> temps[x.id], arg)
                 else
                     arg
                 end

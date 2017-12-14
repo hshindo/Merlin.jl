@@ -31,11 +31,11 @@ function Conv1D(::Type{T}, ksize::Int, insize::Int, outsize::Int, pad::Int, stri
 end
 (f::Conv1D)(x, batchdims) = conv1d(x, batchdims, f.W, f.b, f.ksize, f.pad, f.stride, f.dilation)
 
-function conv1d(x::Var, batchdims::Var, W::Var, b::Var, ksize::Int, pad::Int, stride::Int, dilation::Int)
+function conv1d(x::Var, batchdims1::Var, W::Var, b::Var, ksize::Int, pad::Int, stride::Int, dilation::Int)
     if isvoid(x.data)
-        Var(nothing, (conv1d,x,batchdims,W,b,ksize,pad,stride,dilation))
+        Var(nothing, (conv1d,x,batchdims1,W,b,ksize,pad,stride,dilation))
     else
-        batchdims = batchdims.data
+        batchdims = batchdims1.data
         @assert sum(batchdims) == size(x)[end]
         batchdims_y = map(batchdims) do d
             (d + 2pad - ksize) ÷ stride + 1
