@@ -29,13 +29,14 @@ function Linear(::Type{T}, insize::Int, outsize::Int; init_W=Xavier(), init_b=Fi
     b = init_b(T, outsize)
     Linear(zerograd(W), zerograd(b))
 end
-(f::Linear)(x) = linear(x, f.W, f.b)
+(f::Linear)(x::Var) = linear(x, f.W, f.b)
+(f::Linear)(x::Node) = linear(x, Node(f.W), Node(f.b))
 
 function linear(x::Var, W::Var, b::Var)
     y = linear(x.data, W.data, b.data)
     Var(y, linear, (x,W,b))
 end
-linear(x::Node, W::Var, b::Var; name="") = Node(linear, (x,W,b), name)
+linear(x::Node, W::Node, b::Node; name="") = Node(linear, (x,W,b), name)
 
 function linear(x::Matrix, W::Matrix, b)
     y = BLAS.gemm('T', 'N', W, x)

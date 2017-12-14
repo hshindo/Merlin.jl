@@ -19,14 +19,14 @@ function recurrent(f, x::Var, batchdims::Vector{Int}, h0::Var; rev=false)
             i += rev ? batchdims[p]-t : t-1
             push!(xts, x[:,i:i])
         end
-        xt = cat(2, xts...)
+        xt = concat(2, xts...)
         if size(h,2) < size(xt,2)
             @assert size(h,2) == 1
-            h = cat(2, ntuple(_ -> h, size(xt,2))...)
+            h = concat(2, ntuple(_ -> h, size(xt,2))...)
         elseif size(h,2) > size(xt,2)
             h = h[:,1:size(xt,2)]
         end
-        xt = cat(1, xt, h)
+        xt = concat(1, xt, h)
         h = f(xt)
         for j = 1:length(perm)
             p = perm[j]
@@ -36,7 +36,7 @@ function recurrent(f, x::Var, batchdims::Vector{Int}, h0::Var; rev=false)
             hs[i] = h[:,j:j]
         end
     end
-    cat(2, hs...)
+    concat(2, hs...)
 end
 
 doc"""
@@ -85,7 +85,6 @@ function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=Xavier(), init_U=Orth
     U = init_U(T, insize, 4outsize)
     WU = cat(1, W, U)
     b = zeros(T, 4outsize)
-    b[1:outsize] = ones(T, outsize) # forget gate initializes to 1
     h0 = zeros(T, outsize, 1)
     c0 = zeros(T, outsize, 1)
     LSTM(zerograd(WU), zerograd(b), zerograd(h0), zerograd(c0))
@@ -102,7 +101,7 @@ function (lstm::LSTM)(x::Var, batchdims; rev=false)
         o = sigmoid(a[2n+1:3n,:])
         if size(c,2) < size(xt,2)
             @assert size(c,2) == 1
-            c = cat(2, ntuple(_ -> c, size(xt,2))...)
+            c = concat(2, ntuple(_ -> c, size(xt,2))...)
         elseif size(c,2) > size(xt,2)
             c = c[:,1:size(xt,2)]
         end
@@ -134,5 +133,5 @@ end
 function (bilstm::BiLSTM)(x::Var, batchdims)
     h1 = bilstm.fwd(x, batchdims)
     h2 = bilstm.bwd(x, batchdims, rev=true)
-    cat(1, h1, h2)
+    concat(1, h1, h2)
 end

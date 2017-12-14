@@ -1,7 +1,7 @@
-import Base.cat
+export concat
 
 """
-    cat(dim::Int, xs::Var...)
+    concat(dim::Int, xs::Var...)
 
 Concatenate arrays over the given dimension.
 
@@ -9,16 +9,16 @@ Concatenate arrays over the given dimension.
 ```julia
 x1 = Var(rand(Float32,4,3))
 x2 = Var(rand(Float32,4,5))
-y = cat(2, x1, x2)
+y = concat(2, x1, x2)
 ```
 """
-function cat(dim::Int, xs::Var...)
+function concat(dim::Int, xs::Var...)
     y = cat(dim, map(x -> x.data, xs)...)
-    Var(y, cat, (dim,xs...))
+    Var(y, concat, (dim,xs...))
 end
-cat(dim::Int, xs::Node...; name="") = Node(cat, (dim,xs...), name)
+concat(dim::Int, xs::Node...; name="") = Node(concat, (dim,xs...), name)
 
-function addgrad!(y::Var, ::typeof(cat), dim::Int, xs::Var...)
+function addgrad!(y::Var, ::typeof(concat), dim::Int, xs::Var...)
     T, N = eltype(y), ndims(y)
     offset = 1
     for x in xs

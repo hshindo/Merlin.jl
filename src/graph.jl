@@ -7,7 +7,7 @@ mutable struct Node
     id::Int
 end
 
-Node(name::String) = Node(nothing, (), name)
+Node(f=nothing; name="") = Node(f, (), name)
 Node(f, args, name) = Node(f, args, name, 0)
 
 struct Graph
@@ -43,7 +43,7 @@ function (g::Graph)(xs::Pair...)
     for i = 1:length(g.nodes)
         node = g.nodes[i]
         if isempty(node.args)
-            isassigned(temps,i) || (temps[i] = node)
+            isassigned(temps,i) || (temps[i] = node.f)
         else
             args = map(node.args) do arg
                 isa(arg,Node) ? temps[arg.id] : arg

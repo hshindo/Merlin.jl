@@ -25,11 +25,11 @@ end
     @testgrad BLAS.gemv('T',1,A,x) A x
 end
 
-@testset "cat" for i = 1:5
+@testset "concat" for i = 1:5
     x1 = zerograd(randn(T,10,5,2))
     x2 = zerograd(randn(T,10,5,2))
     for dim = 1:3
-        @testgrad cat(dim,x1,x2) x1 x2
+        @testgrad concat(dim,x1,x2) x1 x2
     end
 end
 

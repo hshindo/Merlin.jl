@@ -1,8 +1,8 @@
 export embeddings, lookup
 
-function embeddings(::Type{T}, insize::Int, outsize::Int; init_w=Normal(0,0.01)) where T
-    w = init_w(T, outsize, insize)
-    [zerograd(w[:,i]) for i=1:size(w,2)]
+function embeddings(::Type{T}, insize::Int, outsize::Int; init_W=Normal(0,0.01)) where T
+    W = init_W(T, outsize, insize)
+    [zerograd(W[:,i]) for i=1:size(W,2)]
 end
 
 function lookup(embeds::Vector{Var}, x::Var)
@@ -10,14 +10,7 @@ function lookup(embeds::Vector{Var}, x::Var)
     xs = map(i -> embeds[i], vec(x.data))
     Var(y, lookup, (xs,))
 end
-
-function lookup(w::Var, x::Var)
-    @assert w.grad == nothing
-    y = lookup(w.data, x.data)
-    Var(y, lookup, ())
-end
-lookup(embeds::Vector{Var}, x::Node; name="") = Node(lookup, (embeds,x), name)
-lookup(w::Var, x::Node; name="") = Node(lookup, (w,x), name)
+lookup(embeds::Node, x::Node; name="") = Node(lookup, (embeds,x), name)
 
 function lookup(embeds::Vector{Var}, x::Array{Int})
     e1 = embeds[1].data
