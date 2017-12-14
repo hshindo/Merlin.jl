@@ -14,7 +14,7 @@ y = max(x, 1)
 """
 function max(x::Var, dim::Int)
     y, idx = findmax(x.data, dim)
-    Var(y, max, (x,idx))
+    Var(y, (max,x,idx))
 end
 max(x::Node, dim::Int; name="") = Node(max, (x,dim), name)
 
@@ -34,7 +34,7 @@ doc"""
 function max_batch(x::Var, dims::Vector{Int})
     @assert sum(dims) == size(x)[end]
     y, idx = max_batch(x.data, dims)
-    Var(y, max, (x,idx))
+    Var(y, (max_batch,x,idx))
 end
 max_batch(x::Node, dims::Node; name="") = Node(max_batch, (x,dims), name)
 

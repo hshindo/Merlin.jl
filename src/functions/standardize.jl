@@ -30,10 +30,10 @@ function standardize(x::Var, train::Bool, scale::Var, bias::Var, runmean, runvar
         invstd = T(1) ./ sqrt.(xvar + T(eps))
         xhat = (x.data .- xmean) .* invstd
         data = xhat .* scale.data .+ bias.data
-        Var(data, standardize, (x,scale,bias,invstd,xhat))
+        Var(data, (standardize,x,scale,bias,invstd,xhat))
     else
         data = (x.data .- runmean) ./ sqrt.(runvar + T(eps)) .* scale.data .+ bias.data
-        Var(data, standardize, (x,scale,bias))
+        Var(data, (standardize,x,scale,bias))
     end
 end
 standardize(x::Node, train, scale, bias, runmean, runvar; name="") = Node(standardize, (x,train,scale,bias,runmean,runvar), name)

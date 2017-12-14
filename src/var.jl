@@ -15,13 +15,12 @@ Variable struct.
 """
 mutable struct Var
     data
-    f
     args
     grad
 end
 
-function Var(data, f=nothing, args=(); grad=nothing)
-    Var(data, f, args, grad)
+function Var(data, args=(); grad=nothing)
+    Var(data, args, grad)
 end
 zerograd(data) = Var(data, grad=zeros(data))
 
@@ -81,7 +80,7 @@ function gradient!(top::Var)
     for i = length(sorted):-1:1
         v = sorted[i]
         isvoid(v.grad) && continue
-        isvoid(v.f) || addgrad!(v, v.f, v.args...)
+        isempty(v.args) || addgrad!(v, v.args...)
     end
     filter(isparam, sorted)
 end

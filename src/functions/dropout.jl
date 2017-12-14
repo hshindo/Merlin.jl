@@ -14,7 +14,7 @@ function dropout(x::Var, rate::Float64, train::Bool)
         T = eltype(x)
         rx = rand(T, length(x.data))
         y = dropout(x.data, T(rate), rx)
-        Var(y, dropout, (x,rate,rx))
+        Var(y, (dropout,x,rate,rx))
     end
 end
 dropout(x::Node, rate::Float64, train::Node; name="") = Node(dropout, (x,rate,train), name)

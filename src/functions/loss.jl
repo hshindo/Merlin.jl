@@ -19,7 +19,7 @@ y = crossentropy(p, q)
 ```
 """
 function crossentropy(p::Var, q::Var)
-    Var(crossentropy(p.data,q.data), crossentropy, (p,q))
+    Var(crossentropy(p.data,q.data), (crossentropy,p,q))
 end
 crossentropy(p::Node, q::Node; name="") = Node(crossentropy, (p,q), name)
 
@@ -82,7 +82,7 @@ y = l2(x, 0.01)
 function l2(x::Var, lambda::Float64)
     T = eltype(x)
     y = mapreduce(x -> x*x, +, x.data) * T(lambda) / 2
-    Var([y], l2, (x,lambda))
+    Var([y], (l2,x,lambda))
 end
 
 function addgrad!(y::Var, ::typeof(l2), x::Var, lambda::Float64)
@@ -104,7 +104,7 @@ The mean is calculated over the minibatch.
 Note that the error is not scaled by 1/2.
 """
 function mse(x1::Var, x2::Var)
-    Var(mse(x1.data,x2.data), mse, (x1,x2))
+    Var(mse(x1.data,x2.data), (mse,x1,x2))
 end
 mse(x1::Node, x2::Node; name="") = Node(mse, (x1,x2), name)
 
@@ -159,7 +159,7 @@ y = softmax_crossentropy(p, x)
 """
 function softmax_crossentropy(p::Var, x::Var)
     y, logx = softmax_crossentropy(p.data, x.data)
-    Var(y, softmax_crossentropy, (p,x,logx))
+    Var(y, (softmax_crossentropy,p,x,logx))
 end
 softmax_crossentropy(p::Node, x::Node; name="") = Node(softmax_crossentropy, (p,x), name)
 

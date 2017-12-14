@@ -4,7 +4,7 @@ import Base: +, -, *, /, ^
 doc"""
     exp(x)
 """
-exp(x::Var) = Var(exp.(x.data), exp, (x,))
+exp(x::Var) = Var(exp.(x.data), (exp,x))
 exp(x::Node; name="") = Node(exp, (x,), name)
 
 function addgrad!(y::Var, ::typeof(exp), x::Var)
@@ -35,7 +35,7 @@ end
 doc"""
     log(x)
 """
-log(x::Var) = Var(log.(x.data), log, (x,))
+log(x::Var) = Var(log.(x.data), (log,x))
 log(x::Node; name="") = Node(log, (x,), name)
 
 function addgrad!(y::Var, ::typeof(log), x::Var)
@@ -93,12 +93,9 @@ doc"""
     +(a::Number, x::Var)
     +(x::Var, a::Number)
 """
-+(x1::Var, x2::Var) = Var(x1.data+x2.data, +, (x1,x2))
++(x1::Var, x2::Var) = Var(x1.data+x2.data, (+,x1,x2))
 +(x1::Union{Number,Array}, x2::Var) = Var(x1) + x2
 +(x1::Var, x2::Union{Number,Array}) = x1 + Var(x2)
-
-+(x1::Node, x2; name="") = Node(+, (x1,x2), name)
-+(x1, x2::Node; name="") = Node(+, (x1,x2), name)
 +(x1::Node, x2::Node; name="") = Node(+, (x1,x2), name)
 
 function addgrad!(y::Var, ::typeof(+), x1::Var, x2::Var)
@@ -110,11 +107,10 @@ end
 doc"""
     -(x1, x2)
 """
--(x1::Var, x2::Var) = Var(x1.data-x2.data, -, (x1,x2))
+-(x1::Var, x2::Var) = Var(x1.data-x2.data, (-,x1,x2))
 -(a::Number, x::Var) = Var(a) - x
 -(x::Var, a::Number) = x - Var(a)
--(x::Var) = Var(-x.data, -, (x,))
--(a::Number, x::Node; name="") = Node(-, (Var(a),x), name)
+-(x::Var) = Var(-x.data, (-,x))
 -(x1::Node, x2::Node; name="") = Node(-, (x1,x2), name)
 function -(x::Node; name="")
     Node(-, (x,), name)
@@ -133,10 +129,8 @@ end
 doc"""
     .+(x1::Var, x2::Var)
 """
-broadcast(::typeof(+), x1::Var, x2::Var) = Var(broadcast(+,x1.data,x2.data), broadcast, (+,x1,x2))
+broadcast(::typeof(+), x1::Var, x2::Var) = Var(broadcast(+,x1.data,x2.data), (broadcast,+,x1,x2))
 broadcast(::typeof(+), x1::Node, x2::Node; name="") = Node(broadcast, (+,x1,x2), name)
-broadcast(::typeof(+), x1::Node, x2::Var; name="") = Node(broadcast, (+,x1,x2), name)
-broadcast(::typeof(+), x1::Var, x2::Node; name="") = Node(broadcast, (+,x1,x2), name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(+), x1::Var, x2::Var)
     isvoid(x1.grad) || ∇broadcast_plus!(y.grad, x1.grad)
@@ -154,10 +148,8 @@ end
 doc"""
     .-(x1::Var, x2::Var)
 """
-broadcast(::typeof(-), x1::Var, x2::Var) = Var(broadcast(-,x1.data,x2.data), broadcast, (-,x1,x2))
+broadcast(::typeof(-), x1::Var, x2::Var) = Var(broadcast(-,x1.data,x2.data), (broadcast,-,x1,x2))
 broadcast(::typeof(-), x1::Node, x2::Node; name="") = Node(broadcast, (-,x1,x2), name)
-broadcast(::typeof(-), x1::Node, x2::Var; name="") = Node(broadcast, (-,x1,x2), name)
-broadcast(::typeof(-), x1::Var, x2::Node; name="") = Node(broadcast, (-,x1,x2), name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(-), x1::Var, x2::Var)
     isvoid(x1.grad) || ∇broadcast_plus!(y.grad, x1.grad)
@@ -175,10 +167,8 @@ end
 doc"""
     \.\*(x1::Var, x2::Var)
 """
-broadcast(::typeof(*), x1::Var, x2::Var) = Var(broadcast(*,x1.data,x2.data), broadcast, (*,x1,x2))
+broadcast(::typeof(*), x1::Var, x2::Var) = Var(broadcast(*,x1.data,x2.data), (broadcast,*,x1,x2))
 broadcast(::typeof(*), x1::Node, x2::Node; name="") = Node(broadcast, (*,x1,x2), name)
-broadcast(::typeof(*), x1::Node, x2::Var; name="") = Node(broadcast, (*,x1,x2), name)
-broadcast(::typeof(*), x1::Var, x2::Node; name="") = Node(broadcast, (*,x1,x2), name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(*), x1::Var, x2::Var)
     isvoid(x1.grad) || ∇broadcast_times!(y.grad, x2.data, x1.grad)
@@ -230,10 +220,8 @@ end
 doc"""
     \*(A::Var, B::Var)
 """
-*(A::Var, B::Var) = Var(*(A.data,B.data), *, (A,B))
+*(A::Var, B::Var) = Var(*(A.data,B.data), (*,A,B))
 *(A::Node, B::Node; name="") = Node(*, (A,B), name)
-*(A::Var, B::Node; name="") = Node(*, (A,B), name)
-*(A::Node, B::Var; name="") = Node(*, (A,B), name)
 
 function addgrad!(C::Var, ::typeof(*), A::Var, B::Var)
     T = eltype(C)
@@ -244,7 +232,7 @@ end
 doc"""
     /(x1::Var, a)
 """
-/(x::Var, a::Number) = Var(x.data, /, (x,a))
+/(x::Var, a::Number) = Var(x.data, (/,x,a))
 /(x::Node, a::Number; name="") = Node(/, (x,a), name)
 
 function addgrad!(y::Var, ::typeof(/), x::Var, a::Number)
@@ -261,7 +249,7 @@ end
 doc"""
     ^(x::Var, a::Number)
 """
-^(x::Var, a::Number) = Var(x.data^a, ^, (x,a))
+^(x::Var, a::Number) = Var(x.data^a, (^,x,a))
 ^(x::Node, a::Number; name="") = Node(^, (x,a), name)
 
 function addgrad!(y::Var, ::typeof(^), x::Var, a::Number)

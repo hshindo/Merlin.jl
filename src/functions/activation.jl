@@ -14,7 +14,7 @@ f(x) = (\max(0,x), \max(0,-x))
 # References
 * Shang et al., ["Understanding and Improving Convolutional Neural Networks via Concatenated Rectified Linear Units"](https://arxiv.org/abs/1603.05201), arXiv 2016.
 """
-crelu(x::Var) = Var(crelu(x.data), crelu, (x,))
+crelu(x::Var) = Var(crelu(x.data), (crelu,x))
 crelu(x::Node; name="") = Node(crelu, (x,), name)
 
 function crelu(x::Array{T}) where T
@@ -55,7 +55,7 @@ x & x > 0 \\
 ```
 where ``\alpha=1``.
 """
-elu(x::Var) = Var(elu.(x.data), elu, (x,))
+elu(x::Var) = Var(elu.(x.data), (elu,x))
 elu(x::Node; name="") = Node(elu, (x,), name)
 elu(x::T) where T = x > T(0) ? x : exp(x)-1
 
@@ -86,7 +86,7 @@ x & x > 0 \\
 # References
 * Maas et al., ["Rectifier Nonlinearities Improve Neural Network Acoustic Models"](http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf), ICML 2013.
 """
-leaky_relu(x::Var, alpha::Float64=0.1) = Var(leaky_relu.(x.data,eltype(x)(alpha)), leaky_relu, (x,alpha))
+leaky_relu(x::Var, alpha::Float64=0.1) = Var(leaky_relu.(x.data,eltype(x)(alpha)), (leaky_relu,x,alpha))
 leaky_relu(x::Node; name="") = Node(leaky_relu, (x,), name)
 leaky_relu(x::T, alpha::T) where T = x >= T(0) ? x : x*alpha
 
@@ -109,7 +109,7 @@ Rectified Linear Unit.
 f(x) = \max(0, x)
 ```
 """
-relu(x::Var) = Var(relu.(x.data), relu, (x,))
+relu(x::Var) = Var(relu.(x.data), (relu,x))
 relu(x::Node; name="") = Node(relu, (x,), name)
 relu(x::T) where T = max(x, T(0))
 
@@ -140,7 +140,7 @@ where ``\lambda=1.0507`` and ``\alpha=1.6733``.
 # References
 Klambauer et al., ["Self-Normalizing Neural Networks"](https://arxiv.org/abs/1706.02515), NIPS 2017.
 """
-selu(x::Var) = Var(selu.(x.data), selu, (x,))
+selu(x::Var) = Var(selu.(x.data), (selu,x))
 selu(x::Node; name="") = Node(selu, (x,), name)
 selu(x::T) where T = x > 0 ? T(1.0507)*x : T(1.0507)*T(1.6733)*(exp(x)-1)
 
@@ -165,7 +165,7 @@ Sigmoid logistic function.
 f(x) = (1 + \exp(-x))^{-1}
 ```
 """
-sigmoid(x::Var) = Var(sigmoid.(x.data), sigmoid, (x,))
+sigmoid(x::Var) = Var(sigmoid.(x.data), (sigmoid,x))
 sigmoid(x::Node; name="") = Node(sigmoid, (x,), name)
 sigmoid(x::T) where T<:AbstractFloat = 1 / (1 + exp(-x))
 
@@ -198,7 +198,7 @@ end
 Swish(::Type{T}) where T = Swish(zerograd(ones(T,1)))
 (f::Swish)(x) = swish(x, f.beta)
 
-swish(x::Var, beta::Var) = Var(swish.(x.data,beta.data), swish, (x,beta))
+swish(x::Var, beta::Var) = Var(swish.(x.data,beta.data), (swish,x,beta))
 swish(x::Node, beta::Var; name="") = Node(swish, (x,beta), name)
 swish(x::T, beta::T) where T = x * sigmoid(beta*x)
 
@@ -226,7 +226,7 @@ doc"""
 
 Hyperbolic tangent function.
 """
-tanh(x::Var) = Var(tanh.(x.data), tanh, (x,))
+tanh(x::Var) = Var(tanh.(x.data), (tanh,x))
 tanh(x::Node; name="") = Node(tanh, (x,), name)
 
 function addgrad!(y::Var, ::typeof(tanh), x::Var)

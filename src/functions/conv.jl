@@ -36,7 +36,7 @@ function (f::Conv1D)(x::Var, batchdims::Vector{Int})
     end
     h = window1d(f, x.data, batchdims_y)
     y = linear(h, f.W.data, f.b.data)
-    Var(y, f, (x,f.W,f.b,batchdims,h))
+    Var(y, (f,x,f.W,f.b,batchdims,h))
 end
 (f::Conv1D)(x::Node, batchdims::Node; name="") = Node(f, (x,batchdims), name)
 

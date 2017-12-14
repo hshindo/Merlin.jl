@@ -14,7 +14,7 @@ y = concat(2, x1, x2)
 """
 function concat(dim::Int, xs::Var...)
     y = cat(dim, map(x -> x.data, xs)...)
-    Var(y, concat, (dim,xs...))
+    Var(y, (concat,dim,xs...))
 end
 concat(dim::Int, xs::Node...; name="") = Node(concat, (dim,xs...), name)
 

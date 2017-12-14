@@ -13,7 +13,7 @@ function split(x::Var, dims::Vector{Int})
         push!(ys, y)
         cumdim += d
     end
-    Var(ys, split, (x,dims))
+    Var(ys, (split,x,dims))
 end
 
 #=

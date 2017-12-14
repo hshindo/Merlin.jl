@@ -8,7 +8,7 @@ end
 function lookup(embeds::Vector{Var}, x::Var)
     y = lookup(embeds, x.data)
     xs = map(i -> embeds[i], vec(x.data))
-    Var(y, lookup, (xs,))
+    Var(y, (lookup,xs))
 end
 lookup(embeds::Node, x::Node; name="") = Node(lookup, (embeds,x), name)
 

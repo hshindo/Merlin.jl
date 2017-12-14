@@ -34,7 +34,7 @@ end
 
 function linear(x::Var, W::Var, b::Var)
     y = linear(x.data, W.data, b.data)
-    Var(y, linear, (x,W,b))
+    Var(y, (linear,x,W,b))
 end
 linear(x::Node, W::Node, b::Node; name="") = Node(linear, (x,W,b), name)
 

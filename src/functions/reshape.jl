@@ -10,7 +10,7 @@ x = Var(rand(T,10,5))
 y = reshape(x, (2,5), [2,3])
 ```
 """
-reshape(x::Var, dims::Tuple) = Var(reshape(x.data,dims), reshape, (x,))
+reshape(x::Var, dims::Tuple) = Var(reshape(x.data,dims), (reshape,x))
 reshape(x::Var, dims::Int...) = reshape(x, dims)
 reshape(x::Node, dims::Tuple; name="") = Node(reshape, (x,dims), name)
 
