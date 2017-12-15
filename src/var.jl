@@ -8,10 +8,15 @@ Variable struct.
 
 `Var` contains the following members:
 * data
-* batchdims
-* f
 * args
 * grad
+
+# Example
+```julia
+T = Float32
+x = Var(rand(T,10,5)) # x.grad is set to `nothing`
+x = zerograd(rand(T,10,5)) # x.grad is initialized as zero.
+```
 """
 mutable struct Var
     data
@@ -34,14 +39,14 @@ Base.stride(x::Var, i::Int) = stride(x.data, i)
 isvoid(x) = x == nothing
 
 doc"""
-    isparam(x::Var)::Bool
+    isparam(x::Var)
 
 Returns whether `x` is a parameter or not
 """
 isparam(x::Var) = !isvoid(x.grad) && isempty(x.args)
 
 doc"""
-    topsort
+    topsort(tops::T...)
 
 Topological sort.
 """
