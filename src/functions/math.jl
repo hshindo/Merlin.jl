@@ -165,7 +165,7 @@ function ∇broadcast_minus!(gy::Array{T}, gx::Array{T}) where T
 end
 
 doc"""
-    \.\*(x1::Var, x2::Var)
+    .*(x1::Var, x2::Var)
 """
 broadcast(::typeof(*), x1::Var, x2::Var) = Var(broadcast(*,x1.data,x2.data), (broadcast,*,x1,x2))
 broadcast(::typeof(*), x1::Node, x2::Node; name="") = Node(broadcast, (*,x1,x2), name)
@@ -218,7 +218,7 @@ end
 =#
 
 doc"""
-    \*(A::Var, B::Var)
+    *(A::Var, B::Var)
 """
 *(A::Var, B::Var) = Var(*(A.data,B.data), (*,A,B))
 *(A::Node, B::Node; name="") = Node(*, (A,B), name)

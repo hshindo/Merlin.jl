@@ -1,10 +1,18 @@
 export embeddings, lookup
 
+doc"""
+    embeddings(T, insize::Int, outsize::Int, [init_W=Normal(0.01)])
+
+Initialize the embeddings.
+"""
 function embeddings(::Type{T}, insize::Int, outsize::Int; init_W=Normal(0,0.01)) where T
     W = init_W(T, outsize, insize)
     [zerograd(W[:,i]) for i=1:size(W,2)]
 end
 
+doc"""
+    lookup(embeds::Vector{Var}, x::Var)
+"""
 function lookup(embeds::Vector{Var}, x::Var)
     y = lookup(embeds, x.data)
     xs = map(i -> embeds[i], vec(x.data))
