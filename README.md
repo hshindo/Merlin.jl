@@ -89,19 +89,19 @@ When the network structure can be represented as *static*, it is recommended to 
 * See [MNIST](examples/mnist/)
 
 ### LSTM
-<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/lstm_batch.png" width="240"></p>
+<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/lstm_batch.png" width="270"></p>
 
 This is an example of batched LSTM.
 ```julia
 using Merlin
 
 T = Float32
-x1 = rand(T,20,3)
-x2 = rand(T,20,2)
-x3 = rand(T,20,5)
-x = Var(cat(2,x1,x2,x3))
-f = BiLSTM(T, 20, 20) # input size: 20, output size: 20
-y = f(x, [3,2,5])
+a = rand(T,20,3)
+b = rand(T,20,2)
+c = rand(T,20,5)
+x = Var(cat(2,a,b,c))
+lstm = LSTM(T, 20, 20) # input size: 20, output size: 20
+y = lstm(x, [3,2,5])
 ```
 
 More examples can be found in [`examples`](examples/).
