@@ -89,7 +89,7 @@ When the network structure can be represented as *static*, it is recommended to 
 * See [MNIST](examples/mnist/)
 
 ### LSTM
-<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/lstm_batch.png" width="250"></p>
+<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/lstm_batch.png" width="240"></p>
 
 This is an example of batched LSTM.
 ```julia
