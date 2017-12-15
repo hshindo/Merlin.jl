@@ -41,11 +41,43 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "var.html#Merlin.Var",
+    "page": "Var",
+    "title": "Merlin.Var",
+    "category": "Type",
+    "text": "Var\n\nVariable struct.\n\nVar contains the following members:\n\ndata\nbatchdims\nf\nargs\ngrad\n\n\n\n"
+},
+
+{
+    "location": "var.html#Merlin.gradient!-Tuple{Merlin.Var}",
+    "page": "Var",
+    "title": "Merlin.gradient!",
+    "category": "Method",
+    "text": "gradient!(top::Var)\n\nCompute gradients.\n\n\n\n"
+},
+
+{
+    "location": "var.html#Merlin.isparam-Tuple{Merlin.Var}",
+    "page": "Var",
+    "title": "Merlin.isparam",
+    "category": "Method",
+    "text": "isparam(x::Var)::Bool\n\nReturns whether x is a parameter or not\n\n\n\n"
+},
+
+{
+    "location": "var.html#Merlin.topsort-Union{Tuple{T}, Tuple{Vararg{T,N} where N}} where T",
+    "page": "Var",
+    "title": "Merlin.topsort",
+    "category": "Method",
+    "text": "topsort\n\nTopological sort.\n\n\n\n"
+},
+
+{
     "location": "var.html#Var-1",
     "page": "Var",
     "title": "Var",
     "category": "section",
-    "text": "Pages   = [\"var.jl\"]"
+    "text": "Var is a type of variable for keeping gradients and a history of function calls.Modules = [Merlin]\nPages = [\"var.jl\"]"
 },
 
 {
@@ -65,51 +97,67 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Merlin.crelu",
+    "location": "functions.html#Merlin.crelu-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.crelu",
-    "category": "Function",
-    "text": "crelu(x)\n\nConcatenated Rectified Linear Unit. The output is twice the size of the input.\n\nf(x) = (max(0x) max(0-x))\n\n\n\n"
+    "category": "Method",
+    "text": "crelu(x::Var)\n\nConcatenated Rectified Linear Unit. The output is twice the size of the input.\n\nf(x) = (max(0x) max(0-x))\n\nReferences\n\nShang et al., \"Understanding and Improving Convolutional Neural Networks via Concatenated Rectified Linear Units\", arXiv 2016.\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Merlin.elu",
+    "location": "functions.html#Merlin.elu-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.elu",
-    "category": "Function",
-    "text": "elu(x)\n\nExponential Linear Unit.\n\nf(x) =\nbegincases\nx  x  0 \nalpha (e^x-1)  xleq0\nendcases\n\n\n\n"
+    "category": "Method",
+    "text": "elu(x::Var)\n\nExponential Linear Unit.\n\nReferences\n\nClevert et al., \"Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)\", arXiv 2015.\n\nf(x) =\nbegincases\nx  x  0 \nalpha (e^x-1)  xleq0\nendcases\n\nwhere alpha=1.\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Merlin.relu",
+    "location": "functions.html#Merlin.leaky_relu",
+    "page": "Functions",
+    "title": "Merlin.leaky_relu",
+    "category": "Function",
+    "text": "leaky_relu(x::Var, alpha::Float64=0.2)\n\nLeaky Rectified Linear Unit.\n\nf(x) =\nbegincases\nx  x  0 \nalpha x  x leq 0\nendcases\n\nReferences\n\nMaas et al., \"Rectifier Nonlinearities Improve Neural Network Acoustic Models\", ICML 2013.\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Merlin.relu-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.relu",
-    "category": "Function",
-    "text": "relu(x)\n\nRectified Linear Unit.\n\nf(x) = max(0 x)\n\n\n\n"
+    "category": "Method",
+    "text": "relu(x::Var)\n\nRectified Linear Unit.\n\nf(x) = max(0 x)\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Merlin.selu",
+    "location": "functions.html#Merlin.selu-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.selu",
-    "category": "Function",
-    "text": "selu(x)\n\nScaled Exponential Linear Unit.\n\nf(x) = lambda\nbegincases\nx  x  0 \nalpha e^x-alpha  xleq0\nendcases\n\nReferences\n\nKlambauer et al., Self-Normalizing Neural Networks, NIPS 2017\n\n\n\n"
+    "category": "Method",
+    "text": "selu(x::Var)\n\nScaled Exponential Linear Unit.\n\nf(x) = lambda\nbegincases\nx  x  0 \nalpha e^x-alpha  xleq0\nendcases\n\nwhere lambda=10507 and alpha=16733.\n\nReferences\n\nKlambauer et al., \"Self-Normalizing Neural Networks\", NIPS 2017.\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Merlin.sigmoid",
+    "location": "functions.html#Merlin.sigmoid-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.sigmoid",
-    "category": "Function",
+    "category": "Method",
     "text": "sigmoid(x)\n\nSigmoid logistic function.\n\nf(x) = (1 + exp(-x))^-1\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Base.tanh",
+    "location": "functions.html#Merlin.Swish",
+    "page": "Functions",
+    "title": "Merlin.Swish",
+    "category": "Type",
+    "text": "Swish\n\nSwish activation function.\n\nf(x) = x cdot sigma (beta x)\n\nwhere beta is a leanable parameter.\n\nReferences\n\nRamachandran et al. \"Searching for Activation Functions\", arXiv 2017.\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Base.tanh-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Base.tanh",
-    "category": "Function",
-    "text": "tanh(x)\n\nHyperbolic tangent function.\n\n\n\n"
+    "category": "Method",
+    "text": "tanh(x::Var)\n\nHyperbolic tangent function.\n\n\n\n"
 },
 
 {
@@ -117,7 +165,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Activation",
     "category": "section",
-    "text": "crelu\nelu\nrelu\nselu\nsigmoid\ntanh"
+    "text": "Modules = [Merlin]\nPages   = [\"activation.jl\"]"
 },
 
 {
@@ -125,7 +173,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.Conv1D",
     "category": "Type",
-    "text": "Conv1D(T, ksize, insize, outsize, pad, stride; dilation=1, [init_w=Xavier()], [init_b=Zeros()])\n\n1-dimensional convolution function.\n\nx = Var(rand(Float32,10,5))\nf = Conv1D(Float32, 5, 10, 3, 2, 1)\ny = f(x)\n\n\n\n"
+    "text": "Conv1D(T, ksize, insize, outsize, pad, stride, [dilation=1, init_W=Xavier(), init_b=Fill(0)])\n\n1-dimensional convolution function.\n\nT = Float32\nx = Var(rand(T,10,5))\nf = Conv1D(T, 5, 10, 3, 2, 1)\ny = f(x)\n\n\n\n"
 },
 
 {
@@ -134,6 +182,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Convolution",
     "category": "section",
     "text": "Conv1D"
+},
+
+{
+    "location": "functions.html#Merlin.l2",
+    "page": "Functions",
+    "title": "Merlin.l2",
+    "category": "Function",
+    "text": "l2(x::Var, lambda::Float64)\n\nL2 regularization.\n\ny = fraclambda2leftVert mathbfx rightVert ^2\n\nx = Var(rand(Float32,10,5))\ny = l2(x, 0.01)\n\n\n\n"
 },
 
 {
@@ -165,7 +221,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Loss",
     "category": "section",
-    "text": "crossentropy\nmse\nsoftmax_crossentropy"
+    "text": "l2\ncrossentropy\nmse\nsoftmax_crossentropy"
 },
 
 {
@@ -173,7 +229,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.broadcast",
     "category": "Function",
-    "text": ".+(x1::Var, x2::Var)\n\n\n\n.-(x1::Var, x2::Var)\n\n\n\n.*(x1::Var, x2::Var)\n\n\n\n"
+    "text": ".+(x1::Var, x2::Var)\n\n\n\n.-(x1::Var, x2::Var)\n\n\n\n\\.\\*(x1::Var, x2::Var)\n\n\n\n"
 },
 
 {
@@ -197,7 +253,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.:*",
     "category": "Function",
-    "text": "*(A::Var, B::Var)\n\n\n\n"
+    "text": "\\*(A::Var, B::Var)\n\n\n\n"
 },
 
 {
@@ -237,7 +293,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.dropout",
     "category": "Function",
-    "text": "dropout(x::Var, rate::Float64)\n\nIf config.train is true, drops elements randomly with probability rate and scales the other elements by factor 1  (1 - rate). Otherwise, it just returns x.\n\n\n\n"
+    "text": "dropout(x::Var, rate::Float64, train::Bool)\n\nIf train is true, drops elements randomly with probability rate and scales the other elements by factor 1  (1 - rate). Otherwise, it just returns x.\n\n\n\n"
 },
 
 {
@@ -253,7 +309,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.BiLSTM",
     "category": "Type",
-    "text": "BiLSTM(x)\n\nBidirectional Long Short-Term Memory network.\n\n👉 Example\n\nx = Var(rand(Float32,10,5))\n\n\n\n"
+    "text": "BiLSTM(::Type{T}, insize::Int, outsize::Int, [init_W=Uniform(0.001), init_U=Orthogonal()])\n\nBi-directional Long Short-Term Memory network. See LSTM for more details.\n\n\n\n"
 },
 
 {
@@ -261,7 +317,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.LSTM",
     "category": "Type",
-    "text": "LSTM(T::Type, xsize::Int, hsize::Int)\n\nLong Short-Term Memory network.\n\nT = Float32\nlstm = LSTM(T, 100, 100)\nh = lstm(x)\n\n\n\n"
+    "text": "LSTM(::Type{T}, insize::Int, outsize::Int, [init_W=Uniform(0.001), init_U=Orthogonal()])\n\nLong Short-Term Memory network.\n\nbeginalign*\nmathbff_t  =sigma_g(W_fmathbfx_t+U_fmathbfh_t-1+mathbfb_f)\nmathbfi_t  =sigma_g(W_imathbfx_t+U_imathbfh_t-1+mathbfb_i)\nmathbfo_t  =sigma_g(W_omathbfx_t+U_omathbfh_t-1+mathbfb_o)\nmathbfc_t  =mathbff_todotmathbfc_t-1+mathbfi_todotsigma_c(W_cmathbfx_t+U_cmathbfh_t-1+mathbfb_c)\nmathbfh_t  =mathbfo_todotsigma_h(mathbfc_t)\nendalign*\n\nx_t in R^d: input vector to the LSTM block\nf_t in R^h: forget gate's activation vector\ni_t in R^h: input gate's activation vector\no_t in R^h: output gate's activation vector\nh_t in R^h: output vector of the LSTM block\nc_t in R^h: cell state vector\nW in R^h times d, U in R^h times h and b in R^h: weight matrices and bias vectors\nsigma_g: sigmoid function\nsigma_c: hyperbolic tangent function\nsigma_h: hyperbolic tangent function\n\n👉 Example\n\nT = Float32\nx = Var(rand(T,100,10))\nf = LSTM(T, 100, 100)\nh = f(x)\n\n\n\n"
 },
 
 {
@@ -273,11 +329,35 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#Base.max",
+    "page": "Functions",
+    "title": "Base.max",
+    "category": "Function",
+    "text": "max(x::Var, dim::Int)\n\nReturns the maximum value over the given dimension.\n\n👉 Example\n\nx = Var(rand(Float32,10,5))\ny = max(x, 1)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Merlin.max_batch",
+    "page": "Functions",
+    "title": "Merlin.max_batch",
+    "category": "Function",
+    "text": "max_batch(x::Var, dims::Vector{Int})\n\n\n\n"
+},
+
+{
     "location": "functions.html#Reduction-1",
     "page": "Functions",
     "title": "Reduction",
     "category": "section",
-    "text": "max\nmax_batchgemm\ngemv\nconcat\ngetindex\nLinear\nlogsoftmax\nlookup\nreshape\nsoftmax\nstandardize\nwindow1d"
+    "text": "max\nmax_batch"
+},
+
+{
+    "location": "functions.html#Misc-1",
+    "page": "Functions",
+    "title": "Misc",
+    "category": "section",
+    "text": "argmax\nbatchsort\nconcat\ngetindex\nLinear\nlogsoftmax\nlookup\nreshape\nsoftmax\nstandardize\nwindow1d"
 },
 
 {
@@ -305,11 +385,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "initializers.html#Merlin.Uniform",
+    "location": "initializers.html#Merlin.Fill",
     "page": "Initializaters",
-    "title": "Merlin.Uniform",
+    "title": "Merlin.Fill",
     "category": "Type",
-    "text": "Uniform(a, b)\n\nGenerator of ndarray with a uniform distribution.\n\nArguments\n\na: Lower bound of the range of random values.\nb: Upper bound of the range of random values.\n\n\n\n"
+    "text": "Fill(x)\n\nFill initializer.\n\n\n\n"
 },
 
 {
@@ -321,6 +401,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "initializers.html#Merlin.Orthogonal",
+    "page": "Initializaters",
+    "title": "Merlin.Orthogonal",
+    "category": "Type",
+    "text": "Orthogonal([gain=1.0])\n\nReferences\n\nSaxe et al., Exact solutions to the nonlinear dynamics of learning in deep linear neural networks\n\n\n\n"
+},
+
+{
+    "location": "initializers.html#Merlin.Uniform",
+    "page": "Initializaters",
+    "title": "Merlin.Uniform",
+    "category": "Type",
+    "text": "Uniform(a, b)\nUniform(b)\n\nGenerator of ndarray with a uniform distribution.\n\nArguments\n\na: Lower bound of the range of random values.\nb: Upper bound of the range of random values.\n\n\n\n"
+},
+
+{
     "location": "initializers.html#Merlin.Xavier",
     "page": "Initializaters",
     "title": "Merlin.Xavier",
@@ -329,19 +425,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "initializers.html#Merlin.Orthogonal",
-    "page": "Initializaters",
-    "title": "Merlin.Orthogonal",
-    "category": "Type",
-    "text": "Orthogonal()\n\nReferences\n\nSaxe et al., Exact solutions to the nonlinear dynamics of learning in deep linear neural networks\n\n\n\n"
-},
-
-{
     "location": "initializers.html#Initializers-1",
     "page": "Initializaters",
     "title": "Initializers",
     "category": "section",
-    "text": "Pages = [\"initializers.md\"]Uniform\nNormal\nXavier\nOrthogonal"
+    "text": "Initializers provides a way to set the initial weights of Merlin functions.f = Linear(Float32, 100, 100, init_W=Xavier(), init_b=Fill(0))Pages = [\"initializers.md\"]Modules = [Merlin]\nPages   = [\"initializer.jl\"]"
 },
 
 {
@@ -357,7 +445,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Optimizers",
     "title": "Merlin.AdaGrad",
     "category": "Type",
-    "text": "AdaGrad\n\nSee: http://jmlr.org/papers/v12/duchi11a.html\n\n\n\n"
+    "text": "AdaGrad\n\nAdaGrad Optimizer.\n\nReferences\n\nDuchi t al., \"Adaptive Subgradient Methods for Online Learning and Stochastic Optimization\", JMLR 2011.\n\n\n\n"
 },
 
 {
@@ -365,7 +453,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Optimizers",
     "title": "Merlin.Adam",
     "category": "Type",
-    "text": "Adam\n\nAdam: A Method for Stochastic Optimization\n\nReferences\n\nhttp://arxiv.org/abs/1412.6980v8\n\n\n\n"
+    "text": "Adam\n\nAdam Optimizer\n\nReferences\n\nKingma and Ba, \"Adam: A Method for Stochastic Optimization\", ICLR 2015.\n\n\n\n"
 },
 
 {
@@ -381,7 +469,71 @@ var documenterSearchIndex = {"docs": [
     "page": "Optimizers",
     "title": "Optimizers",
     "category": "section",
-    "text": "x = zerograd(rand(Float32,5,4))\nopt = SGD(0.001)\nopt(x)AdaGrad\nAdam\nSGD"
+    "text": "Optimizers provides a way to update the weights of Merlin.Var.x = zerograd(rand(Float32,5,4))\nopt = SGD(0.001)\nopt(x)\nprintln(x.grad)Pages = [\"optimizers.md\"]Modules = [Merlin]\nPages   = [\"optimizer.jl\"]"
+},
+
+{
+    "location": "datasets.html#",
+    "page": "Datasets",
+    "title": "Datasets",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "datasets.html#Datasets-1",
+    "page": "Datasets",
+    "title": "Datasets",
+    "category": "section",
+    "text": "Merlin provides an access to common machine learning datasets for Julia."
+},
+
+{
+    "location": "datasets.html#Example-1",
+    "page": "Datasets",
+    "title": "Example",
+    "category": "section",
+    "text": "using Merlin\nusing Merlin.Datasets\nusing Merlin.Datasets.MNIST\n\ndir = \"mnist\"\ntrain_x, train_y = MNIST.traindata(dir)\ntest_x, test_y = MNIST.testdata(dir)"
+},
+
+{
+    "location": "datasets.html#Available-Datasets-1",
+    "page": "Datasets",
+    "title": "Available Datasets",
+    "category": "section",
+    "text": ""
+},
+
+{
+    "location": "datasets.html#CIFAR10-1",
+    "page": "Datasets",
+    "title": "CIFAR10",
+    "category": "section",
+    "text": "The CIFAR-10 dataset consists of 60000 32x32 color images in 10 classes."
+},
+
+{
+    "location": "datasets.html#CIFAR100-1",
+    "page": "Datasets",
+    "title": "CIFAR100",
+    "category": "section",
+    "text": "The CIFAR-100 dataset consists of 600 32x32 color images in 100 classes. The 100 classes are grouped into 20 superclasses (fine and coarse labels)."
+},
+
+{
+    "location": "datasets.html#MNIST-1",
+    "page": "Datasets",
+    "title": "MNIST",
+    "category": "section",
+    "text": "The MNIST dataset consists of 60000 28x28 images of handwritten digits."
+},
+
+{
+    "location": "datasets.html#PTBLM-1",
+    "page": "Datasets",
+    "title": "PTBLM",
+    "category": "section",
+    "text": "The PTBLM dataset consists of Penn Treebank sentences for language modeling, available from tomsercu/lstm. The unknown words are replaced with <unk> so that the total vocaburary size becomes 10000.This is the first sentence of the PTBLM dataset.dir = \"ptblm\"\nx, y = PTBLM.traindata(dir)\n\nx[1]\n> [\"no\", \"it\", \"was\", \"n't\", \"black\", \"monday\"]\ny[1]\n> [\"it\", \"was\", \"n't\", \"black\", \"monday\", \"<eos>\"]where MLDataset adds the special word: <eos> to the end of y."
 },
 
 {
