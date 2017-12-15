@@ -1,4 +1,4 @@
-"""
+doc"""
     gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)
     gemm(A::Var, B::Var, [tA='N'], [tB='N'], [alpha=1])
 
@@ -30,7 +30,7 @@ function addgrad!(C::Var, ::typeof(BLAS.gemm), tA::Char, tB::Char, alpha::Number
     end
 end
 
-"""
+doc"""
     BLAS.gemv(tA::Char, alpha, A::Var, x::Var)
 
 * tA: 'T' (transpose) or 'N' (not transpose)
