@@ -10,58 +10,58 @@ Modules = [Merlin]
 Pages   = ["activation.jl"]
 ```
 
+## BLAS
+```@autodocs
+Modules = [Merlin]
+Pages   = ["blas.jl"]
+```
+
 ## Convolution
-```@docs
-Conv1D
+```@autodocs
+Modules = [Merlin]
+Pages   = ["conv.jl"]
+```
+
+## Embeddings
+```@autodocs
+Modules = [Merlin]
+Pages   = ["embeddings.jl"]
 ```
 
 ## Loss
-```@docs
-l2
-crossentropy
-mse
-softmax_crossentropy
+```@autodocs
+Modules = [Merlin]
+Pages   = ["loss.jl"]
 ```
 
 ## Math
-```@docs
-broadcast
-+
--
-*
-/
-^
-transpose
-```
-
-## Random
-```@docs
-dropout
+```@autodocs
+Modules = [Merlin]
+Pages   = ["math.jl"]
 ```
 
 ## Recurrent
-```@docs
-BiLSTM
-LSTM
+```@autodocs
+Modules = [Merlin]
+Pages   = ["recurrent.jl"]
 ```
 
 ## Reduction
-```@docs
-max
-max_batch
+```@autodocs
+Modules = [Merlin]
+Pages   = ["reduce.jl"]
 ```
 
 ## Misc
 ```@docs
 argmax
-batchsort
 concat
+dropout
 getindex
 Linear
-logsoftmax
 lookup
 reshape
 softmax
+logsoftmax
 standardize
-window1d
 ```
