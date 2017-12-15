@@ -169,6 +169,38 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#Base.LinAlg.BLAS.gemm-Tuple{Char,Char,Number,Merlin.Var,Merlin.Var}",
+    "page": "Functions",
+    "title": "Base.LinAlg.BLAS.gemm",
+    "category": "Method",
+    "text": "gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)\ngemm(A::Var, B::Var, [tA='N'], [tB='N'], [alpha=1])\n\ntA: 'T' (transpose) or 'N' (not transpose)\ntB: same as tA\n\nC = lpha 	imes 	extrmtA(A) 	imes 	extrmtB(B)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Base.LinAlg.BLAS.gemv-Tuple{Char,Number,Merlin.Var,Merlin.Var}",
+    "page": "Functions",
+    "title": "Base.LinAlg.BLAS.gemv",
+    "category": "Method",
+    "text": "BLAS.gemv(tA::Char, alpha, A::Var, x::Var)\n\ntA: 'T' (transpose) or 'N' (not transpose)\n\ny = lpha 	imes 	extrmtA(A) 	imes x\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Merlin.gemm_batch-Tuple{Any,Any,Any,Array{Merlin.Var,1},Array{Merlin.Var,1}}",
+    "page": "Functions",
+    "title": "Merlin.gemm_batch",
+    "category": "Method",
+    "text": "gemm_batch(tA::Char, tB::Char, alpha, As::Vector{Var}, B::Vector{Var})\ngemm_batch(As::Vector{Var}, B::Vector{Var}, [tA='N'], [tB='N'], [alpha=1])\n\n\n\n"
+},
+
+{
+    "location": "functions.html#BLAS-1",
+    "page": "Functions",
+    "title": "BLAS",
+    "category": "section",
+    "text": "Modules = [Merlin]\nPages   = [\"blas.jl\"]"
+},
+
+{
     "location": "functions.html#Merlin.Conv1D",
     "page": "Functions",
     "title": "Merlin.Conv1D",
@@ -181,38 +213,46 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Convolution",
     "category": "section",
-    "text": "Conv1D"
+    "text": "Modules = [Merlin]\nPages   = [\"conv.jl\"]"
 },
 
 {
-    "location": "functions.html#Merlin.l2",
+    "location": "functions.html#Embeddings-1",
     "page": "Functions",
-    "title": "Merlin.l2",
-    "category": "Function",
-    "text": "l2(x::Var, lambda::Float64)\n\nL2 regularization.\n\ny = fraclambda2leftVert mathbfx rightVert ^2\n\nx = Var(rand(Float32,10,5))\ny = l2(x, 0.01)\n\n\n\n"
+    "title": "Embeddings",
+    "category": "section",
+    "text": "Modules = [Merlin]\nPages   = [\"embeddings.jl\"]"
 },
 
 {
-    "location": "functions.html#Merlin.crossentropy",
+    "location": "functions.html#Merlin.crossentropy-Tuple{Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.crossentropy",
-    "category": "Function",
+    "category": "Method",
     "text": "crossentropy(p, q)\n\nCross-entropy function between p and q.\n\nf(x) = -sum_x p(x) log q(x)\n\np::Var: Var of Vector{Int} or Matrix{Float}. If p is Vector{Int} and p[i] == 0, returns 0.\nq::Var: Var of Matrix{Float}\n\np = Var(rand(0:10,5))\nq = softmax(Var(rand(Float32,10,5)))\ny = crossentropy(p, q)\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Merlin.mse",
+    "location": "functions.html#Merlin.l2-Tuple{Merlin.Var,Float64}",
+    "page": "Functions",
+    "title": "Merlin.l2",
+    "category": "Method",
+    "text": "l2(x::Var, lambda::Float64)\n\nL2 regularization.\n\ny = fraclambda2leftVert mathbfx rightVert ^2\n\nx = Var(rand(Float32,10,5))\ny = l2(x, 0.01)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Merlin.mse-Tuple{Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.mse",
-    "category": "Function",
+    "category": "Method",
     "text": "mse(x1, x2)\n\nMean Squared Error function between x1 and x2. The mean is calculated over the minibatch. Note that the error is not scaled by 1/2.\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Merlin.softmax_crossentropy",
+    "location": "functions.html#Merlin.softmax_crossentropy-Tuple{Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.softmax_crossentropy",
-    "category": "Function",
+    "category": "Method",
     "text": "softmax_crossentropy(p, x)\n\nCross-entropy function between p and softmax(x).\n\nf(x) = -sum_x p(x) log q(x)\n\nwhere q = softmax(x)\n\np: Var of Vector{Int} or Matrix{Float}\nq: Var of Matrix{Float}\n\np = Var(rand(0:10,5))\nq = Var(rand(Float32,10,5))\ny = softmax_crossentropy(p, x)\n\n\n\n"
 },
 
@@ -221,62 +261,94 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Loss",
     "category": "section",
-    "text": "l2\ncrossentropy\nmse\nsoftmax_crossentropy"
+    "text": "Modules = [Merlin]\nPages   = [\"loss.jl\"]"
 },
 
 {
-    "location": "functions.html#Base.broadcast",
-    "page": "Functions",
-    "title": "Base.broadcast",
-    "category": "Function",
-    "text": ".+(x1::Var, x2::Var)\n\n\n\n.-(x1::Var, x2::Var)\n\n\n\n\\.\\*(x1::Var, x2::Var)\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Base.:+",
-    "page": "Functions",
-    "title": "Base.:+",
-    "category": "Function",
-    "text": "+(x1::Var, x2::Var)\n+(a::Number, x::Var)\n+(x::Var, a::Number)\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Base.:-",
-    "page": "Functions",
-    "title": "Base.:-",
-    "category": "Function",
-    "text": "-(x1, x2)\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Base.:*",
+    "location": "functions.html#Base.:*-Tuple{Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Base.:*",
-    "category": "Function",
+    "category": "Method",
     "text": "\\*(A::Var, B::Var)\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Base.:/",
+    "location": "functions.html#Base.:+-Tuple{Merlin.Var,Merlin.Var}",
+    "page": "Functions",
+    "title": "Base.:+",
+    "category": "Method",
+    "text": "+(x1::Var, x2::Var)\n+(a::Number, x::Var)\n+(x::Var, a::Number)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Base.:--Tuple{Merlin.Var,Merlin.Var}",
+    "page": "Functions",
+    "title": "Base.:-",
+    "category": "Method",
+    "text": "-(x1, x2)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Base.:/-Tuple{Merlin.Var,Number}",
     "page": "Functions",
     "title": "Base.:/",
-    "category": "Function",
+    "category": "Method",
     "text": "/(x1::Var, a)\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Base.:^",
+    "location": "functions.html#Base.:^-Tuple{Merlin.Var,Number}",
     "page": "Functions",
     "title": "Base.:^",
-    "category": "Function",
+    "category": "Method",
     "text": "^(x::Var, a::Number)\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Base.transpose",
+    "location": "functions.html#Base.broadcast-Tuple{Base.#*,Merlin.Var,Merlin.Var}",
+    "page": "Functions",
+    "title": "Base.broadcast",
+    "category": "Method",
+    "text": "\\.\\*(x1::Var, x2::Var)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Base.broadcast-Tuple{Base.#+,Merlin.Var,Merlin.Var}",
+    "page": "Functions",
+    "title": "Base.broadcast",
+    "category": "Method",
+    "text": ".+(x1::Var, x2::Var)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Base.broadcast-Tuple{Base.#-,Merlin.Var,Merlin.Var}",
+    "page": "Functions",
+    "title": "Base.broadcast",
+    "category": "Method",
+    "text": ".-(x1::Var, x2::Var)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Base.exp-Tuple{Merlin.Var}",
+    "page": "Functions",
+    "title": "Base.exp",
+    "category": "Method",
+    "text": "exp(x)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Base.log-Tuple{Merlin.Var}",
+    "page": "Functions",
+    "title": "Base.log",
+    "category": "Method",
+    "text": "log(x)\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Base.transpose-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Base.transpose",
-    "category": "Function",
+    "category": "Method",
     "text": "transpose(x)\n\n\n\n"
 },
 
@@ -285,23 +357,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Math",
     "category": "section",
-    "text": "broadcast\n+\n-\n*\n/\n^\ntranspose"
-},
-
-{
-    "location": "functions.html#Merlin.dropout",
-    "page": "Functions",
-    "title": "Merlin.dropout",
-    "category": "Function",
-    "text": "dropout(x::Var, rate::Float64, train::Bool)\n\nIf train is true, drops elements randomly with probability rate and scales the other elements by factor 1  (1 - rate). Otherwise, it just returns x.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Random-1",
-    "page": "Functions",
-    "title": "Random",
-    "category": "section",
-    "text": "dropout"
+    "text": "Modules = [Merlin]\nPages   = [\"math.jl\"]"
 },
 
 {
@@ -325,23 +381,39 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Recurrent",
     "category": "section",
-    "text": "BiLSTM\nLSTM"
+    "text": "Modules = [Merlin]\nPages   = [\"recurrent.jl\"]"
 },
 
 {
-    "location": "functions.html#Base.max",
+    "location": "functions.html#Merlin.max_batch-Tuple{Merlin.Var,Array{Int64,1}}",
+    "page": "Functions",
+    "title": "Merlin.max_batch",
+    "category": "Method",
+    "text": "max_batch(x::Var, dims::Vector{Int})\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Base.max-Tuple{Merlin.Var,Int64}",
     "page": "Functions",
     "title": "Base.max",
-    "category": "Function",
+    "category": "Method",
     "text": "max(x::Var, dim::Int)\n\nReturns the maximum value over the given dimension.\n\n👉 Example\n\nx = Var(rand(Float32,10,5))\ny = max(x, 1)\n\n\n\n"
 },
 
 {
-    "location": "functions.html#Merlin.max_batch",
+    "location": "functions.html#Base.mean-Tuple{Merlin.Var,Int64}",
     "page": "Functions",
-    "title": "Merlin.max_batch",
-    "category": "Function",
-    "text": "max_batch(x::Var, dims::Vector{Int})\n\n\n\n"
+    "title": "Base.mean",
+    "category": "Method",
+    "text": "mean(x, dim::Int)\n\nComputes the average over the given dimension.\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Base.sum-Tuple{Merlin.Var,Int64}",
+    "page": "Functions",
+    "title": "Base.sum",
+    "category": "Method",
+    "text": "sum(x::Var, dim::Int)\n\nReturns the sum over the given dimension.\n\n\n\n"
 },
 
 {
@@ -349,7 +421,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Reduction",
     "category": "section",
-    "text": "max\nmax_batch"
+    "text": "Modules = [Merlin]\nPages   = [\"reduce.jl\"]"
 },
 
 {
@@ -357,7 +429,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Misc",
     "category": "section",
-    "text": "argmax\nbatchsort\nconcat\ngetindex\nLinear\nlogsoftmax\nlookup\nreshape\nsoftmax\nstandardize\nwindow1d"
+    "text": "argmax\nconcat\ndropout\ngetindex\nLinear\nlookup\nreshape\nsoftmax\nlogsoftmax\nstandardize"
 },
 
 {
