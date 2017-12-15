@@ -45,7 +45,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Var",
     "title": "Merlin.Var",
     "category": "Type",
-    "text": "Var\n\nVariable struct.\n\nVar contains the following members:\n\ndata\nbatchdims\nf\nargs\ngrad\n\n\n\n"
+    "text": "Var\n\nVariable struct.\n\nVar contains the following members:\n\ndata\nargs\ngrad\n\nExample\n\nT = Float32\nx = Var(rand(T,10,5)) # x.grad is set to `nothing`\nx = zerograd(rand(T,10,5)) # x.grad is initialized as zero.\n\n\n\n"
 },
 
 {
@@ -61,7 +61,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Var",
     "title": "Merlin.isparam",
     "category": "Method",
-    "text": "isparam(x::Var)::Bool\n\nReturns whether x is a parameter or not\n\n\n\n"
+    "text": "isparam(x::Var)\n\nReturns whether x is a parameter or not\n\n\n\n"
 },
 
 {
@@ -69,7 +69,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Var",
     "title": "Merlin.topsort",
     "category": "Method",
-    "text": "topsort\n\nTopological sort.\n\n\n\n"
+    "text": "topsort(tops::T...)\n\nTopological sort.\n\n\n\n"
 },
 
 {
