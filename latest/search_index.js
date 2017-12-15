@@ -501,7 +501,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Initializaters",
     "title": "Initializers",
     "category": "section",
-    "text": "Initializers provides a way to set the initial weights of Merlin functions.f = Linear(Float32, 100, 100, init_W=Xavier(), init_b=Fill(0))Pages = [\"initializers.md\"]Modules = [Merlin]\nPages   = [\"initializer.jl\"]"
+    "text": "Pages = [\"initializers.md\"]Initializers provides a way to set the initial weights of Merlin functions.f = Linear(Float32, 100, 100, init_W=Xavier(), init_b=Fill(0))Modules = [Merlin]\nPages   = [\"initializer.jl\"]"
 },
 
 {
@@ -541,7 +541,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Optimizers",
     "title": "Optimizers",
     "category": "section",
-    "text": "Optimizers provides a way to update the weights of Merlin.Var.x = zerograd(rand(Float32,5,4))\nopt = SGD(0.001)\nopt(x)\nprintln(x.grad)Pages = [\"optimizers.md\"]Modules = [Merlin]\nPages   = [\"optimizer.jl\"]"
+    "text": "Pages = [\"optimizers.md\"]Optimizers provides a way to update the weights of Merlin.Var.x = zerograd(rand(Float32,5,4))\nopt = SGD(0.001)\nopt(x)\nprintln(x.grad)Modules = [Merlin]\nPages   = [\"optimizer.jl\"]"
 },
 
 {
