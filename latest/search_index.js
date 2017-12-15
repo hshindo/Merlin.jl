@@ -173,7 +173,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.LinAlg.BLAS.gemm",
     "category": "Method",
-    "text": "gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)\ngemm(A::Var, B::Var, [tA='N'], [tB='N'], [alpha=1])\n\ntA: 'T' (transpose) or 'N' (not transpose)\ntB: same as tA\n\nC = lpha 	imes 	extrmtA(A) 	imes 	extrmtB(B)\n\n\n\n"
+    "text": "gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)\ngemm(A::Var, B::Var, [tA='N'], [tB='N'], [alpha=1])\n\ntA: 'T' (transpose) or 'N' (not transpose)\ntB: same as tA\n\nC = alpha times textrmtA(A) times textrmtB(B)\n\n\n\n"
 },
 
 {
@@ -181,7 +181,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.LinAlg.BLAS.gemv",
     "category": "Method",
-    "text": "BLAS.gemv(tA::Char, alpha, A::Var, x::Var)\n\ntA: 'T' (transpose) or 'N' (not transpose)\n\ny = lpha 	imes 	extrmtA(A) 	imes x\n\n\n\n"
+    "text": "BLAS.gemv(tA::Char, alpha, A::Var, x::Var)\n\ntA: 'T' (transpose) or 'N' (not transpose)\n\ny = alpha times textrmtA(A) times x\n\n\n\n"
 },
 
 {
@@ -445,7 +445,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Graph",
     "title": "Graph",
     "category": "section",
-    "text": "Graph represents a computational graph.using Merlin\n\nT = Float32\nx = Node()\ny = Linear(T,10,7)(x)\ny = relu(y)\ny = Linear(T,7,3)(y)\n@assert typeof(y) == Node\ng = Graph(input=x, output=y)\n\nx = zerograd(rand(T,10,10))\ny = g(x)\n\nparams = gradient!(y)\nprintln(x.grad)\n\nopt = SGD(0.01)\nforeach(opt, params)"
+    "text": "Graph represents a computational graph.using Merlin\n\nT = Float32\nx = Node(name=\"x\")\ny = Linear(T,10,7)(x)\ny = relu(y)\ny = Linear(T,7,3)(y)\n@assert typeof(y) == Node\ng = Graph(y)\n\nx = zerograd(rand(T,10,10))\ny = g(\"x\"=>x)\n\nparams = gradient!(y)\nprintln(x.grad)\n\nopt = SGD(0.01)\nforeach(opt, params)"
 },
 
 {
