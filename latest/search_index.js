@@ -217,6 +217,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#Merlin.embeddings-Union{Tuple{Type{T},Int64,Int64}, Tuple{T}} where T",
+    "page": "Functions",
+    "title": "Merlin.embeddings",
+    "category": "Method",
+    "text": "embeddings(T, insize::Int, outsize::Int, [init_W=Normal(0.01)])\n\nInitialize the embeddings.\n\n\n\n"
+},
+
+{
+    "location": "functions.html#Merlin.lookup-Tuple{Array{Merlin.Var,1},Merlin.Var}",
+    "page": "Functions",
+    "title": "Merlin.lookup",
+    "category": "Method",
+    "text": "lookup(embeds::Vector{Var}, x::Var)\n\n\n\n"
+},
+
+{
     "location": "functions.html#Embeddings-1",
     "page": "Functions",
     "title": "Embeddings",
@@ -269,7 +285,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.:*",
     "category": "Method",
-    "text": "\\*(A::Var, B::Var)\n\n\n\n"
+    "text": "*(A::Var, B::Var)\n\n\n\n"
 },
 
 {
@@ -309,7 +325,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.broadcast",
     "category": "Method",
-    "text": "\\.\\*(x1::Var, x2::Var)\n\n\n\n"
+    "text": ".*(x1::Var, x2::Var)\n\n\n\n"
 },
 
 {
