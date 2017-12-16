@@ -71,7 +71,7 @@ function ∇elu!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
 end
 
 doc"""
-    leaky_relu(x::Var, alpha::Float64=0.2)
+    leaky_relu(x::Var, alpha::Float64=0.1)
 
 Leaky Rectified Linear Unit.
 

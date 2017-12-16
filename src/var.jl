@@ -74,9 +74,11 @@ doc"""
 
 Compute gradients.
 """
-function gradient!(top::Var)
-    sorted = topsort(top)
-    isvoid(top.grad) && (top.grad = ones(top.data))
+function gradient!(tops::Var...)
+    sorted = topsort(tops...)
+    for top in tops
+        isvoid(top.grad) && (top.grad = ones(top.data))
+    end
     for v in sorted
         if !isempty(v.args) && isvoid(v.grad)
             v.grad = zeros(v.data)

@@ -80,11 +80,13 @@ mutable struct LSTM
     c0::Var
 end
 
-function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=Xavier(), init_U=Orthogonal()) where T
-    W = init_W(T, insize, 4outsize)
-    U = init_U(T, insize, 4outsize)
+function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=OrthoNormal(), init_U=OrthoNormal()) where T
+    W = cat(2, [init_W(T,insize,outsize) for i=1:4]...)
+    U = cat(2, [init_U(T,outsize,outsize) for i=1:4]...)
     WU = cat(1, W, U)
     b = zeros(T, 4outsize)
+    # b[outsize+1:2outsize] = -1
+    #b[1:outsize] = ones(T, outsize) # forget gate initializes to 1
     h0 = zeros(T, outsize, 1)
     c0 = zeros(T, outsize, 1)
     LSTM(zerograd(WU), zerograd(b), zerograd(h0), zerograd(c0))

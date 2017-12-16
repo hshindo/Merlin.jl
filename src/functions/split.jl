@@ -1,19 +1,27 @@
 import Base.split
 export unsafe_split
 
+doc"""
+    split(x::Var, dims::Vector{Int})
+
+# Example
+```julia
+T = Float32
+x = Var(rand(T,10,10))
+ys = split(x, [2,3,5])
+```
+"""
 function split(x::Var, dims::Vector{Int})
     @assert sum(dims) == size(x)[end]
-    front = Base.front(size(x))
-    s = stride(x, ndims(x))
+    front = ntuple(_ -> Colon(), ndims(x)-1)
     cumdim = 0
-    ys = Array{eltype(x),ndims(x)}[]
+    ys = Var[]
     for d in dims
-        p = pointer(x, s*cumdim+1)
-        y = unsafe_wrap(Array, p, (front...,d))
+        y = x[front...,cumdim+1:cumdim+d]
         push!(ys, y)
         cumdim += d
     end
-    Var(ys, (split,x,dims))
+    ys
 end
 split(x::Node, dims; name="") = Node(split, (x,dims), name)
 
