@@ -49,7 +49,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "var.html#Merlin.gradient!-Tuple{Merlin.Var}",
+    "location": "var.html#Merlin.gradient!-Tuple{Vararg{Merlin.Var,N} where N}",
     "page": "Var",
     "title": "Merlin.gradient!",
     "category": "Method",
@@ -117,7 +117,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.leaky_relu",
     "category": "Function",
-    "text": "leaky_relu(x::Var, alpha::Float64=0.2)\n\nLeaky Rectified Linear Unit.\n\nf(x) =\nbegincases\nx  x  0 \nalpha x  x leq 0\nendcases\n\nReferences\n\nMaas et al., \"Rectifier Nonlinearities Improve Neural Network Acoustic Models\", ICML 2013.\n\n\n\n"
+    "text": "leaky_relu(x::Var, alpha::Float64=0.1)\n\nLeaky Rectified Linear Unit.\n\nf(x) =\nbegincases\nx  x  0 \nalpha x  x leq 0\nendcases\n\nReferences\n\nMaas et al., \"Rectifier Nonlinearities Improve Neural Network Acoustic Models\", ICML 2013.\n\n\n\n"
 },
 
 {
@@ -486,6 +486,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Merlin.Normal",
     "category": "Type",
     "text": "Normal(mean, var)\n\nGenerator of ndarray with a normal distribution.\n\nArguments\n\nmean: Mean of the random values.\nvar: Variance of the random values.\n\n\n\n"
+},
+
+{
+    "location": "initializers.html#Merlin.OrthoNormal",
+    "page": "Initializaters",
+    "title": "Merlin.OrthoNormal",
+    "category": "Type",
+    "text": "OrthoNormal\n\n\n\n"
 },
 
 {
