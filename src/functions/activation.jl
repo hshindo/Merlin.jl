@@ -109,9 +109,11 @@ Rectified Linear Unit.
 f(x) = \max(0, x)
 ```
 """
-relu(x::Var) = Var(relu.(x.data), (relu,x))
+relu(x::Var) = relu!(Var(nothing,(relu,x)), x.data)
 relu(x::Node; name="") = Node(relu, (x,), name)
 relu(x::T) where T = max(x, T(0))
+
+relu!(out::Var, x::Array) = out.data = relu.(x)
 
 function addgrad!(y::Var, ::typeof(relu), x::Var)
     isvoid(x.grad) || ∇relu!(y.grad, x.data, x.grad)
