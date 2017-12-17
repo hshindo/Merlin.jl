@@ -117,7 +117,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.leaky_relu",
     "category": "Function",
-    "text": "leaky_relu(x::Var, alpha::Float64=0.1)\n\nLeaky Rectified Linear Unit.\n\nf(x) =\nbegincases\nx  x  0 \nalpha x  x leq 0\nendcases\n\nReferences\n\nMaas et al., \"Rectifier Nonlinearities Improve Neural Network Acoustic Models\", ICML 2013.\n\n\n\n"
+    "text": "leaky_relu(x::Var, alpha=0.1)\n\nLeaky Rectified Linear Unit.\n\nf(x) =\nbegincases\nx  x  0 \nalpha x  x leq 0\nendcases\n\nReferences\n\nMaas et al., \"Rectifier Nonlinearities Improve Neural Network Acoustic Models\", ICML 2013.\n\n\n\n"
 },
 
 {
