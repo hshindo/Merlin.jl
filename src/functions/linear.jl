@@ -16,7 +16,6 @@ f(x) = W^{T}x + b
 ```
 where ``W`` is a weight matrix and ``b`` is a bias vector.
 
-# Example
 ```julia
 T = Float32
 x = Var(rand(T,10,5))
@@ -29,18 +28,18 @@ function Linear(::Type{T}, insize::Int, outsize::Int; init_W=Xavier(), init_b=Fi
     b = init_b(T, outsize)
     Linear(zerograd(W), zerograd(b))
 end
-(f::Linear)(x::Var) = linear(x, f.W, f.b)
+(f::Linear)(x) = linear(x, f.W, f.b)
 (f::Linear)(x::Node) = linear(x, Node(f.W), Node(f.b))
 
 function linear(x::Var, W::Var, b::Var)
     y = linear(x.data, W.data, b.data)
     Var(y, (linear,x,W,b))
 end
+linear(x::Array, W::Var, b::Var) = linear(x, W.data, b.data)
 linear(x::Node, W::Node, b::Node; name="") = Node(linear, (x,W,b), name)
-
 function linear(x::Matrix, W::Matrix, b)
     y = BLAS.gemm('T', 'N', W, x)
-    b == nothing || broadcast!(+, y, y, b)
+    b == nothing || (y .+= b)
     y
 end
 
