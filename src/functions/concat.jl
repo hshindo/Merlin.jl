@@ -5,10 +5,10 @@ export concat
 
 Concatenate arrays over the given dimension.
 
-# Example
 ```julia
-x1 = Var(rand(Float32,4,3))
-x2 = Var(rand(Float32,4,5))
+T = Float32
+x1 = Var(rand(T,4,3))
+x2 = Var(rand(T,4,5))
 y = concat(2, x1, x2)
 ```
 """
@@ -17,6 +17,7 @@ function concat(dim::Int, xs::Var...)
     Var(y, (concat,dim,xs...))
 end
 concat(dim::Int, xs::Node...; name="") = Node(concat, (dim,xs...), name)
+concat(dim::Int, xs...) = cat(dim, xs...)
 
 function addgrad!(y::Var, ::typeof(concat), dim::Int, xs::Var...)
     T, N = eltype(y), ndims(y)

@@ -2,11 +2,17 @@ doc"""
     gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)
     gemm(A::Var, B::Var, [tA='N'], [tB='N'], [alpha=1])
 
-* tA: 'T' (transpose) or 'N' (not transpose)
-* tB: same as tA
+* tA, tB: 'T' (transpose) or 'N' (not transpose)
 
 ```math
 C = \alpha \times \textrm{tA}(A) \times \textrm{tB}(B)
+```
+
+```julia
+T = Float32
+A = Var(rand(T,10,5))
+B = Var(rand(T,10,7))
+C = BLAS.gemm('T', 'N', 1, A, B)
 ```
 """
 function BLAS.gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
@@ -37,6 +43,13 @@ doc"""
 
 ```math
 y = \alpha \times \textrm{tA}(A) \times x
+```
+
+```julia
+T = Float32
+A = Var(rand(T,10,5))
+x = Var(rand(T,5))
+B = BLAS.gemv('N', 1, A, x)
 ```
 """
 function BLAS.gemv(tA::Char, alpha::Number, A::Var, x::Var)
