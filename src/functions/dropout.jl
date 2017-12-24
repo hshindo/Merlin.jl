@@ -1,35 +1,31 @@
 export dropout
 
 doc"""
-    dropout(x::Var, rate::Float64, train::Bool)
+    dropout(x::Var, rate::Float64)
 
-If `train` is true, drops elements randomly with probability ``rate`` and
-scales the other elements by factor ``1 / (1 - rate)``.
-Otherwise, it just returns `x`.
+Drops elements randomly with probability ``rate`` and scales the other elements by factor ``1 / (1 - rate)``.
 """
-function dropout(x::Var, rate::Float64, train::Bool)
-    if rate == 0.0 || !train
-        x
-    else
-        T = eltype(x)
-        rx = rand(T, length(x.data))
-        y = dropout(x.data, T(rate), rx)
-        Var(y, (dropout,x,rate,rx))
-    end
+function dropout(x::Var, rate::Float64)
+    rate == 0.0 && return x
+    y = Var(nothing, (x,))
+    dropout!(y, x.data, rate)
 end
-dropout(x::Node, rate::Float64, train::Node; name="") = Node(dropout, (x,rate,train), name)
+dropout(x::Node, rate::Float64; name="") = Node(dropout, (x,rate), name)
+dropout(x::Array, rate::Float64) = x
 
-function dropout(x::Array{T}, rate::T, rx::Vector{T}) where T
+function dropout!(out, x::Array{T}, rate::Float64) where T
+    rx = rand(T, length(x.data))
     scale = T(1 / (1-rate))
     y = similar(x)
     @inbounds for i = 1:length(x)
         y[i] = rx[i] <= rate ? T(0) : scale*x[i]
     end
-    y
-end
 
-function addgrad!(y::Var, ::typeof(dropout), x::Var, rate, rx)
-    isvoid(x.grad) || ∇dropout!(y.grad, x.grad, eltype(x.data)(rate), rx)
+    out.data = y
+    out.∇! = function ∇!()
+        isvoid(out[1].grad) || ∇dropout!(out.grad, out[1].grad, T(rate), rx)
+    end
+    out
 end
 
 function ∇dropout!(gy::Array{T}, gx::Array{T}, rate::T, rx::Vector{T}) where T
@@ -38,29 +34,3 @@ function ∇dropout!(gy::Array{T}, gx::Array{T}, rate::T, rx::Vector{T}) where T
         gx[i] += ifelse(rx[i] <= rate, T(0), scale*gy[i])
     end
 end
-
-#=
-function forward{T}(::typeof(dropout), x::CuArray{T}, rate::Float64)
-    h = CUDNN.handle(x)
-    y = similar(x)
-    p = Cint[0]
-    cudnnDropoutGetStatesSize(h, p)
-    statessize = p[1]
-    states = CuArray{Int8}(Int(statessize))
-
-    xdesc = CUDNN.TensorDesc(x)
-    p = Cint[0]
-    cudnnDropoutGetReserveSpaceSize(xdesc, p)
-    reservesize = p[1]
-    reservespace = CuArray{Int8}(Int(reservesize))
-
-    desc = CUDNN.DropoutDesc()
-    cudnnSetDropoutDescriptor(desc, h, rate, states, statessize, 0)
-    cudnnDropoutForward(h, desc, xdesc, x, xdesc, y, reservespace, reservesize)
-
-    function backward!(dy, dx)
-        isvoid(dx) || cudnnDropoutBackward(h, desc, xdesc, dy, xdesc, dx, reservespace, reservesize)
-    end
-    y, backward!
-end
-=#

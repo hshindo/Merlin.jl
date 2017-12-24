@@ -29,23 +29,24 @@ function Linear(::Type{T}, insize::Int, outsize::Int; init_W=Xavier(), init_b=Fi
     Linear(zerograd(W), zerograd(b))
 end
 (f::Linear)(x) = linear(x, f.W, f.b)
-(f::Linear)(x::Node) = linear(x, Node(f.W), Node(f.b))
 
 function linear(x::Var, W::Var, b::Var)
-    y = linear(x.data, W.data, b.data)
-    Var(y, (linear,x,W,b))
+    y = Var(nothing, (x,W,b))
+    y.data = linear(x.data, W.data, b.data)
+    y.∇! = function ∇!()
+        T = eltype(y)
+        isvoid(x.grad) || BLAS.gemm!('N', 'N', T(1), W.data, y.grad, T(1), x.grad)
+        isvoid(W.grad) || BLAS.gemm!('N', 'T', T(1), x.data, y.grad, T(1), W.grad)
+        isvoid(b.grad) || BLAS.axpy!(T(1), sum(y.grad,2), b.grad)
+    end
+    y
 end
 linear(x::Array, W::Var, b::Var) = linear(x, W.data, b.data)
+linear(x::Node, W::Var, b::Var) = linear(x, Node(W), Node(b))
 linear(x::Node, W::Node, b::Node; name="") = Node(linear, (x,W,b), name)
+
 function linear(x::Matrix, W::Matrix, b)
     y = BLAS.gemm('T', 'N', W, x)
     b == nothing || (y .+= b)
     y
-end
-
-function addgrad!(y::Var, ::typeof(linear), x::Var, W::Var, b::Var)
-    T = eltype(y)
-    isvoid(x.grad) || BLAS.gemm!('N', 'N', T(1), W.data, y.grad, T(1), x.grad)
-    isvoid(W.grad) || BLAS.gemm!('N', 'T', T(1), x.data, y.grad, T(1), W.grad)
-    isvoid(b.grad) || BLAS.axpy!(T(1), sum(y.grad,2), b.grad)
 end

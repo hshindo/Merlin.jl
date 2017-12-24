@@ -1,21 +1,18 @@
-export @testgrad
+export @checkgrad
 
-using Base.Test
-
-macro testgrad(f, vars...)
+macro checkgrad(tol, f, vars...)
     vars = Expr(:tuple, vars...)
     f = Expr(:->, Expr(:tuple), f) # convert f to anonymouos function i.e., () -> f
     quote
+        tol = $(esc(tol))
         f = $(esc(f))
         vars = $(esc(vars))
-        @test all(vars) do v
-            checkgrad(f, v)
-        end
+        all(v -> checkgrad(tol,f,v), vars)
     end
 end
 
-function checkgrad(f::Function, var::Var)
-    check_eps = 1e-3
+function checkgrad(tolerance::Float64, f::Function, var::Var)
+    eps = 1e-3
     var.grad = zeros(var.data)
     y = f()
     gradient!(y)
@@ -25,24 +22,30 @@ function checkgrad(f::Function, var::Var)
     gx2 = similar(x)
     for k = 1:length(x)
         xk = x[k]
-        x[k] = xk + check_eps
+        x[k] = xk + eps
         y1 = copy(f().data)
-        x[k] = xk - check_eps
+        x[k] = xk - eps
         y2 = copy(f().data)
         x[k] = xk
-        gx2[k] = sum(y1-y2) / (2*check_eps)
+        gx2[k] = sum(y1-y2) / 2eps
     end
-    diff = gx1 - gx2
-    if maximum(abs,diff) >= check_eps
+    if maximum(abs,gx1-gx2) > tolerance
+        println("x:")
         println(x)
-        println()
+        println("gx1:")
         println(gx1)
-        println()
+        println("gx2:")
         println(gx2)
-        println()
+        println("diff:")
         println(diff)
         false
     else
         true
     end
+end
+
+function checkgpu(f, xs...)
+    y = f(x)
+    cux =
+    cuy = f(cux)
 end

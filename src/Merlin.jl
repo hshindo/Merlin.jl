@@ -2,7 +2,6 @@ module Merlin
 
 using Base.LinAlg.BLAS
 using JLD2
-using CuArrays
 
 if is_windows()
     const libmerlin = Libdl.dlopen(joinpath(dirname(@__FILE__),"../deps/libmerlin.dll"))
@@ -15,6 +14,7 @@ end
 #include("hdf5.jl")
 include("graph.jl")
 include("var.jl")
+#include("device.jl")
 #include("native.jl")
 include("check.jl")
 include("initializer.jl")
@@ -44,6 +44,8 @@ include("functions/reshape.jl")
 include("functions/softmax.jl")
 include("functions/split.jl")
 include("functions/standardize.jl")
+
+#include("cuda/CUDA.jl")
 
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")

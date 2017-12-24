@@ -1,22 +1,22 @@
-# Adapted from CUDArt.jl/wrap_cuda.jl
+# julia> ENV["LLVM_CONFIG"]="/usr/bin/llvm-config"
+# julia> Pkg.build("Clang")
+# julia> using Clang
+# julia> include("gen_libcurand.jl")
+
 using Clang
 
-# The following two likely need to be modified for the host system
 includes = ["/usr/local/include",
             "/usr/include",
             "/usr/local/cuda/include",
             "/usr/lib/gcc/x86_64-linux-gnu/5.4.0/include",
             "/usr/lib/gcc/x86_64-linux-gnu/5.4.0/include-fixed"]
-headers = ["/home/cl/shindo/lime/cudnn.h"]
+headers = ["/usr/local/cuda/include/cuda.h"]
 
 # Customize how functions, constants, and structs are written
-#const skip_expr = [:(const CUDART_DEVICE = __device__)]
-#const skip_error_check = [:cudaStreamQuery,:cudaGetLastError,:cudaPeekAtLastError]
 const skip_expr = []
 const skip_error_check = []
 
 function rewriter(ex::Expr)
-    println(ex)
     if in(ex, skip_expr)
         return :()
     end
@@ -33,36 +33,37 @@ function rewriter(ex::Expr)
     # omit types from function prototypes
     for i = 2:length(decl.args)
         a = decl.args[i]
-        if typeof(a) == Expr && a.head == :(::)
+        if isa(a,Expr) && a.head == :(::)
             decl.args[i] = a.args[1]
         end
     end
     # Error-check functions that return a cudaError_t (with some omissions)
     ccallexpr = body.args[1]
     if ccallexpr.head != :ccall
-        #println(ccallexpr.head)
-        #error("Unexpected body expression: ", body)
+        # error("Unexpected body expression: ", body)
     end
     rettype = ccallexpr.args[2]
-    if rettype == :cudnnStatus_t
-        fname = decl.args[1]
-        if !in(fname, skip_error_check)
-            body.args[1] = Expr(:call, :checkstatus, deepcopy(ccallexpr))
-        end
+    if rettype == :CUresult
+      fname = decl.args[1]
+      if !in(fname, skip_error_check)
+        body.args[1] = Expr(:call, :check_curesult, deepcopy(ccallexpr))
+      end
     end
     ex
 end
+
 rewriter(A::Array) = [rewriter(a) for a in A]
 rewriter(s::Symbol) = string(s)
 rewriter(arg) = arg
 
-context=wrap_c.init(output_file="libcudnn.jl",
-                    common_file="libcudnn_types.jl",
-                    header_library=x->"libcudnn",
-                    headers = headers,
-                    clang_includes=includes,
-                    header_wrapped=(x,y)->contains(y,"cudnn"),
-                    rewriter=rewriter)
+context = wrap_c.init(output_file = "libcuda.jl",
+                      common_file = "libcuda_types.jl",
+                      header_library = x->"libcuda",
+                      headers = headers,
+                      clang_includes = includes,
+                      clang_diagnostics = true,
+                      header_wrapped=(x,y)->contains(y,"cu"),
+                      rewriter = rewriter)
 
 context.options = wrap_c.InternalOptions(true,true)  # wrap structs, too
 

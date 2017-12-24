@@ -9,6 +9,7 @@ Variable struct.
 `Var` contains the following members:
 * data
 * args
+* ∇!
 * grad
 
 # Example
@@ -21,10 +22,11 @@ x = zerograd(rand(T,10,5)) # x.grad is initialized as zero.
 mutable struct Var
     data
     args
+    ∇!
     grad
 end
 
-Var(data=nothing, args=(); grad=nothing) = Var(data, args, grad)
+Var(data=nothing, args=(), (∇!)=nothing; grad=nothing) = Var(data, args, ∇!, grad)
 zerograd(data) = Var(data, grad=zeros(data))
 
 Base.size(x::Var) = size(x.data)
@@ -34,6 +36,7 @@ Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
 Base.strides(x::Var) = strides(x.data)
 Base.stride(x::Var, i::Int) = stride(x.data, i)
+Base.getindex(x::Var, i::Int) = x.args[i]
 isvoid(x) = x == nothing
 
 doc"""
@@ -84,8 +87,7 @@ function gradient!(tops::Var...)
     end
     for i = length(sorted):-1:1
         v = sorted[i]
-        isvoid(v.grad) && continue
-        isempty(v.args) || addgrad!(v, v.args...)
+        isvoid(v.∇!) || v.∇!()
     end
     filter(isparam, sorted)
 end

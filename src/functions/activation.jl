@@ -109,14 +109,20 @@ Rectified Linear Unit.
 f(x) = \max(0, x)
 ```
 """
-relu(x::Var) = relu!(Var(nothing,(relu,x)), x.data)
+function relu(x::Var)
+    y = Var(nothing, (x,))
+    relu!(y, x.data)
+end
 relu(x::Node; name="") = Node(relu, (x,), name)
+relu(x::Array) = relu.(x)
 relu(x::T) where T = max(x, T(0))
 
-relu!(out::Var, x::Array) = out.data = relu.(x)
-
-function addgrad!(y::Var, ::typeof(relu), x::Var)
-    isvoid(x.grad) || ∇relu!(y.grad, x.data, x.grad)
+function relu!(out, x::Array{T}) where T
+    out.data = relu.(x)
+    out.∇! = function ∇!()
+        isvoid(out[1].grad) || ∇relu!(out.grad, out[1].data, out[1].grad)
+    end
+    out
 end
 
 function ∇relu!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
@@ -167,12 +173,20 @@ Sigmoid logistic function.
 f(x) = (1 + \exp(-x))^{-1}
 ```
 """
-sigmoid(x::Var) = Var(sigmoid.(x.data), (sigmoid,x))
+function sigmoid(x::Var)
+    y = Var(nothing, (x,))
+    sigmoid!(y, x.data)
+end
 sigmoid(x::Node; name="") = Node(sigmoid, (x,), name)
-sigmoid(x::T) where T<:AbstractFloat = 1 / (1 + exp(-x))
+sigmoid(x::Array) = sigmoid.(x)
+sigmoid(x::T) where T<:AbstractFloat = T(1 / (1 + exp(-x)))
 
-function addgrad!(y::Var, ::typeof(sigmoid), x::Var)
-    isvoid(x.grad) || ∇sigmoid!(y.data, y.grad, x.data, x.grad)
+function sigmoid!(out::Var, x::Array)
+    out.data = sigmoid.(x)
+    out.∇! = () -> begin
+        isvoid(out[1].grad) || ∇sigmoid!(out.data, out.grad, out[1].data, out[1].grad)
+    end
+    out
 end
 
 function ∇sigmoid!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
@@ -228,11 +242,18 @@ doc"""
 
 Hyperbolic tangent function.
 """
-tanh(x::Var) = Var(tanh.(x.data), (tanh,x))
+function tanh(x::Var)
+    y = Var(nothing, (x,))
+    tanh!(y, x.data)
+end
 tanh(x::Node; name="") = Node(tanh, (x,), name)
 
-function addgrad!(y::Var, ::typeof(tanh), x::Var)
-    isvoid(x.grad) || ∇tanh!(y.data, y.grad, x.data, x.grad)
+function tanh!(out, x::Array)
+    out.data = tanh.(x)
+    out.∇! = () -> begin
+        isvoid(out[1].grad) || ∇tanh!(out.data, out.grad, out[1].data, out[1].grad)
+    end
+    out
 end
 
 function ∇tanh!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T

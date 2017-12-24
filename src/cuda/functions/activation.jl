@@ -1,26 +1,27 @@
-function activation!(out::Var, x::CuArray, mode)
-    h = CUDNN.handle(x)
+function activation!(out, x::CuArray{T}, mode) where T
+    h = CUDNN.HANDLE
     actdesc = CUDNN.ActivationDesc(mode)
     y = similar(x)
     xdesc = CUDNN.TensorDesc(x)
     CUDNN.cudnnActivationForward(h, actdesc, T[1], xdesc, x, T[0], xdesc, y)
 
     out.data = y
-    out.args = activation!, out.args[2], h, actdesc, xdesc
+    out.∇! = () -> begin
+        if !isvoid(out[1].grad)
+            CUDNN.cudnnActivationBackward(h, actdesc, T[1], xdesc, out.data, xdesc, out.grad, xdesc, out[1].data, T[1], xdesc, out[1].grad)
+        end
+    end
     out
 end
-relu!(out::Var, x::CuArray) = activation!(out, x, CUDNN.CUDNN_ACTIVATION_RELU)
-clipped_relu!(out::Var, x::CuArray) = activation!(out, x, CUDNN.CUDNN_ACTIVATION_CLIPPED_RELU)
-sigmoid!(out::Var, x::CuArray) = activation(out, x, CUDNN.CUDNN_ACTIVATION_SIGMOID)
-tanh!(out::Var, x::CuArray) = activation(out, x, CUDNN.CUDNN_ACTIVATION_TANH)
+clipped_relu!(out, x::CuArray) = activation!(out, x, CUDNN.CUDNN_ACTIVATION_CLIPPED_RELU)
+elu!(out, x::CuArray) = activation!(out, x, CUDNN.CUDNN_ACTIVATION_ELU)
+relu!(out, x::CuArray) = activation!(out, x, CUDNN.CUDNN_ACTIVATION_RELU)
+sigmoid!(out, x::CuArray) = activation!(out, x, CUDNN.CUDNN_ACTIVATION_SIGMOID)
+tanh!(out, x::CuArray) = activation!(out, x, CUDNN.CUDNN_ACTIVATION_TANH)
 
-activation(x::CuArray, mode) = activation!(Var(), x, mode).data
-relu(x::CuArray) = activation(x, CUDNN.CUDNN_ACTIVATION_RELU)
+activation(x::CuArray, mode) = activation!(Var(),x,mode).data
 clipped_relu(x::CuArray) = activation(x, CUDNN.CUDNN_ACTIVATION_CLIPPED_RELU)
+elu(x::CuArray) = activation(x, CUDNN.CUDNN_ACTIVATION_ELU)
+relu(x::CuArray) = activation(x, CUDNN.CUDNN_ACTIVATION_RELU)
 sigmoid(x::CuArray) = activation(x, CUDNN.CUDNN_ACTIVATION_SIGMOID)
-tanh(x::CuArray) = activation(x, CUDNN.CUDNN_ACTIVATION_TANH)
-
-function addgrad!(y::Var, ::typeof(activation), x::Var, mode, h, actdesc, xdesc)
-    T = eltype(y)
-    isvoid(x.grad) || CUDNN.cudnnActivationBackward(h, actdesc, T[1], xdesc, y.data, xdesc, y.grad, xdesc, x.data, T[1], xdesc, x.grad)
-end
+Base.tanh(x::CuArray) = activation(x, CUDNN.CUDNN_ACTIVATION_TANH)

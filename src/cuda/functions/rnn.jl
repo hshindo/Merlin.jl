@@ -1,3 +1,62 @@
+doc"""
+    rnn
+
+* hsize: hidden size
+* nlayers: number of layers
+
+"""
+function rnn(x::CuArray{T}, hsize::Int, nlayers::Int, dir, mode) where T
+    rnndesc = CUDNN.RNNDesc()
+    dropoutdesc = CUDNN.DropoutDesc()
+    CUDNN.cudnnSetRNNDescriptor(rnndesc, hsize, nlayers, dropoutdesc, CUDNN.CUDNN_LINEAR_INPUT, dir, mode, datatype(T))
+
+    h = CUDNN.HANDLE
+    p = Csize_t[0]
+    CUDNN.cudnnGetRNNWorkspaceSize(h, rnndesc, seqlength, xdesc, p)
+    workspace_size = Int(p[1])
+    workspace = CuArray{Csize_t}(workspace_size)
+
+    p = Csize_t[0]
+    CUDNN.cudnnGetRNNTrainingReserveSize(h, rnndesc, seqlength, xdesc, p)
+    reserve_size = Int(p[1])
+    reservespace = CuArray{Csize_t}(reserve_size)
+
+    p = Csize_t[0]
+    CUDNN.cudnnGetRNNParamsSize(h, rnndesc, xdesc, p, datatype(T))
+    # wsize = wsize_p[1]
+    # w = curand(T, 1, 1, 1, Int(wsize/(T.size)))
+    # wdesc = filter_desc(w)
+
+    w
+    wdesc
+    linLayerMatDesc = CUDNN.FilterDesc()
+    p = Ptr{Void}[0]
+    CUDNN.cudnnGetRNNLinLayerMatrixParams(h, rnndesc, layer, xdesc, wdesc, w, linLayerID, linLayerMatDesc, p)
+    linLayerMatDesc = p[1]
+
+    CUDNN.cudnnGetRNNLinLayerBiasParams(h, rnndesc, layer, xdesc, wdesc, w)
+
+    CUDNN.cudnnRNNForwardTraining()
+    cudnnRNNForwardTraining(h, rnndesc, Cint(length(xdescs)), xdescs, x, hxdesc,
+        hx, cxdesc, cx, wdesc, w, ydescs, y, hydesc, hy, cydesc, cy, workspace,
+        worksize, trainspace, trainsize)
+end
+
+export
+    # cudnnRNNInputMode_t
+    CUDNN_LINEAR_INPUT,
+    CUDNN_SKIP_INPUT,
+
+    # cudnnDirectionMode_t
+    CUDNN_UNIDIRECTIONAL,
+    CUDNN_BIDIRECTIONAL,
+
+    # cudnnRNNMode_t
+    CUDNN_RNN_RELU,
+    CUDNN_RNN_TANH,
+    CUDNN_LSTM,
+    CUDNN_GRU
+
 function rnn_training!{T}(xdims, x::CuArray{T}, hx::CuArray{T}, cx::CuArray{T},
     droprate, input_t, dir_t, net_t; seed=0)
 

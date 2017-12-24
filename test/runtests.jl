@@ -1,7 +1,8 @@
 using Base.Test
 using Merlin
+using CuArrays
 
-tests = ["functions"]
+tests = ["functions", "cuda/functions"]
 
 for t in tests
     path = joinpath(dirname(@__FILE__), "$t.jl")
