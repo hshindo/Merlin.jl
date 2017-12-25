@@ -12,6 +12,7 @@ function init_contexts()
         info("device[$dev]: $(devicename(dev)), capability $(cap[1]).$(cap[2]), totalmem = $(mem) MB")
     end
     setdevice(0)
+    # @apicall :cuCtxDestroy (CuContext_t,) ctx
 end
 
 function getdevice()

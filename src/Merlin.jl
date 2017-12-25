@@ -45,7 +45,7 @@ include("functions/softmax.jl")
 include("functions/split.jl")
 include("functions/standardize.jl")
 
-#include("cuda/CUDA.jl")
+include("cuda/CUDA.jl")
 
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")

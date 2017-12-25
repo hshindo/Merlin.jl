@@ -11,7 +11,6 @@ function CuFunction(mod::CuModule, name::String)
     CuFunction(ref[], mod)
 end
 
-#=
 function CuFunction(code::String)
     code = replace(code, "Float32", "float")
     code = replace(code, "Float64", "double")
@@ -33,6 +32,5 @@ function CuFunction(code::String)
     length(fnames) > 1 && throw("Multiple functions are found.")
     CuFunction(mod, fnames[1])
 end
-=#
 
 Base.unsafe_convert(::Type{CuFunction_t}, f::CuFunction) = f.ptr

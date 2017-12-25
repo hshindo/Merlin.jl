@@ -5,19 +5,22 @@ if is_windows()
 else
     const libcudnn = Libdl.find_library(["libcudnn"])
 end
-isempty(libcudnn) && info("CUDNN library cannot be found.")
+if isempty(libcudnn)
+    warn("CUDNN library cannot be found.")
+end
 
-const VERSION = ccall((:cudnnGetVersion,libcudnn),Cint,())
-const MAJOR = div(VERSION, 1000)
-const MINOR = div(VERSION - MAJOR*1000, 100)
+const API_VERSION = ccall((:cudnnGetVersion,libcudnn),Cint,())
+info("CUDNN API $API_VERSION")
 
-info("CUDNN version: $(VERSION) loaded.")
-include("lib/libcudnn$(MAJOR)$(MINOR)_types.jl")
-include("lib/libcudnn$(MAJOR)$(MINOR).jl")
-
-function checkstatus(status)
-    status == CUDNN_STATUS_SUCCESS && return
-    throw(bytestring(cudnnGetErrorString(status)))
+macro apicall(f, args...)
+    quote
+        status = ccall(($(QuoteNode(f)),libcuda), Cint, $(map(esc,args)...))
+        if status != 0
+            Base.show_backtrace(STDOUT, backtrace())
+            p = ccall((:cudnnGetErrorString,libcudnn), Cstring, (Cint,), status)
+            throw(unsafe_string(p))
+        end
+    end
 end
 
 datatype(::Type{Float32}) = CUDNN_DATA_FLOAT
@@ -26,15 +29,15 @@ datatype(::Type{Float16}) = CUDNN_DATA_HALF
 datatype(::Type{Int8}) = CUDNN_DATA_INT8
 datatype(::Type{Int32}) = CUDNN_DATA_INT32
 
-function __init__()
+function init()
     # Setup default cudnn handle
-    global HANDLE
-    p = Ptr{Void}[0]
-    cudnnCreate(p)
-    HANDLE = p[1]
+    ref = Ref{Void}()
+    cudnnCreate(ref)
+    global HANDLE = ref[]
     # destroy cudnn handle at julia exit
     atexit(() -> cudnnDestroy(HANDLE))
 end
+init()
 
 mutable struct ActivationDesc
     ptr::Ptr{Void}

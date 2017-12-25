@@ -109,8 +109,9 @@ include("pointer.jl")
 include("module.jl")
 include("function.jl")
 include("execution.jl")
-
 init_contexts()
+
+include("NVRTC.jl")
 
 #=
 
