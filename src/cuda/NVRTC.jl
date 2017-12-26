@@ -9,14 +9,6 @@ isempty(libnvrtc) && warn("NVRTC library cannot be found.")
 
 const nvrtcProgram = Ptr{Void}
 
-function getlog(prog::Ptr{Void})
-    logsize = Csize_t[0]
-    nvrtcGetProgramLogSize(prog, logsize)
-    log = Array(UInt8, logsize[1])
-    nvrtcGetProgramLog(prog, log)
-    unsafe_string(pointer(log))
-end
-
 macro apicall(f, args...)
     quote
         result = ccall(($(QuoteNode(f)),libnvrtc), Cint, $(map(esc,args)...))
@@ -28,7 +20,17 @@ macro apicall(f, args...)
     end
 end
 
-function compile(code::String; headers=(), include_names=())
+const API_VERSION = begin
+    ref_major = Ref{Int}()
+    ref_minor = Ref{Int}()
+    @apicall :nvrtcVersion (Ptr{Cint},Ptr{Cint}) ref_major ref_minor
+    major = Int(ref_major[])
+    minor = Int(ref_minor[])
+    1000major + 100minor
+end
+info("NVRTC API $API_VERSION")
+
+function compile(code::String; headers=(), include_names=(), options=[])
     ref = Ref{nvrtcProgram}()
     headers = Ptr{Void}[pointer(h) for h in headers]
     include_names = Ptr{Void}[pointer(n) for n in include_names]
@@ -39,7 +41,12 @@ function compile(code::String; headers=(), include_names=())
     try
         @apicall :nvrtcCompileProgram (nvrtcProgram,Cint,Ptr{Cstring}) prog length(options) options
     catch
-        throw(getlog(prog))
+        ref = Ref{Csize_t}()
+        @apicall :nvrtcGetProgramLogSize () prog ref
+        log = Array{UInt8}(ref[])
+        @apicall :nvrtcGetProgramLog () prog log
+        log = unsafe_string(pointer(log))
+        throw(log)
     end
 
     ref = Ref{Csize_t}()
@@ -48,7 +55,7 @@ function compile(code::String; headers=(), include_names=())
 
     ptx = Array{UInt8}(ptxsize)
     @apicall :nvrtcGetPTX (nvrtcProgram,Cstring) prog ptx
-    @apicall :nvrtcDestroyProgram (Ptr{nvrtcProgram,}) Ref{nvrtcProgram}(prog)
+    @apicall :nvrtcDestroyProgram (Ptr{nvrtcProgram},) Ref{nvrtcProgram}(prog)
 
     String(ptx)
 end
