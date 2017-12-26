@@ -12,16 +12,13 @@ function CuFunction(mod::CuModule, name::String)
 end
 
 function CuFunction(code::String)
-    code = replace(code, "Float32", "float")
-    code = replace(code, "Float64", "double")
-    code = replace(code, "Int32", "int")
     contains(code, "Array<") && (code = "$(Interop.array_h)\n$code")
     #contains(code, "Ranges<") && (code = "$range_h\n$code")
 
     ptx = NVRTC.compile(code)
-    p = Ptr{Void}[0]
-    cuModuleLoadData(p, pointer(ptx))
-    mod = CuModule(p[1])
+    ref = Ref{Void}()
+    @apicall :cuModuleLoadData ref pointer(ptx)
+    mod = CuModule(ref[])
 
     fnames = []
     for line in split(ptx,'\n')

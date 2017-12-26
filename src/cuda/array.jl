@@ -84,15 +84,16 @@ Base.isempty(x::CuArray) = length(x) == 0
 Base.vec(x::CuArray) = ndims(x) == 1 ? x : CuArray(x.ptr, (length(x),))
 Base.fill(::Type{CuArray}, value::T, dims::NTuple) where T = fill!(CuArray{T}(dims), value)
 
-@generated function Base.fill!{T}(x::CuArray{T}, value::T)
-    CT = cstring(T)
-    f = compile("""
-    fill(Array<$CT,1> x, $CT value) {
-        int idx = threadIdx.x + blockIdx.x * blockDim.x;
-        if (idx < x.length()) x[idx] = value;
+@generated function Base.fill!(x::CuArray{T}, value) where T
+    Ct = cstring(T)
+    f = CuFunction("""
+    __global__ void f($Ct *x, int length, $Ct value) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < length) x[idx] = value;
     }""")
     quote
-        launch($f, (length(x),1,1), (vec(x),value))
+        launch()
+        $f(x.ptr, length(x), T(value), dx=length(x))
         x
     end
 end
