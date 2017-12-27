@@ -1,31 +1,41 @@
 import Base.LinAlg.BLAS: gemm, gemm!
 
-for (fname, elty) in ((:cublasDgemm,:Float64), (:cublasSgemm,:Float32))
+for (f,T,Ct) in (
+    (:(:cublasDgemm),:Float64,:Cdouble),
+    (:(:cublasSgemm),:Float32,:Cfloat))
     @eval begin
         function gemm!(tA::Char, tB::Char,
-            alpha::$elty, A::CuVecOrMat{$elty}, B::CuVecOrMat{$elty},
-            beta::$elty, C::CuVecOrMat{$elty})
+            alpha::$T, A::CuVecOrMat{$T}, B::CuVecOrMat{$T},
+            beta::$T, C::CuVecOrMat{$T})
 
-            @assert device(A) == device(B) == device(C)
+            @assert getdevice(A) == getdevice(B) == getdevice(C)
             m = size(A, tA == 'N' ? 1 : 2)
             k = size(A, tA == 'N' ? 2 : 1)
             n = size(B, tB == 'N' ? 2 : 1)
             if m != size(C,1) || n != size(C,2) || k != size(B, tB == 'N' ? 1 : 2)
                 throw(DimensionMismatch())
             end
-            $fname(handle(C), cublasop(tA), cublasop(tB), m, n, k,
-                $elty[alpha], A, stride(A,2), B, stride(B,2), $elty[beta], C, stride(C,2))
+            @apicall($f, (
+                cublasHandle_t,Cint,Cint,
+                Cint,Cint,Cint,
+                Ptr{$Ct},Ptr{$Ct},Cint,
+                Ptr{$Ct},Cint,
+                Ptr{$Ct},Ptr{$Ct},Cint),
+                handle(C), cublasop(tA), cublasop(tB), m, n, k,
+                $T[alpha], A, stride(A,2), B, stride(B,2), $T[beta], C, stride(C,2))
             C
         end
     end
 end
-function gemm{T}(tA::Char, tB::Char, alpha::T, A::CuVecOrMat{T}, B::CuVecOrMat{T})
-    C = similar(B, size(A, tA=='N' ? 1 : 2), size(B, tB=='N' ? 2 : 1))
-    gemm!(tA, tB, alpha, A, B, T(0), C)
-end
-#gemm{T}(tA::Char, tB::Char, A::CuVecOrMat{T}, B::CuVecOrMat{T}) = gemm(tA, tB, T(1), A, B)
-#gemm{T}(A::CuVecOrMat{T}, B::CuVecOrMat{T}; tA='N', tB='N', alpha=1) = gemm(tA, tB, T(alpha), A, B)
 
+function gemm(tA::Char, tB::Char, alpha::T, A::CuVecOrMat{T}, B::CuVecOrMat{T}) where T
+    C = similar(B, size(A, tA=='N' ? 1 : 2), size(B, tB=='N' ? 2 : 1))
+    gemm!(tA, tB, alpha, A, B, zero(T), C)
+end
+gemm(tA::Char, tB::Char, A::CuVecOrMat{T}, B::CuVecOrMat{T}) where T = gemm(tA, tB, one(T), A, B)
+gemm(A::CuVecOrMat{T}, B::CuVecOrMat{T}; tA='N', tB='N', alpha=1) where T = gemm(tA, tB, T(alpha), A, B)
+
+#=
 for (fname,elty) in ((:cublasDgemmBatched,:Float64), (:cublasSgemmBatched,:Float32))
     @eval begin
         function gemm_batched!(tA::Char, tB::Char,
@@ -68,3 +78,4 @@ function gemm_batched{T}(tA::Char, tB::Char,
     A::Vector{CuVecOrMat{T}}, B::Vector{CuVecOrMat{T}})
     gemm_batched(tA, tB, T(1), A, B)
 end
+=#

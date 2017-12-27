@@ -40,31 +40,12 @@ include("pointer.jl")
 include("module.jl")
 include("function.jl")
 include("execution.jl")
+include("interop.jl")
 init_contexts()
 
 include("NVRTC.jl")
-
-#=
-
-include("module.jl")
-include("function.jl")
-include("execution.jl")
-
-const contexts = CUcontext[]
-const streams = CuStream[]
-
-info("Initializing CUDA...")
-cuInit(0)
-for dev = 0:ndevices()-1
-    p = CUcontext[0]
-    cuCtxCreate(p, 0, dev)
-    push!(contexts, p[1])
-end
-setdevice(0)
-info("CUDA driver version: $(version())")
-
-include("cudnn/CUDNN.jl")
-include("functions/activation.jl")
-=#
+include("array.jl")
+include("arraymath.jl")
+include("cublas/CUBLAS.jl")
 
 end

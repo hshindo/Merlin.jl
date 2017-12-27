@@ -24,9 +24,7 @@ function CuPtr(bytesize::Int)
         ptr = pop!(buffer)
     end
     cuptr = CuPtr(ptr, bufid, dev)
-    finalizer(cuptr) do x
-        push!(FreeCuPtrs[x.dev+1][x.bufid], x.ptr)
-    end
+    finalizer(cuptr, x -> push!(FreeCuPtrs[x.dev+1][x.bufid], x.ptr))
     cuptr
 end
 

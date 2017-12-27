@@ -1,5 +1,5 @@
 export CuArray, CuVector, CuMatrix, CuVecOrMat
-export curand, curandn, device
+export curand, curandn, getdevice
 
 mutable struct CuArray{T,N}
     ptr::CuPtr
@@ -10,7 +10,7 @@ const CuVector{T} = CuArray{T,1}
 const CuMatrix{T} = CuArray{T,2}
 const CuVecOrMat{T} = Union{CuVector{T},CuMatrix{T}}
 
-function CuArray{T}(dims::NTuple{N,Int}) where T
+function CuArray{T}(dims::NTuple{N,Int}) where {T,N}
     ptr = CuPtr(sizeof(T)*prod(dims))
     CuArray{T,N}(ptr, dims)
 end
@@ -56,24 +56,24 @@ Base.ones(::Type{CuArray{T}}, dims) where T = fill(CuArray, T(1), dims)
 
 function Base.copy!(dest::Array{T}, src::CuArray{T}; stream=C_NULL) where T
     nbytes = length(src) * sizeof(T)
-    @apicall :cuMemcpyDtoHAsync (Ptr{Void},Ptr{Void},Csize_t,CuStream_t) dst src nbytes stream
+    @apicall :cuMemcpyDtoHAsync (Ptr{Void},Ptr{Void},Csize_t,CuStream_t) dest src nbytes stream
     dest
 end
 function Base.copy!(dest::CuArray{T}, src::Array{T}; stream=C_NULL) where T
     nbytes = length(src) * sizeof(T)
-    @apicall :cuMemcpyHtoDAsync (Ptr{Void},Ptr{Void},Csize_t,CuStream_t) dst src nbytes stream
+    @apicall :cuMemcpyHtoDAsync (Ptr{Void},Ptr{Void},Csize_t,CuStream_t) dest src nbytes stream
     dest
 end
 function Base.copy!(dest::CuArray{T}, src::CuArray{T}; stream=C_NULL) where T
     nbytes = length(src) * sizeof(T)
-    @apicall :cuMemcpyDtoDAsync (Ptr{Void},Ptr{Void},Csize_t,CuStream_t) dst src nbytes stream
+    @apicall :cuMemcpyDtoDAsync (Ptr{Void},Ptr{Void},Csize_t,CuStream_t) dest src nbytes stream
     dest
 end
 function Base.copy!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int; stream=C_NULL) where T
     _dest = pointer(dest, doffs)
     _src = pointer(src, soffs)
     nbytes = n * sizeof(T)
-    @apicall :cuMemcpyDtoDAsync (Ptr{Void},Ptr{Void},Csize_t,CuStream_t) _dst _src nbytes stream
+    @apicall :cuMemcpyDtoDAsync (Ptr{Void},Ptr{Void},Csize_t,CuStream_t) _dest _src nbytes stream
     dest
 end
 
@@ -92,8 +92,7 @@ Base.fill(::Type{CuArray}, value::T, dims::NTuple) where T = fill!(CuArray{T}(di
         if (idx < length) x[idx] = value;
     }""")
     quote
-        launch()
-        $f(x.ptr, length(x), T(value), dx=length(x))
+        launch($f, CuDim3(1,1,1), CuDim3(256,1,1), x.ptr, length(x), T(value))
         x
     end
 end
@@ -173,3 +172,6 @@ reshape3{T}(x::CuArray{T,3}) = x
     end
 end
 =#
+
+#import Base: *
+#*(A::CuMatrix{T}, B::CuMatrix{T}) where T = BLAS.gemm('N', 'N', T(1), A, B)

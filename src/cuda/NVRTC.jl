@@ -11,7 +11,7 @@ const nvrtcProgram = Ptr{Void}
 
 macro apicall(f, args...)
     quote
-        result = ccall(($(QuoteNode(f)),libnvrtc), Cint, $(map(esc,args)...))
+        result = ccall(($f,libnvrtc), Cint, $(map(esc,args)...))
         if result != 0
             Base.show_backtrace(STDOUT, backtrace())
             p = ccall((:nvrtcGetErrorString,libnvrtc), Cstring, (Cint,), result)
@@ -21,32 +21,34 @@ macro apicall(f, args...)
 end
 
 const API_VERSION = begin
-    ref_major = Ref{Int}()
-    ref_minor = Ref{Int}()
+    ref_major = Ref{Cint}()
+    ref_minor = Ref{Cint}()
     @apicall :nvrtcVersion (Ptr{Cint},Ptr{Cint}) ref_major ref_minor
     major = Int(ref_major[])
     minor = Int(ref_minor[])
-    1000major + 100minor
+    1000major + 10minor
 end
 info("NVRTC API $API_VERSION")
 
 function compile(code::String; headers=(), include_names=(), options=[])
     ref = Ref{nvrtcProgram}()
-    headers = Ptr{Void}[pointer(h) for h in headers]
-    include_names = Ptr{Void}[pointer(n) for n in include_names]
-    @apicall :nvrtcCreateProgram (Ptr{nvrtcProgram},Cstring,Cstring,Cint,Ptr{Cstring},Ptr{Cstring}) ref code C_NULL length(headers) headers include_names
+    headers = Ptr{UInt8}[pointer(h) for h in headers]
+    include_names = Ptr{UInt8}[pointer(n) for n in include_names]
+    @apicall :nvrtcCreateProgram (Ptr{nvrtcProgram},Cstring,Cstring,Cint,Ptr{Ptr{UInt8}},Ptr{Ptr{UInt8}}) ref code C_NULL length(headers) headers include_names
     prog = ref[]
 
-    options = ["--gpu-architecture=compute_30"]
+    options = Ptr{UInt8}[pointer(o) for o in options]
     try
-        @apicall :nvrtcCompileProgram (nvrtcProgram,Cint,Ptr{Cstring}) prog length(options) options
+        @apicall :nvrtcCompileProgram (nvrtcProgram,Cint,Ptr{Ptr{UInt8}}) prog length(options) options
     catch
         ref = Ref{Csize_t}()
-        @apicall :nvrtcGetProgramLogSize () prog ref
-        log = Array{UInt8}(ref[])
-        @apicall :nvrtcGetProgramLog () prog log
-        log = unsafe_string(pointer(log))
-        throw(log)
+        @apicall :nvrtcGetProgramLogSize (nvrtcProgram,Ptr{Csize_t}) prog ref
+        log = Array{UInt8}(Int(ref[]))
+        @apicall :nvrtcGetProgramLog (nvrtcProgram,Ptr{UInt8}) prog log
+        println()
+        println("Error log:")
+        println(String(log))
+        throw("NVRTC compile failed.")
     end
 
     ref = Ref{Csize_t}()
@@ -54,7 +56,7 @@ function compile(code::String; headers=(), include_names=(), options=[])
     ptxsize = ref[]
 
     ptx = Array{UInt8}(ptxsize)
-    @apicall :nvrtcGetPTX (nvrtcProgram,Cstring) prog ptx
+    @apicall :nvrtcGetPTX (nvrtcProgram,Ptr{UInt8}) prog ptx
     @apicall :nvrtcDestroyProgram (Ptr{nvrtcProgram},) Ref{nvrtcProgram}(prog)
 
     String(ptx)

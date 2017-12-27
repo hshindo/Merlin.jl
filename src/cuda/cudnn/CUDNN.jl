@@ -14,10 +14,10 @@ info("CUDNN API $API_VERSION")
 
 macro apicall(f, args...)
     quote
-        status = ccall(($(QuoteNode(f)),libcuda), Cint, $(map(esc,args)...))
+        status = ccall(($(QuoteNode(f)),libcudnn), Cint, $(map(esc,args)...))
         if status != 0
             Base.show_backtrace(STDOUT, backtrace())
-            p = ccall((:cudnnGetErrorString,libcudnn), Cstring, (Cint,), status)
+            p = ccall((:cudnnGetErrorString,libcudnn), Ptr{UInt8}, (Cint,), status)
             throw(unsafe_string(p))
         end
     end
