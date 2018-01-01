@@ -13,32 +13,42 @@ Node(f, args, name) = Node(f, args, name, 0)
 struct Graph
     nodes::Vector{Node} # topological order
     dict::Dict{String,Node}
-    output::Tuple
+    inputs::Tuple
+    outputs::Tuple
+    backend
 end
 
-function Graph(output::Node...)
-    nodes = topsort(output...)
+function Graph(inputs, outputs; backend="CPU")
+    isa(inputs,Tuple) || (inputs = (inputs,))
+    isa(outputs,Tuple) || (outputs = (outputs,))
+    nodes = topsort(outputs...)
     node2id = Dict(nodes[i]=>i for i=1:length(nodes))
     dict = Dict{String,Node}()
     for i = 1:length(nodes)
         node = nodes[i]
-        if node.id != 0
-            throw("Node $(node) is already used.")
-        end
+        @assert node.id == 0
         node.id = i
         isempty(node.name) || (dict[node.name] = node)
     end
-    output = map(x -> node2id[x], output)
-    Graph(nodes, dict, output)
+    inputs = map(x -> node2id[x], inputs)
+    outputs = map(x -> node2id[x], outputs)
+
+    if backend != "CPU"
+        for node in nodes
+            isa(node.f,Var) && isparam(node.f) && setbackend!(node.f,backend)
+        end
+    end
+    Graph(nodes, dict, inputs, outputs, backend)
 end
 
 Base.getindex(g::Graph, i::Int) = g.nodes[i]
 Base.getindex(g::Graph, s::String) = g.dict[s]
 
-function (g::Graph)(xs::Pair...)
+function (g::Graph)(xs...)
+    @assert length(xs) == length(g.inputs)
     temps = Array{Any}(length(g.nodes))
-    for x in xs
-        temps[g.dict[x[1]].id] = x[2]
+    for i = 1:length(xs)
+        temps[g.inputs[i]] = xs[i]
     end
     for i = 1:length(g.nodes)
         node = g.nodes[i]
@@ -51,8 +61,11 @@ function (g::Graph)(xs::Pair...)
             temps[i] = node.f(args...)
         end
     end
-    o = map(i -> temps[i], g.output)
-    length(o) == 1 ? o[1] : o
+    if length(g.outputs) == 1
+        temps[g.outputs[1]]
+    else
+        map(id -> temps[id], g.outputs)
+    end
 end
 
 #=
@@ -75,7 +88,3 @@ macro graph(input, output)
     end
 end
 =#
-
-#function convert(::Type{H5Object}, x::Graph)
-#    H5Object(typeof(x), x)
-#end

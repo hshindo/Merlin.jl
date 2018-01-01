@@ -17,8 +17,20 @@ C = BLAS.gemm('T', 'N', 1, A, B)
 """
 function BLAS.gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
     T = eltype(A)
-    y = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
-    Var(y, (BLAS.gemm,tA,tB,alpha,A,B))
+    y = Var(nothing, (BLAS.gemm,tA,tB,alpha,A,B))
+    y.data = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
+    y.∇! = () -> begin
+        if !isvoid(A.grad)
+            tA == 'N' ?
+            BLAS.gemm!('N', tB=='N'?'T':'N', T(alpha), C.grad, B.data, T(1), A.grad) :
+            BLAS.gemm!(tB, 'T', T(alpha), B.data, C.grad, T(1), A.grad)
+        end
+        if !isvoid(B.grad)
+            tB == 'N' ?
+            BLAS.gemm!(tA=='N'?'T':'N', 'N', T(alpha), A.data, C.grad, T(1), B.grad) :
+            BLAS.gemm!('T', tA, T(alpha), C.grad, A.data, T(1), B.grad)
+        end
+    end
 end
 BLAS.gemm(tA::Char, tB::Char, alpha::Number, A::Node, B::Node; name="") = Node(BLAS.gemm, (tA,tB,alpha,A,B), name)
 

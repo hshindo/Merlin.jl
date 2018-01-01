@@ -21,8 +21,8 @@ function crelu(x::Array{T}) where T
     y = Array{T}(2size(x,1), Base.tail(size(x))...)
     @inbounds for i = 1:length(x)
         k = (i-1)*2 + 1
-        y[k] = max(x[i], T(0))
-        y[k+1] = max(-x[i], T(0))
+        y[k] = max(x[i], zero(T))
+        y[k+1] = max(-x[i], zero(T))
     end
     y
 end
@@ -34,7 +34,7 @@ end
 function ∇crelu!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
     @inbounds for i = 1:length(x)
         k = (i-1)*2 + 1
-        gx[i] += x[i] > T(0) ? gy[k] : -gy[k+1]
+        gx[i] += x[i] > zero(T) ? gy[k] : -gy[k+1]
     end
 end
 
@@ -57,16 +57,16 @@ where ``\alpha=1``.
 """
 elu(x::Var) = Var(elu.(x.data), (elu,x))
 elu(x::Node; name="") = Node(elu, (x,), name)
-elu(x::T) where T = x > T(0) ? x : exp(x)-1
+elu(x::T) where T = x > zero(T) ? x : exp(x)-1
 
 function addgrad!(y::Var, ::typeof(elu), x::Var)
     isvoid(x.grad) || ∇elu!(y.data, y.grad, x.data, x.grad)
 end
 
 function ∇elu!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
-    alpha = T(1)
+    alpha = one(T)
     @inbounds for i = 1:length(x)
-        gx[i] += x[i] > T(0) ? gy[i] : gy[i]*(y[i]+alpha)
+        gx[i] += x[i] > zero(T) ? gy[i] : gy[i]*(y[i]+alpha)
     end
 end
 
@@ -88,7 +88,7 @@ x & x > 0 \\
 """
 leaky_relu(x::Var, alpha=0.1) = Var(leaky_relu.(x.data,eltype(x)(alpha)), (leaky_relu,x,alpha))
 leaky_relu(x::Node; name="") = Node(leaky_relu, (x,), name)
-leaky_relu(x::T, alpha::T) where T = x >= T(0) ? x : x*alpha
+leaky_relu(x::T, alpha::T) where T = x >= zero(T) ? x : x*alpha
 
 function addgrad!(y::Var, ::typeof(leaky_relu), x::Var, alpha::Float64)
     isvoid(x.grad) || ∇leaky_relu!(y.grad, x.data, x.grad, eltype(x)(alpha))
@@ -96,7 +96,7 @@ end
 
 function ∇leaky_relu!(gy::Array{T}, x::Array{T}, gx::Array{T}, alpha::T) where T
     @inbounds for i = 1:length(x)
-        gx[i] += x[i] >= T(0) ? gy[i] : gy[i]*alpha
+        gx[i] += x[i] >= zero(T) ? gy[i] : gy[i]*alpha
     end
 end
 
@@ -114,12 +114,11 @@ function relu(x::Var)
     relu!(y, x.data)
 end
 relu(x::Node; name="") = Node(relu, (x,), name)
-relu(x::Array) = relu.(x)
-relu(x::T) where T = max(x, T(0))
+relu(x::T) where T = max(x, zero(T))
 
-function relu!(out, x::Array{T}) where T
+function relu!(out, x::Array)
     out.data = relu.(x)
-    out.∇! = function ∇!()
+    out.∇! = () -> begin
         isvoid(out[1].grad) || ∇relu!(out.grad, out[1].data, out[1].grad)
     end
     out
@@ -127,7 +126,7 @@ end
 
 function ∇relu!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
     @inbounds for i = 1:length(x)
-        gx[i] += x[i] > T(0) ? gy[i] : T(0)
+        gx[i] += x[i] > zero(T) ? gy[i] : zero(T)
     end
 end
 
@@ -248,7 +247,7 @@ function tanh(x::Var)
 end
 tanh(x::Node; name="") = Node(tanh, (x,), name)
 
-function tanh!(out, x::Array)
+function tanh(x::Array, out)
     out.data = tanh.(x)
     out.∇! = () -> begin
         isvoid(out[1].grad) || ∇tanh!(out.data, out.grad, out[1].data, out[1].grad)

@@ -1,17 +1,17 @@
 export dropout
 
 doc"""
-    dropout(x::Var, rate::Float64)
+    dropout(x::Var, rate::Float64, train::Bool)
 
 Drops elements randomly with probability ``rate`` and scales the other elements by factor ``1 / (1 - rate)``.
 """
-function dropout(x::Var, rate::Float64)
+function dropout(x::Var, rate::Float64, train::Bool)
     rate == 0.0 && return x
+    train || return x
     y = Var(nothing, (x,))
     dropout!(y, x.data, rate)
 end
-dropout(x::Node, rate::Float64; name="") = Node(dropout, (x,rate), name)
-dropout(x::Array, rate::Float64) = x
+dropout(x::Node, rate::Float64, train::Bool; name="") = Node(dropout, (x,rate,train), name)
 
 function dropout!(out, x::Array{T}, rate::Float64) where T
     rx = rand(T, length(x.data))
@@ -22,7 +22,7 @@ function dropout!(out, x::Array{T}, rate::Float64) where T
     end
 
     out.data = y
-    out.∇! = function ∇!()
+    out.∇! = () -> begin
         isvoid(out[1].grad) || ∇dropout!(out.grad, out[1].grad, T(rate), rx)
     end
     out

@@ -11,8 +11,7 @@ macro checkgrad(tol, f, vars...)
     end
 end
 
-function checkgrad(tolerance::Float64, f::Function, var::Var)
-    eps = 1e-3
+function checkgrad(tol::Float64, f::Function, var::Var)
     var.grad = zeros(var.data)
     y = f()
     gradient!(y)
@@ -22,14 +21,14 @@ function checkgrad(tolerance::Float64, f::Function, var::Var)
     gx2 = similar(x)
     for k = 1:length(x)
         xk = x[k]
-        x[k] = xk + eps
+        x[k] = xk + 1e-3
         y1 = copy(f().data)
-        x[k] = xk - eps
+        x[k] = xk - 1e-3
         y2 = copy(f().data)
         x[k] = xk
-        gx2[k] = sum(y1-y2) / 2eps
+        gx2[k] = sum(y1-y2) / 2e-3
     end
-    if maximum(abs,gx1-gx2) > tolerance
+    if maximum(abs,gx1-gx2) > tol
         println("x:")
         println(x)
         println("gx1:")
@@ -44,8 +43,12 @@ function checkgrad(tolerance::Float64, f::Function, var::Var)
     end
 end
 
-function checkgpu(f, xs...)
-    y = f(x)
-    cux =
-    cuy = f(cux)
+function checkcuda(f, xs...)
+    for x in xs
+        x.grad = zeros(x.data)
+        y1 = f()
+        setbackend!(x, "CUDA")
+        y2 = Array(f())
+        maximum(abs,y1-y2) < tol
+    end
 end

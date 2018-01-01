@@ -1,44 +1,45 @@
-import Base: max, mean, sum
-export max_batch
+export maximum_batch
 
 doc"""
-    max(x::Var, dim::Int)
+    maximum(x::Var, dim::Int)
 
 Returns the maximum value over the given dimension.
 
-# 👉 Example
 ```julia
 x = Var(rand(Float32,10,5))
-y = max(x, 1)
+y = maximum(x, 1)
 ```
 """
-function max(x::Var, dim::Int)
-    y, idx = findmax(x.data, dim)
-    Var(y, (max,x,idx))
+function Base.maximum(x::Var, dim::Int)
+    data, idx = findmax(x.data, dim)
+    y = Var(data, (max,x,idx))
+    y.∇! = () -> begin
+        isvoid(x.grad) || ∇maximum!(y.grad, x.grad, idx)
+    end
+    y
 end
-max(x::Node, dim::Int; name="") = Node(max, (x,dim), name)
+Base.maximum(x::Node, dim::Int; name="") = Node(maximum, (x,dim), name)
 
-function addgrad!(y::Var, ::typeof(max), x::Var, idx)
-    isvoid(x.grad) || ∇max!(y.grad, x.grad, idx)
-end
-
-function ∇max!(gy::Array{T}, gx::Array{T}, idx::Array{Int}) where T
-    for i = 1:length(idx)
+function ∇maximum!(gy::Array{T}, gx::Array{T}, idx::Vector{Int}) where T
+    @inbounds for i = 1:length(idx)
         gx[idx[i]] += gy[i]
     end
 end
 
 doc"""
-    max_batch(x::Var, dims::Vector{Int})
+    maximum_batch(x::Var, dims::Vector{Int})
 """
-function max_batch(x::Var, dims::Vector{Int})
+function maximum_batch(x::Var, dims::Vector{Int})
     @assert sum(dims) == size(x)[end]
-    y, idx = max_batch(x.data, dims)
-    Var(y, (max_batch,x,idx))
+    data, idx = maximum_batch(x.data, dims)
+    y = Var(data, (max_batch,x,idx))
+    y.∇! = () -> begin
+        isvoid(x.grad) || ∇maximum!(y.grad, x.grad, idx)
+    end
 end
-max_batch(x::Node, dims::Node; name="") = Node(max_batch, (x,dims), name)
+maximum_batch(x::Node, dims::Node; name="") = Node(maximum_batch, (x,dims), name)
 
-function max_batch(x::Array{T,N}, dims::Vector{Int}) where {T,N}
+function maximum_batch(x::Array{T,N}, dims::Vector{Int}) where {T,N}
     front = Base.front(size(x))
     n = prod(front)
     y = T[]
@@ -61,16 +62,12 @@ function max_batch(x::Array{T,N}, dims::Vector{Int}) where {T,N}
     y, idx
 end
 
-function addgrad!(y::Var, ::typeof(max_batch), x::Var, idx)
-    isvoid(x.grad) || ∇max!(y.grad, x.grad, idx)
-end
-
 doc"""
     mean(x, dim::Int)
 
 Computes the average over the given dimension.
 """
-function mean(x::Var, dim::Int)
+function Base.mean(x::Var, dim::Int)
     if dim == ndims(x)
         y = mean_batch(x.data, x.batchdims)
         batchdims = ones(Int, length(x.batchdims))
@@ -81,7 +78,7 @@ function mean(x::Var, dim::Int)
     Var(y, batchdims, mean, (x,dim))
 end
 
-mean(x::Node, dim::Int; name="") = Node(mean, (x,dim), name)
+Base.mean(x::Node, dim::Int; name="") = Node(mean, (x,dim), name)
 
 function mean_batch{T,N}(x::Array{T,N}, batchdims::Vector{Int})
     front = Base.front(size(x))
@@ -114,6 +111,6 @@ doc"""
 
 Returns the sum over the given dimension.
 """
-function sum(x::Var, dim::Int)
+function Base.sum(x::Var, dim::Int)
     throw("Not implemented yet.")
 end

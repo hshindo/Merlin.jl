@@ -12,11 +12,12 @@ f(x) = \exp(x) \over \sum \exp(x)
 softmax(x::Var) = softmax!(Var(nothing,(x,)), x.data)
 softmax(x::Node, name="") = Node(softmax, (x,), name)
 
-function softmax!(out::Var, x::Array)
+function softmax!(out, x::Array)
     out.data = softmax(x)
     out.∇! = () -> begin
         isvoid(out[1].grad) || ∇softmax!(out.data, out.grad, out[1].grad)
     end
+    out
 end
 
 function softmax(x::Vector{T}) where T

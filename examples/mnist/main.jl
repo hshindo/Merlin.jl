@@ -3,16 +3,18 @@ using Merlin.Datasets.MNIST
 using ProgressMeter
 using JLD2, FileIO
 
+const BACKEND = "CUDA:2" # or "CPU"
+const NEPOCHS = 10
+
 function main()
-    nepochs = 10
-    training = true
+    trainmode = true
     datapath = joinpath(@__DIR__, ".data")
     traindata = setup_data(MNIST.traindata(datapath)...)
     testdata = setup_data(MNIST.testdata(datapath)...)
-    savefile = "mnist_epoch$(nepochs).jld2"
-    if training
+    savefile = "mnist_epoch$(NEPOCHS).jld2"
+    if trainmode
         model = setup_model()
-        train(traindata, testdata, model, nepochs)
+        train(traindata, testdata, model)
         save(savefile, "model", model)
     else
         model = load(savefile, "model")
@@ -22,32 +24,33 @@ end
 
 function setup_data(x::Matrix{Float32}, y::Vector{Int})
     batchsize = 200
-    xs = [x[:,i:i+batchsize-1] for i=1:batchsize:size(x,2)]
+    xs = [cu(x[:,i:i+batchsize-1]) for i=1:batchsize:size(x,2)]
     y += 1 # Change label set: 0..9 -> 1..10
-    ys = [y[i:i+batchsize-1] for i=1:batchsize:length(y)]
+    ys = [cu(y[i:i+batchsize-1]) for i=1:batchsize:length(y)]
     collect(zip(xs,ys))
 end
 
 function setup_model()
     T = Float32
     hsize = 1000
-    x = Node("x")
-    x = Linear(T,28*28,hsize)(x)
-    x = relu(x)
-    x = Linear(T,hsize,hsize)(x)
-    x = relu(x)
-    x = Linear(T,hsize,10)(x)
-    Graph(x)
+    x = Node()
+    h = Linear(T,28*28,hsize)(x)
+    h = relu(h)
+    h = Linear(T,hsize,hsize)(h)
+    h = relu(h)
+    h = Linear(T,hsize,10)(h)
+    Graph(x, h, backend=BACKEND)
 end
 
-function train(traindata::Vector, testdata::Vector, model, nepochs::Int)
+function train(traindata::Vector, testdata::Vector, model)
+    # params = getparams(model)
     opt = SGD(0.001)
-    for epoch = 1:nepochs
+    for epoch = 1:NEPOCHS
         println("epoch: $epoch")
         prog = Progress(length(traindata))
         loss = 0.0
         for (x,y) in shuffle!(traindata)
-            h = model("x"=>Var(x))
+            h = model(Var(x))
             y = softmax_crossentropy(Var(y), h)
             loss += sum(y.data)
             params = gradient!(y)
@@ -66,7 +69,7 @@ function test(model, data::Vector)
     golds = Int[]
     preds = Int[]
     for (x,y) in data
-        h = model("x"=>Var(x))
+        h = model(Var(x))
         z = argmax(h.data, 1)
         append!(golds, y)
         append!(preds, z)

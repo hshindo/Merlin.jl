@@ -1,5 +1,5 @@
 export Var
-export zerograd, isvoid, isparam, gradient!
+export zerograd, isvoid, isparam, gradient!, setbackend!
 
 doc"""
     Var
@@ -51,7 +51,7 @@ doc"""
 
 Topological sort.
 """
-function topsort{T}(tops::T...)
+function topsort(tops::T...) where T
     sorted = T[]
     dict = ObjectIdDict()
     function visit(v::T)
@@ -90,6 +90,29 @@ function gradient!(tops::Var...)
         isvoid(v.∇!) || v.∇!()
     end
     filter(isparam, sorted)
+end
+
+doc"""
+    setbackend!(x::Var, backend::String)
+
+* backend: "CPU" or "CUDA"
+"""
+function setbackend!(x::Var, backend::String)
+    if backend == "CPU"
+        if isa(x.data, CuArray)
+            x.data = Array(x.data)
+            isvoid(x.grad) || (x.grad = Array(x.grad))
+        end
+    elseif startswith(backend, "CUDA")
+        if isa(x.data, Array)
+            dev = parse(Int, backend[6:end])
+            LibCUDA.setdevice(dev)
+            x.data = CuArray(x.data)
+            isvoid(x.grad) || (x.grad = CuArray(x.grad))
+        end
+    else
+        throw("Unknown backend: $backend")
+    end
 end
 
 #=

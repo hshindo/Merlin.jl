@@ -45,11 +45,20 @@ include("functions/softmax.jl")
 include("functions/split.jl")
 include("functions/standardize.jl")
 
-include("cuda/CUDA.jl")
-
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")
 
+using LibCUDA
+
+include("cuda/functions/activation.jl")
+include("cuda/functions/dropout.jl")
+include("cuda/functions/loss.jl")
+include("cuda/functions/reduce.jl")
+include("cuda/functions/softmax.jl")
+
+const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
+const UniMatrix{T} = Union{Matrix{T},CuMatrix{T}}
+const UniVector{T} = Union{Vector{T},CuVector{T}}
 #info("#Threads: $(Threads.nthreads())")
 
 end

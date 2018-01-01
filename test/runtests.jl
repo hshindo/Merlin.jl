@@ -1,6 +1,5 @@
 using Base.Test
 using Merlin
-using CuArrays
 
 tests = ["functions", "cuda/functions"]
 
