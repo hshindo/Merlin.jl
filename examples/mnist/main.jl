@@ -3,9 +3,9 @@ using Merlin.Datasets.MNIST
 using ProgressMeter
 using JLD2, FileIO
 using LibCUDA
-setdevice(0)
+setdevice(1)
 
-const BACKEND = "CUDA:0" # or "CPU"
+const BACKEND = "CUDA:1" # or "CPU"
 const NEPOCHS = 50
 
 function main()
