@@ -9,8 +9,8 @@ Variable struct.
 `Var` contains the following members:
 * data
 * args
-* ∇!
 * grad
+* work
 
 # Example
 ```julia
@@ -22,11 +22,11 @@ x = zerograd(rand(T,10,5)) # x.grad is initialized as zero.
 mutable struct Var
     data
     args
-    ∇!
     grad
+    work
 end
 
-Var(data=nothing, args=(), (∇!)=nothing; grad=nothing) = Var(data, args, ∇!, grad)
+Var(data=nothing, args=(); grad=nothing, work=()) = Var(data, args, grad, work)
 zerograd(data) = Var(data, grad=zeros(data))
 
 Base.size(x::Var) = size(x.data)
@@ -86,8 +86,10 @@ function gradient!(tops::Var...)
         end
     end
     for i = length(sorted):-1:1
-        v = sorted[i]
-        isvoid(v.∇!) || v.∇!()
+        y = sorted[i]
+        isvoid(y.grad) && continue
+        isempty(y.args) && continue
+        addgrad!(y, y.args...)
     end
     filter(isparam, sorted)
 end

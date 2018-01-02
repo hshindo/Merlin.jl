@@ -31,17 +31,21 @@ end
 (f::Linear)(x) = linear(x, f.W, f.b)
 
 function linear(x::Var, W::Var, b::Var)
-    y = Var(nothing, (x,W,b))
-    data = BLAS.gemm('T', 'N', W.data, x.data)
-    #data .+= b.data
-    y.data = data
-    y.∇! = () -> begin
-        T = eltype(y)
-        isvoid(x.grad) || BLAS.gemm!('N', 'N', T(1), W.data, y.grad, T(1), x.grad)
-        isvoid(W.grad) || BLAS.gemm!('N', 'T', T(1), x.data, y.grad, T(1), W.grad)
-        #isvoid(b.grad) || BLAS.axpy!(T(1), sum(y.grad,2), b.grad)
-    end
-    y
+    out = Var(nothing, (linear,x,W,b))
+    out.data = linear(x.data, W.data, b.data)
+    out
 end
 linear(x::Node, W::Var, b::Var) = linear(x, Node(W), Node(b))
 linear(x::Node, W::Node, b::Node; name="") = Node(linear, (x,W,b), name)
+function linear(x::UniMatrix, W::UniMatrix, b::UniVector)
+    y = BLAS.gemm('T', 'N', W, x)
+    #y .+= b
+    y
+end
+
+function addgrad!(y::Var, ::typeof(linear), x::Var, W::Var, b::Var)
+    T = eltype(y)
+    isvoid(x.grad) || BLAS.gemm!('N', 'N', T(1), W.data, y.grad, T(1), x.grad)
+    isvoid(W.grad) || BLAS.gemm!('N', 'T', T(1), x.data, y.grad, T(1), W.grad)
+    #isvoid(b.grad) || BLAS.axpy!(T(1), sum(y.grad,2), b.grad)
+end

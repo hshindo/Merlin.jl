@@ -2,9 +2,11 @@ using Merlin
 using Merlin.Datasets.MNIST
 using ProgressMeter
 using JLD2, FileIO
+using LibCUDA
+setdevice(0)
 
-const BACKEND = "CUDA:2" # or "CPU"
-const NEPOCHS = 10
+const BACKEND = "CUDA:0" # or "CPU"
+const NEPOCHS = 50
 
 function main()
     trainmode = true
@@ -26,7 +28,8 @@ function setup_data(x::Matrix{Float32}, y::Vector{Int})
     batchsize = 200
     xs = [cu(x[:,i:i+batchsize-1]) for i=1:batchsize:size(x,2)]
     y += 1 # Change label set: 0..9 -> 1..10
-    ys = [cu(y[i:i+batchsize-1]) for i=1:batchsize:length(y)]
+    #ys = [y[i:i+batchsize-1] for i=1:batchsize:length(y)]
+    ys = [cu(Vector{Cint}(y[i:i+batchsize-1])) for i=1:batchsize:length(y)]
     collect(zip(xs,ys))
 end
 
@@ -51,9 +54,10 @@ function train(traindata::Vector, testdata::Vector, model)
         loss = 0.0
         for (x,y) in shuffle!(traindata)
             h = model(Var(x))
-            y = softmax_crossentropy(Var(y), h)
-            loss += sum(y.data)
-            params = gradient!(y)
+            z = softmax_crossentropy(Var(y), h)
+            loss += sum(Array(z.data))
+            #loss += sum(z.data)
+            params = gradient!(z)
             foreach(opt, params)
             ProgressMeter.next!(prog)
         end
@@ -70,8 +74,9 @@ function test(model, data::Vector)
     preds = Int[]
     for (x,y) in data
         h = model(Var(x))
-        z = argmax(h.data, 1)
-        append!(golds, y)
+        z = argmax(Array(h.data), 1)
+        #z = argmax(h.data, 1)
+        append!(golds, Array(y))
         append!(preds, z)
     end
     @assert length(golds) == length(preds)

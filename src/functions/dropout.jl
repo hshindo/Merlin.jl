@@ -5,13 +5,12 @@ doc"""
 
 Drops elements randomly with probability ``rate`` and scales the other elements by factor ``1 / (1 - rate)``.
 """
-function dropout(x::Var, rate::Float64, train::Bool)
+function dropout(x::Var, rate::Float64)
     rate == 0.0 && return x
-    train || return x
-    y = Var(nothing, (x,))
-    dropout!(y, x.data, rate)
+    out = Var(nothing, (dropout,x))
+    dropout!(out, x.data, rate)
 end
-dropout(x::Node, rate::Float64, train::Bool; name="") = Node(dropout, (x,rate,train), name)
+dropout(x::Node, rate::Node; name="") = Node(dropout, (x,rate), name)
 
 function dropout!(out, x::Array{T}, rate::Float64) where T
     rx = rand(T, length(x.data))

@@ -110,23 +110,25 @@ f(x) = \max(0, x)
 ```
 """
 function relu(x::Var)
-    y = Var(nothing, (x,))
-    relu!(y, x.data)
+    out = Var(nothing, (relu,x))
+    relu!(out, x.data)
 end
 relu(x::Node; name="") = Node(relu, (x,), name)
 relu(x::T) where T = max(x, zero(T))
 
 function relu!(out, x::Array)
     out.data = relu.(x)
-    out.∇! = () -> begin
-        isvoid(out[1].grad) || ∇relu!(out.grad, out[1].data, out[1].grad)
-    end
     out
 end
 
-function ∇relu!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
+function addgrad!(y::Var, ::typeof(relu), x::Var)
+    isvoid(x.grad) && return
+    ∇relu!(y.data, y.grad, x.data, x.grad, y.work...)
+end
+
+function ∇relu!(y, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
     @inbounds for i = 1:length(x)
-        gx[i] += x[i] > zero(T) ? gy[i] : zero(T)
+        gx[i] += x[i] > T(0) ? gy[i] : T(0)
     end
 end
 
@@ -173,19 +175,21 @@ f(x) = (1 + \exp(-x))^{-1}
 ```
 """
 function sigmoid(x::Var)
-    y = Var(nothing, (x,))
-    sigmoid!(y, x.data)
+    out = Var(nothing, (sigmoid,x))
+    sigmoid!(out, x.data)
 end
 sigmoid(x::Node; name="") = Node(sigmoid, (x,), name)
 sigmoid(x::Array) = sigmoid.(x)
 sigmoid(x::T) where T<:AbstractFloat = T(1 / (1 + exp(-x)))
 
-function sigmoid!(out::Var, x::Array)
+function sigmoid!(out, x::Array)
     out.data = sigmoid.(x)
-    out.∇! = () -> begin
-        isvoid(out[1].grad) || ∇sigmoid!(out.data, out.grad, out[1].data, out[1].grad)
-    end
     out
+end
+
+function gradient!(y::Var, ::typeof(sigmoid), x::Var)
+    isvoid(x.grad) && return
+    ∇sigmoid!(y.data, y.grad, x.data, x.grad, y.work...)
 end
 
 function ∇sigmoid!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
@@ -242,17 +246,19 @@ doc"""
 Hyperbolic tangent function.
 """
 function tanh(x::Var)
-    y = Var(nothing, (x,))
-    tanh!(y, x.data)
+    out = Var(nothing, (tanh,x))
+    tanh!(out, x.data)
 end
 tanh(x::Node; name="") = Node(tanh, (x,), name)
 
-function tanh(x::Array, out)
+function tanh!(out, x::Array)
     out.data = tanh.(x)
-    out.∇! = () -> begin
-        isvoid(out[1].grad) || ∇tanh!(out.data, out.grad, out[1].data, out[1].grad)
-    end
     out
+end
+
+function gradient!(y::Var, ::typeof(tanh), x::Var)
+    isvoid(x.grad) && return
+    ∇tanh!(y.data, y.grad, x.data, x.grad, y.work...)
 end
 
 function ∇tanh!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
