@@ -52,9 +52,7 @@ function softmax(x::Matrix{T}) where T
     y
 end
 
-function softmax(x::CuArray)
-    CUDNN.softmax(x)
-end
+softmax(x::CuArray) = CUDNN.softmax(x)
 
 function addgrad!(y::Var, ::typeof(softmax), x::Var)
     isvoid(x.grad) && return

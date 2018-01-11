@@ -55,14 +55,6 @@ include("functions/standardize.jl")
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")
 
-include("cuda/functions/activation.jl")
-include("cuda/functions/conv.jl")
-#include("cuda/functions/dropout.jl")
-#include("cuda/functions/loss.jl")
-#include("cuda/functions/math.jl")
-#include("cuda/functions/reduce.jl")
-#nclude("cuda/functions/softmax.jl")
-
 include("cuda/optimizer.jl")
 #info("#Threads: $(Threads.nthreads())")
 

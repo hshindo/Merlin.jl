@@ -164,7 +164,7 @@ function softmax_crossentropy(p::Var, x::Var)
 end
 softmax_crossentropy(p::Node, x::Node) = Node(softmax_crossentropy, p, x)
 
-function softmax_crossentropy(p::Vector{Int32}, logx::Matrix{T}) where T
+function softmax_crossentropy(p::Vector{Int}, logx::Matrix{T}) where T
     length(p) == size(logx,2) || throw("Length unmatch.")
     y = Array{T}(length(p))
     @inbounds for i = 1:length(p)
@@ -186,12 +186,31 @@ function softmax_crossentropy(p::Matrix{T}, logx::Matrix{T}) where T
     y
 end
 
+@generated function softmax_crossentropy(p::CuVector{Cint}, logx::CuMatrix{T}) where T
+    Ct = cstring(T)
+    f = CuFunction("""
+    $(LibCUDA.Array_h)
+
+    __global__ void f($Ct *y, int *p, Array<$Ct,2> logx, int length) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < length) {
+            y[idx] = p[idx] > 0 ? -logx(p[idx]-1,idx) : 0;
+        }
+    }""")
+    quote
+        length(p) == size(logx,2) || throw("Length unmatch.")
+        y = CuArray{T}(length(p))
+        gdims, bdims = cudims(length(y))
+        culaunch($f, gdims, bdims, y.ptr, p.ptr, logx, Cint(length(y)))
+        y
+    end
+end
+
 function addgrad!(y::Var, ::typeof(softmax_crossentropy), p::Var, x::Var)
-    #isvoid(p.grad) || throw("Not implemented yet.")
     isvoid(x.grad) || ∇softmax_crossentropy!(y.grad, p.data, x.grad, y.work)
 end
 
-function ∇softmax_crossentropy!(gy::Vector{T}, p::Vector{Int32}, gx::Matrix{T}, logx::Matrix{T}) where T
+function ∇softmax_crossentropy!(gy::Vector{T}, p::Vector{Int}, gx::Matrix{T}, logx::Matrix{T}) where T
     @inbounds for j = 1:length(p)
         p[j] > 0 || continue
         for i = 1:size(logx,1)
@@ -206,6 +225,30 @@ function ∇softmax_crossentropy!(gy::Vector{T}, p::Matrix{T}, gx::Matrix{T}, lo
         for i = 1:size(logx,1)
             gx[i,j] += gy[j] * (exp(logx[i,j]) - p[i,j])
         end
+    end
+end
+
+@generated function ∇softmax_crossentropy!(gy::CuVector{T}, p::CuVector{Cint}, gx::CuMatrix{T}, logx::CuMatrix{T}) where T
+    Ct = cstring(T)
+    f = CuFunction("""
+    $(LibCUDA.Array_h)
+
+    __global__ void f($Ct *gy, int *p, Array<$Ct,2> gx, Array<$Ct,2> logx) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= logx.length()) return;
+
+        int ndIdx[2];
+        logx.idx2ndIdx(ndIdx, idx);
+        int i = ndIdx[0];
+        int j = ndIdx[1];
+        if (p[j] > 0) {
+            $Ct delta = (i == p[j]-1) ? 1 : 0;
+            gx(i,j) += gy[j] * (exp(logx(i,j)) - delta);
+        }
+    }""")
+    quote
+        gdims, bdims = cudims(length(logx))
+        culaunch($f, gdims, bdims, gy.ptr, p.ptr, gx, logx)
     end
 end
 

@@ -14,6 +14,7 @@ struct CUDABackend <: Backend
 end
 
 convert(::CUDABackend, x::Array) = CuArray(x)
+convert(::CUDABackend, x::Array{Int}) = CuArray(Array{Cint}(x))
 convert(::CUDABackend, x::CuArray) = x
 
 struct OpenCLBackend <: Backend

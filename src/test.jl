@@ -16,9 +16,9 @@ function test_gradient(f, xs...; tol=1e-3)
         for k = 1:length(x)
             xk = x[k]
             x[k] = xk + 1e-3
-            y1 = f(xs...).data
+            y1 = copy(f(xs...).data) # In case y == x
             x[k] = xk - 1e-3
-            y2 = f(xs...).data
+            y2 = copy(f(xs...).data)
             x[k] = xk
             gx2[k] = sum(y1-y2) / 2e-3
         end
@@ -43,6 +43,7 @@ function test_backend(backend, f, xs...; tol=1e-3)
     gradient!(d_y)
     for (x,d_x) in zip(xs,d_xs)
         isa(x,Var) || continue
+        isparam(x) || continue
         @test x.grad ≈ d_x.grad
     end
 end

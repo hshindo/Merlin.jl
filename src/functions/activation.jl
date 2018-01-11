@@ -114,6 +114,7 @@ end
 relu(x::Node) = Node(relu, x)
 relu(x::T) where T = max(x, zero(T))
 relu(x::Array) = relu.(x)
+relu(x::CuArray) = CUDNN.relu(x)
 
 function addgrad!(y::Var, ::typeof(relu), x::Var)
     isvoid(x.grad) && return
@@ -125,6 +126,8 @@ function ∇relu!(y, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
         gx[i] += x[i] > T(0) ? gy[i] : T(0)
     end
 end
+
+∇relu!(y::CuArray, gy, x, gx) = CUDNN.∇relu!(y, gy, x, gx)
 
 doc"""
     selu(x::Var)
@@ -172,6 +175,7 @@ sigmoid(x::Var) = Var(sigmoid(x.data), (sigmoid,x))
 sigmoid(x::Node; name="") = Node(sigmoid, (x,), name)
 sigmoid(x::Array) = sigmoid.(x)
 sigmoid(x::T) where T<:AbstractFloat = T(1 / (1 + exp(-x)))
+sigmoid(x::CuArray) = CUDNN.sigmoid(x)
 
 function addgrad!(y::Var, ::typeof(sigmoid), x::Var)
     isvoid(x.grad) && return
@@ -183,6 +187,8 @@ function ∇sigmoid!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where
         gx[i] += gy[i] * y[i] * (T(1) - y[i])
     end
 end
+
+∇sigmoid!(y::CuArray, gy, x, gx) = CUDNN.∇sigmoid!(y, gy, x, gx)
 
 doc"""
     Swish
@@ -234,6 +240,7 @@ Hyperbolic tangent function.
 Base.tanh(x::Var) = Var(tanh(x.data), (tanh,x))
 Base.tanh(x::Node; name="") = Node(tanh, (x,), name)
 Base.tanh(x::Array) = tanh.(x)
+Base.tanh(x::CuArray) = CUDNN.tanh(x)
 
 function addgrad!(y::Var, ::typeof(tanh), x::Var)
     isvoid(x.grad) && return
@@ -245,3 +252,5 @@ function ∇tanh!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
         gx[i] += gy[i] * (T(1) - y[i] * y[i])
     end
 end
+
+∇tanh!(y::CuArray, gy, x, gx) = CUDNN.∇tanh!(y, gy, x, gx)
