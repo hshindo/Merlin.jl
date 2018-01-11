@@ -42,13 +42,3 @@ function checkgrad(tol::Float64, f::Function, var::Var)
         true
     end
 end
-
-function checkcuda(f, xs...)
-    for x in xs
-        x.grad = zeros(x.data)
-        y1 = f()
-        setbackend!(x, "CUDA")
-        y2 = Array(f())
-        maximum(abs,y1-y2) < tol
-    end
-end

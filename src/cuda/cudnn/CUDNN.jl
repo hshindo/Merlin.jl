@@ -50,21 +50,21 @@ function gethandle()
     h = Handles[dev+1]
     if h == Ptr{Void}(0)
         ref = Ref{Ptr{Void}}()
-        @apicall :cudnnCreate (Ptr{Ptr{Void}},) ref
+        @cudnn :cudnnCreate (Ptr{Ptr{Void}},) ref
         h = ref[]
         Handles[dev+1] = h
-        atexit(() -> @apicall :cudnnDestroy (Ptr{Void},) h)
+        atexit(() -> @cudnn :cudnnDestroy (Ptr{Void},) h)
     end
     h
 end
 
 include("activation.jl")
-include("convolution.jl")
-include("filter.jl")
-include("dropout.jl")
-include("reduce.jl")
-include("rnn.jl")
-include("softmax.jl")
+#include("convolution.jl")
+#include("filter.jl")
+#include("dropout.jl")
+#include("reduce.jl")
+#include("rnn.jl")
+#include("softmax.jl")
 include("tensor.jl")
 
 """

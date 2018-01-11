@@ -1,5 +1,4 @@
 export crelu, elu, leaky_relu, relu, selu, sigmoid, swish
-import Base.tanh
 
 doc"""
     crelu(x::Var)
@@ -110,20 +109,15 @@ f(x) = \max(0, x)
 ```
 """
 function relu(x::Var)
-    out = Var(nothing, (relu,x))
-    relu!(out, x.data)
+    Var(relu(x.data), (relu,x))
 end
-relu(x::Node; name="") = Node(relu, (x,), name)
+relu(x::Node) = Node(relu, x)
 relu(x::T) where T = max(x, zero(T))
-
-function relu!(out, x::Array)
-    out.data = relu.(x)
-    out
-end
+relu(x::Array) = relu.(x)
 
 function addgrad!(y::Var, ::typeof(relu), x::Var)
     isvoid(x.grad) && return
-    ∇relu!(y.data, y.grad, x.data, x.grad, y.work...)
+    ∇relu!(y.data, y.grad, x.data, x.grad)
 end
 
 function ∇relu!(y, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
@@ -174,22 +168,14 @@ Sigmoid logistic function.
 f(x) = (1 + \exp(-x))^{-1}
 ```
 """
-function sigmoid(x::Var)
-    out = Var(nothing, (sigmoid,x))
-    sigmoid!(out, x.data)
-end
+sigmoid(x::Var) = Var(sigmoid(x.data), (sigmoid,x))
 sigmoid(x::Node; name="") = Node(sigmoid, (x,), name)
 sigmoid(x::Array) = sigmoid.(x)
 sigmoid(x::T) where T<:AbstractFloat = T(1 / (1 + exp(-x)))
 
-function sigmoid!(out, x::Array)
-    out.data = sigmoid.(x)
-    out
-end
-
-function gradient!(y::Var, ::typeof(sigmoid), x::Var)
+function addgrad!(y::Var, ::typeof(sigmoid), x::Var)
     isvoid(x.grad) && return
-    ∇sigmoid!(y.data, y.grad, x.data, x.grad, y.work...)
+    ∇sigmoid!(y.data, y.grad, x.data, x.grad)
 end
 
 function ∇sigmoid!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
@@ -245,20 +231,13 @@ doc"""
 
 Hyperbolic tangent function.
 """
-function tanh(x::Var)
-    out = Var(nothing, (tanh,x))
-    tanh!(out, x.data)
-end
-tanh(x::Node; name="") = Node(tanh, (x,), name)
+Base.tanh(x::Var) = Var(tanh(x.data), (tanh,x))
+Base.tanh(x::Node; name="") = Node(tanh, (x,), name)
+Base.tanh(x::Array) = tanh.(x)
 
-function tanh!(out, x::Array)
-    out.data = tanh.(x)
-    out
-end
-
-function gradient!(y::Var, ::typeof(tanh), x::Var)
+function addgrad!(y::Var, ::typeof(tanh), x::Var)
     isvoid(x.grad) && return
-    ∇tanh!(y.data, y.grad, x.data, x.grad, y.work...)
+    ∇tanh!(y.data, y.grad, x.data, x.grad)
 end
 
 function ∇tanh!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T

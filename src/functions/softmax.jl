@@ -9,16 +9,8 @@ Softmax function over the given dimension.
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
-softmax(x::Var) = softmax!(Var(nothing,(x,)), x.data)
+softmax(x::Var) = Var(softmax(x.data), (softmax,x))
 softmax(x::Node, name="") = Node(softmax, (x,), name)
-
-function softmax!(out, x::Array)
-    out.data = softmax(x)
-    out.∇! = () -> begin
-        isvoid(out[1].grad) || ∇softmax!(out.data, out.grad, out[1].grad)
-    end
-    out
-end
 
 function softmax(x::Vector{T}) where T
     y = similar(x)
@@ -60,6 +52,15 @@ function softmax(x::Matrix{T}) where T
     y
 end
 
+function softmax(x::CuArray)
+    CUDNN.softmax(x)
+end
+
+function addgrad!(y::Var, ::typeof(softmax), x::Var)
+    isvoid(x.grad) && return
+    ∇softmax!(y.data, y.grad, x.grad)
+end
+
 function ∇softmax!(y::Vector{T}, gy::Vector{T}, gx::Vector{T}) where T
     sum = T(0)
     @inbounds for i = 1:length(y)
@@ -82,19 +83,19 @@ function ∇softmax!(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T}) where T
     end
 end
 
+∇softmax!(y::CuArray, gy::CuArray, gx::CuArray) = CUDNN.∇softmax!(y, gy, gx)
+
 """
     logsoftmax(x)
 
 Logarithm of softmax function.
 """
-logsoftmax(x::Var) = logsoftmax!(Var(nothing,(x,)), x.data)
+logsoftmax(x::Var) = Var(logsoftmax(x.data), (logsoftmax,x))
 logsoftmax(x::Node; name="") = Node(logsoftmax, (x,), name)
 
-function logsoftmax!(out::Var, x::Array)
-    out.data = logsoftmax(x)
-    out.∇! = () -> begin
-        isvoid(out[1].grad) || ∇logsoftmax!(out.data, out.grad, out[1].grad)
-    end
+function addgrad!(y::Var, ::typeof(logsoftmax), x::Var)
+    isvoid(x.grad) && return
+    ∇logsoftmax!(y.data, y.grad, x.grad)
 end
 
 function logsoftmax(x::Matrix{T}) where T
@@ -113,6 +114,10 @@ function logsoftmax(x::Matrix{T}) where T
     y
 end
 
+function logsoftmax(x::CuArray)
+    CUDNN.logsoftmax(x)
+end
+
 function ∇logsoftmax!(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T}) where T
     @inbounds for j = 1:size(y,2)
         sum = T(0)
@@ -123,4 +128,8 @@ function ∇logsoftmax!(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T}) where T
             gx[i,j] += gy[i,j] - exp(y[i,j]) * sum
         end
     end
+end
+
+function ∇logsoftmax!(y::CuArray, gy::CuArray, gx::CuArray)
+    CUDNN.∇logsoftmax!(y, gy, gx)
 end

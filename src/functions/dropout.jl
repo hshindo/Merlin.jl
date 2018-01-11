@@ -5,31 +5,31 @@ doc"""
 
 Drops elements randomly with probability ``rate`` and scales the other elements by factor ``1 / (1 - rate)``.
 """
-function dropout(x::Var, rate::Float64)
+function dropout(x::Var, droprate::Float64)
     rate == 0.0 && return x
-    out = Var(nothing, (dropout,x))
-    dropout!(out, x.data, rate)
+    y, work = dropout(x.data, droprate)
+    Var(y, (dropout,x,droprate), work=work)
 end
 dropout(x::Node, rate::Node; name="") = Node(dropout, (x,rate), name)
 
-function dropout!(out, x::Array{T}, rate::Float64) where T
-    rx = rand(T, length(x.data))
-    scale = T(1 / (1-rate))
+function dropout(x::Array{T}, droprate::Float64) where T
+    work = rand(T, length(x.data))
+    scale = T(1 / (1-droprate))
     y = similar(x)
     @inbounds for i = 1:length(x)
-        y[i] = rx[i] <= rate ? T(0) : scale*x[i]
+        y[i] = work[i] <= droprate ? T(0) : scale*x[i]
     end
-
-    out.data = y
-    out.∇! = () -> begin
-        isvoid(out[1].grad) || ∇dropout!(out.grad, out[1].grad, T(rate), rx)
-    end
-    out
+    y, work
 end
 
-function ∇dropout!(gy::Array{T}, gx::Array{T}, rate::T, rx::Vector{T}) where T
-    scale = T(1 / (1-rate))
+function addgrad!(y::Var, ::typeof(dropout), x::Var, droprate::Float64)
+    isvoid(x.grad) && return
+    ∇dropout!(y.grad, x.grad, droprate, y.work)
+end
+
+function ∇dropout!(gy::Array{T}, gx::Array{T}, droprate::Float64, work::Vector{T}) where T
+    scale = T(1 / (1-droprate))
     @inbounds for i = 1:length(gx)
-        gx[i] += ifelse(rx[i] <= rate, T(0), scale*gy[i])
+        gx[i] += work[i] <= droprate ? T(0) : scale*gy[i]
     end
 end

@@ -1,7 +1,8 @@
 using Base.Test
 using Merlin
+using LibCUDA
 
-tests = ["functions", "cuda/functions"]
+tests = ["functions"]
 
 for t in tests
     path = joinpath(dirname(@__FILE__), "$t.jl")

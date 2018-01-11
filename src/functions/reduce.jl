@@ -11,14 +11,15 @@ y = maximum(x, 1)
 ```
 """
 function Base.maximum(x::Var, dim::Int)
-    data, idx = findmax(x.data, dim)
-    y = Var(data, (max,x,idx))
-    y.∇! = () -> begin
-        isvoid(x.grad) || ∇maximum!(y.grad, x.grad, idx)
-    end
-    y
+    y, idx = findmax(x.data, dim)
+    Var(y, (maximum,x,idx))
 end
 Base.maximum(x::Node, dim::Int; name="") = Node(maximum, (x,dim), name)
+
+function addgrad!(y::Var, ::typeof(maximum), x::Var, idx)
+    isvoid(x.grad) && return
+    ∇maximum!(y.grad, x.grad, idx)
+end
 
 function ∇maximum!(gy::Array{T}, gx::Array{T}, idx::Vector{Int}) where T
     @inbounds for i = 1:length(idx)

@@ -1,20 +1,20 @@
 export Linear
 export linear
 
-struct Linear
-    W::Var
+struct Linear <: Functor
+    w::Var
     b::Var
 end
 
 """
-    Linear(T::Type, insize::Int, outsize::Int, [init_W=Xavier()], [init_b=Fill(0)])
+    Linear(T::Type, insize::Int, outsize::Int, [init_w=Xavier()], [init_b=Fill(0)])
 
 Linear function (a.k.a. affine transformation).
 
 ```math
-f(x) = W^{T}x + b
+f(x) = w^{T}x + b
 ```
-where ``W`` is a weight matrix and ``b`` is a bias vector.
+where ``w`` is a weight matrix and ``b`` is a bias vector.
 
 ```julia
 T = Float32
@@ -23,29 +23,33 @@ f = Linear(T,10,7)
 y = f(x)
 ```
 """
-function Linear(::Type{T}, insize::Int, outsize::Int; init_W=Xavier(), init_b=Fill(0)) where T
-    W = init_W(T, insize, outsize)
+function Linear(::Type{T}, insize::Int, outsize::Int;
+    init_w=Xavier(), init_b=Fill(0)) where T
+
+    w = init_w(T, insize, outsize)
     b = init_b(T, outsize)
-    Linear(zerograd(W), zerograd(b))
+    Linear(zerograd(w), zerograd(b))
 end
-(f::Linear)(x) = linear(x, f.W, f.b)
+(f::Linear)(x) = linear(x, f.w, f.b)
 
-function linear(x::Var, W::Var, b::Var)
-    out = Var(nothing, (linear,x,W,b))
-    out.data = linear(x.data, W.data, b.data)
-    out
+function linear(x::Var, w::Var, b::Var)
+    y = BLAS.gemm('T', 'N', w.data, x.data)
+    y .+= b.data
+    Var(y, (linear,x,w,b))
 end
-linear(x::Node, W::Var, b::Var) = linear(x, Node(W), Node(b))
-linear(x::Node, W::Node, b::Node; name="") = Node(linear, (x,W,b), name)
-function linear(x::UniMatrix, W::UniMatrix, b::UniVector)
-    y = BLAS.gemm('T', 'N', W, x)
-    #y .+= b
-    y
-end
+linear(x::Node, w, b) = Node(linear, x, w, b)
 
-function addgrad!(y::Var, ::typeof(linear), x::Var, W::Var, b::Var)
+function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
     T = eltype(y)
-    isvoid(x.grad) || BLAS.gemm!('N', 'N', T(1), W.data, y.grad, T(1), x.grad)
-    isvoid(W.grad) || BLAS.gemm!('N', 'T', T(1), x.data, y.grad, T(1), W.grad)
-    #isvoid(b.grad) || BLAS.axpy!(T(1), sum(y.grad,2), b.grad)
+    isvoid(x.grad) || BLAS.gemm!('N', 'N', T(1), w.data, y.grad, T(1), x.grad)
+    isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), x.data, y.grad, T(1), w.grad)
+    isvoid(b.grad) || BLAS.axpy!(T(1), sum(y.grad,2), b.grad)
 end
+
+function Base.convert(backend, linear::Linear)
+    w = convert(backend, linear.w)
+    b = convert(backend, linear.b)
+    Linear(w, b)
+end
+
+getparams(f::Linear) = f.w, f.b

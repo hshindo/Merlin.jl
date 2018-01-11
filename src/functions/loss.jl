@@ -21,9 +21,9 @@ y = crossentropy(p, q)
 function crossentropy(p::Var, q::Var)
     Var(crossentropy(p.data,q.data), (crossentropy,p,q))
 end
-crossentropy(p::Node, q::Node; name="") = Node(crossentropy, (p,q), name)
+crossentropy(p::Node, q::Node) = Node(crossentropy, p, q)
 
-function crossentropy(p::Vector{Int}, q::Matrix{T}) where T
+function crossentropy(p::Vector{Int32}, q::Matrix{T}) where T
     y = Array{T}(length(p))
     @inbounds for i = 1:length(p)
         y[i] = p[i] > 0 ? -log(q[p[i],i]) : T(0)
@@ -158,29 +158,23 @@ y = softmax_crossentropy(p, x)
 ```
 """
 function softmax_crossentropy(p::Var, x::Var)
-    out = Var(nothing, (softmax_crossentropy,p,x))
-    softmax_crossentropy!(out, p.data, x.data)
-    #y, logx = softmax_crossentropy(p.data, x.data)
-    #Var(y, (softmax_crossentropy,p,x,logx))
+    logx = logsoftmax(x.data)
+    y = softmax_crossentropy(p.data, logx)
+    Var(y, (softmax_crossentropy,p,x), work=logx)
 end
-softmax_crossentropy(p::Node, x::Node; name="") = Node(softmax_crossentropy, (p,x), name)
+softmax_crossentropy(p::Node, x::Node) = Node(softmax_crossentropy, p, x)
 
-function softmax_crossentropy!(out, p::Vector{Int}, x::Matrix{T}) where T
-    length(p) == size(x,2) || throw("Length unmatch.")
-    logx = logsoftmax(x)
+function softmax_crossentropy(p::Vector{Int32}, logx::Matrix{T}) where T
+    length(p) == size(logx,2) || throw("Length unmatch.")
     y = Array{T}(length(p))
     @inbounds for i = 1:length(p)
         y[i] = p[i] > 0 ? -logx[p[i],i] : T(0)
     end
-
-    out.data = y
-    out.work = (logx,)
-    out
+    y
 end
 
-function softmax_crossentropy(out, p::Matrix{T}, x::Matrix{T}) where T
-    size(p) == size(x) || throw("Size mismatch.")
-    logx = logsoftmax(x)
+function softmax_crossentropy(p::Matrix{T}, logx::Matrix{T}) where T
+    size(p) == size(logx) || throw("Size mismatch.")
     y = Array{T}(size(p,2))
     @inbounds for j = 1:size(p,2)
         s = T(0)
@@ -189,23 +183,20 @@ function softmax_crossentropy(out, p::Matrix{T}, x::Matrix{T}) where T
         end
         y[j] = s
     end
-
-    out.data = y
-    out.work = (logx,)
-    out
+    y
 end
 
 function addgrad!(y::Var, ::typeof(softmax_crossentropy), p::Var, x::Var)
     #isvoid(p.grad) || throw("Not implemented yet.")
-    isvoid(x.grad) || ∇softmax_crossentropy!(y.grad, p.data, x.grad, y.work...)
+    isvoid(x.grad) || ∇softmax_crossentropy!(y.grad, p.data, x.grad, y.work)
 end
 
-function ∇softmax_crossentropy!(gy::Vector{T}, p::Vector{Int}, gq::Matrix{T}, logq::Matrix{T}) where T
+function ∇softmax_crossentropy!(gy::Vector{T}, p::Vector{Int32}, gx::Matrix{T}, logx::Matrix{T}) where T
     @inbounds for j = 1:length(p)
         p[j] > 0 || continue
-        for i = 1:size(logq,1)
+        for i = 1:size(logx,1)
             delta = i == p[j] ? T(1) : T(0)
-            gq[i,j] += gy[j] * (exp(logq[i,j]) - delta)
+            gx[i,j] += gy[j] * (exp(logx[i,j]) - delta)
         end
     end
 end
@@ -218,7 +209,7 @@ function ∇softmax_crossentropy!(gy::Vector{T}, p::Matrix{T}, gx::Matrix{T}, lo
     end
 end
 
-function ∇softmax_crossentropy2!(gy::Matrix{T}, p::Matrix{Int}, q::Matrix{T}, gq::Matrix{T}) where T
+function ∇softmax_crossentropy2!(gy::Matrix{T}, p::Matrix{Int32}, q::Matrix{T}, gq::Matrix{T}) where T
     @inbounds for i = 1:length(p)
         p[i] > 0 || continue
         if q[p[i],i] < T(-1e-10) || q[p[i],i] > T(1e-10)

@@ -1,3 +1,11 @@
+function argmax(x::CuArray, dim::Int)
+    findmax(x,dim)[2]
+end
+
+function argmin(x::CuArray, dim::Int)
+    findmin(x,dim)[2]
+end
+
 #=
 function Base.maximum(x::CuArray, dim::Int)
     y, idx = CUDNN.findmax(x, dim)

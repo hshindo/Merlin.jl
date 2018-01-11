@@ -16,14 +16,16 @@ const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
 const UniMatrix{T} = Union{Matrix{T},CuMatrix{T}}
 const UniVector{T} = Union{Vector{T},CuVector{T}}
 
-#include("hdf5.jl")
+abstract type Functor end
+
 include("var.jl")
+include("backend.jl")
 include("graph.jl")
-#include("device.jl")
 #include("native.jl")
-include("check.jl")
+include("test.jl")
 include("initializer.jl")
 include("optimizer.jl")
+include("iterators.jl")
 
 for name in [
     "attention/add_attention",
@@ -38,14 +40,14 @@ include("functions/blas.jl")
 include("functions/concat.jl")
 include("functions/conv.jl")
 include("functions/dropout.jl")
-include("functions/embeddings.jl")
 include("functions/getindex.jl")
 include("functions/linear.jl")
+include("functions/lookup.jl")
 include("functions/loss.jl")
 include("functions/math.jl")
-include("functions/recurrent.jl")
 include("functions/reduce.jl")
 include("functions/reshape.jl")
+include("functions/rnn.jl")
 include("functions/softmax.jl")
 include("functions/split.jl")
 include("functions/standardize.jl")
@@ -54,10 +56,12 @@ include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")
 
 include("cuda/functions/activation.jl")
-include("cuda/functions/dropout.jl")
-include("cuda/functions/loss.jl")
-include("cuda/functions/reduce.jl")
-include("cuda/functions/softmax.jl")
+include("cuda/functions/conv.jl")
+#include("cuda/functions/dropout.jl")
+#include("cuda/functions/loss.jl")
+#include("cuda/functions/math.jl")
+#include("cuda/functions/reduce.jl")
+#nclude("cuda/functions/softmax.jl")
 
 include("cuda/optimizer.jl")
 #info("#Threads: $(Threads.nthreads())")

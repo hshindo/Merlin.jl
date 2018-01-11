@@ -1,5 +1,5 @@
 export Var
-export zerograd, isvoid, isparam, gradient!, setbackend!
+export zerograd, zerograd!, isvoid, isparam, gradient!
 
 doc"""
     Var
@@ -28,6 +28,10 @@ end
 
 Var(data=nothing, args=(); grad=nothing, work=()) = Var(data, args, grad, work)
 zerograd(data) = Var(data, grad=zeros(data))
+function zerograd!(x::Var)
+    x.grad = zeros(x.data)
+    x
+end
 
 Base.size(x::Var) = size(x.data)
 Base.size(x::Var, i::Int) = size(x.data, i)
@@ -91,63 +95,5 @@ function gradient!(tops::Var...)
         isempty(y.args) && continue
         addgrad!(y, y.args...)
     end
-    filter(isparam, sorted)
+    nothing
 end
-
-doc"""
-    setbackend!(x::Var, backend::String)
-
-* backend: "CPU" or "CUDA"
-"""
-function setbackend!(x::Var, backend::String)
-    if backend == "CPU"
-        if isa(x.data, CuArray)
-            x.data = Array(x.data)
-            isvoid(x.grad) || (x.grad = Array(x.grad))
-        end
-    elseif startswith(backend, "CUDA")
-        if isa(x.data, Array)
-            dev = parse(Int, backend[6:end])
-            LibCUDA.setdevice(dev)
-            x.data = CuArray(x.data)
-            isvoid(x.grad) || (x.grad = CuArray(x.grad))
-        end
-    else
-        throw("Unknown backend: $backend")
-    end
-end
-
-#=
-doc"""
-    batch(data::Vector{Var}, batchsize::Int)
-    batch(data::Vector{NTuple{N,Var}}, batchsize::Int) where N
-
-Create batch from variables.
-"""
-function batch(data::Vector{Var}, batchsize::Int)
-    batches = Var[]
-    for i = 1:batchsize:length(data)
-        T = eltype(data[i])
-        N = ndims(data[i])
-        batch = T[]
-        batchdims = Int[]
-        for k = i:min(i+batchsize-1,length(data))
-            append!(batch, data[k].data)
-            append!(batchdims, data[k].batchdims)
-        end
-        batch = reshape(batch, Base.front(size(data[i]))..., sum(batchdims))
-        push!(batches, Var(batch,batchdims))
-    end
-    batches
-end
-
-function batch(data::Vector{NTuple{N,Var}}, batchsize::Int) where N
-    res = []
-    for i = 1:N
-        vars = map(x -> x[i], data)
-        batches = batch(vars, batchsize)
-        push!(res, batches)
-    end
-    collect(zip(res...))
-end
-=#

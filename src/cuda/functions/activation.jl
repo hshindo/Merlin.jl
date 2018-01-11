@@ -1,34 +1,23 @@
-function relu!(out, x::CuArray)
-    #y = malloc(out, T, size(x))
-    #out.work = CUDNN.relu!(x, y)
-    actdesc, xdesc, y = CUDNN.relu(x)
-    out.data = y
-    out.work = actdesc, xdesc
-    out
+function relu(x::CuArray)
+    CUDNN.relu(x)
 end
 
-function ∇relu!(y::CuArray, gy, x, gx, actdesc, xdesc)
-    CUDNN.∇activation!(actdesc, xdesc, y, gy, x, gx)
+function ∇relu!(y::CuArray, gy, x, gx)
+    CUDNN.∇relu!(y, gy, x, gx)
 end
 
-function sigmoid!(out, x::CuArray)
-    actdesc, xdesc, y = CUDNN.sigmoid(x)
-    out.data = y
-    out.work = actdesc, xdesc
-    out
+function sigmoid(x::CuArray)
+    CUDNN.sigmoid(x)
 end
 
-function ∇sigmoid!(y::CuArray, gy, x, gx, actdesc, xdesc)
-    CUDNN.∇activation!(actdesc, xdesc, y, gy, x, gx)
+function ∇sigmoid!(y::CuArray, gy, x, gx)
+    CUDNN.∇sigmoid!(y, gy, x, gx)
 end
 
-function tanh!(out, x::CuArray)
-    actdesc, xdesc, y = CUDNN.tanh(x)
-    out.data = y
-    out.work = actdesc, xdesc
-    out
+function Base.tanh(x::CuArray)
+    CUDNN.tanh(x)
 end
 
-function ∇tanh!(y::CuArray, gy, x, gx, actdesc, xdesc)
-    CUDNN.∇activation!(actdesc, xdesc, y, gy, x, gx)
+function ∇tanh!(y::CuArray, gy, x, gx)
+    CUDNN.∇tanh!(y, gy, x, gx)
 end
