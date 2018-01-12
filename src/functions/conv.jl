@@ -60,8 +60,8 @@ function ∇conv!(gy::CuArray, conv::Conv, x::CuArray, gx)
     CUDNN.∇convolution!(gy, w, gw, x, gx, conv.pads, conv.strides, conv.dilations)
 end
 
-function Base.convert(backend::Backend, conv::Conv)
-    w = convert(backend, conv.w)
-    b = convert(backend, conv.b)
+function compile(conv::Conv, backend::Backend)
+    w = compile(conv.w, backend)
+    b = compile(conv.b, backend)
     Conv(w, b, conv.pads, conv.strides, conv.dilations)
 end

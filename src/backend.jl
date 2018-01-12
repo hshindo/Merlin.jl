@@ -1,27 +1,27 @@
 export Backend, CPUBackend, CUDABackend, OpenCLBackend
-import Base.convert
+export compile
 
 abstract type Backend end
 
 struct CPUBackend <: Backend
 end
 
-convert(::CPUBackend, x::Array) = x
-convert(::CPUBackend, x::CuArray) = Array(x)
+compile(x::Array, ::CPUBackend) = x
+compile(x::CuArray, ::CPUBackend) = Array(x)
 
 struct CUDABackend <: Backend
     device::Int
 end
 
-convert(::CUDABackend, x::Array) = CuArray(x)
-convert(::CUDABackend, x::Array{Int}) = CuArray(Array{Cint}(x))
-convert(::CUDABackend, x::CuArray) = x
+compile(x::Array, ::CUDABackend) = CuArray(x)
+compile(x::Array{Int}, ::CUDABackend) = CuArray(Array{Cint}(x))
+compile(x::CuArray, ::CUDABackend) = x
 
 struct OpenCLBackend <: Backend
     device::Int
 end
 
-function convert(backend::Backend, v::Var)
-    Var(convert(backend,v.data), v.args, grad=convert(backend,v.grad))
+function compile(v::Var, backend::Backend)
+    Var(compile(v.data,backend), v.args, grad=compile(v.grad,backend))
 end
-convert(backend::Backend, x) = x
+compile(x, backend::Backend) = x

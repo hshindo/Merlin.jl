@@ -27,6 +27,7 @@ end
 function ∇concat!(gy::Array{T,N}, dim::Int, gxs...) where {T,N}
     offset = 1
     for gx in gxs
+        isvoid(gx) && continue
         s = size(gx, dim)
         range = ntuple(N) do i
             i == dim ? (offset:(offset+s-1)) : Colon()

@@ -42,7 +42,7 @@ end
 @testset "conv" for i = 1:5
     x = zerograd(curandn(T,10,10,5,4))
     conv = Conv(T, (1,1,5,3))
-    conv = convert(cuda, conv)
+    conv = compile(conv, cuda)
     y = conv(x)
     gradient!(y)
 end
@@ -51,9 +51,14 @@ end
     x = zerograd(randn(T,10,5))
     y = dropout(x, 0.5)
     gradient!(y)
-    x = convert(cuda, x)
+    x = compile(x, cuda)
     y = dropout(x, 0.5)
     gradient!(y)
+end
+
+@testset "index" for i = 1:5
+    x = zerograd(randn(T,10,5,4))
+    test_gradient(getindex, x, 2:7, :, 1:3)
 end
 
 @testset "linear" for i = 1:5
@@ -92,6 +97,24 @@ end
     #@testgrad softmax_crossentropy(p2,q) q
 end
 
+@testset "math" for i = 1:5
+    x = zerograd(rand(T,10,5) + T(1))
+    test_gradient(exp, x)
+    test_gradient(log, x)
+
+    x1 = zerograd(randn(T,10,5))
+    x2 = zerograd(randn(T,10,5))
+    test_gradient(+, x1, x2)
+    test_gradient(-, x1, x2)
+    test_gradient(-, x1)
+
+    x1 = zerograd(randn(T,10,5))
+    x2 = zerograd(randn(T,10))
+    test_gradient(broadcast, +, x1, x2)
+    test_gradient(broadcast, -, x1, x2)
+    test_gradient(broadcast, *, x1, x2)
+end
+
 @testset "reshape" for i = 1:5
     x = zerograd(randn(T,10,5))
     test_gradient(reshape, x, 5, 10)
@@ -99,12 +122,9 @@ end
 end
 
 @testset "rnn" for i = 1:5
-    x = Var(rand(T,20,10))
-    f = LSTM(T, 20, 20)
-    @testgrad f(x,[2,3,5]) x f.WU f.b f.h0 f.c0
-    @testgrad f(x,[2,3,5], rev=true) x f.WU f.b f.h0 f.c0
-    #f = BiLSTM(T, 20, 20)
-    #@testgrad f(x,[2,3,5]) x f.WU f.b f.h0 f.c0
+    x = zerograd(randn(T,20,10))
+    lstm = LSTM(T, 20, 1, 0.5)
+    test_gradient(lstm, x, [5,3,2])
 end
 
 @testset "softmax" for i = 1:5

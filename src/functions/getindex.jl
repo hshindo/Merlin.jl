@@ -16,8 +16,7 @@ getindex(x::Var, inds...) = getindex(x, inds)
 getindex(x::Node, inds::Tuple; name="") = Node(getindex, (x,inds), name)
 
 function addgrad!(y::Var, ::typeof(getindex), x::Var, inds::Tuple)
-    if !isvoid(x.grad)
-        gx = view(x.grad, inds...)
-        broadcast!(+, gx, gx, y.grad)
-    end
+    isvoid(x.grad) && return
+    gx = view(x.grad, inds...)
+    broadcast!(+, gx, gx, y.grad)
 end
