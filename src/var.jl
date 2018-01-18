@@ -29,6 +29,7 @@ end
 Var(data=nothing, args=(); grad=nothing, work=()) = Var(data, args, grad, work)
 zerograd(data) = Var(data, grad=zeros(data))
 function zerograd!(x::Var)
+    isvoid(x.grad) && return
     x.grad = zeros(x.data)
     x
 end

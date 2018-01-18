@@ -18,7 +18,7 @@ test_cuda(args...) = test_backend(cuda, args...)
     #@testgrad crelu(x) x
     #@testgrad elu(x) x
     #@testgrad leaky_relu(x) x
-    #test_gradient(relu, x)
+    test_gradient(relu, x)
     test_gradient(sigmoid, x)
     test_gradient(tanh, x)
     #@testgrad selu(x) x
@@ -33,9 +33,10 @@ end
 @testset "concat" for i = 1:5
     x1 = zerograd(randn(T,10,5,2))
     x2 = zerograd(randn(T,10,5,2))
+    x3 = zerograd(randn(T,10,5,2))
     for dim = 1:3
-        test_gradient(concat, dim, x1, x2)
-        test_cuda(concat, dim, x1, x2)
+        test_gradient(concat, dim, x1, x2, x3)
+        test_cuda(concat, dim, x1, x2, x3)
     end
 end
 
@@ -113,6 +114,10 @@ end
     test_gradient(broadcast, +, x1, x2)
     test_gradient(broadcast, -, x1, x2)
     test_gradient(broadcast, *, x1, x2)
+
+    A = zerograd(randn(T,10,5))
+    B = zerograd(randn(T,5,7))
+    test_gradient(*, A, B)
 end
 
 @testset "reshape" for i = 1:5
@@ -123,8 +128,10 @@ end
 
 @testset "rnn" for i = 1:5
     x = zerograd(randn(T,20,10))
-    lstm = LSTM(T, 20, 1, 0.5)
-    test_gradient(lstm, x, [5,3,2])
+    batchdims = [2,5,3]
+    lstm = LSTM(T, 20, 20, 1, 0.0)
+    test_gradient(lstm, x, batchdims)
+    test_cuda(lstm, x, batchdims)
 end
 
 @testset "softmax" for i = 1:5

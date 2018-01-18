@@ -226,17 +226,14 @@ end
 doc"""
     *(A::Var, B::Var)
 """
-function *(A::Var, B::Var)
-    C = Var(nothing, (A,B))
-    C.data = A.data * B.data
-    C.∇! = () -> begin
-        T = eltype(C)
-        isvoid(A.grad) || BLAS.gemm!('N', 'T', T(1), C.grad, B.data, T(1), A.grad)
-        isvoid(B.grad) || BLAS.gemm!('T', 'N', T(1), A.data, C.grad, T(1), B.grad)
-    end
-    C
-end
+*(A::Var, B::Var) = Var(A.data * B.data, (*,A,B))
 *(A::Node, B::Node; name="") = Node(*, (A,B), name)
+
+function addgrad!(C::Var, ::typeof(*), A::Var, B::Var)
+    T = eltype(C)
+    isvoid(A.grad) || BLAS.gemm!('N', 'T', T(1), C.grad, B.data, T(1), A.grad)
+    isvoid(B.grad) || BLAS.gemm!('T', 'N', T(1), A.data, C.grad, T(1), B.grad)
+end
 
 doc"""
     /(x1::Var, a)

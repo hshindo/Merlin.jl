@@ -20,23 +20,47 @@ concat(dim::Int, xs::Vector{Var}) = concat(dim, xs...)
 concat(dim::Int, xs::Node...; name="") = Node(concat, (dim,xs...), name)
 
 function addgrad!(y::Var, ::typeof(concat), dim::Int, xs::Var...)
-    gxs = map(x -> x.grad, xs)
-    ∇concat!(y.grad, dim, gxs...)
+    ∇concat!(y.grad, dim, xs...)
 end
 
-function ∇concat!(gy::Array{T,N}, dim::Int, gxs...) where {T,N}
-    offset = 1
-    for gx in gxs
-        isvoid(gx) && continue
-        s = size(gx, dim)
-        range = ntuple(N) do i
-            i == dim ? (offset:(offset+s-1)) : Colon()
+function ∇concat!(gy::Array{T,N}, dim::Int, xs::Var...) where {T,N}
+    offset = 0
+    ysize = Any[Colon() for i=1:N]
+    for x in xs
+        s = size(x, dim)
+        if !isvoid(x.grad)
+            ysize[dim] = offset+1:offset+s
+            BLAS.axpy!(T(1), gy[ysize...], x.grad)
         end
-        BLAS.axpy!(T(1), gy[range...], gx)
         offset += s
     end
 end
 
-function ∇concat!(gy::CuArray, dim::Int, gxs::CuArray...)
-    LibCUDA.∇concat!(gy, dim, gxs...)
+function ∇concat!(gy::CuArray, dim::Int, xs::Var...)
+    offset = 0
+    for x in xs
+        if !isvoid(x.grad)
+            ∇concat_shiftcopy!(gy, offset, dim, x.grad)
+        end
+        offset += size(x, dim)
+    end
+end
+
+@generated function ∇concat_shiftcopy!(gy::CuArray{T,N}, offset::Int, dim::Int, gx::CuArray{T,N}) where {T,N}
+    Ct = cstring(T)
+    f = CuFunction("""
+    $(LibCUDA.Array_h)
+    __global__ void concat(Array<$Ct,$N> y, int offsetY, int dim, Array<$Ct,$N> x) {
+        int idxX = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idxX >= x.length()) return;
+
+        int ndIdx[$N];
+        x.idx2ndIdx(ndIdx, idxX);
+        ndIdx[dim] += offsetY;
+        x[idxX] += y(ndIdx);
+    }""")
+    quote
+        gdims, bdims = cudims(length(gx))
+        culaunch($f, gdims, bdims, gy, offset, dim-1, gx)
+    end
 end

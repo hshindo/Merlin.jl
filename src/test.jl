@@ -32,10 +32,14 @@ end
 
 function test_backend(backend, f, xs...; tol=1e-3)
     LibCUDA.Configured || return
-    y = f(xs...)
 
     d_f = compile(f, backend)
-    d_xs = map(x -> compile(x,backend), xs)
+    d_xs = map(x -> isa(x,Var) ? compile(x,backend) : x, xs)
+
+    foreach(x -> isa(x,Var) && isparam(x) && zerograd!(x), xs)
+    foreach(x -> isa(x,Var) && isparam(x) && zerograd!(x), d_xs)
+
+    y = f(xs...)
     d_y = d_f(d_xs...)
     @test y.data ≈ d_y.data
 
