@@ -70,12 +70,15 @@ function (lstm::LSTM)(x::Var, batchdims::Vector{Int})
 end
 
 function (rnn::CUDNN.RNN)(x::Var, batchdims::Vector{Int})
-    y, work = rnn(x.data, batchdims)
+    t_x, t_batchdims = transpose_batch(x.data, batchdims)
+    t_y, work = rnn(t_x, t_batchdims)
+    y, _ = transpose_batch(t_y, t_batchdims)
     Var(y, (rnn,x,batchdims), work=work)
 end
 
 function addgrad!(y::Var, rnn::CUDNN.RNN, x::Var, batchdims::Vector{Int})
-    gx = CUDNN.backward_data(rnn, y.grad, batchdims, y.work) # this call is required for backward_weights
+    t_gx = CUDNN.backward_data(rnn, y.grad, y.work) # this call is required for backward_weights
+    gx, _ = transpose_batch(t_gx, batchdims)
     isvoid(x.grad) || BLAS.axpy!(eltype(y)(1), gx, x.grad)
     CUDNN.backward_weights!(rnn, y.work)
 end

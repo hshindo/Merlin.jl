@@ -51,6 +51,7 @@ include("functions/rnn.jl")
 include("functions/softmax.jl")
 include("functions/split.jl")
 include("functions/standardize.jl")
+include("functions/transpose_batch.jl")
 
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")
