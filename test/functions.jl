@@ -120,6 +120,17 @@ end
     test_gradient(*, A, B)
 end
 
+@testset "reduce" for i = 1:5
+    x = zerograd(randn(T,10,5))
+    for i = 1:length(x)
+        x.data[i] *= 10
+    end
+    for d = 1:2
+        test_gradient(max, x, d)
+        test_cuda(max, x, d)
+    end
+end
+
 @testset "reshape" for i = 1:5
     x = zerograd(randn(T,10,5))
     test_gradient(reshape, x, 5, 10)
@@ -128,7 +139,7 @@ end
 
 @testset "rnn" for i = 1:5
     x = zerograd(randn(T,20,10))
-    batchdims = [2,5,3]
+    batchdims = [5,3,2]
     lstm = LSTM(T, 20, 20, 1, 0.0)
     test_gradient(lstm, x, batchdims)
     test_cuda(lstm, x, batchdims)

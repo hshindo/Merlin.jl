@@ -77,8 +77,9 @@ function (rnn::CUDNN.RNN)(x::Var, batchdims::Vector{Int})
 end
 
 function addgrad!(y::Var, rnn::CUDNN.RNN, x::Var, batchdims::Vector{Int})
-    t_gx = CUDNN.backward_data(rnn, y.grad, y.work) # this call is required for backward_weights
-    gx, _ = transpose_batch(t_gx, batchdims)
+    t_gy, t_batchdims = transpose_batch(y.grad, batchdims)
+    t_gx = CUDNN.backward_data(rnn, t_gy, y.work) # this call is required for backward_weights
+    gx, _ = transpose_batch(t_gx, t_batchdims)
     isvoid(x.grad) || BLAS.axpy!(eltype(y)(1), gx, x.grad)
     CUDNN.backward_weights!(rnn, y.work)
 end

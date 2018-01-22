@@ -56,7 +56,6 @@ include("functions/transpose_batch.jl")
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")
 
-include("cuda/optimizer.jl")
 #info("#Threads: $(Threads.nthreads())")
 
 end

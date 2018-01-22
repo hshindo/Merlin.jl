@@ -23,9 +23,7 @@ f = Linear(T,10,7)
 y = f(x)
 ```
 """
-function Linear(::Type{T}, insize::Int, outsize::Int;
-    init_w=Xavier(), init_b=Fill(0)) where T
-
+function Linear(::Type{T}, insize::Int, outsize::Int; init_w=Xavier(), init_b=Fill(0)) where T
     w = init_w(T, insize, outsize)
     b = init_b(T, outsize)
     Linear(zerograd(w), zerograd(b))
@@ -51,3 +49,5 @@ function compile(linear::Linear, backend::Backend)
     b = compile(linear.b, backend)
     Linear(w, b)
 end
+
+getparams(l::Linear) = [l.w, l.b]
