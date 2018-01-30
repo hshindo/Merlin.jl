@@ -143,6 +143,9 @@ end
     lstm = LSTM(T, 20, 20, 1, 0.0)
     test_gradient(lstm, x, batchdims)
     test_cuda(lstm, x, batchdims)
+
+    bilstm = BiLSTM(T, 20, 20, 1, 0.0)
+    test_gradient(bilstm, x, batchdims)
 end
 
 @testset "softmax" for i = 1:5

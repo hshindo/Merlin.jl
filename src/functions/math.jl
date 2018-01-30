@@ -5,7 +5,6 @@ doc"""
     exp(x)
 """
 exp(x::Var) = Var(exp(x.data), (exp,x))
-exp(x::Node; name="") = Node(exp, (x,), name)
 exp(x::Array) = exp.(x)
 
 function addgrad!(y::Var, ::typeof(exp), x::Var)
@@ -37,7 +36,6 @@ doc"""
     log(x)
 """
 log(x::Var) = Var(log(x.data), (log,x))
-log(x::Node; name="") = Node(log, (x,), name)
 log(x::Array) = log.(x)
 
 function addgrad!(y::Var, ::typeof(log), x::Var)
@@ -82,7 +80,6 @@ function transpose(x::Var)
     end
     ys
 end
-transpose(x::Node; name="") = Node(transpose, (x,), name)
 
 function addgrad!(y::Var, ::typeof(transpose), x::Var, s::Int, e::Int)
     if !isvoid(x.grad)
@@ -98,7 +95,6 @@ doc"""
 +(x1::Var, x2::Var) = Var(x1.data + x2.data, (+,x1,x2))
 +(x1::Union{Number,Array}, x2::Var) = Var(x1) + x2
 +(x1::Var, x2::Union{Number,Array}) = x1 + Var(x2)
-+(x1::Node, x2::Node; name="") = Node(+, (x1,x2), name)
 
 function addgrad!(y::Var, ::typeof(+), x1::Var, x2::Var)
     T = eltype(y)
@@ -122,10 +118,6 @@ end
 function -(x::Var)
     Var(-x.data, (-,x))
 end
--(x1::Node, x2::Node; name="") = Node(-, (x1,x2), name)
-function -(x::Node; name="")
-    Node(-, (x,), name)
-end
 
 function addgrad!(y::Var, ::typeof(-), x::Var)
     T = eltype(y)
@@ -136,7 +128,6 @@ doc"""
     .+(x1::Var, x2::Var)
 """
 broadcast(::typeof(+), x1::Var, x2::Var) = Var(x1.data .+ x2.data, (broadcast,+,x1,x2))
-broadcast(::typeof(+), x1::Node, x2::Node; name="") = Node(broadcast, (+,x1,x2), name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(+), x1::Var, x2::Var)
     isvoid(x1.grad) || ∇broadcast_plus!(y.grad, x1.grad)
@@ -155,7 +146,6 @@ doc"""
     .-(x1::Var, x2::Var)
 """
 broadcast(::typeof(-), x1::Var, x2::Var) = Var(x1.data .- x2.data, (broadcast,-,x1,x2))
-broadcast(::typeof(-), x1::Node, x2::Node; name="") = Node(broadcast, (-,x1,x2), name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(-), x1::Var, x2::Var)
     isvoid(x1.grad) || ∇broadcast_plus!(y.grad, x1.grad)
@@ -174,7 +164,6 @@ doc"""
     .*(x1::Var, x2::Var)
 """
 broadcast(::typeof(*), x1::Var, x2::Var) = Var(x1.data .* x2.data, (broadcast,*,x1,x2))
-broadcast(::typeof(*), x1::Node, x2::Node; name="") = Node(broadcast, (*,x1,x2), name)
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(*), x1::Var, x2::Var)
     isvoid(x1.grad) || ∇broadcast_times!(y.grad, x2.data, x1.grad)
@@ -227,7 +216,6 @@ doc"""
     *(A::Var, B::Var)
 """
 *(A::Var, B::Var) = Var(A.data * B.data, (*,A,B))
-*(A::Node, B::Node; name="") = Node(*, (A,B), name)
 
 function addgrad!(C::Var, ::typeof(*), A::Var, B::Var)
     T = eltype(C)
@@ -246,7 +234,6 @@ function /(x::Var, a::Number)
     end
     y
 end
-/(x::Node, a::Number; name="") = Node(/, (x,a), name)
 
 function ∇divide!(gy::Array{T}, gx::Array{T}, a::T) where T
     @inbounds for i = 1:length(gy)
@@ -258,7 +245,6 @@ doc"""
     ^(x::Var, a::Number)
 """
 ^(x::Var, a::Number) = Var(x.data^a, (^,x,a))
-^(x::Node, a::Number; name="") = Node(^, (x,a), name)
 
 function addgrad!(y::Var, ::typeof(^), x::Var, a::Number)
     T = eltype(x)

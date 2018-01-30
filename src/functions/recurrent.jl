@@ -91,7 +91,6 @@ function LSTM(::Type{T}, insize::Int, outsize::Int; init_W=OrthoNormal(), init_U
     c0 = zeros(T, outsize, 1)
     LSTM(zerograd(WU), zerograd(b), zerograd(h0), zerograd(c0))
 end
-(lstm::LSTM)(x::Node, batchdims; name="") = Node(lstm, (x,batchdims), name)
 
 function (lstm::LSTM)(x::Var, batchdims; rev=false)
     c = lstm.c0
@@ -130,7 +129,6 @@ function BiLSTM(::Type{T}, insize::Int, outsize::Int; init_W=Uniform(0.001), ini
     bwd = LSTM(T, insize, outsize, init_W=init_W, init_U=init_U)
     BiLSTM(fwd, bwd)
 end
-(bilstm::BiLSTM)(x::Node, batchdims; name="") = Node(bilstm, (x,batchdims), name)
 
 function (bilstm::BiLSTM)(x::Var, batchdims)
     h1 = bilstm.fwd(x, batchdims)

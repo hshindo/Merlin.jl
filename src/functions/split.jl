@@ -23,7 +23,6 @@ function split(x::Var, dims::Vector{Int})
     end
     ys
 end
-split(x::Node, dims; name="") = Node(split, (x,dims), name)
 
 #=
 function unsafe_split(x::Array{T,N}, splitdims::Vector{Int}) where {T,N}

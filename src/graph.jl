@@ -1,64 +1,49 @@
 export Graph, Node
-export compile, getparams
+export compile
 
 mutable struct Node
     f
     args::Tuple
+    name::String
 
-    Node(f, args...) = new(f, args)
+    Node(f, args...; name="") = new(f, args, name)
 end
-
-Node() = Node(nothing)
+Node(; name="") = Node(nothing, name=name)
 
 Base.getindex(n::Node, i::Int) = n.args[i]
 
-function compile(n::Node, backend::Backend)
-    f = compile(n.f, backend)
-    args = map(n.args) do a
-        compile(a, backend)
-    end
-    Node(f, args...)
-end
 
 struct NodeId
     id::Int
 end
 
+
 struct Graph
     nodes::Vector{Node} # topological order
-    inputs::Tuple
-    outputs::Tuple
+    inids::Vector{Int}
+    outid::Int
 end
 
-function Graph(inputs, outputs)
-    isa(inputs,Tuple) || (inputs = (inputs,))
-    isa(outputs,Tuple) || (outputs = (outputs,))
-    nodes = topsort(outputs...)
+function Graph(out::Node)
+    nodes = topsort(out)
     node2id = Dict(nodes[i]=>i for i=1:length(nodes))
-
-    nodes = map(nodes) do node
-        args = map(node.args) do arg
+    dict = Dict{String,Node}()
+    for node in nodes
+        node.args = map(node.args) do arg
             isa(arg,Node) ? NodeId(node2id[arg]) : arg
         end
-        Node(node.f, args...)
+        isempty(node.name) || (dict[node.name] = node)
     end
-    inputs = map(x -> node2id[x], inputs)
-    outputs = map(x -> node2id[x], outputs)
-    Graph(nodes, inputs, outputs)
+
+    names = collect(keys(dict))
+    sort!(names)
+    inids = map(x -> node2id[dict[x]], names)
+    outid = node2id[out]
+    Graph(nodes, inids, outid)
 end
 
 Base.getindex(g::Graph, i::Int) = g.nodes[i]
 Base.getindex(g::Graph, s::String) = g.dict[s]
-
-function getparams(g::Graph)
-    params = Var[]
-    for node in g.nodes
-        for arg in node.args
-            isa(arg,Var) && isparam(arg) && push!(params,arg)
-        end
-    end
-    params
-end
 
 function compile(g::Graph, backend::Backend)
     nodes = map(n -> compile(n,backend), g.nodes)
@@ -66,10 +51,10 @@ function compile(g::Graph, backend::Backend)
 end
 
 function (g::Graph)(xs...)
-    @assert length(xs) == length(g.inputs)
+    @assert length(xs) == length(g.inids)
     temps = Array{Any}(length(g.nodes))
     for i = 1:length(xs)
-        temps[g.inputs[i]] = xs[i]
+        temps[g.inids[i]] = xs[i]
     end
     for i = 1:length(g.nodes)
         node = g.nodes[i]
@@ -79,9 +64,5 @@ function (g::Graph)(xs...)
         end
         temps[i] = node.f(args...)
     end
-    if length(g.outputs) == 1
-        temps[g.outputs[1]]
-    else
-        map(id -> temps[id], g.outputs)
-    end
+    temps[g.outid]
 end

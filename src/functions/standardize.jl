@@ -36,7 +36,6 @@ function standardize(x::Var, train::Bool, scale::Var, bias::Var, runmean, runvar
         Var(data, (standardize,x,scale,bias))
     end
 end
-standardize(x::Node, train, scale, bias, runmean, runvar; name="") = Node(standardize, (x,train,scale,bias,runmean,runvar), name)
 
 function addgrad!(y::Var, ::typeof(standardize), x::Var, scale::Var, bias::Var, invstd, xhat)
     T = eltype(y.data)

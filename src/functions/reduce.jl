@@ -14,7 +14,6 @@ function Base.max(x::Var, dim::Int)
     y, idx = findmax(x.data, dim)
     Var(y, (max,x,dim,idx))
 end
-Base.max(x::Node, dim::Int; name="") = Node(max, (x,dim), name)
 
 function addgrad!(y::Var, ::typeof(max), x::Var, dim, idx)
     isvoid(x.grad) && return
@@ -69,7 +68,6 @@ function max_batch(x::Var, dims::Vector{Int})
     y, idx = max_batch(x.data, dims)
     Var(data, (max_batch,x,dims,idx))
 end
-max_batch(x::Node, dims::Node; name="") = Node(maximum_batch, (x,dims), name)
 
 function max_batch(x::Array{T,N}, dims::Vector{Int}) where {T,N}
     front = Base.front(size(x))
@@ -114,8 +112,6 @@ function Base.mean(x::Var, dim::Int)
     end
     Var(y, batchdims, mean, (x,dim))
 end
-
-Base.mean(x::Node, dim::Int; name="") = Node(mean, (x,dim), name)
 
 function mean_batch{T,N}(x::Array{T,N}, batchdims::Vector{Int})
     front = Base.front(size(x))

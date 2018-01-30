@@ -17,7 +17,7 @@ function concat(dim::Int, xs::Var...)
     Var(y, (concat,dim,xs...))
 end
 concat(dim::Int, xs::Vector{Var}) = concat(dim, xs...)
-concat(dim::Int, xs::Node...; name="") = Node(concat, (dim,xs...), name)
+concat(dim::Int, xs::Node...) = Node(concat, dim, xs...)
 
 function addgrad!(y::Var, ::typeof(concat), dim::Int, xs::Var...)
     ∇concat!(y.grad, dim, xs...)

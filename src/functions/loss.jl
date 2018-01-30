@@ -21,7 +21,6 @@ y = crossentropy(p, q)
 function crossentropy(p::Var, q::Var)
     Var(crossentropy(p.data,q.data), (crossentropy,p,q))
 end
-crossentropy(p::Node, q::Node) = Node(crossentropy, p, q)
 
 function crossentropy(p::Vector{Int32}, q::Matrix{T}) where T
     y = Array{T}(length(p))
@@ -106,7 +105,6 @@ Note that the error is not scaled by 1/2.
 function mse(x1::Var, x2::Var)
     Var(mse(x1.data,x2.data), (mse,x1,x2))
 end
-mse(x1::Node, x2::Node; name="") = Node(mse, (x1,x2), name)
 
 function mse(x1::Matrix{T}, x2::Matrix{T}) where T
     size(x1) == size(x2) || throw("Size unmatch.")
@@ -162,9 +160,8 @@ function softmax_crossentropy(p::Var, x::Var)
     y = softmax_crossentropy(p.data, logx)
     Var(y, (softmax_crossentropy,p,x), work=logx)
 end
-softmax_crossentropy(p::Node, x::Node) = Node(softmax_crossentropy, p, x)
 
-function softmax_crossentropy(p::Vector{Int}, logx::Matrix{T}) where T
+function softmax_crossentropy(p::Vector{Int32}, logx::Matrix{T}) where T
     length(p) == size(logx,2) || throw("Length unmatch.")
     y = Array{T}(length(p))
     @inbounds for i = 1:length(p)
@@ -210,7 +207,7 @@ function addgrad!(y::Var, ::typeof(softmax_crossentropy), p::Var, x::Var)
     isvoid(x.grad) || ∇softmax_crossentropy!(y.grad, p.data, x.grad, y.work)
 end
 
-function ∇softmax_crossentropy!(gy::Vector{T}, p::Vector{Int}, gx::Matrix{T}, logx::Matrix{T}) where T
+function ∇softmax_crossentropy!(gy::Vector{T}, p::Vector{Int32}, gx::Matrix{T}, logx::Matrix{T}) where T
     @inbounds for j = 1:length(p)
         p[j] > 0 || continue
         for i = 1:size(logx,1)

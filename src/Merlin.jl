@@ -27,6 +27,12 @@ include("initializer.jl")
 include("optimizer.jl")
 include("iterators.jl")
 
+mutable struct Config
+    train::Bool
+    debug::Bool
+end
+const CONFIG = Config(true, false)
+
 for name in [
     "attention/add_attention",
     "pairwise",

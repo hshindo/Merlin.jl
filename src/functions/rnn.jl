@@ -45,7 +45,7 @@ h = f(x)
 ```
 """
 function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64;
-    init_w=Orthogonal(), init_u=Orthogonal(), init_b=Fill(0), init_h0=Fill(0), init_c0=Fill(0)) where T
+    init_w=Normal(0,0.001), init_u=Orthogonal(), init_b=Fill(0), init_h0=Fill(0), init_c0=Fill(0)) where T
 
     ws = Var[]
     bs = Var[]
@@ -54,7 +54,7 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
         for i = 1:4
             s = l == 1 ? insize : hsize
             w = init_w(T, s, hsize)
-            u = init_u(T, s, hsize)
+            u = init_u(T, hsize, hsize)
             push!(wus, cat(1,w,u))
         end
         w = cat(2, wus...)
@@ -65,8 +65,8 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
     LSTM(insize, hsize, nlayers, droprate, ws, bs)
 end
 
-function (lstm::LSTM)(x::Var, batchdims::Vector{Int})
-    lstm_tstep(x, batchdims, lstm.ws[1], lstm.bs[1], false)
+function (lstm::LSTM)(x::Var, batchdims::Vector{Int}; rev=false)
+    lstm_tstep(x, batchdims, lstm.ws[1], lstm.bs[1], rev)
 end
 
 function (rnn::CUDNN.RNN)(x::Var, batchdims::Vector{Int})
@@ -160,4 +160,32 @@ function compile(lstm::LSTM, backend::CUDABackend)
     end
     w = compile(param, backend)
     CUDNN.LSTM(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, w)
+end
+
+
+doc"""
+    BiLSTM(::Type{T}, insize::Int, outsize::Int, [init_W=Uniform(0.001), init_U=Orthogonal()])
+
+Bi-directional Long Short-Term Memory network.
+See `LSTM` for more details.
+"""
+mutable struct BiLSTM
+    fwd::LSTM
+    bwd::LSTM
+end
+
+function BiLSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64;
+    init_w=Normal(0,0.001), init_u=Orthogonal()) where T
+
+    fwd = LSTM(T, insize, hsize, nlayers, droprate, init_w=init_w, init_u=init_u)
+    bwd = LSTM(T, insize, hsize, nlayers, droprate, init_w=init_w, init_u=init_u)
+    BiLSTM(fwd, bwd)
+end
+
+(bilstm::BiLSTM)(x::Node, batchdims) = Node(bilstm, x, batchdims)
+
+function (bilstm::BiLSTM)(x::Var, batchdims)
+    h1 = bilstm.fwd(x, batchdims)
+    h2 = bilstm.bwd(x, batchdims, rev=true)
+    concat(1, h1, h2)
 end

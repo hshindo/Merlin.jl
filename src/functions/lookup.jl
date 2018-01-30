@@ -4,7 +4,6 @@ function lookup(w::Var, x::UniVector)
     y = lookup(w.data, x)
     Var(y, (lookup,w,x))
 end
-lookup(w::Var, x::Node) = Node(lookup, w, x)
 
 function lookup(w::Matrix{T}, x::Vector{Int}) where T
     n = size(w, 1)

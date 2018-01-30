@@ -1,5 +1,5 @@
 export Var
-export zerograd, zerograd!, isvoid, isparam, gradient!
+export zerograd, zerograd!, isvoid, isparam, forward!, gradient!
 
 doc"""
     Var
@@ -27,6 +27,7 @@ mutable struct Var
 end
 
 Var(data=nothing, args=(); grad=nothing, work=()) = Var(data, args, grad, work)
+
 zerograd(data) = Var(data, grad=zeros(data))
 function zerograd!(x::Var)
     isvoid(x.grad) && return
@@ -43,6 +44,20 @@ Base.strides(x::Var) = strides(x.data)
 Base.stride(x::Var, i::Int) = stride(x.data, i)
 Base.getindex(x::Var, i::Int) = x.args[i]
 isvoid(x) = x == nothing
+
+function forward!(out::Var)
+    isempty(out.args) && return out
+    forward!(out, out.args...)
+    out
+end
+
+function getdata!(out::Var)
+    sorted = topsort(out)
+    for node in sorted
+        forward!(node)
+    end
+    out.data
+end
 
 doc"""
     isparam(x::Var)
@@ -96,5 +111,5 @@ function gradient!(tops::Var...)
         isempty(y.args) && continue
         addgrad!(y, y.args...)
     end
-    nothing
+    filter(isparam, sorted)
 end

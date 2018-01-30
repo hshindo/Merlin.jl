@@ -13,7 +13,8 @@ Instead, use `y = x[i:i]`.
 """
 getindex(x::Var, inds::Tuple) = Var(x.data[inds...], (getindex,x,inds))
 getindex(x::Var, inds...) = getindex(x, inds)
-getindex(x::Node, inds::Tuple; name="") = Node(getindex, (x,inds), name)
+getindex(x::Node, inds::Tuple) = Node(getindex, x, inds)
+getindex(x::Node, inds...) = getindex(x, inds)
 
 function addgrad!(y::Var, ::typeof(getindex), x::Var, inds::Tuple)
     isvoid(x.grad) && return

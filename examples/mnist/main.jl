@@ -3,7 +3,8 @@ using Merlin.Datasets.MNIST
 using ProgressMeter
 using JLD2, FileIO
 
-const BACKEND = CUDABackend(0) # or CPUBackend()
+#const BACKEND = CUDABackend(0)
+const BACKEND = CPUBackend()
 const NEPOCHS = 50
 
 function main()
@@ -36,19 +37,17 @@ end
 function NN()
     T = Float32
     hsize = 1000
-    x = Node()
-    h = Linear(T,28*28,hsize)(x)
+    h = Linear(T,28*28,hsize)(Node(name="x"))
     h = relu(h)
     h = Linear(T,hsize,hsize)(h)
     h = relu(h)
     h = Linear(T,hsize,10)(h)
-    g = Graph(x, h)
-    compile(g, BACKEND)
+    Graph(h)
+    #compile(g, BACKEND)
 end
 
 function train(traindata::Vector, testdata::Vector)
     nn = NN()
-    params = getparams(nn)
     opt = SGD(0.001)
 
     for epoch = 1:NEPOCHS
@@ -60,15 +59,15 @@ function train(traindata::Vector, testdata::Vector)
             z = nn(Var(x))
             z = softmax_crossentropy(Var(y), z)
             loss += sum(Array(z.data))
-            gradient!(z)
+            params = gradient!(z)
             foreach(opt, params)
             ProgressMeter.next!(prog)
         end
         loss /= length(traindata)
         println("Loss:\t$loss")
 
-        golds = Int[]
-        preds = Int[]
+        golds = Int32[]
+        preds = Int32[]
         for (x,y) in testdata
             append!(golds, Array(y))
             z = nn(Var(x))

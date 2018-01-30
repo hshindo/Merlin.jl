@@ -7,10 +7,12 @@ Drops elements randomly with probability ``droprate`` and scales the other eleme
 """
 function dropout(x::Var, droprate::Float64)
     droprate == 0.0 && return x
+    CONFIG.train || return x
     y, r = dropout(x.data, droprate)
     Var(y, (dropout,x,droprate,r))
 end
-dropout(x::Node, rate::Node; name="") = Node(dropout, (x,rate), name)
+
+dropout(x::Node, droprate) = Node(dropout, x, droprate)
 
 function dropout(x::Array{T}, droprate::Float64) where T
     r = rand(T, length(x))

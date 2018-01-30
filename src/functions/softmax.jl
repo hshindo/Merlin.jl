@@ -10,7 +10,6 @@ f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
 softmax(x::Var) = Var(softmax(x.data), (softmax,x))
-softmax(x::Node, name="") = Node(softmax, (x,), name)
 
 function softmax(x::Vector{T}) where T
     y = similar(x)
@@ -89,7 +88,6 @@ end
 Logarithm of softmax function.
 """
 logsoftmax(x::Var) = Var(logsoftmax(x.data), (logsoftmax,x))
-logsoftmax(x::Node; name="") = Node(logsoftmax, (x,), name)
 
 function addgrad!(y::Var, ::typeof(logsoftmax), x::Var)
     isvoid(x.grad) && return

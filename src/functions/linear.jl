@@ -1,7 +1,7 @@
 export Linear
 export linear
 
-struct Linear <: Functor
+struct Linear
     w::Var
     b::Var
 end
@@ -49,5 +49,3 @@ function compile(linear::Linear, backend::Backend)
     b = compile(linear.b, backend)
     Linear(w, b)
 end
-
-getparams(l::Linear) = [l.w, l.b]
