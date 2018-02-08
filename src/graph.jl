@@ -11,7 +11,6 @@ Node(; name="") = Node(nothing, name=name)
 
 Base.getindex(n::Node, i::Int) = n.args[i]
 
-
 struct NodeId
     id::Int
 end
@@ -43,11 +42,6 @@ end
 
 Base.getindex(g::Graph, i::Int) = g.nodes[i]
 Base.getindex(g::Graph, s::String) = g.dict[s]
-
-function compile(g::Graph, backend)
-    nodes = map(backend, g.nodes)
-    Graph(nodes, g.inputs, g.outputs)
-end
 
 function (g::Graph)(xs...)
     @assert length(xs) == length(g.inids)

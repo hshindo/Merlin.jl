@@ -147,7 +147,7 @@ end
 # ‣ Values 1 and 5 reference the forget gate.
 # ‣ Values 2 and 6 reference the new memory gate.
 # ‣ Values 3 and 7 reference the output gate.
-function compile(lstm::LSTM, backend::CUDABackend)
+function (::CUDABackend)(lstm::LSTM)
     param = eltype(lstm.ws[1])[]
     for l = 1:lstm.nlayers
         w = lstm.ws[l].data

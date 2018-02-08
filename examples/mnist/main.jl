@@ -26,11 +26,10 @@ end
 function setup_data(x::Matrix{Float32}, y::Vector{Int})
     batchsize = 200
     xs = [x[:,i:i+batchsize-1] for i=1:batchsize:size(x,2)]
-    xs = map(x -> compile(x,BACKEND), xs)
+    xs = map(BACKEND, xs)
     y += 1 # Change label set: 0..9 -> 1..10
-    y = Vector{Int32}(y)
     ys = [y[i:i+batchsize-1] for i=1:batchsize:length(y)]
-    ys = map(y -> compile(y,BACKEND), ys)
+    ys = map(BACKEND, ys)
     collect(zip(xs,ys))
 end
 
@@ -42,8 +41,7 @@ function NN()
     h = Linear(T,hsize,hsize)(h)
     h = relu(h)
     h = Linear(T,hsize,10)(h)
-    Graph(h)
-    #compile(g, BACKEND)
+    BACKEND(Graph(h))
 end
 
 function train(traindata::Vector, testdata::Vector)

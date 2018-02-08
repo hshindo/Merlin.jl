@@ -4,6 +4,7 @@ struct CPUBackend
 end
 
 (::CPUBackend)(x::Array) = x
+(::CPUBackend)(x::CuArray{Cint}) = Array{Int}(Array(x))
 (::CPUBackend)(x::CuArray) = Array(x)
 (backend::CPUBackend)(x) = compile(x, backend)
 
@@ -16,7 +17,18 @@ end
 (::CUDABackend)(x::CuArray) = x
 (backend::CUDABackend)(x) = compile(x, backend)
 
+compile(x, backend) = x
 function compile(v::Var, backend)
     Var(backend(v.data), v.args, grad=backend(v.grad))
 end
-compile(x, backend) = x
+
+function compile(x::Node, backend)
+    f = backend(x.f)
+    args = map(backend, x.args)
+    Node(f, args..., x.name)
+end
+
+function compile(g::Graph, backend)
+    nodes = map(backend, g.nodes)
+    Graph(nodes, g.inids, g.outid)
+end

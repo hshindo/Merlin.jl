@@ -19,13 +19,13 @@ const UniVector{T} = Union{Vector{T},CuVector{T}}
 abstract type Functor end
 
 include("var.jl")
-include("backend.jl")
 include("graph.jl")
 #include("native.jl")
 include("test.jl")
 include("initializer.jl")
 include("optimizer.jl")
 include("iterators.jl")
+include("backend.jl")
 
 mutable struct Config
     train::Bool
