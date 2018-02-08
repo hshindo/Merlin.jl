@@ -1,5 +1,5 @@
 export Var
-export zerograd, zerograd!, isvoid, isparam, forward!, gradient!
+export zerograd, zerograd!, isvoid, isparam, gradient!
 
 doc"""
     Var
@@ -44,20 +44,6 @@ Base.strides(x::Var) = strides(x.data)
 Base.stride(x::Var, i::Int) = stride(x.data, i)
 Base.getindex(x::Var, i::Int) = x.args[i]
 isvoid(x) = x == nothing
-
-function forward!(out::Var)
-    isempty(out.args) && return out
-    forward!(out, out.args...)
-    out
-end
-
-function getdata!(out::Var)
-    sorted = topsort(out)
-    for node in sorted
-        forward!(node)
-    end
-    out.data
-end
 
 doc"""
     isparam(x::Var)

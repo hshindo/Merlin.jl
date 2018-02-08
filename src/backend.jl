@@ -8,6 +8,11 @@ end
 (::CPUBackend)(x::CuArray) = Array(x)
 (backend::CPUBackend)(x) = compile(x, backend)
 
+function setbackend!(x::Var, backend::CPUBackend)
+    backend(x.data)
+    compile(f)
+end
+
 struct CUDABackend
     device::Int
 end
