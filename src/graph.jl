@@ -1,5 +1,4 @@
 export Graph, Node
-export compile
 
 mutable struct Node
     f
@@ -45,8 +44,8 @@ end
 Base.getindex(g::Graph, i::Int) = g.nodes[i]
 Base.getindex(g::Graph, s::String) = g.dict[s]
 
-function compile(g::Graph, backend::Backend)
-    nodes = map(n -> compile(n,backend), g.nodes)
+function compile(g::Graph, backend)
+    nodes = map(backend, g.nodes)
     Graph(nodes, g.inputs, g.outputs)
 end
 

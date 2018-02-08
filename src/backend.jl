@@ -1,27 +1,22 @@
-export Backend, CPUBackend, CUDABackend, OpenCLBackend
-export compile
+export CPUBackend, CUDABackend
 
-abstract type Backend end
-
-struct CPUBackend <: Backend
+struct CPUBackend
 end
 
-compile(x::Array, ::CPUBackend) = x
-compile(x::CuArray, ::CPUBackend) = Array(x)
+(::CPUBackend)(x::Array) = x
+(::CPUBackend)(x::CuArray) = Array(x)
+(backend::CPUBackend)(x) = compile(x, backend)
 
-struct CUDABackend <: Backend
+struct CUDABackend
     device::Int
 end
 
-compile(x::Array, ::CUDABackend) = CuArray(x)
-compile(x::Array{Int}, ::CUDABackend) = CuArray(Array{Cint}(x))
-compile(x::CuArray, ::CUDABackend) = x
+(::CUDABackend)(x::Array) = CuArray(x)
+(::CUDABackend)(x::Array{Int}) = CuArray(Array{Cint}(x))
+(::CUDABackend)(x::CuArray) = x
+(backend::CUDABackend)(x) = compile(x, backend)
 
-struct OpenCLBackend <: Backend
-    device::Int
+function compile(v::Var, backend)
+    Var(backend(v.data), v.args, grad=backend(v.grad))
 end
-
-function compile(v::Var, backend::Backend)
-    Var(compile(v.data,backend), v.args, grad=compile(v.grad,backend))
-end
-compile(x, backend::Backend) = x
+compile(x, backend) = x

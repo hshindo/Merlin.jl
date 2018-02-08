@@ -3,8 +3,8 @@ using Merlin.Datasets.MNIST
 using ProgressMeter
 using JLD2, FileIO
 
-#const BACKEND = CUDABackend(0)
-const BACKEND = CPUBackend()
+const BACKEND = CUDABackend(0)
+# const BACKEND = CPUBackend()
 const NEPOCHS = 50
 
 function main()
@@ -58,7 +58,7 @@ function train(traindata::Vector, testdata::Vector)
         for (x,y) in shuffle!(traindata)
             z = nn(Var(x))
             z = softmax_crossentropy(Var(y), z)
-            loss += sum(Array(z.data))
+            loss += sum(z.data)
             params = gradient!(z)
             foreach(opt, params)
             ProgressMeter.next!(prog)
