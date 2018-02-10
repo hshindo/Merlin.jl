@@ -46,8 +46,6 @@ function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
     isvoid(b.grad) || BLAS.axpy!(T(1), sum(y.grad,2), b.grad)
 end
 
-function compile(linear::Linear, backend::Backend)
-    w = compile(linear.w, backend)
-    b = compile(linear.b, backend)
-    Linear(w, b)
+function compile(linear::Linear, backend)
+    Linear(backend(linear.w), backend(linear.b))
 end

@@ -28,6 +28,7 @@ function setup_data(x::Matrix{Float32}, y::Vector{Int})
     xs = [x[:,i:i+batchsize-1] for i=1:batchsize:size(x,2)]
     xs = map(BACKEND, xs)
     y += 1 # Change label set: 0..9 -> 1..10
+    y = Array{Int32}(y)
     ys = [y[i:i+batchsize-1] for i=1:batchsize:length(y)]
     ys = map(BACKEND, ys)
     collect(zip(xs,ys))
@@ -47,6 +48,7 @@ end
 function train(traindata::Vector, testdata::Vector)
     nn = NN()
     opt = SGD(0.001)
+    trainbatch = BatchedData(traindata, BACKEND)
 
     for epoch = 1:NEPOCHS
         println("epoch: $epoch")
