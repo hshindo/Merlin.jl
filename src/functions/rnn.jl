@@ -1,5 +1,25 @@
 export LSTM, BiLSTM
 
+struct LSTM2
+    insize::Int
+    hsize::Int
+    nlayers::Int
+    droprate::Float64
+    impl
+end
+
+struct LSTM_CPU
+    ws::Vector{Var}
+    bs::Vector{Var}
+end
+
+function aaa()
+end
+
+struct LSTM_CUDA
+    
+end
+
 struct LSTM
     insize::Int
     hsize::Int
@@ -161,7 +181,6 @@ function (::CUDABackend)(lstm::LSTM)
     w = compile(param, backend)
     CUDNN.LSTM(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, w)
 end
-
 
 doc"""
     BiLSTM(::Type{T}, insize::Int, outsize::Int, [init_W=Uniform(0.001), init_U=Orthogonal()])

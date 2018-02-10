@@ -1,7 +1,7 @@
 using Merlin
 using Merlin.Datasets.MNIST
 using ProgressMeter
-using JLD2, FileIO
+#using JLD2, FileIO
 
 const BACKEND = CUDABackend(0)
 # const BACKEND = CPUBackend()
@@ -37,18 +37,18 @@ end
 function NN()
     T = Float32
     hsize = 1000
+    # h = Node(name="x")
     h = Linear(T,28*28,hsize)(Node(name="x"))
     h = relu(h)
     h = Linear(T,hsize,hsize)(h)
     h = relu(h)
     h = Linear(T,hsize,10)(h)
-    BACKEND(Graph(h))
+    Graph(h)
 end
 
 function train(traindata::Vector, testdata::Vector)
     nn = NN()
     opt = SGD(0.001)
-    trainbatch = BatchedData(traindata, BACKEND)
 
     for epoch = 1:NEPOCHS
         println("epoch: $epoch")

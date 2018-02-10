@@ -33,6 +33,8 @@ end
 (f::Linear)(x) = linear(x, f.w, f.b)
 
 function linear(x::Var, w::Var, b::Var)
+    unify!(x, w)
+    unify!(x, b)
     y = BLAS.gemm('T', 'N', w.data, x.data)
     y .+= b.data
     Var(y, (linear,x,w,b))
