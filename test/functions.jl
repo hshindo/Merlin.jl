@@ -43,18 +43,22 @@ end
 @testset "conv" for i = 1:5
     x = zerograd(curandn(T,10,10,5,4))
     conv = Conv(T, (1,1,5,3))
-    conv = cuda(conv)
-    y = conv(x)
-    gradient!(y)
+    if LibCUDA.Configured
+        conv = cuda(conv)
+        y = conv(x)
+        gradient!(y)
+    end
 end
 
 @testset "dropout" for i = 1:5
     x = zerograd(randn(T,10,5))
     y = dropout(x, 0.5)
     gradient!(y)
-    x = cuda(x)
-    y = dropout(x, 0.5)
-    gradient!(y)
+    if LibCUDA.Configured
+        x = cuda(x)
+        y = dropout(x, 0.5)
+        gradient!(y)
+    end
 end
 
 @testset "index" for i = 1:5
