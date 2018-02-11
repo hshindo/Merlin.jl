@@ -41,8 +41,8 @@ end
 end
 
 @testset "conv" for i = 1:5
-    x = zerograd(curandn(T,10,10,5,4))
     if LibCUDA.Configured
+        x = zerograd(curandn(T,10,10,5,4))
         conv = Conv(T, (1,1,5,3))
         conv = cuda(conv)
         y = conv(x)
