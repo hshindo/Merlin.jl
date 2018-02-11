@@ -10,6 +10,11 @@ else
     throw("Unsupported OS.")
 end
 
+try
+    Pkg.installed("LibCUDA")
+catch
+    Pkg.clone("https://github.com/hshindo/LibCUDA.jl.git")
+end
 using LibCUDA
 const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
 const UniMatrix{T} = Union{Matrix{T},CuMatrix{T}}
