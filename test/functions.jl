@@ -104,8 +104,8 @@ end
 
 @testset "math" for i = 1:5
     x = zerograd(rand(T,10,5) + T(1))
-    test_gradient(exp, x)
-    test_gradient(log, x)
+    # test_gradient(exp, x)
+    # test_gradient(log, x)
 
     x1 = zerograd(randn(T,10,5))
     x2 = zerograd(randn(T,10,5))
