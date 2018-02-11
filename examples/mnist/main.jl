@@ -37,7 +37,6 @@ end
 function NN()
     T = Float32
     hsize = 1000
-    # h = Node(name="x")
     h = Linear(T,28*28,hsize)(Node(name="x"))
     h = relu(h)
     h = Linear(T,hsize,hsize)(h)

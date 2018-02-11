@@ -33,8 +33,6 @@ end
 (f::Linear)(x) = linear(x, f.w, f.b)
 
 function linear(x::Var, w::Var, b::Var)
-    unify!(x, w)
-    unify!(x, b)
     y = BLAS.gemm('T', 'N', w.data, x.data)
     y .+= b.data
     Var(y, (linear,x,w,b))
@@ -46,8 +44,4 @@ function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
     isvoid(x.grad) || BLAS.gemm!('N', 'N', T(1), w.data, y.grad, T(1), x.grad)
     isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), x.data, y.grad, T(1), w.grad)
     isvoid(b.grad) || BLAS.axpy!(T(1), sum(y.grad,2), b.grad)
-end
-
-function compile(linear::Linear, backend)
-    Linear(backend(linear.w), backend(linear.b))
 end

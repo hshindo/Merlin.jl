@@ -1,25 +1,5 @@
 export LSTM, BiLSTM
 
-struct LSTM2
-    insize::Int
-    hsize::Int
-    nlayers::Int
-    droprate::Float64
-    impl
-end
-
-struct LSTM_CPU
-    ws::Vector{Var}
-    bs::Vector{Var}
-end
-
-function aaa()
-end
-
-struct LSTM_CUDA
-    
-end
-
 struct LSTM
     insize::Int
     hsize::Int
@@ -167,7 +147,7 @@ end
 # ‣ Values 1 and 5 reference the forget gate.
 # ‣ Values 2 and 6 reference the new memory gate.
 # ‣ Values 3 and 7 reference the output gate.
-function (::CUDABackend)(lstm::LSTM)
+function (cuda::CUDABackend)(lstm::LSTM)
     param = eltype(lstm.ws[1])[]
     for l = 1:lstm.nlayers
         w = lstm.ws[l].data
@@ -178,7 +158,7 @@ function (::CUDABackend)(lstm::LSTM)
         append!(param, b)
         append!(param, zeros(b)) # CUDNN requires bias for U
     end
-    w = compile(param, backend)
+    w = cuda(param)
     CUDNN.LSTM(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, w)
 end
 
@@ -207,4 +187,8 @@ function (bilstm::BiLSTM)(x::Var, batchdims)
     h1 = bilstm.fwd(x, batchdims)
     h2 = bilstm.bwd(x, batchdims, rev=true)
     concat(1, h1, h2)
+end
+
+function (::CUDABackend)(bilstm::BiLSTM)
+
 end

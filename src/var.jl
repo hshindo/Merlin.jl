@@ -99,15 +99,3 @@ function gradient!(tops::Var...)
     end
     filter(isparam, sorted)
 end
-
-function unify!(x::Var, y::Var)
-    if isa(x.data, Array)
-        y.data = Array(y.data)
-        isvoid(y.grad) || (y.grad = Array(y.grad))
-    elseif isa(x.data, CuArray)
-        y.data = CuArray(y.data)
-        isvoid(y.grad) || (y.grad = CuArray(y.grad))
-    else
-        throw("Invalid data type: $(typeof(x.data))")
-    end
-end

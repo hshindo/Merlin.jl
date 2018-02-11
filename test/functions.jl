@@ -43,7 +43,7 @@ end
 @testset "conv" for i = 1:5
     x = zerograd(curandn(T,10,10,5,4))
     conv = Conv(T, (1,1,5,3))
-    conv = compile(conv, cuda)
+    conv = cuda(conv)
     y = conv(x)
     gradient!(y)
 end
@@ -52,7 +52,7 @@ end
     x = zerograd(randn(T,10,5))
     y = dropout(x, 0.5)
     gradient!(y)
-    x = compile(x, cuda)
+    x = cuda(x)
     y = dropout(x, 0.5)
     gradient!(y)
 end
@@ -90,7 +90,7 @@ end
     q = Var(softmax(rand(T,10,5)))
     ##@testgrad crossentropy(p,q) q
 
-    p1 = Var(rand(1:10,5))
+    p1 = Var(Array{Int32}(rand(1:10,5)))
     p2 = zerograd(softmax(rand(T,10,5)))
     q = zerograd(rand(T,10,5))
     test_gradient(softmax_crossentropy, p1, q)

@@ -9,7 +9,7 @@ mutable struct Node
 end
 Node(; name="") = Node(nothing, name=name)
 
-Base.getindex(n::Node, i::Int) = n.args[i]
+Base.getindex(x::Node, i::Int) = x.args[i]
 
 struct NodeId
     id::Int

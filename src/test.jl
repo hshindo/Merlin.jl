@@ -33,8 +33,8 @@ end
 function test_backend(backend, f, xs...; tol=1e-3)
     LibCUDA.Configured || return
 
-    d_f = compile(f, backend)
-    d_xs = map(x -> isa(x,Var) ? compile(x,backend) : x, xs)
+    d_f = backend(f)
+    d_xs = map(x -> isa(x,Var) ? backend(x) : x, xs)
 
     foreach(x -> isa(x,Var) && isparam(x) && zerograd!(x), xs)
     foreach(x -> isa(x,Var) && isparam(x) && zerograd!(x), d_xs)
