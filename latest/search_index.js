@@ -45,7 +45,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Var",
     "title": "Merlin.Var",
     "category": "Type",
-    "text": "Var\n\nVariable struct.\n\nVar contains the following members:\n\ndata\nargs\ngrad\n\nExample\n\nT = Float32\nx = Var(rand(T,10,5)) # x.grad is set to `nothing`\nx = zerograd(rand(T,10,5)) # x.grad is initialized as zero.\n\n\n\n"
+    "text": "Var\n\nVariable struct.\n\nVar contains the following members:\n\ndata\nargs\ngrad\nwork\n\nExample\n\nT = Float32\nx = Var(rand(T,10,5)) # x.grad is set to `nothing`\nx = zerograd(rand(T,10,5)) # x.grad is initialized as zero.\n\n\n\n"
 },
 
 {
@@ -173,7 +173,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.LinAlg.BLAS.gemm",
     "category": "Method",
-    "text": "gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)\ngemm(A::Var, B::Var, [tA='N'], [tB='N'], [alpha=1])\n\ntA: 'T' (transpose) or 'N' (not transpose)\ntB: same as tA\n\nC = alpha times textrmtA(A) times textrmtB(B)\n\n\n\n"
+    "text": "gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)\ngemm(A::Var, B::Var, [tA='N'], [tB='N'], [alpha=1])\n\ntA, tB: 'T' (transpose) or 'N' (not transpose)\n\nC = alpha times textrmtA(A) times textrmtB(B)\n\nT = Float32\nA = Var(rand(T,10,5))\nB = Var(rand(T,10,7))\nC = BLAS.gemm('T', 'N', 1, A, B)\n\n\n\n"
 },
 
 {
@@ -181,7 +181,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.LinAlg.BLAS.gemv",
     "category": "Method",
-    "text": "BLAS.gemv(tA::Char, alpha, A::Var, x::Var)\n\ntA: 'T' (transpose) or 'N' (not transpose)\n\ny = alpha times textrmtA(A) times x\n\n\n\n"
+    "text": "BLAS.gemv(tA::Char, alpha, A::Var, x::Var)\n\ntA: 'T' (transpose) or 'N' (not transpose)\n\ny = alpha times textrmtA(A) times x\n\nT = Float32\nA = Var(rand(T,10,5))\nx = Var(rand(T,5))\nB = BLAS.gemv('N', 1, A, x)\n\n\n\n"
 },
 
 {
@@ -201,11 +201,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Merlin.Conv1D",
+    "location": "functions.html#Merlin.Conv",
     "page": "Functions",
-    "title": "Merlin.Conv1D",
+    "title": "Merlin.Conv",
     "category": "Type",
-    "text": "Conv1D(T, ksize, insize, outsize, pad, stride, [dilation=1, init_W=Xavier(), init_b=Fill(0)])\n\n1-dimensional convolution function.\n\nT = Float32\nx = Var(rand(T,10,5))\nf = Conv1D(T, 5, 10, 3, 2, 1)\ny = f(x)\n\n\n\n"
+    "text": "Conv(T, filtersize, kwargs...)\n\nW: (W1,W2,...,I,O)\nX: (X1,X2,...,I,N)\nY: (Y1,Y2,...,O,N)\n\nwhere\n\nI: number of input channels\nO: number of output channels\nN: batch size\n\nT = Float32\nconv = Conv(T, (1,1,3,2))\nx = CuArray{T}(5,5,3,3)\ny = conv(x)\n\n\n\n"
 },
 
 {
@@ -214,22 +214,6 @@ var documenterSearchIndex = {"docs": [
     "title": "Convolution",
     "category": "section",
     "text": "Modules = [Merlin]\nPages   = [\"conv.jl\"]"
-},
-
-{
-    "location": "functions.html#Merlin.embeddings-Union{Tuple{Type{T},Int64,Int64}, Tuple{T}} where T",
-    "page": "Functions",
-    "title": "Merlin.embeddings",
-    "category": "Method",
-    "text": "embeddings(T, insize::Int, outsize::Int, [init_W=Normal(0.01)])\n\nInitialize the embeddings.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.lookup-Tuple{Array{Merlin.Var,1},Merlin.Var}",
-    "page": "Functions",
-    "title": "Merlin.lookup",
-    "category": "Method",
-    "text": "lookup(embeds::Vector{Var}, x::Var)\n\n\n\n"
 },
 
 {
@@ -377,22 +361,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Merlin.BiLSTM",
-    "page": "Functions",
-    "title": "Merlin.BiLSTM",
-    "category": "Type",
-    "text": "BiLSTM(::Type{T}, insize::Int, outsize::Int, [init_W=Uniform(0.001), init_U=Orthogonal()])\n\nBi-directional Long Short-Term Memory network. See LSTM for more details.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.LSTM",
-    "page": "Functions",
-    "title": "Merlin.LSTM",
-    "category": "Type",
-    "text": "LSTM(::Type{T}, insize::Int, outsize::Int, [init_W=Uniform(0.001), init_U=Orthogonal()])\n\nLong Short-Term Memory network.\n\nbeginalign*\nmathbff_t  =sigma_g(W_fmathbfx_t+U_fmathbfh_t-1+mathbfb_f)\nmathbfi_t  =sigma_g(W_imathbfx_t+U_imathbfh_t-1+mathbfb_i)\nmathbfo_t  =sigma_g(W_omathbfx_t+U_omathbfh_t-1+mathbfb_o)\nmathbfc_t  =mathbff_todotmathbfc_t-1+mathbfi_todotsigma_c(W_cmathbfx_t+U_cmathbfh_t-1+mathbfb_c)\nmathbfh_t  =mathbfo_todotsigma_h(mathbfc_t)\nendalign*\n\nx_t in R^d: input vector to the LSTM block\nf_t in R^h: forget gate's activation vector\ni_t in R^h: input gate's activation vector\no_t in R^h: output gate's activation vector\nh_t in R^h: output vector of the LSTM block\nc_t in R^h: cell state vector\nW in R^h times d, U in R^h times h and b in R^h: weight matrices and bias vectors\nsigma_g: sigmoid function\nsigma_c: hyperbolic tangent function\nsigma_h: hyperbolic tangent function\n\n👉 Example\n\nT = Float32\nx = Var(rand(T,100,10))\nf = LSTM(T, 100, 100)\nh = f(x)\n\n\n\n"
-},
-
-{
     "location": "functions.html#Recurrent-1",
     "page": "Functions",
     "title": "Recurrent",
@@ -413,7 +381,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.max",
     "category": "Method",
-    "text": "max(x::Var, dim::Int)\n\nReturns the maximum value over the given dimension.\n\n👉 Example\n\nx = Var(rand(Float32,10,5))\ny = max(x, 1)\n\n\n\n"
+    "text": "maximum(x::Var, dim::Int)\n\nReturns the maximum value over the given dimension.\n\nx = Var(rand(Float32,10,5))\ny = maximum(x, 1)\n\n\n\n"
 },
 
 {
