@@ -24,7 +24,7 @@ function setbackend(backend, x::Node)
     args = map(x.args) do arg
         isa(arg,Var) ? backend(arg) : arg
     end
-    Node(f, args..., x.name)
+    Node(f, args..., name=x.name)
 end
 function setbackend(backend, g::Graph)
     nodes = map(backend, g.nodes)

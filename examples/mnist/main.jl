@@ -1,7 +1,7 @@
 using Merlin
 using Merlin.Datasets.MNIST
 using ProgressMeter
-#using JLD2, FileIO
+# using JLD2, FileIO
 
 const BACKEND = CUDABackend(0)
 # const BACKEND = CPUBackend()
@@ -42,7 +42,7 @@ function NN()
     h = Linear(T,hsize,hsize)(h)
     h = relu(h)
     h = Linear(T,hsize,10)(h)
-    Graph(h)
+    BACKEND(Graph(h))
 end
 
 function train(traindata::Vector, testdata::Vector)
