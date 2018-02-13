@@ -1,55 +1,27 @@
 export window1d
 
-function window1d(x::Var, batchdims)
-    y = window1d(x.data, batchdims)
-    Var(y, (window1d,x,batchdims))
+function window1d(x::Var, batchdims::Vector{Int}, width::Int)
+    idx = window1d(batchdims, width)
+    y = lookup(x.data, idx)
+    Var(y, (window1d,x,idx))
 end
-window1d(x::Node, batchdims) = Node(window1d, x, batchdims)
+window1d(x::Node, batchdims, width::Int) = Node(window1d, x, batchdims, width)
 
-function window1d(x::Matrix{T}, batchdims::Vector{Int})
-    s = 1
+function window1d(batchdims::Vector{Int}, width::Int)
+    cumdim = 0
+    idx = Array{Int32}(2width+1, sum(batchdims))
     for dim in batchdims
-        i = s - pad
-        while i + filtersize <= s + dim + pad
-        end
-    end
-end
-
-function window1d(x::Matrix{T}, batchdims::Vector{Int}, filtersize::Int, pad::Int, stride::Int, dilation::Int=1) where T
-    n = size(x, 1)
-    y = zeros(T, n*filtersize, sum(batchdims))
-    yi = 1
-    s = 1
-    for dim in batchdims
-        i = s - pad
-        while i + filtersize <= s + dim + pad
-            for w = 0:filtersize-1
-                j = i + w * dilation
-                if j >= s && j < s + dim
-                    xi = (j-1) * n + 1
-                    copy!(y, yi, x, xi, n)
-                end
-                yi += n
+        for i = 1:dim
+            for offset = -width:width
+                xi = (0 < i+offset <= dim) ? i+cumdim+offset : 0
+                idx[offset+width+1,i+cumdim] = xi
             end
-            i += stride
         end
-        s += dim
+        cumdim += dim
     end
-    y
+    idx
 end
 
-@generated function window1d(x::CuMatrix{T}, batchdims::Vector{Int}) where T
-    Ct = cstring(T)
-    f = CuFunction("""
-    __global__ void window1d($Ct *y, int sizeY, $Ct *w, int *x, int n) {
-        int idxY = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idxY >= sizeY) return;
-
-        int j = idxY / n;
-        int i = idxY - n * j;
-        y[idxY] = w[(x[j]-1) * n + i];
-    }""")
-    quote
-
-    end
+function addgrad!(y::Var, ::typeof(window1d), x::Var, idx)
+    isvoid(x.grad) || ∇lookup!(y.grad, x.grad, idx)
 end

@@ -1,15 +1,16 @@
 export lookup
 
-function lookup(w::Var, x::UniVector)
-    y = lookup(w.data, x)
+function lookup(w::Var, x::Var)
+    y = lookup(w.data, x.data)
     Var(y, (lookup,w,x))
 end
 lookup(w::Node, x::Node) = Node(lookup, w, x)
 
-function lookup(w::Matrix{T}, x::Vector{Int32}) where T
+function lookup(w::Matrix{T}, x::Array{Int32}) where T
     n = size(w, 1)
-    y = similar(w, n, length(x))
+    y = zeros(T, n*size(x,1), Base.tail(size(x))...)
     for i = 1:length(x)
+        x[i] <= 0 && continue
         yi = (i-1) * n + 1
         wi = (x[i]-1) * n + 1
         copy!(y, yi, w, wi, n)
@@ -17,7 +18,7 @@ function lookup(w::Matrix{T}, x::Vector{Int32}) where T
     y
 end
 
-@generated function lookup(w::CuMatrix{T}, x::CuVector{Cint}) where T
+@generated function lookup(w::CuMatrix{T}, x::CuArray{Cint}) where T
     Ct = cstring(T)
     f = CuFunction("""
     __global__ void lookup($Ct *y, int sizeY, $Ct *w, int *x, int n) {
@@ -26,25 +27,26 @@ end
 
         int j = idxY / n;
         int i = idxY - n * j;
-        y[idxY] = w[(x[j]-1) * n + i];
+        y[idxY] = x[j] <= 0 ? 0 : w[(x[j]-1) * n + i];
     }""")
     quote
         n = size(w, 1)
-        y = CuArray{T}(n, length(x))
+        y = CuArray{T}(n*size(x,1), Base.tail(size(x))...)
         gdims, bdims = cudims(length(y))
         culaunch($f, gdims, bdims, y.ptr, length(y), w.ptr, x.ptr, n)
         y
     end
 end
 
-function addgrad!(y::Var, ::typeof(lookup), w::Var, x)
+function addgrad!(y::Var, ::typeof(lookup), w::Var, x::Var)
     isvoid(w.grad) && return
-    ∇lookup!(y.grad, w.grad, x)
+    ∇lookup!(y.grad, w.grad, x.data)
 end
 
-function ∇lookup!(gy::Array{T}, gw::Array{T}, x::Vector{Int32}) where T
+function ∇lookup!(gy::Array{T}, gw::Array{T}, x::Array{Int32}) where T
     n = size(gw, 1)
     for i = 1:length(x)
+        x[i] <= 0 && continue
         yi = (i-1) * n + 1
         wi = (x[i]-1) * n + 1
         py = pointer(gy, yi)
@@ -53,7 +55,7 @@ function ∇lookup!(gy::Array{T}, gw::Array{T}, x::Vector{Int32}) where T
     end
 end
 
-@generated function ∇lookup!(gy::CuMatrix{T}, gw::CuMatrix{T}, x::CuVector{Cint}) where T
+@generated function ∇lookup!(gy::CuMatrix{T}, gw::CuMatrix{T}, x::CuArray{Cint}) where T
     Ct = cstring(T)
     f = CuFunction("""
     __global__ void lookup_grad($Ct *gy, int sizeY, $Ct *gw, int *x, int n) {
@@ -62,7 +64,7 @@ end
 
         int j = idxY / n;
         int i = idxY - n * j;
-        gw[(x[j]-1) * n + i] += gy[idxY];
+        if (x[j] > 0) gw[(x[j]-1) * n + i] += gy[idxY];
     }""")
     quote
         n = size(gw, 1)

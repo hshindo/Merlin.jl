@@ -162,3 +162,9 @@ end
     #f = Standardize(T,size(x.data))
     #@testgrad f(x,true) x f.scale f.bias
 end
+
+@testset "window1d" for i = 1:5
+    x = zerograd(randn(T,10,10))
+    test_gradient(window1d, x, [5,3,2], 2)
+    
+end
