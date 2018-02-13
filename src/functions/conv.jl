@@ -27,12 +27,10 @@ mutable struct Conv{N}
     dilations::NTuple{N,Int}
 end
 
-function Conv(::Type{T}, filtersize::Tuple;
-    pads=0, strides=1, dilations=1,
-    init_w=Xavier(), init_b=Fill(0)) where T
+function Conv(::Type{T}, filtersize::Int...;
+    pads=0, strides=1, dilations=1, init_w=Xavier(), init_b=Fill(0)) where T
 
     N = length(filtersize) - 2
-    @assert N == 2
     isa(pads,Int) && (pads = ntuple(_->pads,N))
     isa(strides,Int) && (strides = ntuple(_->strides,N))
     isa(dilations,Int) && (dilations = ntuple(_->dilations,N))
@@ -42,10 +40,11 @@ function Conv(::Type{T}, filtersize::Tuple;
     Conv(zerograd(w), zerograd(b), pads, strides, dilations)
 end
 
-function (conv::Conv)(x::Var)
+function (conv::Conv{2})(x::Var)
     y = conv(x.data)
     Var(y, (conv,x))
 end
+(conv::Conv)(x::Node) = Node(conv, x)
 
 function addgrad!(y::Var, conv::Conv, x::Var)
     ∇conv!(y.grad, conv, x.data, x.grad)
@@ -60,8 +59,6 @@ function ∇conv!(gy::CuArray, conv::Conv, x::CuArray, gx)
     CUDNN.∇convolution!(gy, w, gw, x, gx, conv.pads, conv.strides, conv.dilations)
 end
 
-function setbackend(backend, conv::Conv)
-    w = backend(conv.w)
-    b = backend(conv.b)
-    Conv(w, b, conv.pads, conv.strides, conv.dilations)
+function (cuda::CUDABackend)(conv::Conv)
+    Conv(cuda(conv.w), cuda(conv.b), conv.pads, conv.strides, conv.dilations)
 end

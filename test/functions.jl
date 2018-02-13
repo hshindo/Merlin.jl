@@ -43,7 +43,7 @@ end
 @testset "conv" for i = 1:5
     if LibCUDA.Configured
         x = zerograd(curandn(T,10,10,5,4))
-        conv = Conv(T, (1,1,5,3))
+        conv = Conv(T, 1, 1, 5, 3)
         conv = cuda(conv)
         y = conv(x)
         gradient!(y)
@@ -144,12 +144,11 @@ end
 @testset "rnn" for i = 1:5
     x = zerograd(randn(T,20,10))
     batchdims = [5,3,2]
-    lstm = LSTM(T, 20, 20, 1, 0.0)
-    test_gradient(lstm, x, batchdims)
-    test_cuda(lstm, x, batchdims)
-
-    bilstm = BiLSTM(T, 20, 20, 1, 0.0)
-    test_gradient(bilstm, x, batchdims)
+    for nlayers = 1:2
+        lstm = LSTM(T, 20, 15, nlayers, 0.0, true)
+        test_gradient(lstm, x, batchdims)
+        test_cuda(lstm, x, batchdims)
+    end
 end
 
 @testset "softmax" for i = 1:5

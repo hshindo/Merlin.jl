@@ -3,50 +3,59 @@ export LSTM
 struct LSTM
     insize::Int
     hsize::Int
-    nlayers::Int
-    droprate::Float64
-    bidirectional::Bool
-    ws::Vector{Var}
-    bs::Vector{Var}
-    h0s::Vector{Var}
-    c0s::Vector{Var}
+    w::Var
+    b::Var
+    h0::Var
+    c0::Var
 end
 
-doc"""
-    LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64, bidirectional::Bool,
-        [init_w=Orthogonal(), init_u=Orthogonal(), init_b=Fill(0)])
+function LSTM(::Type{T}, insize::Int, hsize::Int;
+    init_wx=Normal(0,0.001), init_wh=Orthogonal(), init_b=Fill(0), init_h0=Fill(0), init_c0=Fill(0)) where T
 
-Long Short-Term Memory network.
+    for i = 1:4
+        wx = init_wx(T, insize, hsize)
+        wh = init_wh(T, hsize, hsize)
+        push!(ws, cat(1,wx,wh))
+    end
+    w = cat(2, ws...)
+    b = init_b(T, 4hsize)
+    h0 = init_h0(T, hsize)
+    c0 = init_c0(T, hsize)
+    LSTM(insize, hsize, zerograd(w), zerograd(b), zerograd(h0), zerograd(c0))
+end
 
-```math
-\begin{align*}
-\mathbf{f}_{t} & =\sigma_{g}(W_{f}\mathbf{x}_{t}+U_{f}\mathbf{h}_{t-1}+\mathbf{b}_{f})\\
-\mathbf{i}_{t} & =\sigma_{g}(W_{i}\mathbf{x}_{t}+U_{i}\mathbf{h}_{t-1}+\mathbf{b}_{i})\\
-\mathbf{o}_{t} & =\sigma_{g}(W_{o}\mathbf{x}_{t}+U_{o}\mathbf{h}_{t-1}+\mathbf{b}_{o})\\
-\mathbf{c}_{t} & =\mathbf{f}_{t}\odot\mathbf{c}_{t-1}+\mathbf{i}_{t}\odot\sigma_{c}(W_{c}\mathbf{x}_{t}+U_{c}\mathbf{h}_{t-1}+\mathbf{b}_{c})\\
-\mathbf{h}_{t} & =\mathbf{o}_{t}\odot\sigma_{h}(\mathbf{c}_{t})
-\end{align*}
-```
+function (lstm::LSTM)(x::Var, batchdims)
+end
 
-* ``x_t \in R^{d}``: input vector to the LSTM block
-* ``f_t \in R^{h}``: forget gate's activation vector
-* ``i_t \in R^{h}``: input gate's activation vector
-* ``o_t \in R^{h}``: output gate's activation vector
-* ``h_t \in R^{h}``: output vector of the LSTM block
-* ``c_t \in R^{h}``: cell state vector
-* ``W \in R^{h \times d}``, ``U \in R^{h \times h}`` and ``b \in R^{h}``: weight matrices and bias vectors
-* ``\sigma_g``: sigmoid function
-* ``\sigma_c``: hyperbolic tangent function
-* ``\sigma_h``: hyperbolic tangent function
+struct BiRNN
+    fwd
+    bwd
+end
 
-# 👉 Example
-```julia
-T = Float32
-x = Var(rand(T,100,10))
-f = LSTM(T, 100, 100)
-h = f(x)
-```
-"""
+function (birnn::BiRNN)(x::Var, batchdims)
+    h1 = birnn.fwd(x, batchdims)
+    h2 = birnn.bwd(x, batchdims, rev=true)
+    concat(1, h1, h2)
+end
+
+struct StackedRNN{T}
+    rnns::Vector{T}
+    droprate::Float64
+end
+
+function StackedRNN(::Type{T}, insize::Int, hsize::Int;
+    init_wx=Normal(0,0.001), init_wh=Orthogonal(), init_b=Fill(0), init_h0=Fill(0), init_c0=Fill(0)) where T
+
+    for l = 1:nlayers
+        s = l == 1 ? insize : hsize*coef
+        LSTM(T, s, hsize, init_wx, init_wh, init_b, init_h0, init_c0)
+    end
+end
+
+
+
+
+
 function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64, bidirectional::Bool;
     init_w=Normal(0,0.001), init_u=Orthogonal(), init_b=Fill(0), init_h0=Fill(0), init_c0=Fill(0)) where T
 

@@ -4,8 +4,9 @@ function lookup(w::Var, x::UniVector)
     y = lookup(w.data, x)
     Var(y, (lookup,w,x))
 end
+lookup(w::Node, x::Node) = Node(lookup, w, x)
 
-function lookup(w::Matrix{T}, x::Vector{Int}) where T
+function lookup(w::Matrix{T}, x::Vector{Int32}) where T
     n = size(w, 1)
     y = similar(w, n, length(x))
     for i = 1:length(x)
@@ -41,7 +42,7 @@ function addgrad!(y::Var, ::typeof(lookup), w::Var, x)
     ∇lookup!(y.grad, w.grad, x)
 end
 
-function ∇lookup!(gy::Array{T}, gw::Array{T}, x::Vector{Int}) where T
+function ∇lookup!(gy::Array{T}, gw::Array{T}, x::Vector{Int32}) where T
     n = size(gw, 1)
     for i = 1:length(x)
         yi = (i-1) * n + 1

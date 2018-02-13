@@ -24,9 +24,7 @@ function dropout(x::Array{T}, droprate::Float64) where T
     y, r
 end
 
-function dropout(x::CuArray, droprate)
-    CUDNN.dropout(x, droprate)
-end
+dropout(x::CuArray, droprate) = CUDNN.dropout(x, droprate)
 
 function addgrad!(y::Var, ::typeof(dropout), x::Var, droprate::Float64, r)
     isvoid(x.grad) && return
@@ -40,6 +38,4 @@ function ∇dropout!(gy::Array{T}, gx::Array{T}, droprate::Float64, r::Vector{T}
     end
 end
 
-function ∇dropout!(gy::CuArray, gx, droprate, r)
-    CUDNN.∇dropout!(gy, gx, droprate, r)
-end
+∇dropout!(gy::CuArray, gx, droprate, r) = CUDNN.∇dropout!(gy, gx, droprate, r)
