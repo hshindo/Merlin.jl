@@ -6,7 +6,13 @@ function window1d(x::Var, batchdims)
 end
 window1d(x::Node, batchdims) = Node(window1d, x, batchdims)
 
-function window1d()
+function window1d(x::Matrix{T}, batchdims::Vector{Int})
+    s = 1
+    for dim in batchdims
+        i = s - pad
+        while i + filtersize <= s + dim + pad
+        end
+    end
 end
 
 function window1d(x::Matrix{T}, batchdims::Vector{Int}, filtersize::Int, pad::Int, stride::Int, dilation::Int=1) where T
