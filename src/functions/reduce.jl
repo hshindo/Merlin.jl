@@ -1,5 +1,3 @@
-export max_batch
-
 doc"""
     maximum(x::Var, dim::Int)
 
@@ -10,66 +8,19 @@ x = Var(rand(Float32,10,5))
 y = maximum(x, 1)
 ```
 """
-function Base.max(x::Var, dim::Int)
-    y, idx = findmax(x.data, dim)
-    Var(y, (max,x,dim,idx))
-end
-
-function addgrad!(y::Var, ::typeof(max), x::Var, dim, idx)
-    isvoid(x.grad) && return
-    ∇max!(y.grad, x.grad, dim, idx)
-end
-
-function ∇max!(gy::Array{T}, gx::Array{T}, dim::Int, idx::Array{Int}) where T
-    @inbounds for i = 1:length(idx)
-        gx[idx[i]] += gy[i]
+function Base.maximum(x::Var, dim::Int, batchdims::Vector{Int})
+    if length(batchdims) == 1
+        y, idx = findmax(x.data, dim)
+    else
+        @assert dim == ndims(x)
+        @assert sum(batchdims) == size(x,ndims(x))
+        y, idx = maximum_batch(x.data, batchdims)
     end
+    Var(y, (maximum,x,dim,idx))
 end
+Base.maximum(x::Node, dim::Int, batchdims) = Node(maximum, x, dim, batchdims)
 
-function reshape3d(x::CuArray, dim::Int)
-    # dim == 0 && return (1, length(x), 1)
-    dim1, dim2, dim3 = 1, size(x,dim), 1
-    for i = 1:dim-1
-        dim1 *= size(x, i)
-    end
-    for i = dim+1:ndims(x)
-        dim3 *= size(x, i)
-    end
-    reshape(x, dim1, dim2, dim3)
-end
-
-@generated function ∇max!(gy::CuArray{T}, gx::CuArray{T}, dim::Int, idx::CuArray{Cint}) where T
-    Ct = cstring(T)
-    f = CuFunction("""
-    $(LibCUDA.Array_h)
-    __global__ void f(Array<$Ct,3> gy, Array<$Ct,3> gx, int *idx, int length) {
-        int i = blockIdx.x * blockDim.x + threadIdx.x;
-        if (i >= length) return;
-
-        int ndIdx[3];
-        gy.idx2ndIdx(ndIdx, i);
-        ndIdx[1] = idx[i];
-        gx(ndIdx) += gy[i];
-    }
-    """)
-    quote
-        gy3d = reshape3d(gy, dim)
-        gx3d = reshape3d(gx, dim)
-        gdims, bdims = cudims(length(idx))
-        culaunch($f, gdims, bdims, gy3d, gx3d, idx.ptr, length(idx))
-    end
-end
-
-doc"""
-    max_batch(x::Var, dims::Vector{Int})
-"""
-function max_batch(x::Var, dims::Vector{Int})
-    @assert sum(dims) == size(x)[end]
-    y, idx = max_batch(x.data, dims)
-    Var(data, (max_batch,x,dims,idx))
-end
-
-function max_batch(x::Array{T,N}, dims::Vector{Int}) where {T,N}
+function maximum_batch(x::Array{T,N}, dims::Vector{Int}) where {T,N}
     front = Base.front(size(x))
     n = prod(front)
     y = T[]
@@ -92,9 +43,49 @@ function max_batch(x::Array{T,N}, dims::Vector{Int}) where {T,N}
     y, idx
 end
 
-function addgrad!(y::Var, ::typeof(max_batch), x::Var, dim, idx)
+function addgrad!(y::Var, ::typeof(maximum), x::Var, dim::Int, idx)
     isvoid(x.grad) && return
-    ∇max!(y.grad, x.grad, dim, idx)
+    ∇maximum!(y.grad, x.grad, dim, idx)
+end
+
+function ∇maximum!(gy::Array{T}, gx::Array{T}, dim::Int, idx::Array{Int}) where T
+    @inbounds for i = 1:length(idx)
+        gx[idx[i]] += gy[i]
+    end
+end
+
+@generated function ∇maximum!(gy::CuArray{T}, gx::CuArray{T}, dim::Int, idx::CuArray{Cint}) where T
+    Ct = cstring(T)
+    f = CuFunction("""
+    $(LibCUDA.Array_h)
+    __global__ void f(Array<$Ct,3> gy, Array<$Ct,3> gx, int *idx, int length) {
+        int i = blockIdx.x * blockDim.x + threadIdx.x;
+        if (i >= length) return;
+
+        int ndIdx[3];
+        gy.idx2ndIdx(ndIdx, i);
+        ndIdx[1] = idx[i];
+        gx(ndIdx) += gy[i];
+    }
+    """)
+    quote
+        gy3d = reshape3d(gy, dim)
+        gx3d = reshape3d(gx, dim)
+        gdims, bdims = cudims(length(idx))
+        culaunch($f, gdims, bdims, gy3d, gx3d, idx.ptr, length(idx))
+    end
+end
+
+function reshape3d(x::CuArray, dim::Int)
+    # dim == 0 && return (1, length(x), 1)
+    dim1, dim2, dim3 = 1, size(x,dim), 1
+    for i = 1:dim-1
+        dim1 *= size(x, i)
+    end
+    for i = dim+1:ndims(x)
+        dim3 *= size(x, i)
+    end
+    reshape(x, dim1, dim2, dim3)
 end
 
 doc"""

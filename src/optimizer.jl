@@ -120,7 +120,7 @@ end
 
 (opt::SGD)(x::Var) = opt(x.data, x.grad)
 
-function (opt::SGD)(x::Array{T,N}, gx::Array{T,N}) where {T,N}
+function (opt::SGD)(x::AbstractArray{T,N}, gx::AbstractArray{T,N}) where {T,N}
     if opt.momentum > 0.0
         if haskey(opt.states, x)
             v = opt.states[x]

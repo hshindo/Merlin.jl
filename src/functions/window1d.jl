@@ -1,15 +1,15 @@
 export window1d
 
-function window1d(x::Var, batchdims::Vector{Int}, width::Int)
+function window1d(x::Var, width::Int, batchdims::Vector{Int})
     idx = window1d(batchdims, width)
     y = lookup(x.data, idx)
     Var(y, (window1d,x,idx))
 end
-window1d(x::Node, batchdims, width::Int) = Node(window1d, x, batchdims, width)
+window1d(x::Node, width::Int, batchdims) = Node(window1d, x, width, batchdims)
 
 function window1d(batchdims::Vector{Int}, width::Int)
     cumdim = 0
-    idx = Array{Int32}(2width+1, sum(batchdims))
+    idx = Array{Int}(2width+1, sum(batchdims))
     for dim in batchdims
         for i = 1:dim
             for offset = -width:width

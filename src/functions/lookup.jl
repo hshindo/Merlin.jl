@@ -6,7 +6,7 @@ function lookup(w::Var, x::Var)
 end
 lookup(w::Node, x::Node) = Node(lookup, w, x)
 
-function lookup(w::Matrix{T}, x::Array{Int32}) where T
+function lookup(w::Matrix{T}, x::Array{Int}) where T
     n = size(w, 1)
     y = zeros(T, n*size(x,1), Base.tail(size(x))...)
     for i = 1:length(x)
@@ -43,7 +43,7 @@ function addgrad!(y::Var, ::typeof(lookup), w::Var, x::Var)
     ∇lookup!(y.grad, w.grad, x.data)
 end
 
-function ∇lookup!(gy::Array{T}, gw::Array{T}, x::Array{Int32}) where T
+function ∇lookup!(gy::Array{T}, gw::Array{T}, x::Array{Int}) where T
     n = size(gw, 1)
     for i = 1:length(x)
         x[i] <= 0 && continue

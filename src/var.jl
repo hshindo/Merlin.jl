@@ -44,6 +44,7 @@ Base.strides(x::Var) = strides(x.data)
 Base.stride(x::Var, i::Int) = stride(x.data, i)
 Base.getindex(x::Var, i::Int) = x.args[i]
 isvoid(x) = x == nothing
+batchdims(x::Var) = batchdims(x.data)
 
 doc"""
     isparam(x::Var)

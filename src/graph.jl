@@ -51,11 +51,14 @@ function (g::Graph)(xs...)
     end
     for i = 1:length(g.nodes)
         node = g.nodes[i]
-        isvoid(node.f) && continue
-        args = map(node.args) do arg
-            isa(arg,NodeId) ? temps[arg.id] : arg
+        if isempty(node.args)
+            isassigned(temps,i) || (temps[i] = node.f)
+        else
+            args = map(node.args) do arg
+                isa(arg,NodeId) ? temps[arg.id] : arg
+            end
+            temps[i] = node.f(args...)
         end
-        temps[i] = node.f(args...)
     end
     temps[g.outid]
 end
