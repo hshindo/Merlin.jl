@@ -18,12 +18,12 @@ end
 
 struct Graph
     nodes::Vector{Node} # topological order
-    inids::Vector{Int}
-    outid::Int
+    inids::Tuple{Vararg{Int}}
+    outids::Tuple{Vararg{Int}}
 end
 
-function Graph(out::Node)
-    nodes = topsort(out)
+function Graph(outs::Node...)
+    nodes = topsort(outs...)
     node2id = Dict(nodes[i]=>i for i=1:length(nodes))
     dict = Dict{String,Node}()
     for node in nodes
@@ -35,9 +35,9 @@ function Graph(out::Node)
 
     names = collect(keys(dict))
     sort!(names)
-    inids = map(x -> node2id[dict[x]], names)
-    outid = node2id[out]
-    Graph(nodes, inids, outid)
+    inids = map(x -> node2id[dict[x]], tuple(names...))
+    outids = map(x -> node2id[x], outs)
+    Graph(nodes, inids, outids)
 end
 
 Base.getindex(g::Graph, i::Int) = g.nodes[i]
@@ -60,5 +60,9 @@ function (g::Graph)(xs...)
             temps[i] = node.f(args...)
         end
     end
-    temps[g.outid]
+    if length(g.outids) == 1
+        temps[g.outids[1]]
+    else
+        map(id -> temps[id], g.outids)
+    end
 end
