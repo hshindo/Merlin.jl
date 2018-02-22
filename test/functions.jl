@@ -2,7 +2,7 @@ const T = Float32
 const cuda = CUDABackend(0)
 
 function Base.isapprox(x::Array, y::CuArray)
-    tol = 1e-3
+    tol = 2e-3
     maximum(abs, x-Array(y)) <= tol
 end
 
@@ -28,6 +28,15 @@ test_cuda(args...) = test_backend(cuda, args...)
     test_cuda(relu, x)
     test_cuda(sigmoid, x)
     test_cuda(tanh, x)
+end
+
+@testset "blas" for i = 1:5
+    A = zerograd(randn(T,10,5))
+    B = zerograd(randn(T,10,5))
+    test_gradient(BLAS.gemm, 'N', 'T', 1, A, B)
+
+    B = zerograd(randn(T,10))
+    test_gradient(BLAS.gemv, 'T', 1, A, B)
 end
 
 @testset "concat" for i = 1:5
@@ -68,7 +77,7 @@ end
 
 @testset "linear" for i = 1:5
     x = zerograd(randn(T,10,5))
-    f = Linear(T, 10, 7)
+    f = Linear(T, 10, 7, init_b=Uniform(-0.01,0.01))
     test_gradient(linear, x, f.w, f.b)
     test_cuda(linear, x, f.w, f.b)
 end
@@ -130,8 +139,8 @@ end
         x.data[i] *= 10
     end
     for d = 1:2
-        test_gradient(max, x, d)
-        test_cuda(max, x, d)
+        # test_gradient(maximum, x, d, [3,2])
+        # test_cuda(maximum, x, d, [3,2])
     end
 end
 
@@ -165,6 +174,5 @@ end
 
 @testset "window1d" for i = 1:5
     x = zerograd(randn(T,10,10))
-    test_gradient(window1d, x, [5,3,2], 2)
-    
+    test_gradient(window1d, x, 2, [5,3,2])
 end

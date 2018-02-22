@@ -17,20 +17,8 @@ C = BLAS.gemm('T', 'N', 1, A, B)
 """
 function BLAS.gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
     T = eltype(A)
-    y = Var(nothing, (BLAS.gemm,tA,tB,alpha,A,B))
-    y.data = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
-    y.∇! = () -> begin
-        if !isvoid(A.grad)
-            tA == 'N' ?
-            BLAS.gemm!('N', tB=='N'?'T':'N', T(alpha), C.grad, B.data, T(1), A.grad) :
-            BLAS.gemm!(tB, 'T', T(alpha), B.data, C.grad, T(1), A.grad)
-        end
-        if !isvoid(B.grad)
-            tB == 'N' ?
-            BLAS.gemm!(tA=='N'?'T':'N', 'N', T(alpha), A.data, C.grad, T(1), B.grad) :
-            BLAS.gemm!('T', tA, T(alpha), C.grad, A.data, T(1), B.grad)
-        end
-    end
+    y = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
+    Var(y, (BLAS.gemm,tA,tB,alpha,A,B))
 end
 
 function addgrad!(C::Var, ::typeof(BLAS.gemm), tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
@@ -72,12 +60,15 @@ end
 function addgrad!(y::Var, ::typeof(BLAS.gemv), tA::Char, alpha::Number, A::Var, x::Var)
     T = eltype(A.data)
     if !isvoid(A.grad)
-        mat(v) = reshape(v, length(v), 1)
+        gy = reshape(y.grad, length(y.grad), 1)
+        xx = reshape(x.data, length(x.data), 1)
         tA == 'N' ?
-        BLAS.gemm!('N', 'T', T(alpha), mat(y.grad), mat(x.data), T(1), A.grad) :
-        BLAS.gemm!('N', 'T', T(alpha), mat(x.data), mat(y.grad), T(1), A.grad)
+        BLAS.gemm!('N', 'T', T(alpha), gy, xx, T(1), A.grad) :
+        BLAS.gemm!('N', 'T', T(alpha), xx, gy, T(1), A.grad)
     end
-    isvoid(x.grad) || BLAS.gemv!(tA=='N'?'T':'N', T(alpha), A.data, y.grad, T(1), x.grad)
+    if !isvoid(x.grad)
+        BLAS.gemv!(tA=='N'?'T':'N', T(alpha), A.data, y.grad, T(1), x.grad)
+    end
 end
 
 doc"""
