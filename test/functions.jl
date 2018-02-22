@@ -165,6 +165,9 @@ end
     x = zerograd(rand(T,10,5))
     test_gradient(softmax, x)
     test_cuda(softmax, x)
+    x = zerograd(rand(T,10))
+    test_gradient(softmax, x)
+    test_cuda(softmax, x)
 end
 
 @testset "standardize" for i = 1:5
