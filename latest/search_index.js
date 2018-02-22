@@ -173,7 +173,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.LinAlg.BLAS.gemm",
     "category": "Method",
-    "text": "gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)\ngemm(A::Var, B::Var, [tA='N'], [tB='N'], [alpha=1])\n\ntA, tB: 'T' (transpose) or 'N' (not transpose)\n\nC = alpha times textrmtA(A) times textrmtB(B)\n\nT = Float32\nA = Var(rand(T,10,5))\nB = Var(rand(T,10,7))\nC = BLAS.gemm('T', 'N', 1, A, B)\n\n\n\n"
+    "text": "gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)\ngemm(A::Var, B::Var, [tA=\'N\'], [tB=\'N\'], [alpha=1])\n\ntA, tB: \'T\' (transpose) or \'N\' (not transpose)\n\nC = alpha times textrmtA(A) times textrmtB(B)\n\nT = Float32\nA = Var(rand(T,10,5))\nB = Var(rand(T,10,7))\nC = BLAS.gemm(\'T\', \'N\', 1, A, B)\n\n\n\n"
 },
 
 {
@@ -181,7 +181,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Base.LinAlg.BLAS.gemv",
     "category": "Method",
-    "text": "BLAS.gemv(tA::Char, alpha, A::Var, x::Var)\n\ntA: 'T' (transpose) or 'N' (not transpose)\n\ny = alpha times textrmtA(A) times x\n\nT = Float32\nA = Var(rand(T,10,5))\nx = Var(rand(T,5))\nB = BLAS.gemv('N', 1, A, x)\n\n\n\n"
+    "text": "BLAS.gemv(tA::Char, alpha, A::Var, x::Var)\n\ntA: \'T\' (transpose) or \'N\' (not transpose)\n\ny = alpha times textrmtA(A) times x\n\nT = Float32\nA = Var(rand(T,10,5))\nx = Var(rand(T,5))\nB = BLAS.gemv(\'N\', 1, A, x)\n\n\n\n"
 },
 
 {
@@ -189,7 +189,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Merlin.gemm_batch",
     "category": "Method",
-    "text": "gemm_batch(tA::Char, tB::Char, alpha, As::Vector{Var}, B::Vector{Var})\ngemm_batch(As::Vector{Var}, B::Vector{Var}, [tA='N'], [tB='N'], [alpha=1])\n\n\n\n"
+    "text": "gemm_batch(tA::Char, tB::Char, alpha, As::Vector{Var}, B::Vector{Var})\ngemm_batch(As::Vector{Var}, B::Vector{Var}, [tA=\'N\'], [tB=\'N\'], [alpha=1])\n\n\n\n"
 },
 
 {
@@ -369,17 +369,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Merlin.max_batch-Tuple{Merlin.Var,Array{Int64,1}}",
+    "location": "functions.html#Base.maximum-Tuple{Merlin.Var,Int64,Array{Int64,1}}",
     "page": "Functions",
-    "title": "Merlin.max_batch",
-    "category": "Method",
-    "text": "max_batch(x::Var, dims::Vector{Int})\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Base.max-Tuple{Merlin.Var,Int64}",
-    "page": "Functions",
-    "title": "Base.max",
+    "title": "Base.maximum",
     "category": "Method",
     "text": "maximum(x::Var, dim::Int)\n\nReturns the maximum value over the given dimension.\n\nx = Var(rand(Float32,10,5))\ny = maximum(x, 1)\n\n\n\n"
 },
@@ -597,7 +589,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Datasets",
     "title": "PTBLM",
     "category": "section",
-    "text": "The PTBLM dataset consists of Penn Treebank sentences for language modeling, available from tomsercu/lstm. The unknown words are replaced with <unk> so that the total vocaburary size becomes 10000.This is the first sentence of the PTBLM dataset.dir = \"ptblm\"\nx, y = PTBLM.traindata(dir)\n\nx[1]\n> [\"no\", \"it\", \"was\", \"n't\", \"black\", \"monday\"]\ny[1]\n> [\"it\", \"was\", \"n't\", \"black\", \"monday\", \"<eos>\"]where MLDataset adds the special word: <eos> to the end of y."
+    "text": "The PTBLM dataset consists of Penn Treebank sentences for language modeling, available from tomsercu/lstm. The unknown words are replaced with <unk> so that the total vocaburary size becomes 10000.This is the first sentence of the PTBLM dataset.dir = \"ptblm\"\nx, y = PTBLM.traindata(dir)\n\nx[1]\n> [\"no\", \"it\", \"was\", \"n\'t\", \"black\", \"monday\"]\ny[1]\n> [\"it\", \"was\", \"n\'t\", \"black\", \"monday\", \"<eos>\"]where MLDataset adds the special word: <eos> to the end of y."
 },
 
 {
