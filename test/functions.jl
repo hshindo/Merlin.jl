@@ -70,9 +70,10 @@ end
     end
 end
 
-@testset "index" for i = 1:5
+@testset "getindex" for i = 1:5
     x = zerograd(randn(T,10,5,4))
     test_gradient(getindex, x, 2:7, :, 1:3)
+    test_gradient(getindex, x, [1,3,5,7,9])
 end
 
 @testset "linear" for i = 1:5

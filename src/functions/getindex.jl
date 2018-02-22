@@ -16,8 +16,16 @@ getindex(x::Var, inds...) = getindex(x, inds)
 getindex(x::Node, inds::Tuple) = Node(getindex, x, inds)
 getindex(x::Node, inds...) = getindex(x, inds)
 
+function getindex(x::Var, index::Vector{I}) where I<:Integer
+    Var(x.data[index], (getindex,x,index))
+end
+
 function addgrad!(y::Var, ::typeof(getindex), x::Var, inds::Tuple)
     isvoid(x.grad) && return
     gx = view(x.grad, inds...)
     broadcast!(+, gx, gx, y.grad)
+end
+
+function addgrad!(y::Var, ::typeof(getindex), x::Var, index::Vector{I}) where I<:Integer
+    addgrad!(y, getindex, x, (index,))
 end
