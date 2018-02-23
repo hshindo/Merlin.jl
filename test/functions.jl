@@ -91,6 +91,14 @@ end
 end
 
 @testset "loss" for i = 1:5
+    # crossentropy
+    p = Var(rand(1:10,5))
+    q = zerograd(softmax(rand(T,10,5)))
+    test_gradient(crossentropy, p, q, tol=2e-3)
+    p = Var(softmax(randn(T,10)))
+    q = zerograd(softmax(randn(T,10)))
+    # test_gradient(crossentropy, p, q, tol=2e-3)
+
     # l2
     x = Var(rand(T,10,5))
     #@testgrad l2(x,0.01) x
@@ -99,10 +107,6 @@ end
     x1 = Var(rand(T,10,5))
     x2 = Var(rand(T,10,5))
     #@testgrad mse(x1,x2) x1 x2
-
-    p = Var(rand(1:10,5))
-    q = Var(softmax(rand(T,10,5)))
-    ##@testgrad crossentropy(p,q) q
 
     p1 = Var(Array{Int32}(rand(1:10,5)))
     p2 = zerograd(softmax(rand(T,10,5)))

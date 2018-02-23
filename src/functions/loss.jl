@@ -22,7 +22,7 @@ function crossentropy(p::Var, q::Var)
     Var(crossentropy(p.data,q.data), (crossentropy,p,q))
 end
 
-function crossentropy(p::Vector{Int}, q::Matrix{T}) where T
+function crossentropy(p::Vector{I}, q::Matrix{T}) where {I<:Integer,T}
     y = Array{T}(length(p))
     @inbounds for i = 1:length(p)
         y[i] = p[i] > 0 ? -log(q[p[i],i]) : T(0)
@@ -30,15 +30,32 @@ function crossentropy(p::Vector{Int}, q::Matrix{T}) where T
     y
 end
 
+function crossentropy(p::Vector{T}, q::Vector{T}) where T
+    @assert length(p) == length(q)
+    y = T[0]
+    @inbounds for i = 1:length(p)
+        y[1] -= p[i] * log(q[i])
+    end
+    y
+end
+
 function addgrad!(y::Var, ::typeof(crossentropy), p::Var, q::Var)
+    @assert isvoid(p.grad)
     isvoid(q.grad) || ∇crossentropy!(y.grad, p.data, q.data, q.grad)
 end
 
-function ∇crossentropy!(gy::Vector{T}, p::Vector{Int}, q::Matrix{T}, gq::Matrix{T}) where T
+function ∇crossentropy!(gy::Vector{T}, p::Vector{I}, q::Matrix{T}, gq::Matrix{T}) where {I<:Integer,T}
     @inbounds for i = 1:length(p)
         if p[i] > 0
             gq[p[i],i] -= gy[i] / q[p[i],i]
         end
+    end
+end
+
+function ∇crossentropy!(gy::Vector{T}, p::Vector{T}, q::Vector{T}, gq::Vector{T}) where T
+    @assert length(gy) == 1
+    @inbounds for i = 1:length(p)
+        gq[i] -= gy[1] * p[i] / q[i]
     end
 end
 
