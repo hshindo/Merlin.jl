@@ -104,16 +104,18 @@ end
     #@testgrad l2(x,0.01) x
 
     # mse
-    x1 = Var(rand(T,10,5))
-    x2 = Var(rand(T,10,5))
-    #@testgrad mse(x1,x2) x1 x2
+    x1 = zerograd(rand(T,10,5))
+    x2 = zerograd(rand(T,10,5))
+    test_gradient(mse, x1, x2)
 
+    # softmax_crossentropy
     p1 = Var(Array{Int32}(rand(1:10,5)))
-    p2 = zerograd(softmax(rand(T,10,5)))
+    p2 = Var(softmax(rand(T,10,5)))
     q = zerograd(rand(T,10,5))
     test_gradient(softmax_crossentropy, p1, q)
     test_cuda(softmax_crossentropy, p1, q)
-    #@testgrad softmax_crossentropy(p2,q) q
+    test_gradient(softmax_crossentropy, p2, q)
+    test_cuda(softmax_crossentropy, p2, q)
 end
 
 @testset "math" for i = 1:5

@@ -12,8 +12,8 @@ ys = split(x, [2,3,5])
 ```
 """
 function split(x::Var, dims::Vector{Int})
-    @assert sum(dims) == size(x)[end]
-    front = ntuple(_ -> Colon(), ndims(x)-1)
+    @assert sum(dims) == size(x,ndims(x))
+    front = [Colon() for _=1:ndims(x)-1]
     cumdim = 0
     ys = Var[]
     for d in dims

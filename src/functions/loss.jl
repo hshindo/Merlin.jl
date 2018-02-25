@@ -173,6 +173,7 @@ y = softmax_crossentropy(p, x)
 ```
 """
 function softmax_crossentropy(p::Var, x::Var)
+    @assert isvoid(p.grad)
     logx = logsoftmax(x.data)
     y = softmax_crossentropy(p.data, logx)
     Var(y, (softmax_crossentropy,p,x), work=logx)

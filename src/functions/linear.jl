@@ -50,7 +50,7 @@ function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
     if ndims(x) == 1
         gy = reshape(y.grad, length(y.grad), 1)
         xx = reshape(x.data, length(x.data), 1)
-        isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), xx, gy, T(1), A.grad)
+        isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), xx, gy, T(1), w.grad)
         isvoid(x.grad) || BLAS.gemv!('N', T(1), w.data, y.grad, T(1), x.grad)
         isvoid(b.grad) || BLAS.axpy!(T(1), y.grad, b.grad)
     else
