@@ -20,6 +20,7 @@ function BLAS.gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
     y = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
     Var(y, (BLAS.gemm,tA,tB,alpha,A,B))
 end
+BLAS.gemm(tA::Char, tB::Char, alpha::Number, A::Node, B::Node) = Node(BLAS.gemm, tA, tB, alpha, A, B)
 
 function addgrad!(C::Var, ::typeof(BLAS.gemm), tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
     T = eltype(C.data)
@@ -56,6 +57,7 @@ function BLAS.gemv(tA::Char, alpha::Number, A::Var, x::Var)
     y = BLAS.gemv(tA, T(alpha), A.data, x.data)
     Var(y, (BLAS.gemv,tA,alpha,A,x))
 end
+BLAS.gemv(tA::Char, alpha::Number, A::Var, x::Node) = Node(BLAS.gemv, tA, alpha, A, x)
 
 function addgrad!(y::Var, ::typeof(BLAS.gemv), tA::Char, alpha::Number, A::Var, x::Var)
     T = eltype(A.data)
@@ -75,6 +77,10 @@ doc"""
     gemm_batch(tA::Char, tB::Char, alpha, As::Vector{Var}, B::Vector{Var})
     gemm_batch(As::Vector{Var}, B::Vector{Var}, [tA='N'], [tB='N'], [alpha=1])
 """
+function gemm_batch(tA::Char, tB::Char, alpha::Number, A::Var, B::Var, batchdimsA::Vector{Int}, batchdimsB::Vector{Int})
+    
+end
+
 gemm_batch(tA, tB, alpha, As::Vector{Var}, Bs::Vector{Var}) = forward(tA, tB, alpha, As, Bs)
 gemm_batch(As, Bs; tA='N', tB='N', alpha=1) = gemm_batch(tA, tB, alpha, As, Bs)
 

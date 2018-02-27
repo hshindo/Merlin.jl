@@ -85,6 +85,7 @@ x & x > 0 \\
 """
 leaky_relu(x::Var, alpha=0.1) = Var(leaky_relu.(x.data,eltype(x)(alpha)), (leaky_relu,x,alpha))
 leaky_relu(x::T, alpha::T) where T = x >= zero(T) ? x : x*alpha
+leaky_relu(x::Node, alpha=0.1) = Node(leaky_relu, x, alpha)
 
 function addgrad!(y::Var, ::typeof(leaky_relu), x::Var, alpha::Float64)
     isvoid(x.grad) || ∇leaky_relu!(y.grad, x.data, x.grad, eltype(x)(alpha))
