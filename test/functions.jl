@@ -34,9 +34,17 @@ end
     A = zerograd(randn(T,10,5))
     B = zerograd(randn(T,10,5))
     test_gradient(BLAS.gemm, 'N', 'T', 1, A, B)
+    test_cuda(BLAS.gemm, 'N', 'T', 1, A, B)
 
+    A = zerograd(randn(T,10,5))
     B = zerograd(randn(T,10))
     test_gradient(BLAS.gemv, 'T', 1, A, B)
+    test_cuda(BLAS.gemv, 'T', 1, A, B)
+
+    A = zerograd(randn(T,10,5,7))
+    B = zerograd(randn(T,10,5,7))
+    test_gradient(gemm_batch, 'N', 'T', 1, A, B)
+    test_cuda(gemm_batch, 'N', 'T', 1, A, B)
 end
 
 @testset "concat" for i = 1:5

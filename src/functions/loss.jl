@@ -59,28 +59,6 @@ function ∇crossentropy!(gy::Vector{T}, p::Vector{T}, q::Vector{T}, gq::Vector{
     end
 end
 
-#=
-@generated function ∇softmax_crossentropy!{T}(gy::CuMatrix{T}, p::CuVector{Int32}, logq::CuMatrix{T}, gq::CuMatrix{T})
-    f = CuFunction("""
-    __global__ void f($T *gy, $T *p, Array<$T,2> logq, Array<$T,2> gq) {
-        int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx >= logq.length()) return;
-
-        int subs[2];
-        logq.idx2sub(subs);
-        int i = subs[0];
-        int j = subs[1];
-        if (p[j] > 0) {
-            $T delta = (i == p[j]-1) ? 1 : 0;
-            gq(i,j) += gy[j] * (exp(logq(i,j)) - delta);
-        }
-    }""")
-    quote
-        $f(gy.ptr, p.ptr, logq, gq, dx=length(logq))
-    end
-end
-=#
-
 doc"""
     l2(x::Var, lambda::Float64)
 
@@ -221,6 +199,26 @@ end
     end
 end
 
+@generated function softmax_crossentropy(p::CuMatrix{T}, logx::CuMatrix{T}) where T
+    Ct = cstring(T)
+    f = CuFunction("""
+    $(LibCUDA.Array_h)
+
+    __global__ void f($Ct *y, $Ct *p, $Ct *logx, int length) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < length) {
+            y[idx] = -p[idx] * logx[idx];
+        }
+    }""")
+    quote
+        size(p) == size(logx) || throw("Length unmatch.")
+        y = similar(p)
+        gdims, bdims = cudims(length(y))
+        culaunch($f, gdims, bdims, y.ptr, p.ptr, logx.ptr, Cint(length(y)))
+        vec(sum(y,1))
+    end
+end
+
 function addgrad!(y::Var, ::typeof(softmax_crossentropy), p::Var, x::Var)
     isvoid(x.grad) || ∇softmax_crossentropy!(y.grad, p.data, x.grad, y.work)
 end
@@ -264,6 +262,27 @@ end
     quote
         gdims, bdims = cudims(length(logx))
         culaunch($f, gdims, bdims, gy.ptr, p.ptr, gx, logx)
+    end
+end
+
+@generated function ∇softmax_crossentropy!(gy::CuVector{T}, p::CuMatrix{T}, gx::CuMatrix{T}, logx::CuMatrix{T}) where T
+    Ct = cstring(T)
+    f = CuFunction("""
+    $(LibCUDA.Array_h)
+
+    __global__ void f($Ct *gy, $Ct *p, $Ct *gx, Array<$Ct,2> logx) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= logx.length()) return;
+
+        int ndIdx[2];
+        logx.idx2ndIdx(ndIdx, idx);
+        int i = ndIdx[0];
+        int j = ndIdx[1];
+        gx[idx] += gy[j] * (exp(logx[idx]) - p[idx]);
+    }""")
+    quote
+        gdims, bdims = cudims(length(logx))
+        culaunch($f, gdims, bdims, gy.ptr, p.ptr, gx.ptr, logx)
     end
 end
 
