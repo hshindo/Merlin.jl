@@ -5,13 +5,16 @@ end
 
 (::CPUBackend)(x::Array) = x
 (::CPUBackend)(x::CuArray) = Array(x)
+(::CPUBackend)(x::CuArray{Cint}) = Array{Int}(Array(x))
 (backend::CPUBackend)(x) = setbackend(backend, x)
 
 struct CUDABackend
     dev::Int
 end
+CUDABackend() = CUDABackend(0)
 
 (::CUDABackend)(x::Array) = CuArray(x)
+(::CUDABackend)(x::Array{Int}) = CuArray(Array{Cint}(x))
 (::CUDABackend)(x::CuArray) = x
 (backend::CUDABackend)(x) = setbackend(backend, x)
 
@@ -28,5 +31,5 @@ function setbackend(backend, x::Node)
 end
 function setbackend(backend, g::Graph)
     nodes = map(backend, g.nodes)
-    Graph(nodes, g.inids, g.outid)
+    Graph(nodes, g.inids, g.outids)
 end

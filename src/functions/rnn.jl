@@ -91,6 +91,7 @@ end
 (lstm::LSTM)(x::Node, batchdims) = Node(lstm, x, batchdims)
 
 function (rnn::CUDNN.RNN)(x::Var, batchdims::Vector{Int})
+    @assert issorted(batchdims, rev=true)
     t_x, t_batchdims = transpose_batch(x.data, batchdims)
     t_y, work = rnn(t_x, t_batchdims)
     y, _ = transpose_batch(t_y, t_batchdims)
