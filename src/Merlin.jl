@@ -15,6 +15,7 @@ try
 catch
     Pkg.clone("https://github.com/hshindo/LibCUDA.jl.git")
 end
+
 using LibCUDA
 const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
 const UniMatrix{T} = Union{Matrix{T},CuMatrix{T}}
@@ -34,6 +35,24 @@ mutable struct Config
     debug::Bool
 end
 const CONFIG = Config(true, false)
+
+axpy!(a::T, x::AbstractArray{T,N}, y::AbstractArray{T,N}) where {T,N} = broadcast!(+, y, y, x)
+@generated function axpy!(a::T, x::AbstractCuArray{T,N}, y::AbstractCuArray{T,N}) where {T,N}
+    Ct = cstring(T)
+    f = CuFunction("""
+    $(LibCUDA.Array_h)
+    __global__ void axpy($Ct a, Array<$Ct,$N> x, Array<$Ct,$N> y) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= x.length()) return;
+        y(idx) += a * x(idx);
+    }""")
+    quote
+        @assert length(y) == length(x)
+        gdims, bdims = cudims(length(x))
+        culaunch($f, gdims, bdims, a, x, y)
+        y
+    end
+end
 
 include("functions/activation.jl")
 include("functions/argmax.jl")

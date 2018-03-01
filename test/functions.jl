@@ -81,6 +81,7 @@ end
 @testset "getindex" for i = 1:5
     x = zerograd(randn(T,10,5,4))
     test_gradient(getindex, x, 2:7, :, 1:3)
+    test_cuda(getindex, x, 2:7, :, 1:3)
     test_gradient(getindex, x, [1,3,5,7,9])
 end
 
@@ -94,7 +95,7 @@ end
 @testset "lookup" for i = 1:5
     w = zerograd(randn(T,10,15))
     x = rand(1:15, 10)
-    #test_gradient(lookup, w, x)
+    test_gradient(lookup, w, x)
     #test_cuda(lookup, w, x)
 end
 

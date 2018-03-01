@@ -93,7 +93,7 @@ end
 function (rnn::CUDNN.RNN)(x::Var, batchdims::Vector{Int})
     @assert issorted(batchdims, rev=true)
     t_x, t_batchdims = transpose_batch(x.data, batchdims)
-    t_y, work = rnn(t_x, t_batchdims)
+    t_y, work = rnn(t_x, t_batchdims, training=CONFIG.train)
     y, _ = transpose_batch(t_y, t_batchdims)
     Var(y, (rnn,x,batchdims), work=work)
 end

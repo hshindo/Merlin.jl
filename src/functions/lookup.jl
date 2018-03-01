@@ -68,7 +68,7 @@ end
     }""")
     quote
         n = size(gw, 1)
-        gdims, bdims = cudims(length(y))
+        gdims, bdims = cudims(length(gy))
         culaunch($f, gdims, bdims, gy.ptr, length(gy), gw.ptr, x.ptr, n)
     end
 end
