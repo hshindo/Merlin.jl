@@ -184,7 +184,7 @@ end
     f = CuFunction("""
     $(LibCUDA.Array_h)
 
-    __global__ void f($Ct *y, int *p, Array<$Ct,2> logx, int length) {
+    __global__ void softmax_crossentropy($Ct *y, int *p, Array<$Ct,2> logx, int length) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx < length) {
             y[idx] = p[idx] > 0 ? -logx(p[idx]-1,idx) : 0;

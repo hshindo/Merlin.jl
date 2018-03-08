@@ -36,20 +36,20 @@ mutable struct Config
 end
 const CONFIG = Config(true, false)
 
-axpy!(a::T, x::AbstractArray{T,N}, y::AbstractArray{T,N}) where {T,N} = broadcast!(+, y, y, x)
-@generated function axpy!(a::T, x::AbstractCuArray{T,N}, y::AbstractCuArray{T,N}) where {T,N}
+add!(x::AbstractArray{T,N}, y::AbstractArray{T,N}) where {T,N} = broadcast!(+, y, y, x)
+@generated function add!(x::AbstractCuArray{T,N}, y::AbstractCuArray{T,N}) where {T,N}
     Ct = cstring(T)
     f = CuFunction("""
     $(LibCUDA.Array_h)
-    __global__ void axpy($Ct a, Array<$Ct,$N> x, Array<$Ct,$N> y) {
+    __global__ void add(Array<$Ct,$N> x, Array<$Ct,$N> y) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= x.length()) return;
-        y(idx) += a * x(idx);
+        y(idx) += x(idx);
     }""")
     quote
-        @assert length(y) == length(x)
+        @assert length(x) == length(y)
         gdims, bdims = cudims(length(x))
-        culaunch($f, gdims, bdims, a, x, y)
+        culaunch($f, gdims, bdims, x, y)
         y
     end
 end

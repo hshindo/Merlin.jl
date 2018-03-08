@@ -21,7 +21,7 @@ end
 function addgrad!(y::Var, ::typeof(getindex), x::Var, inds::Tuple)
     isvoid(x.grad) && return
     gx = view(x.grad, inds...)
-    axpy!(eltype(y)(1), y.grad, gx)
+    add!(y.grad, gx)
 end
 
 function addgrad!(y::Var, ::typeof(getindex), x::Var, index::Vector{I}) where I<:Integer

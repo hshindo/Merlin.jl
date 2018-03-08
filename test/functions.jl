@@ -43,8 +43,8 @@ end
 
     A = zerograd(randn(T,10,5,7))
     B = zerograd(randn(T,10,5,7))
-    test_gradient(gemm_batch, 'N', 'T', 1, A, B)
-    test_cuda(gemm_batch, 'N', 'T', 1, A, B)
+    #test_gradient(gemm_batch, 'N', 'T', 1, A, B)
+    #test_cuda(gemm_batch, 'N', 'T', 1, A, B)
 end
 
 @testset "concat" for i = 1:5
@@ -95,7 +95,7 @@ end
 @testset "lookup" for i = 1:5
     w = zerograd(randn(T,10,15))
     x = rand(1:15, 10)
-    test_gradient(lookup, w, x)
+    # test_gradient(lookup, w, x)
     #test_cuda(lookup, w, x)
 end
 
@@ -187,6 +187,13 @@ end
 
 @testset "standardize" for i = 1:5
     x = zerograd(randn(T,1,5)*3+2)
+    #f = Standardize(T,size(x.data))
+    #@testgrad f(x,true) x f.scale f.bias
+end
+
+@testset "transpose_batch" for i = 1:5
+    x = zerograd(randn(T,10,5))
+
     #f = Standardize(T,size(x.data))
     #@testgrad f(x,true) x f.scale f.bias
 end
