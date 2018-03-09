@@ -44,7 +44,7 @@ var documenterSearchIndex = {"docs": [
     "location": "var.html#Merlin.Var",
     "page": "Var",
     "title": "Merlin.Var",
-    "category": "Type",
+    "category": "type",
     "text": "Var\n\nVariable struct.\n\nVar contains the following members:\n\ndata\nargs\ngrad\nwork\n\nExample\n\nT = Float32\nx = Var(rand(T,10,5)) # x.grad is set to `nothing`\nx = zerograd(rand(T,10,5)) # x.grad is initialized as zero.\n\n\n\n"
 },
 
@@ -52,7 +52,7 @@ var documenterSearchIndex = {"docs": [
     "location": "var.html#Merlin.gradient!-Tuple{Vararg{Merlin.Var,N} where N}",
     "page": "Var",
     "title": "Merlin.gradient!",
-    "category": "Method",
+    "category": "method",
     "text": "gradient!(top::Var)\n\nCompute gradients.\n\n\n\n"
 },
 
@@ -60,7 +60,7 @@ var documenterSearchIndex = {"docs": [
     "location": "var.html#Merlin.isparam-Tuple{Merlin.Var}",
     "page": "Var",
     "title": "Merlin.isparam",
-    "category": "Method",
+    "category": "method",
     "text": "isparam(x::Var)\n\nReturns whether x is a parameter or not\n\n\n\n"
 },
 
@@ -68,7 +68,7 @@ var documenterSearchIndex = {"docs": [
     "location": "var.html#Merlin.topsort-Union{Tuple{T}, Tuple{Vararg{T,N} where N}} where T",
     "page": "Var",
     "title": "Merlin.topsort",
-    "category": "Method",
+    "category": "method",
     "text": "topsort(tops::T...)\n\nTopological sort.\n\n\n\n"
 },
 
@@ -100,7 +100,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Merlin.crelu-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.crelu",
-    "category": "Method",
+    "category": "method",
     "text": "crelu(x::Var)\n\nConcatenated Rectified Linear Unit. The output is twice the size of the input.\n\nf(x) = (max(0x) max(0-x))\n\nReferences\n\nShang et al., \"Understanding and Improving Convolutional Neural Networks via Concatenated Rectified Linear Units\", arXiv 2016.\n\n\n\n"
 },
 
@@ -108,7 +108,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Merlin.elu-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.elu",
-    "category": "Method",
+    "category": "method",
     "text": "elu(x::Var)\n\nExponential Linear Unit.\n\nReferences\n\nClevert et al., \"Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)\", arXiv 2015.\n\nf(x) =\nbegincases\nx  x  0 \nalpha (e^x-1)  xleq0\nendcases\n\nwhere alpha=1.\n\n\n\n"
 },
 
@@ -116,7 +116,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Merlin.leaky_relu",
     "page": "Functions",
     "title": "Merlin.leaky_relu",
-    "category": "Function",
+    "category": "function",
     "text": "leaky_relu(x::Var, alpha=0.1)\n\nLeaky Rectified Linear Unit.\n\nf(x) =\nbegincases\nx  x  0 \nalpha x  x leq 0\nendcases\n\nReferences\n\nMaas et al., \"Rectifier Nonlinearities Improve Neural Network Acoustic Models\", ICML 2013.\n\n\n\n"
 },
 
@@ -124,7 +124,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Merlin.relu-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.relu",
-    "category": "Method",
+    "category": "method",
     "text": "relu(x::Var)\n\nRectified Linear Unit.\n\nf(x) = max(0 x)\n\n\n\n"
 },
 
@@ -132,7 +132,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Merlin.selu-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.selu",
-    "category": "Method",
+    "category": "method",
     "text": "selu(x::Var)\n\nScaled Exponential Linear Unit.\n\nf(x) = lambda\nbegincases\nx  x  0 \nalpha e^x-alpha  xleq0\nendcases\n\nwhere lambda=10507 and alpha=16733.\n\nReferences\n\nKlambauer et al., \"Self-Normalizing Neural Networks\", NIPS 2017.\n\n\n\n"
 },
 
@@ -140,7 +140,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Merlin.sigmoid-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.sigmoid",
-    "category": "Method",
+    "category": "method",
     "text": "sigmoid(x)\n\nSigmoid logistic function.\n\nf(x) = (1 + exp(-x))^-1\n\n\n\n"
 },
 
@@ -148,7 +148,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Merlin.Swish",
     "page": "Functions",
     "title": "Merlin.Swish",
-    "category": "Type",
+    "category": "type",
     "text": "Swish\n\nSwish activation function.\n\nf(x) = x cdot sigma (beta x)\n\nwhere beta is a leanable parameter.\n\nReferences\n\nRamachandran et al. \"Searching for Activation Functions\", arXiv 2017.\n\n\n\n"
 },
 
@@ -156,7 +156,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.tanh-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Base.tanh",
-    "category": "Method",
+    "category": "method",
     "text": "tanh(x::Var)\n\nHyperbolic tangent function.\n\n\n\n"
 },
 
@@ -169,10 +169,18 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#Merlin.gemm_batch-Tuple{Char,Char,Any,Merlin.Var,Merlin.Var}",
+    "page": "Functions",
+    "title": "Merlin.gemm_batch",
+    "category": "method",
+    "text": "gemm_batch(tA::Char, tB::Char, alpha, A::Var, B::Var)\n\n\n\n"
+},
+
+{
     "location": "functions.html#Base.LinAlg.BLAS.gemm-Tuple{Char,Char,Number,Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Base.LinAlg.BLAS.gemm",
-    "category": "Method",
+    "category": "method",
     "text": "gemm(tA::Char, tB::Char, alpha, A::Var, B::Var)\ngemm(A::Var, B::Var, [tA=\'N\'], [tB=\'N\'], [alpha=1])\n\ntA, tB: \'T\' (transpose) or \'N\' (not transpose)\n\nC = alpha times textrmtA(A) times textrmtB(B)\n\nT = Float32\nA = Var(rand(T,10,5))\nB = Var(rand(T,10,7))\nC = BLAS.gemm(\'T\', \'N\', 1, A, B)\n\n\n\n"
 },
 
@@ -180,16 +188,8 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.LinAlg.BLAS.gemv-Tuple{Char,Number,Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Base.LinAlg.BLAS.gemv",
-    "category": "Method",
+    "category": "method",
     "text": "BLAS.gemv(tA::Char, alpha, A::Var, x::Var)\n\ntA: \'T\' (transpose) or \'N\' (not transpose)\n\ny = alpha times textrmtA(A) times x\n\nT = Float32\nA = Var(rand(T,10,5))\nx = Var(rand(T,5))\nB = BLAS.gemv(\'N\', 1, A, x)\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.gemm_batch-Tuple{Any,Any,Any,Array{Merlin.Var,1},Array{Merlin.Var,1}}",
-    "page": "Functions",
-    "title": "Merlin.gemm_batch",
-    "category": "Method",
-    "text": "gemm_batch(tA::Char, tB::Char, alpha, As::Vector{Var}, B::Vector{Var})\ngemm_batch(As::Vector{Var}, B::Vector{Var}, [tA=\'N\'], [tB=\'N\'], [alpha=1])\n\n\n\n"
 },
 
 {
@@ -204,7 +204,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Merlin.Conv",
     "page": "Functions",
     "title": "Merlin.Conv",
-    "category": "Type",
+    "category": "type",
     "text": "Conv(T, filtersize, kwargs...)\n\nW: (W1,W2,...,I,O)\nX: (X1,X2,...,I,N)\nY: (Y1,Y2,...,O,N)\n\nwhere\n\nI: number of input channels\nO: number of output channels\nN: batch size\n\nT = Float32\nconv = Conv(T, (1,1,3,2))\nx = CuArray{T}(5,5,3,3)\ny = conv(x)\n\n\n\n"
 },
 
@@ -228,7 +228,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Merlin.crossentropy-Tuple{Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.crossentropy",
-    "category": "Method",
+    "category": "method",
     "text": "crossentropy(p, q)\n\nCross-entropy function between p and q.\n\nf(x) = -sum_x p(x) log q(x)\n\np::Var: Var of Vector{Int} or Matrix{Float}. If p is Vector{Int} and p[i] == 0, returns 0.\nq::Var: Var of Matrix{Float}\n\np = Var(rand(0:10,5))\nq = softmax(Var(rand(Float32,10,5)))\ny = crossentropy(p, q)\n\n\n\n"
 },
 
@@ -236,7 +236,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Merlin.l2-Tuple{Merlin.Var,Float64}",
     "page": "Functions",
     "title": "Merlin.l2",
-    "category": "Method",
+    "category": "method",
     "text": "l2(x::Var, lambda::Float64)\n\nL2 regularization.\n\ny = fraclambda2leftVert mathbfx rightVert ^2\n\nx = Var(rand(Float32,10,5))\ny = l2(x, 0.01)\n\n\n\n"
 },
 
@@ -244,7 +244,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Merlin.mse-Tuple{Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.mse",
-    "category": "Method",
+    "category": "method",
     "text": "mse(x1, x2)\n\nMean Squared Error function between x1 and x2. The mean is calculated over the minibatch. Note that the error is not scaled by 1/2.\n\n\n\n"
 },
 
@@ -252,7 +252,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Merlin.softmax_crossentropy-Tuple{Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Merlin.softmax_crossentropy",
-    "category": "Method",
+    "category": "method",
     "text": "softmax_crossentropy(p, x)\n\nCross-entropy function between p and softmax(x).\n\nf(x) = -sum_x p(x) log q(x)\n\nwhere q = softmax(x)\n\np: Var of Vector{Int} or Matrix{Float}\nq: Var of Matrix{Float}\n\np = Var(rand(0:10,5))\nq = Var(rand(Float32,10,5))\ny = softmax_crossentropy(p, x)\n\n\n\n"
 },
 
@@ -268,7 +268,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.:*-Tuple{Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Base.:*",
-    "category": "Method",
+    "category": "method",
     "text": "*(A::Var, B::Var)\n\n\n\n"
 },
 
@@ -276,7 +276,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.:+-Tuple{Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Base.:+",
-    "category": "Method",
+    "category": "method",
     "text": "+(x1::Var, x2::Var)\n+(a::Number, x::Var)\n+(x::Var, a::Number)\n\n\n\n"
 },
 
@@ -284,7 +284,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.:--Tuple{Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Base.:-",
-    "category": "Method",
+    "category": "method",
     "text": "-(x1, x2)\n\n\n\n"
 },
 
@@ -292,7 +292,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.:/-Tuple{Merlin.Var,Number}",
     "page": "Functions",
     "title": "Base.:/",
-    "category": "Method",
+    "category": "method",
     "text": "/(x1::Var, a)\n\n\n\n"
 },
 
@@ -300,7 +300,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.:^-Tuple{Merlin.Var,Number}",
     "page": "Functions",
     "title": "Base.:^",
-    "category": "Method",
+    "category": "method",
     "text": "^(x::Var, a::Number)\n\n\n\n"
 },
 
@@ -308,7 +308,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.broadcast-Tuple{Base.#*,Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Base.broadcast",
-    "category": "Method",
+    "category": "method",
     "text": ".*(x1::Var, x2::Var)\n\n\n\n"
 },
 
@@ -316,7 +316,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.broadcast-Tuple{Base.#+,Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Base.broadcast",
-    "category": "Method",
+    "category": "method",
     "text": ".+(x1::Var, x2::Var)\n\n\n\n"
 },
 
@@ -324,7 +324,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.broadcast-Tuple{Base.#-,Merlin.Var,Merlin.Var}",
     "page": "Functions",
     "title": "Base.broadcast",
-    "category": "Method",
+    "category": "method",
     "text": ".-(x1::Var, x2::Var)\n\n\n\n"
 },
 
@@ -332,7 +332,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.exp-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Base.exp",
-    "category": "Method",
+    "category": "method",
     "text": "exp(x)\n\n\n\n"
 },
 
@@ -340,7 +340,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.log-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Base.log",
-    "category": "Method",
+    "category": "method",
     "text": "log(x)\n\n\n\n"
 },
 
@@ -348,7 +348,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.transpose-Tuple{Merlin.Var}",
     "page": "Functions",
     "title": "Base.transpose",
-    "category": "Method",
+    "category": "method",
     "text": "transpose(x)\n\n\n\n"
 },
 
@@ -372,7 +372,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.maximum-Tuple{Merlin.Var,Int64,Array{Int64,1}}",
     "page": "Functions",
     "title": "Base.maximum",
-    "category": "Method",
+    "category": "method",
     "text": "maximum(x::Var, dim::Int)\n\nReturns the maximum value over the given dimension.\n\nx = Var(rand(Float32,10,5))\ny = maximum(x, 1)\n\n\n\n"
 },
 
@@ -380,7 +380,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.mean-Tuple{Merlin.Var,Int64}",
     "page": "Functions",
     "title": "Base.mean",
-    "category": "Method",
+    "category": "method",
     "text": "mean(x, dim::Int)\n\nComputes the average over the given dimension.\n\n\n\n"
 },
 
@@ -388,7 +388,7 @@ var documenterSearchIndex = {"docs": [
     "location": "functions.html#Base.sum-Tuple{Merlin.Var,Int64}",
     "page": "Functions",
     "title": "Base.sum",
-    "category": "Method",
+    "category": "method",
     "text": "sum(x::Var, dim::Int)\n\nReturns the sum over the given dimension.\n\n\n\n"
 },
 
@@ -436,7 +436,7 @@ var documenterSearchIndex = {"docs": [
     "location": "initializers.html#Merlin.Fill",
     "page": "Initializaters",
     "title": "Merlin.Fill",
-    "category": "Type",
+    "category": "type",
     "text": "Fill(x)\n\nFill initializer.\n\n\n\n"
 },
 
@@ -444,7 +444,7 @@ var documenterSearchIndex = {"docs": [
     "location": "initializers.html#Merlin.Normal",
     "page": "Initializaters",
     "title": "Merlin.Normal",
-    "category": "Type",
+    "category": "type",
     "text": "Normal(mean, var)\n\nGenerator of ndarray with a normal distribution.\n\nArguments\n\nmean: Mean of the random values.\nvar: Variance of the random values.\n\n\n\n"
 },
 
@@ -452,7 +452,7 @@ var documenterSearchIndex = {"docs": [
     "location": "initializers.html#Merlin.OrthoNormal",
     "page": "Initializaters",
     "title": "Merlin.OrthoNormal",
-    "category": "Type",
+    "category": "type",
     "text": "OrthoNormal\n\n\n\n"
 },
 
@@ -460,7 +460,7 @@ var documenterSearchIndex = {"docs": [
     "location": "initializers.html#Merlin.Orthogonal",
     "page": "Initializaters",
     "title": "Merlin.Orthogonal",
-    "category": "Type",
+    "category": "type",
     "text": "Orthogonal([gain=1.0])\n\nReferences\n\nSaxe et al., Exact solutions to the nonlinear dynamics of learning in deep linear neural networks\n\n\n\n"
 },
 
@@ -468,7 +468,7 @@ var documenterSearchIndex = {"docs": [
     "location": "initializers.html#Merlin.Uniform",
     "page": "Initializaters",
     "title": "Merlin.Uniform",
-    "category": "Type",
+    "category": "type",
     "text": "Uniform(a, b)\nUniform(b)\n\nGenerator of ndarray with a uniform distribution.\n\nArguments\n\na: Lower bound of the range of random values.\nb: Upper bound of the range of random values.\n\n\n\n"
 },
 
@@ -476,7 +476,7 @@ var documenterSearchIndex = {"docs": [
     "location": "initializers.html#Merlin.Xavier",
     "page": "Initializaters",
     "title": "Merlin.Xavier",
-    "category": "Type",
+    "category": "type",
     "text": "Xavier()\n\nXavier initialization.\n\n\n\n"
 },
 
@@ -500,7 +500,7 @@ var documenterSearchIndex = {"docs": [
     "location": "optimizers.html#Merlin.AdaGrad",
     "page": "Optimizers",
     "title": "Merlin.AdaGrad",
-    "category": "Type",
+    "category": "type",
     "text": "AdaGrad\n\nAdaGrad Optimizer.\n\nReferences\n\nDuchi t al., \"Adaptive Subgradient Methods for Online Learning and Stochastic Optimization\", JMLR 2011.\n\n\n\n"
 },
 
@@ -508,7 +508,7 @@ var documenterSearchIndex = {"docs": [
     "location": "optimizers.html#Merlin.Adam",
     "page": "Optimizers",
     "title": "Merlin.Adam",
-    "category": "Type",
+    "category": "type",
     "text": "Adam\n\nAdam Optimizer\n\nReferences\n\nKingma and Ba, \"Adam: A Method for Stochastic Optimization\", ICLR 2015.\n\n\n\n"
 },
 
@@ -516,7 +516,7 @@ var documenterSearchIndex = {"docs": [
     "location": "optimizers.html#Merlin.SGD",
     "page": "Optimizers",
     "title": "Merlin.SGD",
-    "category": "Type",
+    "category": "type",
     "text": "SGD\n\nStochastic Gradient Descent Optimizer.\n\nArguments\n\nrate: learning rate\n[momentum=0.0]: momentum coefficient\n[nesterov=false]: use nesterov acceleration or not\n\n\n\n"
 },
 
