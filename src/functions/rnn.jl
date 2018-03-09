@@ -99,8 +99,8 @@ function (rnn::CUDNN.RNN)(x::Var, batchdims::Vector{Int})
 end
 
 function addgrad!(y::Var, rnn::CUDNN.RNN, x::Var, batchdims::Vector{Int})
-    return
-    
+    #return
+
     t_gy, t_batchdims = transpose_batch(y.grad, batchdims)
     t_gx = CUDNN.backward_data(rnn, t_gy, y.work) # this call is required for backward_weights
     gx, _ = transpose_batch(t_gx, t_batchdims)

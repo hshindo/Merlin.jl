@@ -46,8 +46,8 @@ end
 
         y = similar(x)
         gdims, bdims = cudims(size(x,1)*batchdims_y[1]*batchdims_x[1])
-        culaunch($f, gdims, bdims, size(x,1), y.ptr, CuArray(cumdims_y).ptr, batchdims_y[1],
-            x.ptr, CuArray(cumdims_x).ptr, batchdims_x[1])
+        culaunch($f, gdims, bdims, Cint(size(x,1)), Ptr{T}(y), Ptr{Cint}(CuArray(cumdims_y)), Cint(batchdims_y[1]),
+            Ptr{T}(x), Ptr{Cint}(CuArray(cumdims_x)), Cint(batchdims_x[1]))
         y, batchdims_y
     end
 end
