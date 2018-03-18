@@ -33,17 +33,20 @@ end
 (f::Linear)(x) = linear(x, f.w, f.b)
 
 function linear(x::Var, w::Var, b::Var)
+    settype!(x.data, w)
+    settype!(x.data, b)
     T = eltype(x)
     if ndims(x) == 1
         y = BLAS.gemv('T', w.data, x.data)
         y += b.data
-    else
+    elseif ndims(x) == 2
         y = BLAS.gemm('T', 'N', w.data, x.data)
         y .+= b.data
+    else
+        throw("Invalid ndims")
     end
     Var(y, (linear,x,w,b))
 end
-linear(x::Node, w, b) = Node(linear, x, w, b)
 
 function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
     T = eltype(x)

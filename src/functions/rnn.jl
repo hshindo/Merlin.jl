@@ -1,15 +1,12 @@
 export LSTM
 
-struct LSTM
+mutable struct LSTM
     insize::Int
     hsize::Int
     nlayers::Int
     droprate::Float64
     bidirectional::Bool
-    ws::Vector{Var}
-    bs::Vector{Var}
-    h0s::Vector{Var}
-    c0s::Vector{Var}
+    params::Tuple
 end
 
 doc"""
@@ -39,7 +36,6 @@ Long Short-Term Memory network.
 * ``\sigma_c``: hyperbolic tangent function
 * ``\sigma_h``: hyperbolic tangent function
 
-# 👉 Example
 ```julia
 T = Float32
 x = Var(rand(T,100,10))
@@ -68,44 +64,51 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
             push!(bs, zerograd(b))
         end
     end
-    h0s = [zerograd(init_h0(T,hsize,1)) for i=1:nlayers*coef]
-    c0s = [zerograd(init_c0(T,hsize,1)) for i=1:nlayers*coef]
+    h0s = [Var(init_h0(T,hsize,1)) for i=1:nlayers*coef]
+    c0s = [Var(init_c0(T,hsize,1)) for i=1:nlayers*coef]
+    params = (ws,bs,h0s,c0s)
     LSTM(insize, hsize, nlayers, droprate, bidirectional, ws, bs, h0s, c0s)
 end
 
 function (lstm::LSTM)(x::Var, batchdims::Vector{Int})
-    h = x
-    coef = lstm.bidirectional ? 2 : 1
-    for l = 1:lstm.nlayers
-        i = (l-1) * coef + 1
-        h1 = lstm_tstep(h, batchdims, lstm.ws[i], lstm.bs[i], lstm.h0s[i], lstm.c0s[i], false)
-        if lstm.bidirectional
-            h2 = lstm_tstep(h, batchdims, lstm.ws[i+1], lstm.bs[i+1], lstm.h0s[i+1], lstm.c0s[i+1], true)
-            h = concat(1, h1, h2)
-        else
-            h = h1
+    if isa(x.data, Array)
+        ws,bs,h0s,c0s = lstm.params
+        h = x
+        coef = lstm.bidirectional ? 2 : 1
+        for l = 1:lstm.nlayers
+            i = (l-1) * coef + 1
+            h1 = lstm_tstep(h, batchdims, ws[i], bs[i], h0s[i], c0s[i], false)
+            if lstm.bidirectional
+                h2 = lstm_tstep(h, batchdims, ws[i+1], bs[i+1], h0s[i+1], c0s[i+1], true)
+                h = concat(1, h1, h2)
+            else
+                h = h1
+            end
         end
+        h
+    elseif isa(x.data, CuArray)
+        setcuda!(lstm)
+        w, = lstm.params
+        @assert issorted(batchdims, rev=true)
+        t_x, t_batchdims = transpose_batch(x.data, batchdims)
+        dir = lstm.bidirectional ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
+        mode = CUDNN.CUDNN_LSTM
+        t_y, work = rnn(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, dir, mode,
+            w, t_x, batchdims, training=CONFIG.train)
+
+        y, _ = transpose_batch(t_y, t_batchdims)
+        Var(y, (lstm,x,batchdims,work,w))
+    else
+        throw("Invalid type.")
     end
-    h
-end
-(lstm::LSTM)(x::Node, batchdims) = Node(lstm, x, batchdims)
-
-function (rnn::CUDNN.RNN)(x::Var, batchdims::Vector{Int})
-    @assert issorted(batchdims, rev=true)
-    t_x, t_batchdims = transpose_batch(x.data, batchdims)
-    t_y, work = rnn(t_x, t_batchdims, training=CONFIG.train)
-    y, _ = transpose_batch(t_y, t_batchdims)
-    Var(y, (rnn,x,batchdims), work=work)
 end
 
-function addgrad!(y::Var, rnn::CUDNN.RNN, x::Var, batchdims::Vector{Int})
-    #return
-
+function addgrad!(y::Var, lstm::LSTM, x::Var, batchdims::Vector{Int}, work, w::Var)
     t_gy, t_batchdims = transpose_batch(y.grad, batchdims)
-    t_gx = CUDNN.backward_data(rnn, t_gy, y.work) # this call is required for backward_weights
+    t_gx = CUDNN.backward_data(rnn, t_gy, work) # this call is required for backward_weights
     gx, _ = transpose_batch(t_gx, t_batchdims)
     isvoid(x.grad) || BLAS.axpy!(eltype(y)(1), gx, x.grad)
-    CUDNN.backward_weights!(rnn, y.work)
+    CUDNN.backward_weights!(rnn, work)
 end
 
 function lstm_tstep(x::Var, batchdims::Vector{Int}, w::Var, b::Var, h0::Var, c0::Var, rev::Bool)
@@ -167,7 +170,8 @@ end
 # ‣ Values 1 and 5 reference the forget gate.
 # ‣ Values 2 and 6 reference the new memory gate.
 # ‣ Values 3 and 7 reference the output gate.
-function (cuda::CUDABackend)(lstm::LSTM)
+function setcuda!(lstm::LSTM)
+    isa(lstm.w.data,CuArray) && return
     param = eltype(lstm.ws[1])[]
     hx = eltype(lstm.ws[1])[]
     cx = eltype(lstm.ws[1])[]
@@ -179,6 +183,8 @@ function (cuda::CUDABackend)(lstm::LSTM)
             n = l == 1 ? lstm.insize : lstm.hsize*coef
             append!(param, w[1:n,:])
             append!(param, w[n+1:end,:])
+            append!(hx, lstm.h0s[i].data)
+            append!(cx, lstm.c0s[i].data)
         end
     end
     for l = 1:lstm.nlayers
@@ -189,9 +195,6 @@ function (cuda::CUDABackend)(lstm::LSTM)
             append!(param, zeros(b)) # CUDNN requires bias for U
         end
     end
-    w = cuda(param)
-    hx = cuda(zeros(Float32,15,5,4))
-    cx = cuda(zeros(Float32,15,5,4))
-    dir = lstm.bidirectional ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
-    CUDNN.RNN(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, dir, CUDNN.CUDNN_LSTM, w, hx, cx)
+    w = CuArray(param)
+    lstm.params = (w,)
 end

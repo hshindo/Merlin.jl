@@ -1,10 +1,10 @@
 export lookup
 
 function lookup(w::Var, x::Var)
+    setbackend!(w, x)
     y = lookup(w.data, x.data)
     Var(y, (lookup,w,x))
 end
-lookup(w::Node, x::Node) = Node(lookup, w, x)
 
 function lookup(w::Matrix{T}, x::Array{I}) where {T,I<:Integer}
     n = size(w, 1)
@@ -33,7 +33,7 @@ end
         n = size(w, 1)
         y = CuArray{T}(n*size(x,1), Base.tail(size(x))...)
         gdims, bdims = cudims(length(y))
-        culaunch($f, gdims, bdims, y.ptr, length(y), w.ptr, x.ptr, n)
+        culaunch($f, gdims, bdims, Ptr{T}(y), length(y), Ptr{T}(w), Ptr{Cint}(x), n)
         y
     end
 end
@@ -69,6 +69,6 @@ end
     quote
         n = size(gw, 1)
         gdims, bdims = cudims(length(gy))
-        culaunch($f, gdims, bdims, gy.ptr, length(gy), gw.ptr, x.ptr, n)
+        culaunch($f, gdims, bdims, Ptr{T}(gy), length(gy), Ptr{T}(gw), Ptr{Cint}(x), n)
     end
 end

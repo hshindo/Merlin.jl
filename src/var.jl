@@ -10,7 +10,6 @@ Variable struct.
 * data
 * args
 * grad
-* work
 
 # Example
 ```julia
@@ -23,12 +22,14 @@ mutable struct Var
     data
     args
     grad
-    work
 end
 
-Var(data=nothing, args=(); grad=nothing, work=()) = Var(data, args, grad, work)
+function Var(data=nothing, args=())
+    Var(data, args, nothing)
+end
 
-zerograd(data) = Var(data, grad=zeros(data))
+zerograd(data) = Var(data, (), zeros(data))
+
 function zerograd!(x::Var)
     isvoid(x.grad) && return
     x.grad = zeros(x.data)
@@ -44,7 +45,19 @@ Base.strides(x::Var) = strides(x.data)
 Base.stride(x::Var, i::Int) = stride(x.data, i)
 Base.getindex(x::Var, i::Int) = x.args[i]
 isvoid(x) = x == nothing
-batchdims(x::Var) = batchdims(x.data)
+
+function settype!(::CuArray, x::Var)
+    if !isa(x.data, CuArray)
+        x.data = CuArray(x.data)
+        isvoid(x.grad) || (x.grad = CuArray(x.grad))
+    end
+end
+function settype!(::Array, x::Var)
+    if !isa(x.data, Array)
+        x.data = Array(x.data)
+        isvoid(x.grad) || (x.grad = Array(x.grad))
+    end
+end
 
 doc"""
     isparam(x::Var)
@@ -100,3 +113,18 @@ function gradient!(tops::Var...)
     end
     filter(isparam, sorted)
 end
+
+#=
+function setbackend!(x::Var)
+    x.data = CONFIG.backend(x.data)
+    isvoid(x.grad) || (x.grad = CONFIG.backend(x.grad))
+    x
+end
+
+function setbackend!(xs::Var...)
+    for x in xs
+        setbackend!(x)
+    end
+    xs
+end
+=#

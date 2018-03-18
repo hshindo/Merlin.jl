@@ -154,7 +154,7 @@ function softmax_crossentropy(p::Var, x::Var)
     @assert isvoid(p.grad)
     logx = logsoftmax(x.data)
     y = softmax_crossentropy(p.data, logx)
-    Var(y, (softmax_crossentropy,p,x), work=logx)
+    Var(y, (softmax_crossentropy,p,x,logx))
 end
 
 function softmax_crossentropy(p::Vector{I}, logx::Matrix{T}) where {T,I<:Integer}
@@ -194,7 +194,7 @@ end
         length(p) == size(logx,2) || throw("Length unmatch.")
         y = CuArray{T}(length(p))
         gdims, bdims = cudims(length(y))
-        culaunch($f, gdims, bdims, y.ptr, p.ptr, logx, Cint(length(y)))
+        culaunch($f, gdims, bdims, Ptr{T}(y), Ptr{Cint}(p), logx, Cint(length(y)))
         y
     end
 end
@@ -214,13 +214,13 @@ end
         size(p) == size(logx) || throw("Length unmatch.")
         y = similar(p)
         gdims, bdims = cudims(length(y))
-        culaunch($f, gdims, bdims, y.ptr, p.ptr, logx.ptr, Cint(length(y)))
+        culaunch($f, gdims, bdims, Ptr{T}(y), Ptr{T}(p), Ptr{T}(logx), length(y))
         vec(sum(y,1))
     end
 end
 
-function addgrad!(y::Var, ::typeof(softmax_crossentropy), p::Var, x::Var)
-    isvoid(x.grad) || ∇softmax_crossentropy!(y.grad, p.data, x.grad, y.work)
+function addgrad!(y::Var, ::typeof(softmax_crossentropy), p::Var, x::Var, work)
+    isvoid(x.grad) || ∇softmax_crossentropy!(y.grad, p.data, x.grad, work)
 end
 
 function ∇softmax_crossentropy!(gy::Vector{T}, p::Vector{I}, gx::Matrix{T}, logx::Matrix{T}) where {T,I<:Integer}
@@ -261,7 +261,7 @@ end
     }""")
     quote
         gdims, bdims = cudims(length(logx))
-        culaunch($f, gdims, bdims, gy.ptr, p.ptr, gx, logx)
+        culaunch($f, gdims, bdims, Ptr{T}(gy), Ptr{Cint}(p), gx, logx)
     end
 end
 
@@ -282,7 +282,7 @@ end
     }""")
     quote
         gdims, bdims = cudims(length(logx))
-        culaunch($f, gdims, bdims, gy.ptr, p.ptr, gx.ptr, logx)
+        culaunch($f, gdims, bdims, Ptr{T}(gy), Ptr{Cint}(p), Ptr{T}(gx), logx)
     end
 end
 

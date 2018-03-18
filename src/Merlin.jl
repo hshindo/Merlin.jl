@@ -1,15 +1,5 @@
 module Merlin
 
-using Base.LinAlg.BLAS
-
-if is_windows()
-    const libmerlin = Libdl.dlopen(joinpath(@__DIR__,"../deps/libmerlin.dll"))
-elseif is_linux() || is_apple()
-    const libmerlin = Libdl.dlopen(joinpath(@__DIR__,"../deps/libmerlin.so"))
-else
-    throw("Unsupported OS.")
-end
-
 try
     Pkg.installed("LibCUDA")
 catch
@@ -21,20 +11,19 @@ const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
 const UniMatrix{T} = Union{Matrix{T},CuMatrix{T}}
 const UniVector{T} = Union{Vector{T},CuVector{T}}
 
+struct Config
+    train::Bool
+    debug::Bool
+end
+const CONFIG = Config(true, false)
+
 include("var.jl")
 include("graph.jl")
-#include("native.jl")
 include("test.jl")
 include("initializer.jl")
 include("optimizer.jl")
 include("iterators.jl")
 include("backend.jl")
-
-mutable struct Config
-    train::Bool
-    debug::Bool
-end
-const CONFIG = Config(true, false)
 
 add!(x::AbstractArray{T,N}, y::AbstractArray{T,N}) where {T,N} = broadcast!(+, y, y, x)
 add!(x::CuArray{T,N}, y::CuArray{T,N}) where {T,N} = BLAS.axpy!(T(1), x, y)
