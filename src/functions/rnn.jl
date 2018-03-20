@@ -67,7 +67,7 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
     h0s = [Var(init_h0(T,hsize,1)) for i=1:nlayers*coef]
     c0s = [Var(init_c0(T,hsize,1)) for i=1:nlayers*coef]
     params = (ws,bs,h0s,c0s)
-    LSTM(insize, hsize, nlayers, droprate, bidirectional, ws, bs, h0s, c0s)
+    LSTM(insize, hsize, nlayers, droprate, bidirectional, params)
 end
 
 function (lstm::LSTM)(x::Var, batchdims::Vector{Int})

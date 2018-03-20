@@ -47,3 +47,31 @@ end
 
 # iscpu() = true
 # iscuda() = startswith(BACKEND, "cuda")
+
+#=
+function setbackend!(x::Var)
+    x.data = CONFIG.backend(x.data)
+    isvoid(x.grad) || (x.grad = CONFIG.backend(x.grad))
+    x
+end
+
+function setbackend!(xs::Var...)
+    for x in xs
+        setbackend!(x)
+    end
+    xs
+end
+
+function settype!(::CuArray, x::Var)
+    if !isa(x.data, CuArray)
+        x.data = CuArray(x.data)
+        isvoid(x.grad) || (x.grad = CuArray(x.grad))
+    end
+end
+function settype!(::Array, x::Var)
+    if !isa(x.data, Array)
+        x.data = Array(x.data)
+        isvoid(x.grad) || (x.grad = Array(x.grad))
+    end
+end
+=#

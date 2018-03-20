@@ -11,11 +11,18 @@ const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
 const UniMatrix{T} = Union{Matrix{T},CuMatrix{T}}
 const UniVector{T} = Union{Vector{T},CuVector{T}}
 
-struct Config
+mutable struct Config
     train::Bool
     debug::Bool
 end
 const CONFIG = Config(true, false)
+
+export session
+function session(f::Function; train=true, debug=false)
+    CONFIG.train = train
+    CONFIG.debug = debug
+    f()
+end
 
 include("var.jl")
 include("graph.jl")
@@ -83,7 +90,5 @@ include("functions/window1d.jl")
 
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")
-
-info("#Threads: $(Threads.nthreads())")
 
 end

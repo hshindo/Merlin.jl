@@ -33,8 +33,6 @@ end
 (f::Linear)(x) = linear(x, f.w, f.b)
 
 function linear(x::Var, w::Var, b::Var)
-    settype!(x.data, w)
-    settype!(x.data, b)
     T = eltype(x)
     if ndims(x) == 1
         y = BLAS.gemv('T', w.data, x.data)
