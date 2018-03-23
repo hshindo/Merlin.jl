@@ -7,21 +7,33 @@ catch
 end
 
 using LibCUDA
-const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
-const UniMatrix{T} = Union{Matrix{T},CuMatrix{T}}
-const UniVector{T} = Union{Vector{T},CuVector{T}}
+# const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
+# const UniMatrix{T} = Union{Matrix{T},CuMatrix{T}}
+# const UniVector{T} = Union{Vector{T},CuVector{T}}
 
 mutable struct Config
+    devname::String
+    devids::Vector{Int}
     train::Bool
-    debug::Bool
 end
-const CONFIG = Config(true, false)
+const CONFIG = Config("cpu", Int[], true)
 
-export session
-function session(f::Function; train=true, debug=false)
-    CONFIG.train = train
-    CONFIG.debug = debug
-    f()
+iscpu() = CONFIG.devname == "cpu"
+isgpu() = CONFIG.device >= 0
+function setdevice(devname::String, devids::Int...)
+    CONFIG.devname = devname
+    CONFIG.devids = [devids...]
+end
+istrain() = CONFIG.train
+istrain(b::Bool) = CONFIG.train = b
+function configure!(x::Var)
+
+    if !CONFIG.train
+        x.args = ()
+    end
+end
+function configure!(xs::Var...)
+
 end
 
 include("var.jl")

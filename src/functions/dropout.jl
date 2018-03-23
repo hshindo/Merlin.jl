@@ -7,7 +7,7 @@ Drops elements randomly with probability ``droprate`` and scales the other eleme
 """
 function dropout(x::Var, droprate::Float64)
     droprate == 0.0 && return x
-    CONFIG.train || return x
+    istrain() || return x
     y, r = dropout(x.data, droprate)
     Var(y, (dropout,x,droprate,r))
 end

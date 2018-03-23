@@ -1,4 +1,40 @@
-export transpose_batch, transpose_batchdims
+export transpose_batch
+
+function transpose_batch(x::Var, batchdims::Vector{Int})
+    t_x, t_batchdims = transpose_batch(x.data, batchdims)
+    Var(t_x, (transpose_batch,x,batchdims,t_batchdims))
+end
+
+function transpose_batch(x::Matrix{T}, batchdims::Vector{Int}) where T
+    @assert ndims(x) == 2 && sum(batchdims) == size(x,2)
+    cumdims = Array{Int}(length(batchdims)+1)
+    cumdims[1] = 1
+    for i = 1:length(batchdims)
+        cumdims[i+1] = cumdims[i] + batchdims[i]
+    end
+    perm = sortperm(batchdims, rev=true)
+
+    t_x = T[]
+    t_batchdims = Int[]
+    for t = 1:batchdims[perm[1]]
+        c = 0
+        for p in perm
+            t > batchdims[p] && break
+            i = cumdims[p] + t - 1
+            append!(t_x, x[:,i])
+            c += 1
+        end
+        push!(t_batchdims, c)
+    end
+    t_x = reshape(t_x, size(x,1), sum(t_baychdims))
+    t_x, t_batchdims
+end
+
+function addgrad!(y::Var, ::typeof(transpose_batch), x::Var, batchdims, t_batchdims)
+    t_gy, _ = transpose_batch(y.grad)
+    
+    perm = sortperm(batchdims, rev=true)
+end
 
 function transpose_batchdims(batchdims::Vector{Int})
     k = length(batchdims)

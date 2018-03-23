@@ -22,6 +22,7 @@ mutable struct Var
     data
     args
     grad
+    batchdims
 end
 
 function Var(data=nothing, args=())

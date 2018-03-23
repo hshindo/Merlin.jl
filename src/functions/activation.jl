@@ -57,7 +57,8 @@ elu(x::Var) = Var(elu.(x.data), (elu,x))
 elu(x::T) where T = x > zero(T) ? x : exp(x)-1
 
 function addgrad!(y::Var, ::typeof(elu), x::Var)
-    isvoid(x.grad) || ∇elu!(y.data, y.grad, x.data, x.grad)
+    isvoid(x.grad) && return
+    ∇elu!(y.data, y.grad, x.data, x.grad)
 end
 
 function ∇elu!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
@@ -88,7 +89,8 @@ leaky_relu(x::T, alpha::T) where T = x >= zero(T) ? x : x*alpha
 leaky_relu(x::Node, alpha=0.1) = Node(leaky_relu, x, alpha)
 
 function addgrad!(y::Var, ::typeof(leaky_relu), x::Var, alpha::Float64)
-    isvoid(x.grad) || ∇leaky_relu!(y.grad, x.data, x.grad, eltype(x)(alpha))
+    isvoid(x.grad) && return
+    ∇leaky_relu!(y.grad, x.data, x.grad, eltype(x)(alpha))
 end
 
 function ∇leaky_relu!(gy::Array{T}, x::Array{T}, gx::Array{T}, alpha::T) where T
@@ -109,7 +111,6 @@ f(x) = \max(0, x)
 relu(x::Var) = Var(relu(x.data), (relu,x))
 relu(x::T) where T<:AbstractFloat = max(x, zero(T))
 relu(x::Array) = relu.(x)
-relu(x::CuArray) = CUDNN.relu(x)
 relu(x::Node) = Node(relu, x)
 
 function addgrad!(y::Var, ::typeof(relu), x::Var)
@@ -122,8 +123,6 @@ function ∇relu!(y, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
         gx[i] += x[i] > T(0) ? gy[i] : T(0)
     end
 end
-
-∇relu!(y::CuArray, gy, x, gx) = CUDNN.∇relu!(y, gy, x, gx)
 
 doc"""
     selu(x::Var)
@@ -169,7 +168,6 @@ f(x) = (1 + \exp(-x))^{-1}
 sigmoid(x::Var) = Var(sigmoid(x.data), (sigmoid,x))
 sigmoid(x::Array) = sigmoid.(x)
 sigmoid(x::T) where T<:AbstractFloat = T(1 / (1 + exp(-x)))
-sigmoid(x::CuArray) = CUDNN.sigmoid(x)
 sigmoid(x::Node) = Node(sigmoid, x)
 
 function addgrad!(y::Var, ::typeof(sigmoid), x::Var)
@@ -182,8 +180,6 @@ function ∇sigmoid!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where
         gx[i] += gy[i] * y[i] * (T(1) - y[i])
     end
 end
-
-∇sigmoid!(y::CuArray, gy, x, gx) = CUDNN.∇sigmoid!(y, gy, x, gx)
 
 doc"""
     Swish
@@ -233,7 +229,6 @@ Hyperbolic tangent function.
 """
 Base.tanh(x::Var) = Var(tanh(x.data), (tanh,x))
 Base.tanh(x::Array) = tanh.(x)
-Base.tanh(x::CuArray) = CUDNN.tanh(x)
 Base.tanh(x::Node) = Node(tanh, x)
 
 function addgrad!(y::Var, ::typeof(tanh), x::Var)
@@ -246,5 +241,3 @@ function ∇tanh!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
         gx[i] += gy[i] * (T(1) - y[i] * y[i])
     end
 end
-
-∇tanh!(y::CuArray, gy, x, gx) = CUDNN.∇tanh!(y, gy, x, gx)
