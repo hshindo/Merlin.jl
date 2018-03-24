@@ -108,7 +108,10 @@ Rectified Linear Unit.
 f(x) = \max(0, x)
 ```
 """
-relu(x::Var) = Var(relu(x.data), (relu,x))
+function relu(x::Var)
+    configure!(x)
+    Var(relu(x.data), (relu,x))
+end
 relu(x::T) where T<:AbstractFloat = max(x, zero(T))
 relu(x::Array) = relu.(x)
 relu(x::Node) = Node(relu, x)

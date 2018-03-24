@@ -25,8 +25,8 @@ mutable struct Var
     batchdims
 end
 
-function Var(data=nothing, args=())
-    Var(data, args, nothing)
+function Var(data=nothing, args=(), grad=nothing)
+    Var(data, args, grad, nothing)
 end
 
 zerograd(data) = Var(data, (), zeros(data))
@@ -100,4 +100,19 @@ function gradient!(tops::Var...)
         addgrad!(y, y.args...)
     end
     filter(isparam, sorted)
+end
+
+function configure!(x::Var)
+    if iscpu()
+        x.data = Array(x.data)
+        isvoid(x.grad) || (x.grad = Array(x.grad))
+    elseif isgpu()
+        x.data = CuArray(x.data)
+        isvoid(x.grad) || (x.grad = CuArray(x.grad))
+    end
+end
+function configure!(xs::Var...)
+    for x in xs
+        configure!(x)
+    end
 end

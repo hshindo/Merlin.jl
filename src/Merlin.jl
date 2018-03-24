@@ -1,15 +1,12 @@
 module Merlin
 
-try
-    Pkg.installed("LibCUDA")
-catch
-    Pkg.clone("https://github.com/hshindo/LibCUDA.jl.git")
-end
+# try
+#    Pkg.installed("LibCUDA")
+# catch
+#    Pkg.clone("https://github.com/hshindo/LibCUDA.jl.git")
+# end
 
 using LibCUDA
-# const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
-# const UniMatrix{T} = Union{Matrix{T},CuMatrix{T}}
-# const UniVector{T} = Union{Vector{T},CuVector{T}}
 
 mutable struct Config
     devname::String
@@ -19,22 +16,13 @@ end
 const CONFIG = Config("cpu", Int[], true)
 
 iscpu() = CONFIG.devname == "cpu"
-isgpu() = CONFIG.device >= 0
+isgpu() = CONFIG.devname == "gpu"
 function setdevice(devname::String, devids::Int...)
     CONFIG.devname = devname
     CONFIG.devids = [devids...]
 end
 istrain() = CONFIG.train
 istrain(b::Bool) = CONFIG.train = b
-function configure!(x::Var)
-
-    if !CONFIG.train
-        x.args = ()
-    end
-end
-function configure!(xs::Var...)
-
-end
 
 include("var.jl")
 include("graph.jl")
@@ -42,8 +30,8 @@ include("test.jl")
 include("initializer.jl")
 include("optimizer.jl")
 include("iterators.jl")
-include("backend.jl")
 
+#=
 add!(x::AbstractArray{T,N}, y::AbstractArray{T,N}) where {T,N} = broadcast!(+, y, y, x)
 add!(x::CuArray{T,N}, y::CuArray{T,N}) where {T,N} = BLAS.axpy!(T(1), x, y)
 @generated function add!(x::CuSubArray{T,N}, y::CuArray{T,N}) where {T,N}
@@ -78,8 +66,10 @@ end
         y
     end
 end
+=#
 
 include("functions/activation.jl")
+include("cuda/functions/activation.jl")
 include("functions/argmax.jl")
 include("functions/blas.jl")
 include("functions/concat.jl")
@@ -93,7 +83,7 @@ include("functions/math.jl")
 include("functions/pad.jl")
 include("functions/reduce.jl")
 include("functions/reshape.jl")
-include("functions/rnn.jl")
+# include("functions/rnn.jl")
 include("functions/softmax.jl")
 include("functions/split.jl")
 include("functions/standardize.jl")
