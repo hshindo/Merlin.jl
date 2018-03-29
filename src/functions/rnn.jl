@@ -1,11 +1,19 @@
 export LSTM
 
+struct LSTMParam
+    w::Var
+    b::Var
+    h0::Var
+    c0::Var
+end
+
 mutable struct LSTM
     insize::Int
     hsize::Int
     nlayers::Int
     droprate::Float64
     bidirectional::Bool
+    params::Vector{LSTMParam}
 end
 
 doc"""
@@ -45,12 +53,11 @@ h = f(x)
 function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64, bidirectional::Bool;
     init_w=Normal(0,0.001), init_u=Orthogonal(), init_b=Fill(0), init_h0=Fill(0), init_c0=Fill(0)) where T
 
-    ws = Var[]
-    bs = Var[]
+    params = LSTMParam[]
     coef = bidirectional ? 2 : 1
     for l = 1:nlayers
         for _ = 1:coef
-            wus = []
+            wus = Matrix{T}[]
             for i = 1:4
                 s = l == 1 ? insize : hsize*coef
                 w = init_w(T, s, hsize)
@@ -58,21 +65,19 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
                 push!(wus, cat(1,w,u))
             end
             w = cat(2, wus...)
-            push!(ws, zerograd(w))
             b = init_b(T, 4hsize)
-            push!(bs, zerograd(b))
+            h0 = Var(init_h0(T,hsize,1))
+            c0 = Var(init_c0(T,hsize,1))
+            p = LSTMParam(zerograd(w), zerograd(b), Var(h0), Var(c0))
+            push!(params, p)
         end
     end
-    h0s = [Var(init_h0(T,hsize,1)) for i=1:nlayers*coef]
-    c0s = [Var(init_c0(T,hsize,1)) for i=1:nlayers*coef]
-    params = (ws,bs,h0s,c0s)
     LSTM(insize, hsize, nlayers, droprate, bidirectional, params)
 end
 
 function (lstm::LSTM)(x::Var, batchdims::Vector{Int})
     configure!(x)
     if iscpu()
-        ws,bs,h0s,c0s = lstm.params
         h = x
         coef = lstm.bidirectional ? 2 : 1
         for l = 1:lstm.nlayers

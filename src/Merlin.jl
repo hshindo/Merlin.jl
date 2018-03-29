@@ -9,18 +9,13 @@ module Merlin
 using LibCUDA
 
 mutable struct Config
-    devname::String
-    devids::Vector{Int}
+    devices::Vector{Int}
     train::Bool
 end
-const CONFIG = Config("cpu", Int[], true)
+const CONFIG = Config(Int[], true)
 
-iscpu() = CONFIG.devname == "cpu"
-isgpu() = CONFIG.devname == "gpu"
-function setdevice(devname::String, devids::Int...)
-    CONFIG.devname = devname
-    CONFIG.devids = [devids...]
-end
+iscpu() = isempty(CONFIG.devices)
+isgpu() = !iscpu()
 istrain() = CONFIG.train
 istrain(b::Bool) = CONFIG.train = b
 
@@ -68,27 +63,31 @@ end
 end
 =#
 
-include("functions/activation.jl")
-include("cuda/functions/activation.jl")
-include("functions/argmax.jl")
-include("functions/blas.jl")
-include("functions/concat.jl")
-include("functions/conv.jl")
-include("functions/dropout.jl")
-include("functions/getindex.jl")
-include("functions/linear.jl")
-include("functions/lookup.jl")
-include("functions/loss.jl")
-include("functions/math.jl")
-include("functions/pad.jl")
-include("functions/reduce.jl")
-include("functions/reshape.jl")
-# include("functions/rnn.jl")
-include("functions/softmax.jl")
-include("functions/split.jl")
-include("functions/standardize.jl")
-include("functions/transpose_batch.jl")
-include("functions/window1d.jl")
+for name in [
+    "activation",
+    "argmax",
+    "blas",
+    "concat",
+    "conv",
+    "dropout",
+    "getindex",
+    "linear",
+    "lookup",
+    "loss",
+    "math",
+    "pad",
+    "reduce",
+    "reshape",
+    "rnn",
+    "softmax",
+    "split",
+    "standardize",
+    "transpose_batch",
+    "window1d"
+    ]
+    include("functions/$name.jl")
+    isfile("cuda/functions/$name.jl") && include("cuda/functions/$name.jl")
+end
 
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")

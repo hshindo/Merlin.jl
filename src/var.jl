@@ -46,6 +46,8 @@ Base.strides(x::Var) = strides(x.data)
 Base.stride(x::Var, i::Int) = stride(x.data, i)
 Base.getindex(x::Var, i::Int) = x.args[i]
 isvoid(x) = x == nothing
+iscpu(x::Var) = isa(x.data,Array)
+iscuda(x::Var) = isa(x.data,CuAray)
 
 doc"""
     isparam(x::Var)

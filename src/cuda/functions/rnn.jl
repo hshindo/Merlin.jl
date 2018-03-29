@@ -1,3 +1,7 @@
+struct LSTM_CUDNN
+    w::Var
+end
+
 # If mode in rnnDesc was set to CUDNN_LSTM values of 0, 1, 2 and 3 reference bias
 # applied to the input from the previous layer, value of 4, 5, 6 and 7 reference bias
 # applied to the recurrent input.
@@ -5,8 +9,7 @@
 # ‣ Values 1 and 5 reference the forget gate.
 # ‣ Values 2 and 6 reference the new memory gate.
 # ‣ Values 3 and 7 reference the output gate.
-function setcuda!(lstm::LSTM)
-    isa(lstm.w.data,CuArray) && return
+function LSTM_CUDNN(lstm::LSTM)
     param = eltype(lstm.ws[1])[]
     hx = eltype(lstm.ws[1])[]
     cx = eltype(lstm.ws[1])[]
