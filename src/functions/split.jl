@@ -1,5 +1,4 @@
 import Base.split
-export unsafe_split
 
 doc"""
     split(x::Var, dims::Vector{Int})
@@ -11,7 +10,7 @@ x = Var(rand(T,10,10))
 ys = split(x, [2,3,5])
 ```
 """
-function split(x::Var, dims::Vector{Int})
+function split(x::Var, dim::Int, dims::Vector{Int})
     @assert sum(dims) == size(x,ndims(x))
     front = [Colon() for _=1:ndims(x)-1]
     cumdim = 0
@@ -24,8 +23,11 @@ function split(x::Var, dims::Vector{Int})
     ys
 end
 
-#=
-function unsafe_split(x::Array{T,N}, splitdims::Vector{Int}) where {T,N}
+function split(x::Var, dim::Int, num::Int)
+    size(x,ndims(x))
+end
+
+function unsafe_split2(x::Array{T,N}, splitdims::Vector{Int}) where {T,N}
     sum(splitdims) == size(x,N) || throw("Invalid splitdims: $splitdims.")
     length(splitdims) == 1 && return [x]
     front = Base.front(size(x))
@@ -40,7 +42,6 @@ function unsafe_split(x::Array{T,N}, splitdims::Vector{Int}) where {T,N}
     end
     ys
 end
-=#
 
 #=
 function split(x::Array{T,N}, dim::Int, splitdims::Vector{Int}) where {T,N}

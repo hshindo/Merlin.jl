@@ -1,3 +1,4 @@
+#=
 function (conv::Conv)(x::CuArray)
     CUDNN.convolution(conv.w.data, x, conv.pads, conv.strides, conv.dilations)
 end
@@ -10,3 +11,4 @@ end
 function (cuda::CUDABackend)(conv::Conv)
     Conv(cuda(conv.w), cuda(conv.b), conv.pads, conv.strides, conv.dilations)
 end
+=#

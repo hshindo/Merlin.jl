@@ -1,4 +1,4 @@
-import Base: reshape
+import Base: reshape, vec
 
 doc"""
     reshape(x, dims::Tuple)
@@ -12,6 +12,7 @@ y = reshape(x, 5, 10)
 """
 reshape(x::Var, dims::Tuple) = Var(reshape(x.data,dims), (reshape,x))
 reshape(x::Var, dims::Int...) = reshape(x, dims)
+vec(x::Var) = reshape(x, length(x))
 
 function addgrad!(y::Var, ::typeof(reshape), x::Var)
     isvoid(x.grad) && return

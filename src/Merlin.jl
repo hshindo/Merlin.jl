@@ -6,6 +6,10 @@ module Merlin
 #    Pkg.clone("https://github.com/hshindo/LibCUDA.jl.git")
 # end
 
+export Functor
+abstract type Functor end
+const Arrays{T,N} = Vector{Array{T,N}}
+
 using LibCUDA
 
 mutable struct Config
@@ -13,9 +17,10 @@ mutable struct Config
     train::Bool
 end
 const CONFIG = Config(Int[], true)
+const CONFIGS = [Config(Int[],true) for i=1:Threads.nthreads()]
 
 iscpu() = isempty(CONFIG.devices)
-isgpu() = !iscpu()
+iscuda() = !iscpu()
 istrain() = CONFIG.train
 istrain(b::Bool) = CONFIG.train = b
 
@@ -26,8 +31,8 @@ include("initializer.jl")
 include("optimizer.jl")
 include("iterators.jl")
 
-#=
 add!(x::AbstractArray{T,N}, y::AbstractArray{T,N}) where {T,N} = broadcast!(+, y, y, x)
+#=
 add!(x::CuArray{T,N}, y::CuArray{T,N}) where {T,N} = BLAS.axpy!(T(1), x, y)
 @generated function add!(x::CuSubArray{T,N}, y::CuArray{T,N}) where {T,N}
     Ct = cstring(T)
@@ -86,7 +91,8 @@ for name in [
     "window1d"
     ]
     include("functions/$name.jl")
-    isfile("cuda/functions/$name.jl") && include("cuda/functions/$name.jl")
+    f = joinpath(@__DIR__, "cuda/functions/$name.jl")
+    isfile(f) && include(f)
 end
 
 include("datasets/Datasets.jl")

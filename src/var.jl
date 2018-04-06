@@ -108,12 +108,17 @@ function configure!(x::Var)
     if iscpu()
         x.data = Array(x.data)
         isvoid(x.grad) || (x.grad = Array(x.grad))
-    elseif isgpu()
+    elseif iscuda()
         x.data = CuArray(x.data)
         isvoid(x.grad) || (x.grad = CuArray(x.grad))
     end
 end
 function configure!(xs::Var...)
+    for x in xs
+        configure!(x)
+    end
+end
+function configure!(xs::Vector{Var})
     for x in xs
         configure!(x)
     end
