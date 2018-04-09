@@ -87,26 +87,30 @@ function (lstm::LSTM)(xs::Vector{Var})
     configure!(xs)
     configure!(getparams(lstm))
     if iscpu()
-        hs = xs
-        coef = lstm.bidirectional ? 2 : 1
-        for l = 1:lstm.nlayers
-            i = (l-1) * coef + 1
-            p = lstm.params[i]
-            hs1 = lstm_tstep(hs, p.W, p.b, p.h0, p.c0, false)
-            if lstm.bidirectional
-                p = lstm.params[i+1]
-                hs2 = lstm_tstep(hs, p.W, p.b, p.h0, p.c0, true)
-                hs = [concat(1,hs1[k],hs2[k]) for k=1:length(hs1)]
-            else
-                hs = hs1
-            end
-        end
-        hs
+        lstm_naive(lstm, xs)
     elseif iscuda()
         lstm_cudnn(lstm, xs)
     else
         throw("Invalid backend.")
     end
+end
+
+function lstm_naive(lstm::LSTM, xs::Vector{Var})
+    hs = xs
+    coef = lstm.bidirectional ? 2 : 1
+    for l = 1:lstm.nlayers
+        i = (l-1) * coef + 1
+        p = lstm.params[i]
+        hs1 = lstm_tstep(hs, p.W, p.b, p.h0, p.c0, false)
+        if lstm.bidirectional
+            p = lstm.params[i+1]
+            hs2 = lstm_tstep(hs, p.W, p.b, p.h0, p.c0, true)
+            hs = [concat(1,hs1[k],hs2[k]) for k=1:length(hs1)]
+        else
+            hs = hs1
+        end
+    end
+    hs
 end
 
 function lstm_tstep(xs::Vector{Var}, W::Var, b::Var, h0::Var, c0::Var, rev::Bool)

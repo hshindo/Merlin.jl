@@ -1,3 +1,40 @@
+function lstm_cudnn(lstm::LSTM, xs::Vector{Var})
+    Ws = Var[]
+    h0s = Var[]
+    c0s = Var[]
+    coef = lstm.bidirectional ? 2 : 1
+    for l = 1:lstm.nlayers
+        for d = 1:coef
+            i = (l-1)*coef + d
+            p = lstm.params[i]
+            n = l == 1 ? lstm.insize : lstm.hsize*coef
+            push!(Ws, vec(p.W[1:n,:]), vec(p.W[n+1:end,:]))
+        end
+    end
+    for p in lstm.params
+        push!(Ws, p.b)
+        push!(Ws, p.b) # CUDNN requires bias for U
+        push!(h0s, p.h0)
+        push!(c0s, p.c0)
+    end
+    W = concat(1, Ws...)
+    h0 = concat(1, h0s...)
+    c0 = concat(1, c0s...)
+
+    batchdims = map(x -> size(x,2), xs)
+    perm = sortperm(batchdims, rev=true)
+    x = cat(2, map(x -> x.data, xs[perm])...)
+    t_x, t_batchdims = batch_rnn(x, batchdims)
+
+    dir = lstm.bidirectional ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
+    mode = CUDNN.CUDNN_LSTM
+    t_y, work = CUDNN.rnn(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, dir, mode,
+        W.data, t_x, t_batchdims, training=CONFIG.train)
+
+    y, _ = batch_rnn(t_y, t_batchdims)
+    Var(y, (lstm,x,batchdims,work))
+end
+
 @generated function batch_rnn(x::CuMatrix{T}, batchdims_x::Vector{Int}) where T
     Ct = cstring(T)
     f = CuFunction("""
@@ -36,43 +73,6 @@
             Ptr{T}(x), Ptr{Cint}(CuArray(cumdims_x)), Cint(batchdims_x[1]))
         y, batchdims_y
     end
-end
-
-function lstm_cudnn(lstm::LSTM, xs::Vector{Var})
-    Ws = Var[]
-    h0s = Var[]
-    c0s = Var[]
-    coef = lstm.bidirectional ? 2 : 1
-    for l = 1:lstm.nlayers
-        for d = 1:coef
-            i = (l-1)*coef + d
-            p = lstm.params[i]
-            n = l == 1 ? lstm.insize : lstm.hsize*coef
-            push!(Ws, vec(p.W[1:n,:]), vec(p.W[n+1:end,:]))
-        end
-    end
-    for p in lstm.params
-        push!(Ws, p.b)
-        push!(Ws, p.b) # CUDNN requires bias for U
-        push!(h0s, p.h0)
-        push!(c0s, p.c0)
-    end
-    W = concat(1, Ws...)
-    h0 = concat(1, h0s...)
-    c0 = concat(1, c0s...)
-
-    batchdims = map(x -> size(x,2), xs)
-    perm = sortperm(batchdims, rev=true)
-    x = cat(2, map(x -> x.data, xs[perm])...)
-    t_x, t_batchdims = batch_rnn(x, batchdims)
-
-    dir = lstm.bidirectional ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
-    mode = CUDNN.CUDNN_LSTM
-    t_y, work = CUDNN.rnn(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, dir, mode,
-        W.data, t_x, t_batchdims, training=CONFIG.train)
-
-    y, _ = batch_rnn(t_y, t_batchdims)
-    Var(y, (lstm,x,batchdims,work))
 end
 
 function addgrad!(y::Var, lstm::LSTM, x::Var, batchdims::Vector{Int}, work, w::Var)

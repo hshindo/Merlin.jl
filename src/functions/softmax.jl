@@ -51,8 +51,6 @@ function softmax(x::Matrix{T}) where T
     y
 end
 
-softmax(x::CuArray) = CUDNN.softmax(x)
-
 function addgrad!(y::Var, ::typeof(softmax), x::Var)
     isvoid(x.grad) && return
     ∇softmax!(y.data, y.grad, x.grad)
@@ -79,8 +77,6 @@ function ∇softmax!(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T}) where T
         end
     end
 end
-
-∇softmax!(y::CuArray, gy::CuArray, gx::CuArray) = CUDNN.∇softmax!(y, gy, gx)
 
 """
     logsoftmax(x)
@@ -110,10 +106,6 @@ function logsoftmax(x::Matrix{T}) where T
     y
 end
 
-function logsoftmax(x::CuArray)
-    CUDNN.logsoftmax(x)
-end
-
 function ∇logsoftmax!(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T}) where T
     @inbounds for j = 1:size(y,2)
         sum = T(0)
@@ -124,8 +116,4 @@ function ∇logsoftmax!(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T}) where T
             gx[i,j] += gy[i,j] - exp(y[i,j]) * sum
         end
     end
-end
-
-function ∇logsoftmax!(y::CuArray, gy::CuArray, gx::CuArray)
-    CUDNN.∇logsoftmax!(y, gy, gx)
 end
