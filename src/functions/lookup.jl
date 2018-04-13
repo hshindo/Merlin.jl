@@ -1,7 +1,7 @@
 export lookup
 
 function lookup(w::Var, x::Var)
-    setbackend!(w, x)
+    configure!(w, x)
     y = lookup(w.data, x.data)
     Var(y, (lookup,w,x))
 end

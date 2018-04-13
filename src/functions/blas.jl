@@ -17,6 +17,7 @@ B = BLAS.gemv('N', 1, A, x)
 ```
 """
 function BLAS.gemv(tA::Char, alpha::Number, A::Var, x::Var)
+    configure!(A, x)
     T = eltype(A)
     y = BLAS.gemv(tA, T(alpha), A.data, x.data)
     Var(y, (BLAS.gemv,tA,alpha,A,x))
@@ -55,6 +56,7 @@ C = BLAS.gemm('T', 'N', 1, A, B)
 ```
 """
 function BLAS.gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
+    configure!(A, B)
     T = eltype(A)
     y = BLAS.gemm(tA, tB, T(alpha), A.data, B.data)
     Var(y, (BLAS.gemm,tA,tB,alpha,A,B))

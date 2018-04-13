@@ -13,24 +13,24 @@ y = concat(2, x1, x2)
 ```
 """
 function concat(dim::Int, xs::Var...)
+    configure!(xs...)
     y = cat(dim, map(x -> x.data, xs)...)
     Var(y, (concat,dim,xs...))
 end
-concat(dim::Int, xs::Vector{Var}) = concat(dim, xs...)
 concat(dim::Int, xs::Node...) = Node(concat, dim, xs...)
 
 function addgrad!(y::Var, ::typeof(concat), dim::Int, xs::Var...)
-    ∇concat!(y.grad, dim, xs...)
+    ∇concat!(y, dim, xs...)
 end
 
-function ∇concat!(gy::Array{T,N}, dim::Int, xs::Var...) where {T,N}
+function ∇concat!(y::Var, dim::Int, xs::Var...)
     offset = 0
-    ysize = Any[Colon() for i=1:N]
+    ysize = Any[Colon() for i=1:ndims(y)]
     for x in xs
         s = size(x, dim)
         if !isvoid(x.grad)
             ysize[dim] = offset+1:offset+s
-            BLAS.axpy!(T(1), gy[ysize...], x.grad)
+            add!(x.grad, view(y.grad,ysize...))
         end
         offset += s
     end

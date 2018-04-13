@@ -168,7 +168,10 @@ Sigmoid logistic function.
 f(x) = (1 + \exp(-x))^{-1}
 ```
 """
-sigmoid(x::Var) = Var(sigmoid(x.data), (sigmoid,x))
+function sigmoid(x::Var)
+    configure!(x)
+    Var(sigmoid(x.data), (sigmoid,x))
+end
 sigmoid(x::Array) = sigmoid.(x)
 sigmoid(x::T) where T<:AbstractFloat = T(1 / (1 + exp(-x)))
 sigmoid(x::Node) = Node(sigmoid, x)
@@ -230,7 +233,10 @@ doc"""
 
 Hyperbolic tangent function.
 """
-Base.tanh(x::Var) = Var(tanh(x.data), (tanh,x))
+function Base.tanh(x::Var)
+    configure!(x)
+    Var(tanh(x.data), (tanh,x))
+end
 Base.tanh(x::Array) = tanh.(x)
 Base.tanh(x::Node) = Node(tanh, x)
 

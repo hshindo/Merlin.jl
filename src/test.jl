@@ -1,9 +1,10 @@
 using Base.Test
 
-export test_gradient, test_backend
+export test_gradient!, test_cuda!
 
-function test_gradient(f, xs...; tol=1e-3)
-    params = filter(x -> isa(x,Var) && isparam(x), [xs...])
+function test_gradient!(f, xs...; tol=2e-3)
+    setcpu()
+    params = collect(Iterators.filter(x -> isa(x,Var) && isparam(x), xs))
     y = f(xs...)
 
     foreach(zerograd!, params)
@@ -30,24 +31,28 @@ function test_gradient(f, xs...; tol=1e-3)
     end
 end
 
-function test_backend(backend, f, xs...; tol=1e-3)
-    LibCUDA.Configured || return
+function test_cuda!(f, xs...; tol=2e-3)
+    LibCUDA.AVAILABLE || return
 
-    d_f = backend(f)
-    d_xs = map(x -> isa(x,Var) ? backend(x) : x, xs)
+    params = collect(Iterators.filter(x -> isa(x,Var) && isparam(x), xs))
 
-    foreach(x -> isa(x,Var) && isparam(x) && zerograd!(x), xs)
-    foreach(x -> isa(x,Var) && isparam(x) && zerograd!(x), d_xs)
-
+    setcpu()
     y = f(xs...)
-    d_y = d_f(d_xs...)
-    @test y.data ≈ d_y.data
-
+    foreach(zerograd!, params)
     gradient!(y)
+    gxs = map(x -> copy(x.grad), params)
+
+
+    setcuda()
+    d_y = f(xs...)
+    foreach(zerograd!, params)
     gradient!(d_y)
-    for (x,d_x) in zip(xs,d_xs)
-        isa(x,Var) || continue
-        isparam(x) || continue
-        @test x.grad ≈ d_x.grad
+    d_gxs = map(x -> x.grad, params)
+
+    @test maximum(abs,y.data-Array(d_y.data)) <= tol
+    for (gx,d_gx) in zip(gxs,d_gxs)
+        @test maximum(abs,gx-Array(d_gx)) <= tol
     end
+
+    setcpu()
 end

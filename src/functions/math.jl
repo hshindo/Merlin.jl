@@ -62,7 +62,10 @@ doc"""
     +(a::Number, x::Var)
     +(x::Var, a::Number)
 """
-+(x1::Var, x2::Var) = Var(x1.data + x2.data, (+,x1,x2))
+function +(x1::Var, x2::Var)
+    configure!(x1, x2)
+    Var(x1.data + x2.data, (+,x1,x2))
+end
 +(x1::Union{Number,Array}, x2::Var) = Var(x1) + x2
 +(x1::Var, x2::Union{Number,Array}) = x1 + Var(x2)
 
@@ -75,7 +78,10 @@ end
 doc"""
     -(x1, x2)
 """
--(x1::Var, x2::Var) = Var(x1.data - x2.data, (-,x1,x2))
+function -(x1::Var, x2::Var)
+    configure!(x1, x2)
+    Var(x1.data - x2.data, (-,x1,x2))
+end
 -(a::Number, x::Var) = Var(a) - x
 -(x::Var, a::Number) = x - Var(a)
 
@@ -86,6 +92,7 @@ function addgrad!(y::Var, ::typeof(-), x1::Var, x2::Var)
 end
 
 function -(x::Var)
+    configure!(x)
     Var(-x.data, (-,x))
 end
 
@@ -152,7 +159,10 @@ end
 doc"""
     *(A::Var, B::Var)
 """
-*(A::Var, B::Var) = Var(A.data * B.data, (*,A,B))
+function *(A::Var, B::Var)
+    configure!(A, B)
+    Var(A.data * B.data, (*,A,B))
+end
 
 function addgrad!(C::Var, ::typeof(*), A::Var, B::Var)
     T = eltype(C)

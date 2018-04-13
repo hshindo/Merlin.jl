@@ -9,10 +9,9 @@ y = maximum(x, 1)
 ```
 """
 function Base.maximum(x::Var, dim::Int, batchdims::Vector{Int})
-    if length(batchdims) == 1
+    if length(batchdims) == 1 || dim != ndims(x)
         y, idx = findmax(x.data, dim)
     else
-        @assert dim == ndims(x)
         @assert sum(batchdims) == size(x,ndims(x))
         y, idx = maximum_batch(x.data, batchdims)
     end

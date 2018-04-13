@@ -1,8 +1,6 @@
 @generated function softmax_crossentropy(p::CuVector{Cint}, logx::CuMatrix{T}) where T
     Ct = cstring(T)
-    f = CuFunction("""
-    $(LibCUDA.Array_h)
-
+    k = Kernel("""
     __global__ void softmax_crossentropy($Ct *y, int *p, Array<$Ct,2> logx, int length) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx < length) {
@@ -13,17 +11,15 @@
         length(p) == size(logx,2) || throw("Length unmatch.")
         y = CuArray{T}(length(p))
         gdims, bdims = cudims(length(y))
-        culaunch($f, gdims, bdims, Ptr{T}(y), Ptr{Cint}(p), logx, Cint(length(y)))
+        $k(gdims, bdims, pointer(y), pointer(p), logx, length(y))
         y
     end
 end
 
 @generated function softmax_crossentropy(p::CuMatrix{T}, logx::CuMatrix{T}) where T
     Ct = cstring(T)
-    f = CuFunction("""
-    $(LibCUDA.Array_h)
-
-    __global__ void f($Ct *y, $Ct *p, $Ct *logx, int length) {
+    k = Kernel("""
+    __global__ void softmax_crossentropy($Ct *y, $Ct *p, $Ct *logx, int length) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx < length) {
             y[idx] = -p[idx] * logx[idx];
@@ -33,17 +29,15 @@ end
         size(p) == size(logx) || throw("Length unmatch.")
         y = similar(p)
         gdims, bdims = cudims(length(y))
-        culaunch($f, gdims, bdims, Ptr{T}(y), Ptr{T}(p), Ptr{T}(logx), length(y))
+        $k(gdims, bdims, pointer(y), pointer(p), pointer(logx), length(y))
         vec(sum(y,1))
     end
 end
 
 @generated function ∇softmax_crossentropy!(gy::CuVector{T}, p::CuVector{Cint}, gx::CuMatrix{T}, logx::CuMatrix{T}) where T
     Ct = cstring(T)
-    f = CuFunction("""
-    $(LibCUDA.Array_h)
-
-    __global__ void f($Ct *gy, int *p, Array<$Ct,2> gx, Array<$Ct,2> logx) {
+    k = Kernel("""
+    __global__ void softmax_crossentropy_grad($Ct *gy, int *p, Array<$Ct,2> gx, Array<$Ct,2> logx) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= logx.length()) return;
 
@@ -58,16 +52,14 @@ end
     }""")
     quote
         gdims, bdims = cudims(length(logx))
-        culaunch($f, gdims, bdims, Ptr{T}(gy), Ptr{Cint}(p), gx, logx)
+        $k(gdims, bdims, pointer(gy), pointer(p), gx, logx)
     end
 end
 
 @generated function ∇softmax_crossentropy!(gy::CuVector{T}, p::CuMatrix{T}, gx::CuMatrix{T}, logx::CuMatrix{T}) where T
     Ct = cstring(T)
-    f = CuFunction("""
-    $(LibCUDA.Array_h)
-
-    __global__ void f($Ct *gy, $Ct *p, $Ct *gx, Array<$Ct,2> logx) {
+    k = Kernel("""
+    __global__ void softmax_crossentropy_grad($Ct *gy, $Ct *p, $Ct *gx, Array<$Ct,2> logx) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= logx.length()) return;
 
@@ -79,6 +71,6 @@ end
     }""")
     quote
         gdims, bdims = cudims(length(logx))
-        culaunch($f, gdims, bdims, Ptr{T}(gy), Ptr{Cint}(p), Ptr{T}(gx), logx)
+        $k(gdims, bdims, pointer(gy), pointer(p), pointer(gx), logx)
     end
 end

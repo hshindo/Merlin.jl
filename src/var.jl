@@ -32,7 +32,7 @@ end
 zerograd(data) = Var(data, (), zeros(data))
 
 function zerograd!(x::Var)
-    isvoid(x.grad) && return
+    isvoid(x.grad) && throw("")
     x.grad = zeros(x.data)
     x
 end
@@ -104,22 +104,16 @@ function gradient!(tops::Var...)
     filter(isparam, sorted)
 end
 
-function configure!(x::Var)
-    if iscpu()
-        x.data = Array(x.data)
-        isvoid(x.grad) || (x.grad = Array(x.grad))
-    elseif iscuda()
-        x.data = CuArray(x.data)
-        isvoid(x.grad) || (x.grad = CuArray(x.grad))
-    end
-end
 function configure!(xs::Var...)
-    for x in xs
-        configure!(x)
-    end
-end
-function configure!(xs::Vector{Var})
-    for x in xs
-        configure!(x)
+    if iscpu()
+        for x in xs
+            x.data = Array(x.data)
+            isvoid(x.grad) || (x.grad = Array(x.grad))
+        end
+    elseif iscuda()
+        for x in xs
+            x.data = CuArray(x.data)
+            isvoid(x.grad) || (x.grad = CuArray(x.grad))
+        end
     end
 end

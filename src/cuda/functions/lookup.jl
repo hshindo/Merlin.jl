@@ -1,6 +1,6 @@
 @generated function lookup(w::CuMatrix{T}, x::CuArray{Cint}) where T
     Ct = cstring(T)
-    f = CuFunction("""
+    k = Kernel("""
     __global__ void lookup($Ct *y, int sizeY, $Ct *w, int *x, int n) {
         int idxY = blockIdx.x * blockDim.x + threadIdx.x;
         if (idxY >= sizeY) return;
@@ -13,25 +13,29 @@
         n = size(w, 1)
         y = CuArray{T}(n*size(x,1), Base.tail(size(x))...)
         gdims, bdims = cudims(length(y))
-        culaunch($f, gdims, bdims, Ptr{T}(y), length(y), Ptr{T}(w), Ptr{Cint}(x), n)
+        $k(gdims, bdims, pointer(y), length(y), pointer(w), pointer(x), n)
         y
     end
 end
 
-@generated function ∇lookup!(gy::CuMatrix{T}, gw::CuMatrix{T}, x::CuArray{Cint}) where T
+@generated function ∇lookup!(gy::CuArray{T}, gw::CuArray{T}, x::CuArray{Cint}) where T
     Ct = cstring(T)
-    f = CuFunction("""
+    k = Kernel("""
     __global__ void lookup_grad($Ct *gy, int sizeY, $Ct *gw, int *x, int n) {
         int idxY = blockIdx.x * blockDim.x + threadIdx.x;
         if (idxY >= sizeY) return;
 
         int j = idxY / n;
         int i = idxY - n * j;
-        if (x[j] > 0) gw[(x[j]-1) * n + i] += gy[idxY];
+        if (x[j] > 0) {
+            int idxW = (x[j]-1) * n + i;
+            atomicAdd(&gw[idxW], gy[idxY]);
+            // gw[(x[j]-1) * n + i] += gy[idxY];
+        }
     }""")
     quote
         n = size(gw, 1)
         gdims, bdims = cudims(length(gy))
-        culaunch($f, gdims, bdims, Ptr{T}(gy), length(gy), Ptr{T}(gw), Ptr{Cint}(x), n)
+        $k(gdims, bdims, pointer(gy), length(gy), pointer(gw), pointer(x), n)
     end
 end
