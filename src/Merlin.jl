@@ -6,6 +6,9 @@ using LibCUDA
 
 export Functor
 abstract type Functor end
+const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
+const UniVector{T} = UniArray{T,1}
+const UniMatrix{T} = UniArray{T,2}
 
 include("config.jl")
 include("add.jl")

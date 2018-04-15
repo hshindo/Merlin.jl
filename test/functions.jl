@@ -141,8 +141,8 @@ end
         x.data[i] *= 10
     end
     for d = 1:2
-        # test_gradient!(maximum, x, d, [3,2])
-        # test_cuda(maximum, x, d, [3,2])
+        test_gradient!(maximum, x, d, [3,2])
+        test_cuda!(maximum, x, d, [3,2])
     end
 end
 

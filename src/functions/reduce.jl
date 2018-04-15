@@ -8,7 +8,23 @@ x = Var(rand(Float32,10,5))
 y = maximum(x, 1)
 ```
 """
-function Base.maximum(x::Var, dim::Int, batchdims::Vector{Int})
+function Base.max(x::Var, dim::Int)
+    y, idx = findmax(x.data, dim)
+    Var(y, (max,x,dim,idx))
+end
+
+function max_batch(x::Var, batchdims)
+    @assert sum(batchdims) == size(x,ndims(x))
+    xs = unsafe_split(x.data, batchdims)
+    for x in xs
+        max(x, ndims(x))
+    end
+    y, idx = max_batch(x.data, batchdims)
+end
+
+
+
+function Base.max(x::Var, dim::Int, batchdims::Vector{Int})
     if length(batchdims) == 1 || dim != ndims(x)
         y, idx = findmax(x.data, dim)
     else
@@ -19,7 +35,14 @@ function Base.maximum(x::Var, dim::Int, batchdims::Vector{Int})
 end
 Base.maximum(x::Node, dim::Int, batchdims) = Node(maximum, x, dim, batchdims)
 
-function maximum_batch(x::Array{T,N}, dims::Vector{Int}) where {T,N}
+function maximum_batch(x::UniArray{T,N}, dims::Vector{Int}) where {T,N}
+    xs = unsafe_split(x, dims)
+    for x in xs
+        findmax(x.data, dim)
+    end
+end
+
+function maximum_batch2(x::Array{T,N}, dims::Vector{Int}) where {T,N}
     front = Base.front(size(x))
     n = prod(front)
     y = T[]
@@ -81,7 +104,7 @@ function Base.mean(x::Var, dim::Int)
     Var(y, batchdims, mean, (x,dim))
 end
 
-function mean_batch{T,N}(x::Array{T,N}, batchdims::Vector{Int})
+function mean_batch2{T,N}(x::Array{T,N}, batchdims::Vector{Int})
     front = Base.front(size(x))
     n = prod(front)
     y = T[]
