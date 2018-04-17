@@ -42,7 +42,8 @@ end
 
 function unsafe_array(x::CuArray, index::Int, dims)
     p = pointer(x, index)
-    # mb = MemBlock(p, )
+    mb = LibCUDA.MemBlock(Ptr{Void}(p), -1, -1)
+    CuArray{T}(mb, dims)
 end
 
 function unsafe_split(x::UniArray{T,N}, dims::Vector{Int}) where {T,N}

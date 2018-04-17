@@ -22,12 +22,9 @@ mutable struct Var
     data
     args
     grad
-    batchdims
 end
 
-function Var(data=nothing, args=(), grad=nothing)
-    Var(data, args, grad, nothing)
-end
+Var(data=nothing, args=()) = Var(data, args, nothing)
 
 zerograd(data) = Var(data, (), zeros(data))
 
@@ -55,6 +52,7 @@ doc"""
 Returns whether `x` is a parameter or not
 """
 isparam(x::Var) = !isvoid(x.grad) && isempty(x.args)
+isparam(x) = false
 
 doc"""
     topsort(tops::T...)

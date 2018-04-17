@@ -1,10 +1,16 @@
 using Base.Test
 
-export test_gradient!, test_cuda!
+export @test_grad, @test_cuda
 
-function test_gradient!(f, xs...; tol=2e-3)
+macro test_grad(f, args...)
+    quote
+        test_grad($(esc(f)), $(map(esc,args)...))
+    end
+end
+
+function test_grad(f, xs...; atol=2e-3)
     setcpu()
-    params = collect(Iterators.filter(x -> isa(x,Var) && isparam(x), xs))
+    params = collect(Iterators.filter(isparam,xs))
     y = f(xs...)
 
     foreach(zerograd!, params)
@@ -27,21 +33,25 @@ function test_gradient!(f, xs...; tol=2e-3)
     end
 
     for (gx1,gx2) in zip(gxs1,gxs2)
-        @test maximum(abs,gx1-gx2) <= tol
+        @test gx1 ≈ gx2 atol=atol
     end
 end
 
-function test_cuda!(f, xs...; tol=2e-3)
+macro test_cuda(f, args...)
+    quote
+        test_cuda($(esc(f)), $(map(esc,args)...))
+    end
+end
+
+function test_cuda(f, xs...; atol=2e-3)
     LibCUDA.AVAILABLE || return
-
-    params = collect(Iterators.filter(x -> isa(x,Var) && isparam(x), xs))
-
     setcpu()
+    params = collect(Iterators.filter(isparam,xs))
+
     y = f(xs...)
     foreach(zerograd!, params)
     gradient!(y)
     gxs = map(x -> copy(x.grad), params)
-
 
     setcuda()
     d_y = f(xs...)
@@ -49,9 +59,10 @@ function test_cuda!(f, xs...; tol=2e-3)
     gradient!(d_y)
     d_gxs = map(x -> x.grad, params)
 
-    @test maximum(abs,y.data-Array(d_y.data)) <= tol
+    @test y.data ≈ Array(d_y.data) atol=atol
+
     for (gx,d_gx) in zip(gxs,d_gxs)
-        @test maximum(abs,gx-Array(d_gx)) <= tol
+        @test gx ≈ Array(d_gx) atol=atol
     end
 
     setcpu()

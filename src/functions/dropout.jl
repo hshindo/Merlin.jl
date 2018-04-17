@@ -6,6 +6,7 @@ doc"""
 Drops elements randomly with probability ``droprate`` and scales the other elements by factor ``1 / (1 - droprate)``.
 """
 function dropout(x::Var, droprate::Float64)
+    configure!(x)
     droprate == 0.0 && return x
     istrain() || return x
     y, r = dropout(x.data, droprate)
@@ -24,6 +25,8 @@ function dropout(x::Array{T}, droprate::Float64) where T
     y, r
 end
 
+dropout(x::CuArray, droprate) = CUDNN.dropout(x, droprate)
+
 function addgrad!(y::Var, ::typeof(dropout), x::Var, droprate::Float64, r)
     isvoid(x.grad) && return
     ∇dropout!(y.grad, x.grad, droprate, r)
@@ -35,3 +38,5 @@ function ∇dropout!(gy::Array{T}, gx::Array{T}, droprate::Float64, r::Vector{T}
         gx[i] += r[i] <= droprate ? T(0) : scale*gy[i]
     end
 end
+
+∇dropout!(gy::CuArray, gx, droprate, r) = CUDNN.∇dropout!(gy, gx, droprate, r)

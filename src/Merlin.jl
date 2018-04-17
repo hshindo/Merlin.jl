@@ -6,6 +6,7 @@ using LibCUDA
 
 export Functor
 abstract type Functor end
+
 const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
 const UniVector{T} = UniArray{T,1}
 const UniMatrix{T} = UniArray{T,2}
@@ -20,30 +21,29 @@ include("optimizer.jl")
 include("iterators.jl")
 
 for name in [
-    "activation",
+    "activation/crelu",
+    "activation/elu",
+    "activation/leaky_relu",
+    "activation/relu",
+    "activation/selu",
+    "activation/sigmoid",
+    "activation/swish",
+    "activation/tanh",
+
+    "loss/crossentropy",
+    "loss/l2",
+    "loss/mse",
+    "loss/softmax_crossentropy",
+
+    "reduction/max",
+    "reduction/mean",
+    "reduction/sum",
+
     "argmax",
     "blas",
-    "concat",
-    "conv",
-    "dropout",
-    "getindex",
-    "linear",
-    "lookup",
-    "loss",
-    "math",
-    "pad",
-    "reduce",
-    "reshape",
-    "rnn",
-    "softmax",
-    "split",
-    "standardize",
-    "transpose_batch",
-    "window1d"
+    "concat"
     ]
     include("functions/$name.jl")
-    f = joinpath(@__DIR__, "cuda/functions/$name.jl")
-    isfile(f) && include(f)
 end
 
 include("datasets/Datasets.jl")

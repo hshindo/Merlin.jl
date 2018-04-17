@@ -1,44 +1,61 @@
 const T = Float32
 
-@testset "activation" for i = 1:5
-    x = zerograd(randn(T,10,5))
-    for i = 1:length(x.data)
-        abs(x.data[i]) < 0.1 && (x.data[i] += 1)
-    end
-    beta = Var([T(1)])
+@testset "functions" for i = 1:5
 
-    for f in (relu,sigmoid,tanh)
-        test_gradient!(f, x)
-        test_cuda!(f, x)
-    end
+# activation
+x = zerograd(randn(T,10,5))
+for i = 1:length(x)
+    abs(x.data[i]) < 0.1 && (x.data[i] += 1)
+end
+for f in (relu,sigmoid,tanh)
+    @test_grad f x
+    @test_cuda f x
 end
 
-@testset "blas" for i = 1:5
-    A = zerograd(randn(T,10,5))
-    B = zerograd(randn(T,10,5))
-    test_gradient!(BLAS.gemm, 'N', 'T', 1, A, B)
-    test_cuda!(BLAS.gemm, 'N', 'T', 1, A, B)
+# blas
+A = zerograd(randn(T,10,5))
+B = zerograd(randn(T,10,5))
+@test_grad BLAS.gemm 'N' 'T' 1 A B
+@test_cuda BLAS.gemm 'N' 'T' 1 A B
 
-    A = zerograd(randn(T,10,5))
-    B = zerograd(randn(T,10))
-    test_gradient!(BLAS.gemv, 'T', 1, A, B)
-    test_cuda!(BLAS.gemv, 'T', 1, A, B)
+A = zerograd(randn(T,10,5))
+B = zerograd(randn(T,10))
+@test_grad BLAS.gemv 'T' 1 A B
+@test_cuda BLAS.gemv 'T' 1 A B
 
-    A = zerograd(randn(T,10,5,7))
-    B = zerograd(randn(T,10,5,7))
-    #test_gradient(gemm_batch, 'N', 'T', 1, A, B)
-    #test_cuda(gemm_batch, 'N', 'T', 1, A, B)
+A = zerograd(randn(T,10,5,7))
+B = zerograd(randn(T,10,5,7))
+#test_gradient(gemm_batch, 'N', 'T', 1, A, B)
+#test_cuda(gemm_batch, 'N', 'T', 1, A, B)
+
+# reduction
+x = zerograd(randn(T,10,5))
+for i = 1:length(x)
+    x.data[i] *= 10
+end
+for dim = 1:2
+    @test_grad max dim x
+    @test_cuda max dim x
+end
+@test_grad max_batch x [3,2]
+@test_cuda max_batch x [3,2]
+
+
+
+# concat
+x1 = zerograd(randn(T,10,5,2))
+x2 = zerograd(randn(T,10,5,2))
+x3 = zerograd(randn(T,10,5,2))
+for dim = 1:3
+    @test_grad concat dim x1 x2 x3
+    @test_cuda concat dim x1 x2 x3
 end
 
-@testset "concat" for i = 1:5
-    x1 = zerograd(randn(T,10,5,2))
-    x2 = zerograd(randn(T,10,5,2))
-    x3 = zerograd(randn(T,10,5,2))
-    for dim = 1:3
-        test_gradient!(concat, dim, x1, x2, x3)
-        test_cuda!(concat, dim, x1, x2, x3)
-    end
 end
+
+#=
+
+
 
 @testset "conv" for i = 1:5
     #x = zerograd(curandn(T,10,10,5,4))
@@ -135,16 +152,9 @@ end
     test_cuda!(*, A, B)
 end
 
-@testset "reduce" for i = 1:5
-    x = zerograd(randn(T,10,5))
-    for i = 1:length(x)
-        x.data[i] *= 10
-    end
-    for d = 1:2
-        test_gradient!(maximum, x, d, [3,2])
-        test_cuda!(maximum, x, d, [3,2])
-    end
-end
+
+=#
+
 
 #=
 @testset "reshape" for i = 1:5
