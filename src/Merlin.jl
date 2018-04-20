@@ -2,7 +2,13 @@ module Merlin
 
 using Base.Threads
 info("# CPU threads: $(nthreads())")
-using LibCUDA
+
+if haskey(ENV,"Merlin_CUDA") && ENV["Merlin_CUDA"]
+    using LibCUDA
+
+    const TEMP_CUDA = LibCUDA.AtomicMalloc()
+
+end
 
 export Functor
 abstract type Functor end
