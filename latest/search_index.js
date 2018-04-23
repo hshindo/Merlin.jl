@@ -45,7 +45,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Var",
     "title": "Merlin.Var",
     "category": "type",
-    "text": "Var\n\nVariable struct.\n\nVar contains the following members:\n\ndata\nargs\ngrad\nwork\n\nExample\n\nT = Float32\nx = Var(rand(T,10,5)) # x.grad is set to `nothing`\nx = zerograd(rand(T,10,5)) # x.grad is initialized as zero.\n\n\n\n"
+    "text": "Var\n\nVariable struct.\n\nVar contains the following members:\n\ndata\nargs\ngrad\n\nExample\n\nT = Float32\nx = Var(rand(T,10,5)) # x.grad is set to `nothing`\nx = zerograd(rand(T,10,5)) # x.grad is initialized as zero.\n\n\n\n"
 },
 
 {
@@ -97,70 +97,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Merlin.crelu-Tuple{Merlin.Var}",
-    "page": "Functions",
-    "title": "Merlin.crelu",
-    "category": "method",
-    "text": "crelu(x::Var)\n\nConcatenated Rectified Linear Unit. The output is twice the size of the input.\n\nf(x) = (max(0x) max(0-x))\n\nReferences\n\nShang et al., \"Understanding and Improving Convolutional Neural Networks via Concatenated Rectified Linear Units\", arXiv 2016.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.elu-Tuple{Merlin.Var}",
-    "page": "Functions",
-    "title": "Merlin.elu",
-    "category": "method",
-    "text": "elu(x::Var)\n\nExponential Linear Unit.\n\nReferences\n\nClevert et al., \"Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs)\", arXiv 2015.\n\nf(x) =\nbegincases\nx  x  0 \nalpha (e^x-1)  xleq0\nendcases\n\nwhere alpha=1.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.leaky_relu",
-    "page": "Functions",
-    "title": "Merlin.leaky_relu",
-    "category": "function",
-    "text": "leaky_relu(x::Var, alpha=0.1)\n\nLeaky Rectified Linear Unit.\n\nf(x) =\nbegincases\nx  x  0 \nalpha x  x leq 0\nendcases\n\nReferences\n\nMaas et al., \"Rectifier Nonlinearities Improve Neural Network Acoustic Models\", ICML 2013.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.relu-Tuple{Merlin.Var}",
-    "page": "Functions",
-    "title": "Merlin.relu",
-    "category": "method",
-    "text": "relu(x::Var)\n\nRectified Linear Unit.\n\nf(x) = max(0 x)\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.selu-Tuple{Merlin.Var}",
-    "page": "Functions",
-    "title": "Merlin.selu",
-    "category": "method",
-    "text": "selu(x::Var)\n\nScaled Exponential Linear Unit.\n\nf(x) = lambda\nbegincases\nx  x  0 \nalpha e^x-alpha  xleq0\nendcases\n\nwhere lambda=10507 and alpha=16733.\n\nReferences\n\nKlambauer et al., \"Self-Normalizing Neural Networks\", NIPS 2017.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.sigmoid-Tuple{Merlin.Var}",
-    "page": "Functions",
-    "title": "Merlin.sigmoid",
-    "category": "method",
-    "text": "sigmoid(x)\n\nSigmoid logistic function.\n\nf(x) = (1 + exp(-x))^-1\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.Swish",
-    "page": "Functions",
-    "title": "Merlin.Swish",
-    "category": "type",
-    "text": "Swish\n\nSwish activation function.\n\nf(x) = x cdot sigma (beta x)\n\nwhere beta is a leanable parameter.\n\nReferences\n\nRamachandran et al. \"Searching for Activation Functions\", arXiv 2017.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Base.tanh-Tuple{Merlin.Var}",
-    "page": "Functions",
-    "title": "Base.tanh",
-    "category": "method",
-    "text": "tanh(x::Var)\n\nHyperbolic tangent function.\n\n\n\n"
-},
-
-{
     "location": "functions.html#Activation-1",
     "page": "Functions",
     "title": "Activation",
@@ -201,14 +137,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#Merlin.Conv",
-    "page": "Functions",
-    "title": "Merlin.Conv",
-    "category": "type",
-    "text": "Conv(T, filtersize, kwargs...)\n\nW: (W1,W2,...,I,O)\nX: (X1,X2,...,I,N)\nY: (Y1,Y2,...,O,N)\n\nwhere\n\nI: number of input channels\nO: number of output channels\nN: batch size\n\nT = Float32\nconv = Conv(T, (1,1,3,2))\nx = CuArray{T}(5,5,3,3)\ny = conv(x)\n\n\n\n"
-},
-
-{
     "location": "functions.html#Convolution-1",
     "page": "Functions",
     "title": "Convolution",
@@ -222,38 +150,6 @@ var documenterSearchIndex = {"docs": [
     "title": "Embeddings",
     "category": "section",
     "text": "Modules = [Merlin]\nPages   = [\"embeddings.jl\"]"
-},
-
-{
-    "location": "functions.html#Merlin.crossentropy-Tuple{Merlin.Var,Merlin.Var}",
-    "page": "Functions",
-    "title": "Merlin.crossentropy",
-    "category": "method",
-    "text": "crossentropy(p, q)\n\nCross-entropy function between p and q.\n\nf(x) = -sum_x p(x) log q(x)\n\np::Var: Var of Vector{Int} or Matrix{Float}. If p is Vector{Int} and p[i] == 0, returns 0.\nq::Var: Var of Matrix{Float}\n\np = Var(rand(0:10,5))\nq = softmax(Var(rand(Float32,10,5)))\ny = crossentropy(p, q)\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.l2-Tuple{Merlin.Var,Float64}",
-    "page": "Functions",
-    "title": "Merlin.l2",
-    "category": "method",
-    "text": "l2(x::Var, lambda::Float64)\n\nL2 regularization.\n\ny = fraclambda2leftVert mathbfx rightVert ^2\n\nx = Var(rand(Float32,10,5))\ny = l2(x, 0.01)\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.mse-Tuple{Merlin.Var,Merlin.Var}",
-    "page": "Functions",
-    "title": "Merlin.mse",
-    "category": "method",
-    "text": "mse(x1, x2)\n\nMean Squared Error function between x1 and x2. The mean is calculated over the minibatch. Note that the error is not scaled by 1/2.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Merlin.softmax_crossentropy-Tuple{Merlin.Var,Merlin.Var}",
-    "page": "Functions",
-    "title": "Merlin.softmax_crossentropy",
-    "category": "method",
-    "text": "softmax_crossentropy(p, x)\n\nCross-entropy function between p and softmax(x).\n\nf(x) = -sum_x p(x) log q(x)\n\nwhere q = softmax(x)\n\np: Var of Vector{Int} or Matrix{Float}\nq: Var of Matrix{Float}\n\np = Var(rand(0:10,5))\nq = Var(rand(Float32,10,5))\ny = softmax_crossentropy(p, x)\n\n\n\n"
 },
 
 {
@@ -366,30 +262,6 @@ var documenterSearchIndex = {"docs": [
     "title": "Recurrent",
     "category": "section",
     "text": "Modules = [Merlin]\nPages   = [\"recurrent.jl\"]"
-},
-
-{
-    "location": "functions.html#Base.maximum-Tuple{Merlin.Var,Int64,Array{Int64,1}}",
-    "page": "Functions",
-    "title": "Base.maximum",
-    "category": "method",
-    "text": "maximum(x::Var, dim::Int)\n\nReturns the maximum value over the given dimension.\n\nx = Var(rand(Float32,10,5))\ny = maximum(x, 1)\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Base.mean-Tuple{Merlin.Var,Int64}",
-    "page": "Functions",
-    "title": "Base.mean",
-    "category": "method",
-    "text": "mean(x, dim::Int)\n\nComputes the average over the given dimension.\n\n\n\n"
-},
-
-{
-    "location": "functions.html#Base.sum-Tuple{Merlin.Var,Int64}",
-    "page": "Functions",
-    "title": "Base.sum",
-    "category": "method",
-    "text": "sum(x::Var, dim::Int)\n\nReturns the sum over the given dimension.\n\n\n\n"
 },
 
 {
