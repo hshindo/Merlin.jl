@@ -15,7 +15,7 @@ iscuda() = !iscpu()
 getdevice() = getconfig().device
 function setdevice(dev::Int)
     getconfig().device = dev
-    dev >= 0 && LibCUDA.setdevice(dev)
+    dev >= 0 && CUDA.setdevice(dev)
 end
 function setdevice(f::Function, dev::Int)
     _dev = getdevice()
@@ -26,11 +26,12 @@ end
 setcpu() = setdevice(-1)
 setcpu(f::Function) = setdevoce(f, -1)
 function setcuda(dev::Int=-1)
-    dev < 0 && (dev = LibCUDA.free_device())
+    dev < 0 && (dev = CUDA.free_device())
     setdevice(dev)
 end
 function setcuda(f::Function, dev::Int=-1)
-    dev < 0 && (dev = LibCUDA.free_device())
+    CUDA.AVAILABLE || return
+    dev < 0 && (dev = CUDA.free_device())
     setdevice(f, dev)
 end
 

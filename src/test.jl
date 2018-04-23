@@ -1,6 +1,22 @@
 using Base.Test
 
-export @test_grad, @test_cuda
+export @test_function, @test_grad, @test_cuda
+
+macro test_function(f, args...)
+    quote
+        test_function($(esc(f)), $(map(esc,args)...))
+    end
+end
+
+function test_function(f, xs...)
+    y = f(xs...)
+    gradient!(y)
+
+    setcuda() do
+        y = f(xs...)
+        gradient!(y)
+    end
+end
 
 macro test_grad(f, args...)
     quote
@@ -44,7 +60,7 @@ macro test_cuda(f, args...)
 end
 
 function test_cuda(f, xs...; atol=2e-3)
-    LibCUDA.AVAILABLE || return
+    CUDA.AVAILABLE || return
     setcpu()
     params = collect(Iterators.filter(isparam,xs))
 

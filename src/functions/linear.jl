@@ -28,7 +28,7 @@ function Linear(::Type{T}, insize::Int, outsize::Int;
 
     w = init_w(T, insize, outsize)
     b = init_b(T, outsize)
-    Linear(zerograd(w), zerograd(b))
+    Linear(param(w), param(b))
 end
 (f::Linear)(x) = linear(x, f.w, f.b)
 
@@ -37,12 +37,12 @@ function linear(x::Var, w::Var, b::Var)
     T = eltype(x)
     if ndims(x) == 1
         y = BLAS.gemv('T', w.data, x.data)
-        y += b.data
+        BLAS.axpy!(T(1), b.data, y)
     elseif ndims(x) == 2
         y = BLAS.gemm('T', 'N', w.data, x.data)
         y .+= b.data
     else
-        throw("Invalid ndims")
+        throw("Invalid ndims of x: $(ndims(x))")
     end
     Var(y, (linear,x,w,b))
 end
@@ -55,9 +55,11 @@ function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
         isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), xx, gy, T(1), w.grad)
         isvoid(x.grad) || BLAS.gemv!('N', T(1), w.data, y.grad, T(1), x.grad)
         isvoid(b.grad) || BLAS.axpy!(T(1), y.grad, b.grad)
-    else
+    elseif ndims(x) == 2
         isvoid(x.grad) || BLAS.gemm!('N', 'N', T(1), w.data, y.grad, T(1), x.grad)
         isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), x.data, y.grad, T(1), w.grad)
         isvoid(b.grad) || BLAS.axpy!(T(1), sum(y.grad,2), b.grad)
+    else
+        throw("Invalid ndims of x: $(ndims(x))")
     end
 end

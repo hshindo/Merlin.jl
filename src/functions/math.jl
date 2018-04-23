@@ -4,11 +4,16 @@ import Base: +, -, *, /, ^
 doc"""
     exp(x)
 """
-exp(x::Var) = Var(exp(x.data), (exp,x))
+function exp(x::Var)
+    configure!(x)
+    Var(exp(x.data), (exp,x))
+end
 exp(x::Array) = exp.(x)
+exp(x::Node) = Node(exp, x)
 
 function addgrad!(y::Var, ::typeof(exp), x::Var)
-    isvoid(x.grad) || ∇exp!(y.data, y.grad, x.grad)
+    isvoid(x.grad) && return
+    ∇exp!(y.data, y.grad, x.grad)
 end
 
 function ∇exp!(y::Array{T}, gy::Array{T}, gx::Array{T}) where T
@@ -20,11 +25,16 @@ end
 doc"""
     log(x)
 """
-log(x::Var) = Var(log(x.data), (log,x))
+function log(x::Var)
+    configure!(x)
+    Var(log(x.data), (log,x))
+end
 log(x::Array) = log.(x)
+log(x::Node) = Node(log, x)
 
 function addgrad!(y::Var, ::typeof(log), x::Var)
-    isvoid(x.grad) || ∇log!(y.grad, x.data, x.grad)
+    isvoid(x.grad) && return
+    ∇log!(y.grad, x.data, x.grad)
 end
 
 function ∇log!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
@@ -104,7 +114,11 @@ end
 doc"""
     .+(x1::Var, x2::Var)
 """
-broadcast(::typeof(+), x1::Var, x2::Var) = Var(x1.data .+ x2.data, (broadcast,+,x1,x2))
+function broadcast(::typeof(+), x1::Var, x2::Var)
+    throw("Not tested yet.")
+    configure!(x1, x2)
+    Var(x1.data .+ x2.data, (broadcast,+,x1,x2))
+end
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(+), x1::Var, x2::Var)
     isvoid(x1.grad) || ∇broadcast_plus!(y.grad, x1.grad)
@@ -122,7 +136,11 @@ end
 doc"""
     .-(x1::Var, x2::Var)
 """
-broadcast(::typeof(-), x1::Var, x2::Var) = Var(x1.data .- x2.data, (broadcast,-,x1,x2))
+function broadcast(::typeof(-), x1::Var, x2::Var)
+    throw("Not tested yet.")
+    configure!(x1, x2)
+    Var(x1.data .- x2.data, (broadcast,-,x1,x2))
+end
 
 function addgrad!(y::Var, ::typeof(broadcast), ::typeof(-), x1::Var, x2::Var)
     isvoid(x1.grad) || ∇broadcast_plus!(y.grad, x1.grad)
@@ -135,25 +153,6 @@ function ∇broadcast_minus!(gy::Array{T}, gx::Array{T}) where T
         size(gx,i) == 1 && size(gy,i) > 1 && push!(dims,i)
     end
     BLAS.axpy!(T(-1), sum(gy,dims), gx)
-end
-
-doc"""
-    .*(x1::Var, x2::Var)
-"""
-broadcast(::typeof(*), x1::Var, x2::Var) = Var(x1.data .* x2.data, (broadcast,*,x1,x2))
-
-function addgrad!(y::Var, ::typeof(broadcast), ::typeof(*), x1::Var, x2::Var)
-    isvoid(x1.grad) || ∇broadcast_times!(y.grad, x2.data, x1.grad)
-    isvoid(x2.grad) || ∇broadcast_times!(y.grad, x1.data, x2.grad)
-end
-
-function ∇broadcast_times!(gy::Array{T}, x2::Array{T}, gx1::Array{T}) where T
-    g = gy .* x2
-    dims = Int[]
-    for i = 1:ndims(gy)
-        size(gx1,i) == 1 && size(g,i) > 1 && push!(dims,i)
-    end
-    BLAS.axpy!(T(1), sum(g,dims), gx1)
 end
 
 doc"""
@@ -171,9 +170,32 @@ function addgrad!(C::Var, ::typeof(*), A::Var, B::Var)
 end
 
 doc"""
+    .*(x1::Var, x2::Var)
+"""
+function broadcast(::typeof(*), x1::Var, x2::Var)
+    configure!(x1, x2)
+    Var(x1.data .* x2.data, (broadcast,*,x1,x2))
+end
+
+function addgrad!(y::Var, ::typeof(broadcast), ::typeof(*), x1::Var, x2::Var)
+    isvoid(x1.grad) || ∇broadcast_times!(y.grad, x2.data, x1.grad)
+    isvoid(x2.grad) || ∇broadcast_times!(y.grad, x1.data, x2.grad)
+end
+
+function ∇broadcast_times!(gy::Array{T}, x2::Array{T}, gx1::Array{T}) where T
+    g = gy .* x2
+    dims = Int[]
+    for i = 1:ndims(gy)
+        size(gx1,i) == 1 && size(g,i) > 1 && push!(dims,i)
+    end
+    BLAS.axpy!(T(1), sum(g,dims), gx1)
+end
+
+doc"""
     /(x1::Var, a)
 """
 function /(x::Var, a::Number)
+    configure!(x)
     y = Var(x.data/a, (x,))
     y.∇! = () -> begin
         T = eltype(x)
@@ -191,7 +213,10 @@ end
 doc"""
     ^(x::Var, a::Number)
 """
-^(x::Var, a::Number) = Var(x.data^a, (^,x,a))
+function ^(x::Var, a::Number)
+    configure!(x)
+    Var(x.data^a, (^,x,a))
+end
 
 function addgrad!(y::Var, ::typeof(^), x::Var, a::Number)
     T = eltype(x)
@@ -204,6 +229,28 @@ function ∇elempow!(a::T, x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
    end
 end
 
+@generated function ∇elemtimes!{T,N}(gy::CuArray{T,N}, x2::CuArray{T,N}, gx1::CuArray{T,N})
+    f = CuFunction("""
+    __global__ void f(Array<$T,$N> gy, Array<$T,$N> x2, Array<$T,$N> gx1) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx < gy.length()) {
+            gx1[idx] += gy[idx] * x2[idx];
+        }
+    }""")
+    quote
+        if size(x2) == size(gx1)
+            $f(gy, x2, gx1, dx=length(gy))
+        else
+            gx = gy .* x2
+            for i = 1:N
+                size(gx1,i) == 1 && size(gx,i) > 1 && (gx = sum(gx,i))
+            end
+            BLAS.axpy!(T(1), gx, gx1)
+        end
+    end
+end
+
+#=
 @generated function ∇exp!(y::CuArray{T}, gy::CuArray{T}, gx::CuArray{T}) where T
     f = CuFunction("""
     __global__ void f($T *y, $T *gy, $T *gx, int length) {
@@ -230,27 +277,6 @@ end
     end
 end
 
-@generated function ∇elemtimes!{T,N}(gy::CuArray{T,N}, x2::CuArray{T,N}, gx1::CuArray{T,N})
-    f = CuFunction("""
-    __global__ void f(Array<$T,$N> gy, Array<$T,$N> x2, Array<$T,$N> gx1) {
-        int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx < gy.length()) {
-            gx1[idx] += gy[idx] * x2[idx];
-        }
-    }""")
-    quote
-        if size(x2) == size(gx1)
-            $f(gy, x2, gx1, dx=length(gy))
-        else
-            gx = gy .* x2
-            for i = 1:N
-                size(gx1,i) == 1 && size(gx,i) > 1 && (gx = sum(gx,i))
-            end
-            BLAS.axpy!(T(1), gx, gx1)
-        end
-    end
-end
-
 function ∇elemtimes!{T}(gy::Array{T}, x2::Array{T}, gx1::Array{T})
     ind_x2 = CartesianIndex(size(x2))
     ind_gx1 = CartesianIndex(size(gx1))
@@ -258,3 +284,4 @@ function ∇elemtimes!{T}(gy::Array{T}, x2::Array{T}, gx1::Array{T})
         gx1[min(ind_gx1,I)] += gy[I] * x2[min(ind_x2,I)]
     end
 end
+=#

@@ -3,13 +3,10 @@ module Merlin
 using Base.Threads
 info("# CPU threads: $(nthreads())")
 
-if haskey(ENV,"Merlin_CUDA") && ENV["Merlin_CUDA"]
-    using LibCUDA
+include("cuda/CUDA.jl")
+using .CUDA
 
-    const TEMP_CUDA = LibCUDA.AtomicMalloc()
-
-end
-
+# const TEMP_CUDA = LibCUDA.AtomicMalloc()
 export Functor
 abstract type Functor end
 
@@ -47,7 +44,15 @@ for name in [
 
     "argmax",
     "blas",
-    "concat"
+    "concat",
+    "dropout",
+    "getindex",
+    "linear",
+    "lookup",
+    "math",
+    "reshape",
+    "rnn",
+    "softmax"
     ]
     include("functions/$name.jl")
 end

@@ -1,25 +1,18 @@
 export LSTM
 
-struct LSTMParam
-    W::Var
-    b::Var
-    h0::Var
-    c0::Var
-end
-
 mutable struct LSTM <: Functor
     insize::Int
     hsize::Int
     nlayers::Int
     droprate::Float64
     bidirectional::Bool
-    params::Vector{LSTMParam}
+    params::Vector # w, b, h, c
 end
 
 function getparams(lstm::LSTM)
     params = Var[]
     for p in lstm.params
-        push!(params, p.W, p.b, p.h0, p.c0)
+        append!(params, p)
     end
     params
 end
@@ -61,7 +54,7 @@ h = f(x)
 function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64, bidirectional::Bool;
     init_W=Normal(0,0.001), init_U=Orthogonal(), init_b=Fill(0), init_h=Fill(0), init_c=Fill(0)) where T
 
-    params = LSTMParam[]
+    params = []
     coef = bidirectional ? 2 : 1
     for l = 1:nlayers
         for _ = 1:coef
@@ -76,73 +69,80 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
             b = init_b(T, 4hsize)
             h = init_h(T, hsize)
             c = init_c(T, hsize)
-            p = LSTMParam(zerograd(W), zerograd(b), Var(h), Var(c))
-            push!(params, p)
+            push!(params, (param(W),param(b),param(h),param(c)))
         end
     end
     LSTM(insize, hsize, nlayers, droprate, bidirectional, params)
 end
 
-function (lstm::LSTM)(xs::Vector{Var})
-    configure!(xs)
-    configure!(getparams(lstm))
+function (lstm::LSTM)(x::Var, batchdims::Vector{Int})
+    configure!(x, getparams(lstm)...)
     if iscpu()
-        lstm_naive(lstm, xs)
+        lstm_naive(lstm, x, batchdims)
     elseif iscuda()
-        lstm_cudnn(lstm, xs)
+        lstm_cudnn(lstm, x, batchdims)
     else
         throw("Invalid backend.")
     end
 end
 
-function lstm_naive(lstm::LSTM, xs::Vector{Var})
-    hs = xs
+function lstm_naive(lstm::LSTM, x::Var, batchdims::Vector{Int})
+    h = x
     coef = lstm.bidirectional ? 2 : 1
     for l = 1:lstm.nlayers
         i = (l-1) * coef + 1
         p = lstm.params[i]
-        hs1 = lstm_tstep(hs, p.W, p.b, p.h0, p.c0, false)
+        h1 = lstm_tstep(h, batchdims, p..., false)
         if lstm.bidirectional
             p = lstm.params[i+1]
-            hs2 = lstm_tstep(hs, p.W, p.b, p.h0, p.c0, true)
-            hs = [concat(1,hs1[k],hs2[k]) for k=1:length(hs1)]
+            h2 = lstm_tstep(h, batchdims, p..., true)
+            h = concat(1, h1, h2)
         else
-            hs = hs1
+            h = h1
         end
     end
-    hs
+    h
 end
 
-function lstm_tstep(xs::Vector{Var}, W::Var, b::Var, h0::Var, c0::Var, rev::Bool)
-    batchdims = map(x -> size(x,2), xs)
+function lstm_tstep(x::Var, batchdims::Vector{Int}, W::Var, b::Var, h0::Var, c0::Var, rev::Bool)
+    @assert sum(batchdims) == size(x,2)
+    cumdims = Array{Int}(length(batchdims)+1)
+    cumdims[1] = 1
+    for i = 1:length(batchdims)
+        cumdims[i+1] = cumdims[i] + batchdims[i]
+    end
     perm = sortperm(batchdims, rev=true)
 
-    ht = concat(2, [h0 for i=1:length(xs)]...)
-    ct = concat(2, [c0 for i=1:length(xs)]...)
-    hts = map(x -> Array{Var}(size(x,2)), xs)
+    hsize = size(W,2) ÷ 4
+    ht = concat(2, [h0 for i=1:length(batchdims)]...)
+    ct = concat(2, [c0 for i=1:length(batchdims)]...)
+    hts = Array{Var}(size(x,2))
+    cts = Array{Var}(size(x,2))
     for t = 1:batchdims[perm[1]]
         xts = Var[]
         for p in perm
             t > batchdims[p] && break
-            k = rev ? batchdims[p]+1-t : t
-            push!(xts, xs[p][:,k:k])
+            i = cumdims[p]
+            i += rev ? batchdims[p]-t : t-1
+            push!(xts, x[:,i:i])
         end
         xt = concat(2, xts...)
-
         if size(ht,2) > size(xt,2)
             ht = ht[:,1:size(xt,2)]
             ct = ct[:,1:size(xt,2)]
         end
         ht, ct = lstm_onestep(xt, W, b, ht, ct)
-        for i = 1:length(perm)
-            p = perm[i]
+        for j = 1:length(perm)
+            p = perm[j]
             t > batchdims[p] && break
-            k = rev ? batchdims[p]+1-t : t
-            hts[p][k] = ht[:,i:i]
+            i = cumdims[p]
+            i += rev ? batchdims[p]-t : t-1
+            hts[i] = ht[:,j:j]
+            cts[i] = ct[:,j:j]
         end
     end
-    hs = map(x -> concat(2,x...), hts)
-    hs
+    h = concat(2, hts...)
+    h
 end
 
 function lstm_onestep(xt::Var, W::Var, b::Var, ht::Var, ct::Var)

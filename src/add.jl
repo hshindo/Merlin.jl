@@ -1,5 +1,5 @@
-function add!(dest::AbstractArray{T,N}, src::AbstractArray{T,N}) where {T,N}
-    @assert size(dest) == size(src)
+function add!(dest::AbstractArray{T}, src::AbstractArray{T}) where T
+    @assert length(dest) == length(src)
     broadcast!(+, dest, dest, src)
 end
 

@@ -1,5 +1,4 @@
-export Var
-export zerograd, zerograd!, isvoid, isparam, gradient!
+export Var, param, zerograd!, isvoid, isparam, gradient!
 
 doc"""
     Var
@@ -25,12 +24,11 @@ mutable struct Var
 end
 
 Var(data=nothing, args=()) = Var(data, args, nothing)
-
-zerograd(data) = Var(data, (), zeros(data))
+param(data) = Var(data, (), zeros(data))
 
 function zerograd!(x::Var)
     isvoid(x.grad) && throw("")
-    x.grad = zeros(x.data)
+    fill!(x.grad, 0)
     x
 end
 
@@ -99,7 +97,7 @@ function gradient!(tops::Var...)
         isempty(y.args) && continue
         addgrad!(y, y.args...)
     end
-    filter(isparam, sorted)
+    collect(Iterators.filter(isparam,sorted))
 end
 
 function configure!(xs::Var...)

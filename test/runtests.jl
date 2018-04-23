@@ -1,6 +1,6 @@
 using Base.Test
 using Merlin
-using LibCUDA
+using Merlin.CUDA
 
 tests = ["functions"]
 

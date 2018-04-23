@@ -11,63 +11,14 @@ y = max(x, 1)
 ```
 """
 function Base.max(x::Var, dim::Int)
+    configure!(x)
     y, idx = findmax(x.data, dim)
     Var(y, (max,x,dim,idx))
 end
 
-function max_batch(x::Var, batchdims::Vector{Int})
-    @assert sum(batchdims) == size(x,ndims(x))
-    xs = unsafe_split(x.data, batchdims)
-    for x in xs
-        max(x, ndims(x))
-    end
-    y, idx = max_batch(x.data, batchdims)
-end
-
-function Base.max(x::Var, dim::Int, batchdims::Vector{Int})
-    if length(batchdims) == 1 || dim != ndims(x)
-        y, idx = findmax(x.data, dim)
-    else
-        @assert sum(batchdims) == size(x,ndims(x))
-        y, idx = maximum_batch(x.data, batchdims)
-    end
-    Var(y, (maximum,x,dim,idx))
-end
-max_batch(x::Node, dim::Int, batchdims) = Node(max_batch, x, dim, batchdims)
-
-function max_batch(x::UniArray{T,N}, dims::Vector{Int}) where {T,N}
-    xs = unsafe_split(x, dims)
-    for x in xs
-        findmax(x.data, dim)
-    end
-end
-
-function max_batch2(x::Array{T,N}, dims::Vector{Int}) where {T,N}
-    front = Base.front(size(x))
-    n = prod(front)
-    y = T[]
-    idx = Int[]
-
-    cumdim = 0
-    for i = 1:length(dims)
-        p = pointer(x, n*cumdim+1)
-        subx = unsafe_wrap(Array, p, (front...,dims[i]))
-
-        val, index = findmax(subx, N)
-        for k = 1:length(index)
-            index[k] += n * cumdim
-        end
-        append!(y, val)
-        append!(idx, index)
-        cumdim += dims[i]
-    end
-    y = reshape(y, front..., length(dims))
-    y, idx
-end
-
-function addgrad!(y::Var, ::typeof(maximum), x::Var, dim::Int, idx)
+function addgrad!(y::Var, ::typeof(max), x::Var, dim::Int, idx)
     isvoid(x.grad) && return
-    ∇maximum!(y.grad, x.grad, dim, idx)
+    ∇max!(y.grad, x.grad, dim, idx)
 end
 
 function ∇max!(gy::Array{T}, gx::Array{T}, dim::Int, idx::Array{Int}) where T
@@ -76,24 +27,75 @@ function ∇max!(gy::Array{T}, gx::Array{T}, dim::Int, idx::Array{Int}) where T
     end
 end
 
-@generated function ∇max!(gy::CuArray{T}, gx::CuArray{T}, dim::Int, idx::CuArray{Cint}) where T
+@generated function ∇max!(gy::CuArray{T,N}, gx::CuArray{T,N}, dim::Int, idx::CuArray{Cint}) where {T,N}
     Ct = cstring(T)
-    f = CuFunction("""
-    $(LibCUDA.Array_h)
-    __global__ void f(Array<$Ct,3> gy, Array<$Ct,3> gx, int *idx, int length) {
+    k = Kernel("""
+    __global__ void max_grad(Array<$Ct,$N> gy, Array<$Ct,$N> gx, int dim, int *idx, int length) {
         int i = blockIdx.x * blockDim.x + threadIdx.x;
         if (i >= length) return;
 
-        int ndIdx[3];
+        int ndIdx[$N];
         gy.idx2ndIdx(ndIdx, i);
-        ndIdx[1] = idx[i];
+        ndIdx[dim] = idx[i];
         gx(ndIdx) += gy[i];
     }
     """)
     quote
-        gy3d = reshape3d(gy, dim)
-        gx3d = reshape3d(gx, dim)
         gdims, bdims = cudims(length(idx))
-        culaunch($f, gdims, bdims, gy3d, gx3d, idx.ptr, length(idx))
+        $k(gdims, bdims, gy, gx, dim-1, pointer(idx), length(idx))
     end
+end
+
+doc"""
+    max_batch(x::Var, batchdims)
+
+Returns the maximum value over the batch dimension.
+
+```julia
+x = Var(rand(Float32,10,5))
+y = max_batch(x, (3,2))
+```
+"""
+function max_batch(x::Var, batchdims)
+    N = ndims(x)
+    @assert sum(batchdims) == size(x,N)
+
+    xsize = Int[size(x)...]
+    s = stride(x, N)
+    cumdim = 0
+    y = similar(x.data)
+    for i = 1:length(batchdims)
+        d = batchdims[i]
+        xsize[N] = d
+        xx = unsafe_array(x.data)
+        yy, idx = findmax(xx)
+
+        cumdim += d
+    end
+
+
+    xs = unsafe_split(x.data, batchdims)
+    for x in xs
+        max(x, ndims(x))
+    end
+    y, idx = max_batch(x.data, batchdims)
+end
+
+function unsafe_split2(x::UniArray{T,N}, dim::Int, dims) where {T,N}
+    sum(dims) == size(x,N) || throw("Invalid splitdims: $dims.")
+    length(dims) == 1 && return [x]
+    xsize = [size(x)...]
+    m = length(x) ÷ size(x,N)
+    cumdim = 0
+    ys = typeof(x)[]
+    for d in dims
+        xsize[N] = d
+        unsafe_array(x, m*cumdim+1, (front...,d))
+
+        p = pointer(x, m*cumdim+1)
+        y = unsafe_wrap(Array, p, (front...,d))
+        push!(ys, y)
+        cumdim += d
+    end
+    ys
 end
