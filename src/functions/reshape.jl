@@ -45,6 +45,5 @@ end
 
 function addgrad!(y::Var, ::typeof(squeeze), x::Var, dims)
     isvoid(x.grad) && return
-    T = eltype(x)
-    BLAS.axpy!(T(1), y.grad, x.grad)
+    add!(x.grad, y.grad)
 end

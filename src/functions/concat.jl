@@ -30,8 +30,8 @@ function ∇concat!(y::Var, dim::Int, xs::Var...)
         s = size(x, dim)
         if !isvoid(x.grad)
             ysize[dim] = offset+1:offset+s
-            gy = view(y.grad, ysize...)
-            broadcast!(+, x.grad, x.grad, gy)
+            gy = y.grad[ysize...]
+            add!(x.grad, gy)
         end
         offset += s
     end

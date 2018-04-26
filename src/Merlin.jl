@@ -38,11 +38,11 @@ for name in [
     "loss/mse",
     "loss/softmax_crossentropy",
 
+    "reduction/argmax",
     "reduction/max",
     "reduction/mean",
     "reduction/sum",
 
-    "argmax",
     "blas",
     "concat",
     "dropout",
@@ -52,7 +52,8 @@ for name in [
     "math",
     "reshape",
     "rnn",
-    "softmax"
+    "softmax",
+    "split"
     ]
     include("functions/$name.jl")
 end

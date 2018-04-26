@@ -115,7 +115,6 @@ doc"""
     .+(x1::Var, x2::Var)
 """
 function broadcast(::typeof(+), x1::Var, x2::Var)
-    throw("Not tested yet.")
     configure!(x1, x2)
     Var(x1.data .+ x2.data, (broadcast,+,x1,x2))
 end

@@ -123,9 +123,9 @@ x2 = param(randn(T,10,5))
 @test_cuda (-) x1
 
 x1 = param(randn(T,10,5))
-x2 = param(randn(T,10))
-#test_gradient!(broadcast, +, x1, x2)
-#test_gradient!(broadcast, -, x1, x2)
+x2 = param(randn(T,10,1))
+#@test_grad broadcast (+) x1 x2
+# test_gradient!(broadcast, -, x1, x2)
 #test_gradient!(broadcast, *, x1, x2)
 
 A = param(randn(T,10,5))
@@ -144,11 +144,11 @@ x = param(randn(T,10,1,5))
 
 ##### rnn #####
 x = param(randn(T,20,10))
-batchdims = [5,2,3]
+batchdims = [5,3,2]
 for nlayers = 1:1
     lstm = LSTM(T, 20, 15, nlayers, 0.0, true)
-    #@test_grad lstm x batchdims
-    # test_cuda(lstm, x, batchdims)
+    @test_grad lstm x batchdims
+    @test_cuda lstm x batchdims
 end
 
 ##### softmax #####
@@ -156,6 +156,9 @@ x = param(rand(T,10,5))
 @test_grad softmax x
 @test_cuda softmax x
 @test_function logsoftmax x
+
+##### split #####
+
 
 #=
 @testset "standardize" for i = 1:5

@@ -3,6 +3,35 @@ function add!(dest::AbstractArray{T}, src::AbstractArray{T}) where T
     broadcast!(+, dest, dest, src)
 end
 
+function add!(dest::Array{T}, src::Array{T}) where T
+    @assert length(dest) == length(src)
+    BLAS.axpy!(T(1), src, dest)
+    dest
+end
+
+@generated function add!(dest::CuArray{T,N}, doffs::NTuple{N,Int},
+    src::CuArray{T,N}, soffs::NTuple{N,Int}) where {T,N}
+
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void add(Array<$Ct,$N> dest, Array<$Ct,$N> src) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= src.length()) return;
+
+        int sub[$N];
+        ind2sub(sub, idx, dims);
+        dest.idx2ndIdx(ndIdx, idx);
+        dest(ndIdx) += src(ndIdx);
+    }
+    """)
+    quote
+        @assert length(dest) == length(src)
+        gdims, bdims = cudims(length(src))
+        $k(gdims, bdims, dest, src)
+        dest
+    end
+end
+
 function add!(dest::CuLinearArray{T}, src::CuLinearArray{T}) where T
     @assert length(dest) == length(src)
     BLAS.axpy!(T(1), src, dest)

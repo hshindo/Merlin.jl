@@ -99,6 +99,7 @@ end
 function broadcast!(::typeof(+), dest::CuArray{T}, srcs::AbstractCuArray{T}...) where T
     for src in srcs
         dest === src && continue
+        @assert ndims(dest) >= ndims(src)
         _broadcast!(+, dest, src)
     end
     dest
@@ -113,7 +114,7 @@ function _broadcast!(::typeof(+), dest::CuArray{T}, src::CuLinearArray{T}) where
     dest
 end
 
-@generated function _broadcast!(::typeof(+), dest::CuArray{T,N}, src::AbstractCuArray{T,N}) where {T,N}
+@generated function _broadcast!(::typeof(+), dest::CuArray{T,N}, src::AbstractCuArray{T}) where {T,N}
     Ct = cstring(T)
     k = Kernel("""
     __global__ void broadcast_add(Array<$Ct,$N> dest, Array<$Ct,$N> src) {

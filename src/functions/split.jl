@@ -1,3 +1,5 @@
+export unsafe_split
+
 doc"""
     split(x::Var, dims::Vector{Int})
 
@@ -21,16 +23,21 @@ function Base.split(x::Var, dim::Int, dims::Vector{Int})
     ys
 end
 
-function Base.split(x::Array{T,N}, dim::Int, splitdims::Vector{Int}) where {T,N}
-    sum(splitdims) == size(x,dim) || throw("Invalid splitdims.")
+function unsafe_split(x::UniArray{T,N}, dim::Int, dims::Vector{Int}) where {T,N}
+    sum(dims) == size(x,dim) || throw("Invalid dims: $dims.")
+    length(dims) == 1 && return [x]
+
+    xsize = Int[size(x)...]
+    m = length(x) ÷ size(x,N)
     cumdim = 0
-    map(splitdims) do d
-        range = ntuple(N) do i
-            i == dim ? (cumdim+1:cumdim+d) : Colon()
-        end
+    ys = typeof(x)[]
+    for d in dims
+        xsize[dim] = cumdim+1:cumdim+d
+        y = unsafe_array(x, xsize)
+        push!(ys, y)
         cumdim += d
-        view(x, range...)
     end
+    ys
 end
 
 function unsafe_array(x::Array, index::Int, dims)
@@ -42,23 +49,4 @@ function unsafe_array(x::CuArray, index::Int, dims)
     p = pointer(x, index)
     mb = CUDA.MemBlock(Ptr{Void}(p), -1, -1)
     CuArray{T}(mb, dims)
-end
-
-function unsafe_split(x::UniArray{T,N}, dim::Int, dims) where {T,N}
-    sum(dims) == size(x,N) || throw("Invalid splitdims: $dims.")
-    length(dims) == 1 && return [x]
-    xsize = [size(x)...]
-    m = length(x) ÷ size(x,N)
-    cumdim = 0
-    ys = typeof(x)[]
-    for d in dims
-        xsize[N] = d
-        unsafe_array(x, m*cumdim+1, (front...,d))
-
-        p = pointer(x, m*cumdim+1)
-        y = unsafe_wrap(Array, p, (front...,d))
-        push!(ys, y)
-        cumdim += d
-    end
-    ys
 end
