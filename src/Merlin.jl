@@ -50,10 +50,10 @@ for name in [
     "getindex",
     "linear",
     "lookup",
+    "lstm",
     "math",
     "pack",
     "reshape",
-    "rnn",
     "softmax",
     "split"
     ]

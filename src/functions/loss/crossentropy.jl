@@ -41,7 +41,8 @@ end
 
 function addgrad!(y::Var, ::typeof(crossentropy), p::Var, q::Var)
     @assert isvoid(p.grad)
-    isvoid(q.grad) || ∇crossentropy!(y.grad, p.data, q.data, q.grad)
+    isvoid(q.grad) && return
+    ∇crossentropy!(y.grad, p.data, q.data, q.grad)
 end
 
 function ∇crossentropy!(gy::Vector{T}, p::Vector{I}, q::Matrix{T}, gq::Matrix{T}) where {I<:Integer,T}

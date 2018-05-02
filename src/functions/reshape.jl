@@ -20,8 +20,7 @@ vec(x::Var) = reshape(x, length(x))
 
 function addgrad!(y::Var, ::typeof(reshape), x::Var)
     isvoid(x.grad) && return
-    T = eltype(x)
-    BLAS.axpy!(T(1), y.grad, x.grad)
+    add!(x.grad, y.grad)
 end
 
 doc"""

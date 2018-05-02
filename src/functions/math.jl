@@ -9,7 +9,6 @@ function exp(x::Var)
     Var(exp(x.data), (exp,x))
 end
 exp(x::Array) = exp.(x)
-exp(x::Node) = Node(exp, x)
 
 function addgrad!(y::Var, ::typeof(exp), x::Var)
     isvoid(x.grad) && return
@@ -30,7 +29,6 @@ function log(x::Var)
     Var(log(x.data), (log,x))
 end
 log(x::Array) = log.(x)
-log(x::Node) = Node(log, x)
 
 function addgrad!(y::Var, ::typeof(log), x::Var)
     isvoid(x.grad) && return
@@ -47,24 +45,14 @@ doc"""
     transpose(x)
 """
 function transpose(x::Var)
-    throw("Not implemented yet.")
-    ys = Var[]
-    cumdim = 0
-    m = size(x, 1)
-    for s in x.batchdims
-        p = pointer(x.data, m*cumdim+1)
-        a = unsafe_wrap(Array, p, (m,s))
-        y = Var(transpose(a), [m], transpose, (x,cumdim,cumdim+s-1))
-        push!(ys, y)
-        cumdim += s
-    end
-    ys
+    y = transpose(x.data)
+    Var(y, (transpose,x))
 end
+transpose(xs::Vector{Var}) = map(transpose, xs)
 
-function addgrad!(y::Var, ::typeof(transpose), x::Var, s::Int, e::Int)
-    if !isvoid(x.grad)
-        x.grad[:,s:e] += transpose(y.grad)
-    end
+function addgrad!(y::Var, ::typeof(transpose), x::Var)
+    isvoid(x.grad) && return
+    add!(transpose(y.grad), x.grad)
 end
 
 doc"""
@@ -81,8 +69,8 @@ end
 
 function addgrad!(y::Var, ::typeof(+), x1::Var, x2::Var)
     T = eltype(y)
-    isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
-    isvoid(x2.grad) || BLAS.axpy!(T(1), y.grad, x2.grad)
+    isvoid(x1.grad) || add!(x1.grad, y.grad)
+    isvoid(x2.grad) || add!(x2.grad, y.grad)
 end
 
 doc"""
@@ -97,7 +85,7 @@ end
 
 function addgrad!(y::Var, ::typeof(-), x1::Var, x2::Var)
     T = eltype(y)
-    isvoid(x1.grad) || BLAS.axpy!(T(1), y.grad, x1.grad)
+    isvoid(x1.grad) || add!(x1.grad, y.grad)
     isvoid(x2.grad) || BLAS.axpy!(T(-1), y.grad, x2.grad)
 end
 

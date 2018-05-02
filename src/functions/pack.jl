@@ -1,4 +1,4 @@
-export pack
+export pack, unpack
 
 function pack(xs::Vector; pad=0)
     T = eltype(xs[1])
@@ -20,3 +20,12 @@ function pack(xs::Vector; pad=0)
     end
     y
 end
+
+function unpack(x::A, sizes::Vector) where A
+    ys = map(A, sizes)
+    for i = 1:length(sizes)
+        ys[i] = x[s...,i]
+    end
+    ys
+end
+Array{Float32,2}(2,3)

@@ -11,8 +11,10 @@ doc"""
 
 Multi-layer perceptron
 """
-function MLP(::Type{T}, insize::Int, outsize::Int, activation=identity; init_W, init_b) where T
+function MLP(::Type{T}, insize::Int, outsize::Int, activation;
+    init_W, init_b) where T
 
+    
 end
 
 function (f::MLP)(x)

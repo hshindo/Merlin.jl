@@ -49,7 +49,8 @@ end
 
 function addgrad!(y::Var, ::typeof(softmax_crossentropy), p::Var, x::Var, work)
     @assert isvoid(p.grad)
-    isvoid(x.grad) || ∇softmax_crossentropy!(y.grad, p.data, x.grad, work)
+    isvoid(x.grad) && return
+    ∇softmax_crossentropy!(y.grad, p.data, x.grad, work)
 end
 
 function ∇softmax_crossentropy!(gy::Vector{T}, p::Vector{I}, gx::Matrix{T}, logx::Matrix{T}) where {T,I<:Integer}

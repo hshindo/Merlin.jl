@@ -38,17 +38,16 @@ function Conv(::Type{T}, filtersize::Tuple;
     Conv(param(w), pad, stride, dilation)
 end
 
-function (f::Conv)(xs::Vector{Var})
-    configure!(f.w, f.b)
-    configure!(xs)
+function (f::Conv{1})(xs::Vector{Var})
     x = pack(map(x -> x.data, xs))
     y = f(x)
-    Var(y, (f,xs))
+    unpack(y)
 end
 
 function (f::Conv{2})(x::Var)
     configure!(f.w, x)
-    y = f(x.data)
+    y, work = f(x.data)
+    Var(y, (f,f.w,x,work))
 end
 
 function (f::Conv{2})(x::Array{T,4}) where T
@@ -63,18 +62,16 @@ function (f::Conv{2})(x::Array{T,4}) where T
 end
 
 function (f::Conv{2})(x::CuArray)
-    y, work = CUDNN.convolution(f.w.data, x, f.pad, f.stride, f.dilation)
-    Var(y, (f,x,work))
+    CUDNN.convolution(f.w.data, x, f.pad, f.stride, f.dilation)
 end
 
 function addgrad!(y::Var, f::Conv, x::Var, work)
+    isvoid(x.grad) && return
     ∇conv!(y.grad, f, x.data, x.grad, work)
 end
 
-function ∇conv!(gy::CuArray, f::Conv, x::CuArray, gx, convdesc)
+function ∇conv!(gy::CuArray, f::Conv{2}, x::CuArray, gx, convdesc)
     w, gw = f.w.data, f.w.grad
-    b, gb = f.b.data, f.b.grad
-    isvoid(gb) || CUDNN.∇convolution_bias!(gy, gb)
     isvoid(gw) || CUDNN.∇convolution_filter!(convdesc, x, gy, gw)
     isvoid(gx) || CUDNN.∇convolution_data!(convdesc, w, gy, gx)
 end
