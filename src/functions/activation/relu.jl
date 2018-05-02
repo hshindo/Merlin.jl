@@ -16,7 +16,6 @@ end
 relu(x::T) where T<:AbstractFloat = max(x, zero(T))
 relu(x::Array) = relu.(x)
 relu(x::CuArray) = CUDNN.relu(x)
-relu(x::Node) = Node(relu, x)
 
 function addgrad!(y::Var, ::typeof(relu), x::Var)
     isvoid(x.grad) && return

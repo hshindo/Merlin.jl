@@ -2,11 +2,11 @@ export lookup
 
 function lookup(w::Var, x::Var)
     configure!(w, x)
-    y = lookup(w.data, x.data)
+    y = lookup(w.data, x)
     Var(y, (lookup,w,x))
 end
 
-function lookup(w::Matrix{T}, x::Array{I}) where {T,I<:Integer}
+function lookup(w::UniMatrix{T}, x::Array{I}) where {T,I<:Integer}
     n = size(w, 1)
     y = zeros(T, n*size(x,1), Base.tail(size(x))...)
     for i = 1:length(x)

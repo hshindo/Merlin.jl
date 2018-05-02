@@ -1,4 +1,4 @@
-export Var, param, zerograd!, isvoid, isparam, gradient!
+export Var, param, zerograd!, isvoid, isparam, gradient!, topsort
 
 doc"""
     Var
@@ -111,5 +111,19 @@ function configure!(xs::Var...)
             x.data = CuArray(x.data)
             isvoid(x.grad) || (x.grad = CuArray(x.grad))
         end
+    end
+end
+
+function create_batch(batchsize::Int, data::Vector...; shuffle=false)
+    perm = randperm(length(data[1]))
+    map(data) do v
+        batches = []
+        v = v[perm]
+        for i = 1:batchsize:length(v)
+            range = i:min(i+batchsize-1,length(v))
+            x = cat(ndims(v[1]), v[range]...)
+            push!(batches, x)
+        end
+        batches
     end
 end

@@ -21,46 +21,122 @@ y = conv(x)
 """
 mutable struct Conv{N}
     w::Var
-    b::Var
-    pads::NTuple{N,Int}
-    strides::NTuple{N,Int}
-    dilations::NTuple{N,Int}
+    pad::NTuple{N,Int}
+    stride::NTuple{N,Int}
+    dilation::NTuple{N,Int}
 end
 
-function Conv(::Type{T}, filtersize::Int...;
-    pads=0, strides=1, dilations=1, init_w=Xavier(), init_b=Fill(0)) where T
+function Conv(::Type{T}, filtersize::Tuple;
+    pad=0, stride=1, dilation=1, init_w=Xavier(), init_b=Fill(0)) where T
 
     N = length(filtersize) - 2
-    isa(pads,Int) && (pads = ntuple(_->pads,N))
-    isa(strides,Int) && (strides = ntuple(_->strides,N))
-    isa(dilations,Int) && (dilations = ntuple(_->dilations,N))
+    isa(pad,Int) && (pad = ntuple(_ -> pad, N))
+    isa(stride,Int) && (stride = ntuple(_ -> stride, N))
+    isa(dilation,Int) && (dilation = ntuple(_ -> dilation, N))
 
     w = init_w(T, filtersize...)
-    b = init_b(T, 1)
-    Conv(zerograd(w), zerograd(b), pads, strides, dilations)
+    Conv(param(w), pad, stride, dilation)
 end
 
-function (conv::Conv{2})(x::Var)
-    y = conv(x.data)
-    Var(y, (conv,x))
-end
-(conv::Conv)(x::Node) = Node(conv, x)
-
-function addgrad!(y::Var, conv::Conv, x::Var)
-    ∇conv!(y.grad, conv, x.data, x.grad)
+function (f::Conv)(xs::Vector{Var})
+    configure!(f.w, f.b)
+    configure!(xs)
+    x = pack(map(x -> x.data, xs))
+    y = f(x)
+    Var(y, (f,xs))
 end
 
-#=
-function (conv::Conv)(x::CuArray)
-    CUDNN.convolution(conv.w.data, x, conv.pads, conv.strides, conv.dilations)
+function (f::Conv{2})(x::Var)
+    configure!(f.w, x)
+    y = f(x.data)
 end
 
-function ∇conv!(gy::CuArray, conv::Conv, x::CuArray, gx)
-    w, gw = conv.w.data, conv.w.grad
-    CUDNN.∇convolution!(gy, w, gw, x, gx, conv.pads, conv.strides, conv.dilations)
+function (f::Conv{2})(x::Array{T,4}) where T
+    hdims = ntuple(2) do d
+        k = (size(w,d)-1) * dilation[d] + 1
+        1 + (size(x,d) + 2pad[d] - k) ÷ stride[d]
+    end
+    h = similar(x, hdims)
+    #im2col(x, h, )
+    y = linear(h, f.W.data, f.b.data)
+    Var(y, (f,x,f.W,f.b,batchdims,h))
 end
 
-function (cuda::CUDABackend)(conv::Conv)
-    Conv(cuda(conv.w), cuda(conv.b), conv.pads, conv.strides, conv.dilations)
+function (f::Conv{2})(x::CuArray)
+    y, work = CUDNN.convolution(f.w.data, x, f.pad, f.stride, f.dilation)
+    Var(y, (f,x,work))
 end
-=#
+
+function addgrad!(y::Var, f::Conv, x::Var, work)
+    ∇conv!(y.grad, f, x.data, x.grad, work)
+end
+
+function ∇conv!(gy::CuArray, f::Conv, x::CuArray, gx, convdesc)
+    w, gw = f.w.data, f.w.grad
+    b, gb = f.b.data, f.b.grad
+    isvoid(gb) || CUDNN.∇convolution_bias!(gy, gb)
+    isvoid(gw) || CUDNN.∇convolution_filter!(convdesc, x, gy, gw)
+    isvoid(gx) || CUDNN.∇convolution_data!(convdesc, w, gy, gx)
+end
+
+function im2col{T}(x::Array{T,4}, kernel::NTuple{4,Int}, pad::NTuple{2,Int}, stride::NTuple{2,Int}, dilation::NTuple{2,Int})
+    width, height, channels, num = size(x)
+    kernel_w, kernel_h = kernel[1], kernel[2]
+    pad_w, pad_h = pad
+    stride_w, stride_h = stride
+
+    y_w = (width + 2pad_w - (dilation_w * (kernel_w-1) + 1)) ÷ stride_w + 1
+    y_h = (height + 2pad_h - (dilation_h * (kernel_h-1) + 1)) ÷ stride_h + 1
+    y = similar(x, y_w, y_h, kernel[4], num)
+
+    height_col = div(height + 2pad_h - kernel_h, stride_h) + 1
+    width_col = div(width + 2pad_w - kernel_w, stride_w) + 1
+    channels_col = channels * kernel_h * kernel_w
+
+    for c = 0:channels_col-1
+        w_offset = c % kernel_w
+        h_offset = div(c, kernel_w) % kernel_h
+        c_im = div(c, kernel_h * kernel_w) # channel
+        for h = 0:height_col-1
+            for w = 0:width_col-1
+                h_pad = h*stride_h - pad_h + h_offset
+                w_pad = w*stride_w - pad_w + w_offset
+                if (h_pad >= 0 && h_pad < height && w_pad >= 0 && w_pad < width)
+                    @inbounds col[1 + (c*height_col+h) * width_col + w] =
+                        img[1 + (c_im * height + h_pad) * width + w_pad]
+                else
+                    @inbounds col[1 + (c*height_col+h) * width_col + w] = 0
+                end
+            end
+        end
+    end
+end
+
+function col2im{T}(col::Array{T}, img::Array{T}, width::Int, height::Int, channels::Int,
+    kernel::NTuple{2,Int}, pad::NTuple{2,Int}, stride::NTuple{2,Int})
+
+    kernel_w, kernel_h = kernel
+    pad_w, pad_h = pad
+    stride_w, stride_h = stride
+
+    height_col = div(height + 2pad_h - kernel_h, stride_h) + 1
+    width_col = div(width + 2pad_w - kernel_w, stride_w) + 1
+    channels_col = channels * kernel_h * kernel_w
+
+    fill!(img, 0)
+    for c = 0:channels_col-1
+        w_offset = c % kernel_w
+        h_offset = div(c, kernel_w) % kernel_h
+        c_im = div(c, kernel_w * kernel_h)
+        for h = 0:height_col-1
+            for w = 0:width_col-1
+                h_pad = h * stride_h - pad_h + h_offset
+                w_pad = w * stride_w - pad_w + w_offset
+                if h_pad >= 0 && h_pad < height && w_pad >= 0 && w_pad < width
+                    @inbounds img[1 + (c_im * height + h_pad) * width + w_pad] +=
+                        col[1 + (c * height_col + h) * width_col + w]
+                end
+            end
+        end
+    end
+end

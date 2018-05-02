@@ -14,7 +14,6 @@ function Base.getindex(x::Var, inds::Tuple)
     Var(x.data[inds...], (getindex,x,inds))
 end
 Base.getindex(x::Var, inds...) = getindex(x, inds)
-Base.getindex(x::Node, inds...) = Node(getindex, x, inds)
 
 function addgrad!(y::Var, ::typeof(getindex), x::Var, inds::Tuple)
     isvoid(x.grad) && return

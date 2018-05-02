@@ -13,8 +13,6 @@ function dropout(x::Var, droprate::Float64)
     Var(y, (dropout,x,droprate,work))
 end
 
-dropout(x::Node, droprate) = Node(dropout, x, droprate)
-
 function dropout(x::Array{T}, droprate::Float64) where T
     work = rand(T, length(x))
     scale = T(1 / (1-droprate))

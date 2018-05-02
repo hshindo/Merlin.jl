@@ -5,7 +5,6 @@ function window1d(x::Var, width::Int, batchdims::Vector{Int})
     y = lookup(x.data, idx)
     Var(y, (window1d,x,idx))
 end
-window1d(x::Node, width::Int, batchdims) = Node(window1d, x, width, batchdims)
 
 function window1d(batchdims::Vector{Int}, width::Int)
     cumdim = 0
@@ -23,5 +22,6 @@ function window1d(batchdims::Vector{Int}, width::Int)
 end
 
 function addgrad!(y::Var, ::typeof(window1d), x::Var, idx)
-    isvoid(x.grad) || ∇lookup!(y.grad, x.grad, idx)
+    isvoid(x.grad) && return
+    ∇lookup!(y.grad, x.grad, idx)
 end

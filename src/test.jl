@@ -76,7 +76,6 @@ function test_cuda(f, xs...; atol=2e-3)
     d_gxs = map(x -> x.grad, params)
 
     @test y.data ≈ Array(d_y.data) atol=atol
-
     for (gx,d_gx) in zip(gxs,d_gxs)
         @test gx ≈ Array(d_gx) atol=atol
     end

@@ -224,16 +224,6 @@ end
 #
 # Note: cudnn docs say min tensor dims 4 but RNN_example.cu uses 3D tensors
 
-function split(x::CuArray{T,N}, dim::Int, splitsize::Vector{Int}) where {T,N}
-    dims = Any[Colon() for i=1:N]
-    offset = 0
-    map(splitsize) do s
-        dims[dim] = offset+1:offset+s
-        offset += s
-        view(x, dims...)
-    end
-end
-
 function getRNNParamSize(::Type{T}, desc, xdesc) where T
     h = gethandle()
     ref = Ref{Csize_t}()

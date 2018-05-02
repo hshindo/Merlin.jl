@@ -34,10 +34,10 @@ end
         int i = blockIdx.x * blockDim.x + threadIdx.x;
         if (i >= length) return;
 
-        int ndIdx[$N];
-        gy.idx2ndIdx(ndIdx, i);
-        ndIdx[dim] = idx[i];
-        gx(ndIdx) += gy[i];
+        int sub[$N];
+        gy.ind2sub(sub, i);
+        sub[dim] = idx[i];
+        gx(sub) += gy[i];
     }
     """)
     quote

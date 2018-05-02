@@ -1,4 +1,4 @@
-function Base.cat(dim::Int, xs::AbstractCuArray{T}...) where T
+function Base.cat(dim::Int, xs::CuArray{T}...) where T
     length(xs) == 1 && return xs[1]
     N = max(dim, maximum(ndims,xs))
     dims = Int[size(xs[1],i) for i=1:N]

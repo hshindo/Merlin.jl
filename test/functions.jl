@@ -1,6 +1,6 @@
 const T = Float32
 
-@testset "functions" for i = 1:5
+@testset "functions" for i = 1:1
 
 ##### activation #####
 x = param(randn(T,10,5))
@@ -75,8 +75,6 @@ for dim = 1:3
     @test_cuda concat dim x1 x2 x3
 end
 
-end
-
 #=
 @testset "conv" for i = 1:5
     #x = param(curandn(T,10,10,5,4))
@@ -146,9 +144,9 @@ x = param(randn(T,10,1,5))
 x = param(randn(T,20,10))
 batchdims = [5,3,2]
 for nlayers = 1:1
-    lstm = LSTM(T, 20, 15, nlayers, 0.0, true)
-    @test_grad lstm x batchdims
-    @test_cuda lstm x batchdims
+    #lstm = LSTM(T, 20, 15, nlayers, 0.0, true)
+    #@test_grad lstm x batchdims
+    #@test_cuda lstm x batchdims
 end
 
 ##### softmax #####
@@ -159,6 +157,9 @@ x = param(rand(T,10,5))
 
 ##### split #####
 
+##### window1d #####
+x = param(randn(T,10,10))
+@test_grad window1d x 2 [5,3,2]
 
 #=
 @testset "standardize" for i = 1:5
@@ -173,9 +174,6 @@ end
     #f = Standardize(T,size(x.data))
     #@testgrad f(x,true) x f.scale f.bias
 end
-
-@testset "window1d" for i = 1:5
-    x = param(randn(T,10,10))
-    test_gradient(window1d, x, 2, [5,3,2])
-end
 =#
+
+end

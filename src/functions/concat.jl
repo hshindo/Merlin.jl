@@ -17,7 +17,6 @@ function concat(dim::Int, xs::Var...)
     y = cat(dim, map(x -> x.data, xs)...)
     Var(y, (concat,dim,xs...))
 end
-concat(dim::Int, xs::Node...) = Node(concat, dim, xs...)
 
 function addgrad!(y::Var, ::typeof(concat), dim::Int, xs::Var...)
     ∇concat!(y, dim, xs...)
@@ -25,12 +24,14 @@ end
 
 function ∇concat!(y::Var, dim::Int, xs::Var...)
     offset = 0
-    ysize = Any[Colon() for i=1:ndims(y)]
     for x in xs
         s = size(x, dim)
         if !isvoid(x.grad)
-            ysize[dim] = offset+1:offset+s
-            gy = y.grad[ysize...]
+            I = ntuple(ndims(y)) do i
+                i == dim ? (offset+1:offset+s) : Colon()
+            end
+            gy = view(y.grad, I...)
+            ndims(y) > ndims(x) && (gy = squeeze(gy,ndims(y)))
             add!(x.grad, gy)
         end
         offset += s

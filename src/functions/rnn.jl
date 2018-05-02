@@ -166,11 +166,6 @@ function batchsort(x::UniArray, batchdims::Vector{Int})
 end
 
 function lstm_cudnn(lstm::LSTM, x::Var, batchdims::Vector{Int})
-    xs = unsafe_split(x.data, batchdims)
-    perm = sortperm(batchdims, rev=true)
-    xs = xs[perm]
-    x = cat(ndims(x), xs...)
-
     Ws = Var[]
     h0s = Var[]
     c0s = Var[]
@@ -185,15 +180,18 @@ function lstm_cudnn(lstm::LSTM, x::Var, batchdims::Vector{Int})
     W = concat(1, Ws...)
     h0 = concat(1, h0s...)
     c0 = concat(1, c0s...)
-    t_x, t_batchdims = transpose_batch(x.data, batchdims)
+
+    xs = unsafe_split(x.data, batchdims)
+    perm = sortperm(batchdims, rev=true)
+    t_x, t_batchdims = transpose_batch(xs[perm])
 
     dir = lstm.bidirectional ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
     mode = CUDNN.CUDNN_LSTM
     t_y, work = CUDNN.rnn(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, dir, mode,
         W.data, t_x, t_batchdims, istrain())
-    y, _ = transpose_batch(t_y, t_batchdims)
 
-    ys = split(y, batchdims[perm])
+    y, _ = transpose_batch(unsafe_split(t_y,t_batchdims))
+    ys = unsafe_split(y, batchdims[perm])
     y = cat(ndims(y), ys[perm]...)
     Var(y, (lstm,x,batchdims,work,W))
 end
@@ -220,7 +218,40 @@ function cumsum_cint(dims::Vector{Int})
     cumdims
 end
 
-@generated function transpose_batch(x::CuMatrix{T}, batchdims_x::Vector{Int}) where T
+@generated function transpose_batch(xs::Vector{CuMatrix{T}}) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void transpose_batch(int n, $Ct *y, int *cumdimsY, $Ct **xs, int *cumdimsX) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= n*cumdimsY[1]*cumdimsX[1]) return;
+
+        int vj = idx / n;
+        int vi = idx - vj * n;
+        int j = vj / cumdimsY[1];
+        int i = vj - j * cumdimsY[1];
+        if (cumdimsY[j] + i < cumdimsY[j+1]) {
+            int idxY = (cumdimsY[j] + i) * n + vi;
+            int idxX = j * n + vi;
+            y[idxY] = xs[i][idxX];
+        }
+    }""")
+    quote
+        batchdims_x = Array{Int}(length(xs))
+        for i = 1:length(xs)
+            batchdims_x[i] = size(xs[i], 2)
+        end
+        batchdims_y = transpose_dims(batchdims_x)
+        cumdims_x = CuArray(cumsum_cint(batchdims_x))
+        cumdims_y = CuArray(cumsum_cint(batchdims_y))
+        y = CuArray{T}(size(xs[1],1), sum(batchdims_x))
+        p_xs = CuArray(map(pointer,xs))
+        gdims, bdims = cudims(size(xs[1],1)*batchdims_y[1]*batchdims_x[1])
+        $k(gdims, bdims, size(xs[1],1), pointer(y), pointer(cumdims_y), pointer(p_xs), pointer(cumdims_x))
+        y, batchdims_y
+    end
+end
+
+@generated function transpose_batch2(x::CuMatrix{T}, batchdims_x::Vector{Int}) where T
     Ct = cstring(T)
     k = Kernel("""
     __global__ void transpose_batch(int n, $Ct *y, int *cumdimsY, $Ct *x, int *cumdimsX) {

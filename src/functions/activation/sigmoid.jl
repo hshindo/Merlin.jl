@@ -16,7 +16,6 @@ end
 sigmoid(x::Array) = sigmoid.(x)
 sigmoid(x::T) where T<:AbstractFloat = T(1 / (1 + exp(-x)))
 sigmoid(x::CuArray) = CUDNN.sigmoid(x)
-sigmoid(x::Node) = Node(sigmoid, x)
 
 function addgrad!(y::Var, ::typeof(sigmoid), x::Var)
     isvoid(x.grad) && return

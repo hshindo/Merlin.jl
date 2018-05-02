@@ -45,11 +45,13 @@ for name in [
 
     "blas",
     "concat",
+    "conv",
     "dropout",
     "getindex",
     "linear",
     "lookup",
     "math",
+    "pack",
     "reshape",
     "rnn",
     "softmax",

@@ -75,11 +75,11 @@ if AVAILABLE
 end
 
 include("abstractarray.jl")
+include("kernel.jl")
 include("array.jl")
 include("subarray.jl")
-include("kernel.jl")
-
 include("arraymath.jl")
+include("broadcast.jl")
 include("cat.jl")
 include("reduce.jl")
 include("reducedim.jl")

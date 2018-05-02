@@ -9,7 +9,6 @@ function Base.tanh(x::Var)
 end
 Base.tanh(x::Array) = tanh.(x)
 Base.tanh(x::CuArray) = CUDNN.tanh(x)
-Base.tanh(x::Node) = Node(tanh, x)
 
 function addgrad!(y::Var, ::typeof(tanh), x::Var)
     isvoid(x.grad) && return

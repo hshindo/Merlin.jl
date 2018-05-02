@@ -14,7 +14,6 @@ function softmax(x::Var)
     Var(softmax(x.data), (softmax,x))
 end
 softmax(x::CuArray) = CUDNN.softmax(x)
-softmax(x::Node) = Node(softmax, x)
 
 function softmax(x::Matrix{T}) where T
     y = similar(x)
@@ -66,7 +65,6 @@ function logsoftmax(x::Var)
     Var(logsoftmax(x.data), (logsoftmax,x))
 end
 logsoftmax(x::CuArray) = CUDNN.softmax(x, CUDNN.CUDNN_SOFTMAX_LOG)
-logsoftmax(x::Node) = Node(logsoftmax, x)
 
 function logsoftmax(x::Matrix{T}) where T
     y = similar(x)

@@ -49,13 +49,16 @@ const CUDNN_CONVOLUTION_BWD_DATA_ALGO_COUNT = Cint(6)
 
 mutable struct ConvolutionDesc
     ptr::Cptr
+    work
 
-    function ConvolutionDesc(::Type{T}, N::Int, pads, strides, dilations) where T
+    function ConvolutionDesc(::Type{T}, pads, strides, dilations) where T
         ref = Ref{Cptr}()
         @cudnn :cudnnCreateConvolutionDescriptor (Ptr{Cptr},) ref
-        desc = new(ref[])
+        desc = new(ref[], nothing)
         finalizer(desc, x -> @cudnn :cudnnDestroyConvolutionDescriptor (Cptr,) x.ptr)
 
+        @assert length(pads) == length(strides) == length(dilations)
+        N = length(pads)
         cpads = Cint[pads[i] for i=N:-1:1]
         cstrides = Cint[strides[i] for i=N:-1:1]
         cdilations = Cint[dilations[i] for i=N:-1:1]
@@ -71,17 +74,15 @@ Base.unsafe_convert(::Type{Cptr}, desc::ConvolutionDesc) = desc.ptr
 
 function convolution(w::CuArray{T,N}, x::CuArray{T,N}, pads, strides, dilations) where {T,N}
     @assert size(w,N-1) == size(x,N-1)
-    convdesc = ConvolutionDesc(T, N-2, pads, strides, dilations)
+    convdesc = ConvolutionDesc(T, pads, strides, dilations)
     wdesc = FilterDesc(w)
     xdesc = TensorDesc(x)
 
-    ydims = Array{Int}(N)
-    for d = 1:N-2
-        ydims[d] = 1 + (size(x,d) + 2pads[d] - (((size(w,d)-1)*dilations[d])+1)) ÷ strides[d]
+    ydims = ntuple(N-2) do d
+        k = (size(w,d)-1) * dilations[d] + 1
+        1 + (size(x,d) + 2pads[d] - k) ÷ strides[d]
     end
-    ydims[N-1] = size(w, N)
-    ydims[N] = size(x, N)
-    y = similar(x, ydims...)
+    y = similar(x, ydims..., size(w,N), size(x,N))
     ydesc = TensorDesc(y)
 
     h = gethandle()
@@ -101,48 +102,41 @@ function convolution(w::CuArray{T,N}, x::CuArray{T,N}, pads, strides, dilations)
     @cudnn(:cudnnConvolutionForward,
         (Cptr,Cptr,Cptr,Cptr,Cptr,Cptr,Cptr,Cint,Cptr,Csize_t,Cptr,Cptr,Cptr),
         h, T[1], xdesc, x, wdesc, w, convdesc, algo, workspace, length(workspace), T[0], ydesc, y)
-    y
+
+    convdesc.work = (wdesc,xdesc,ydesc)
+    y, convdesc
 end
 
-function ∇convolution!(dy::CuArray{T,N}, w, dw, x, dx, pads, strides, dilations) where {T,N}
-    convdesc = ConvolutionDesc(T, N-2, pads, strides, dilations)
-    dydesc = TensorDesc(dy)
-    wdesc = FilterDesc(w)
-    xdesc = TensorDesc(x)
-    dw == nothing || backward_filter!(convdesc, xdesc, x, dydesc, dy, wdesc, dw)
-    dx == nothing || backward_data!(convdesc, wdesc, w, dydesc, dy, xdesc, dx)
-end
-
-function backward_bias!(dydesc, dy, dbdesc, db)
-    T = eltype(dy)
+function ∇convolution_bias!(dy::CuArray{T}, db::CuArray{T}) where T
+    wdesc,xdesc,ydesc = convdesc.work
     @cudnn(:cudnnConvolutionBackwardBias,
         (Cptr,Cptr,Cptr,Cptr,Cptr,Cptr,Cptr),
-        h, T[1], dydesc, dy, T[1], dbdesc, db)
+        h, T[1], ydesc, dy, T[1], bdesc, db)
 end
 
-function backward_filter!(convdesc::ConvolutionDesc, xdesc, x, dydesc, dy, dwdesc, dw)
-    T = eltype(x)
+function ∇convolution_filter!(convdesc, x::CuArray{T}, dy::CuArray{T}, dw::CuArray{T}) where T
+    wdesc,xdesc,ydesc = convdesc.work
     h = gethandle()
     ref = Ref{Cint}()
     preference = CUDNN_CONVOLUTION_BWD_FILTER_PREFER_FASTEST
     @cudnn(:cudnnGetConvolutionBackwardFilterAlgorithm,
         (Cptr,Cptr,Cptr,Cptr,Cptr,Cint,Csize_t,Ptr{Cint}),
-        h, xdesc, dydesc, convdesc, dwdesc, preference, 0, ref)
+        h, xdesc, ydesc, convdesc, wdesc, preference, 0, ref)
     algo = ref[]
 
     ref = Ref{Csize_t}()
     @cudnn(:cudnnGetConvolutionBackwardFilterWorkspaceSize,
         (Cptr,Cptr,Cptr,Cptr,Cptr,Cint,Ptr{Csize_t}),
-        h, xdesc, dydesc, convdesc, dwdesc, algo, ref)
+        h, xdesc, ydesc, convdesc, wdesc, algo, ref)
     workspace = CuArray{UInt8}(Int(ref[]))
 
     @cudnn(:cudnnConvolutionBackwardFilter,
         (Cptr,Cptr,Cptr,Cptr,Cptr,Cptr,Cptr,Cint,Cptr,Csize_t,Cptr,Cptr,Cptr),
-        h, T[1], xdesc, x, dydesc, dy, convdesc, algo, workspace, length(workspace), T[1], dwdesc, dw)
+        h, T[1], xdesc, x, ydesc, dy, convdesc, algo, workspace, length(workspace), T[1], wdesc, dw)
 end
 
-function backward_data!(convdesc::ConvolutionDesc, wdesc, w, dydesc, dy, dxdesc, dx)
-    T = eltype(w)
+function ∇convolution_data!(convdesc, w::CuArray{T}, dy::CuArray{T}, dx::CuArray{T}) where T
+    wdesc,xdesc,ydesc = convdesc.work
     h = gethandle()
     ref = Ref{Cint}()
     preference = CUDNN_CONVOLUTION_BWD_DATA_PREFER_FASTEST
@@ -154,10 +148,10 @@ function backward_data!(convdesc::ConvolutionDesc, wdesc, w, dydesc, dy, dxdesc,
     ref = Ref{Csize_t}()
     @cudnn(:cudnnGetConvolutionBackwardDataWorkspaceSize,
         (Cptr,Cptr,Cptr,Cptr,Cptr,Cint,Ptr{Csize_t}),
-        h, wdesc, dydesc, convdesc, dxdesc, algo, ref)
+        h, wdesc, ydesc, convdesc, xdesc, algo, ref)
     workspace = CuArray{UInt8}(Int(ref[]))
 
     @cudnn(:cudnnConvolutionBackwardData,
         (Cptr,Cptr,Cptr,Cptr,Cptr,Cptr,Cptr,Cint,Cptr,Csize_t,Cptr,Cptr,Cptr),
-        h, T[1], wdesc, w, dydesc, dy, convdesc, algo, workspace, length(workspace), T[1], dxdesc, dx)
+        h, T[1], wdesc, w, ydesc, dy, convdesc, algo, workspace, length(workspace), T[1], xdesc, dx)
 end
