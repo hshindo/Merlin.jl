@@ -144,3 +144,19 @@ function curandn(::Type{T}, dims::NTuple{N,Int}) where {T,N}
 end
 curandn(::Type{T}, dims::Int...) where T = curandn(T, dims)
 curandn(dims::Int...) = curandn(Float64, dims)
+
+@generated function Base.permutedims(x::CuArray{T,N}, perm::Vector{Int}) where {T,N}
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void permutedims($Ct *x, int n, $Ct value) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= n) return;
+        x[idx] = value;
+    }""")
+    quote
+        @assert length(perm) == N
+        gdims, bdims = cudims(length(x))
+        $k(gdims, bdims, pointer(x), length(x), T(value))
+        x
+    end
+end

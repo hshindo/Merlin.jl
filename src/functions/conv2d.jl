@@ -1,7 +1,7 @@
-export Conv
+export Conv2d
 
 """
-    Conv(T, filtersize, kwargs...)
+    Conv2d(T, filtersize, kwargs...)
 
 * W: (W1,W2,...,I,O)
 * X: (X1,X2,...,I,N)
@@ -14,19 +14,19 @@ where
 
 ```julia
 T = Float32
-conv = Conv(T, (1,1,3,2))
+conv = Conv2d(T, (1,1,3,2))
 x = CuArray{T}(5,5,3,3)
 y = conv(x)
 ```
 """
-mutable struct Conv{N}
+mutable struct Conv2d
     w::Var
-    pad::NTuple{N,Int}
-    stride::NTuple{N,Int}
-    dilation::NTuple{N,Int}
+    pad::NTuple{2,Int}
+    stride::NTuple{2,Int}
+    dilation::NTuple{2,Int}
 end
 
-function Conv(::Type{T}, filtersize::Tuple;
+function Conv2d(::Type{T}, filtersize::Tuple;
     pad=0, stride=1, dilation=1, init_w=Xavier(), init_b=Fill(0)) where T
 
     N = length(filtersize) - 2
@@ -38,19 +38,13 @@ function Conv(::Type{T}, filtersize::Tuple;
     Conv(param(w), pad, stride, dilation)
 end
 
-function (f::Conv{1})(xs::Vector{Var})
-    x = pack(map(x -> x.data, xs))
-    y = f(x)
-    unpack(y)
-end
-
-function (f::Conv{2})(x::Var)
+function (f::Conv2d)(x::Var)
     configure!(f.w, x)
     y, work = f(x.data)
-    Var(y, (f,f.w,x,work))
+    Var(y, (f,x,work))
 end
 
-function (f::Conv{2})(x::Array{T,4}) where T
+function (f::Conv2d)(x::Array{T,4}) where T
     hdims = ntuple(2) do d
         k = (size(w,d)-1) * dilation[d] + 1
         1 + (size(x,d) + 2pad[d] - k) ÷ stride[d]
@@ -61,16 +55,16 @@ function (f::Conv{2})(x::Array{T,4}) where T
     Var(y, (f,x,f.W,f.b,batchdims,h))
 end
 
-function (f::Conv{2})(x::CuArray)
+function (f::Conv2d)(x::CuArray)
     CUDNN.convolution(f.w.data, x, f.pad, f.stride, f.dilation)
 end
 
-function addgrad!(y::Var, f::Conv, x::Var, work)
+function addgrad!(y::Var, f::Conv2d, x::Var, work)
     isvoid(x.grad) && return
     ∇conv!(y.grad, f, x.data, x.grad, work)
 end
 
-function ∇conv!(gy::CuArray, f::Conv{2}, x::CuArray, gx, convdesc)
+function ∇conv!(gy::CuArray, f::Conv2d, x::CuArray, gx, convdesc)
     w, gw = f.w.data, f.w.grad
     isvoid(gw) || CUDNN.∇convolution_filter!(convdesc, x, gy, gw)
     isvoid(gx) || CUDNN.∇convolution_data!(convdesc, w, gy, gx)

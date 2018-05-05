@@ -48,7 +48,6 @@ function transpose(x::Var)
     y = transpose(x.data)
     Var(y, (transpose,x))
 end
-transpose(xs::Vector{Var}) = map(transpose, xs)
 
 function addgrad!(y::Var, ::typeof(transpose), x::Var)
     isvoid(x.grad) && return

@@ -75,15 +75,12 @@ for dim = 1:3
     @test_cuda concat dim x1 x2 x3
 end
 
-#=
-@testset "conv" for i = 1:5
-    #x = param(curandn(T,10,10,5,4))
-    #conv = Conv(T, 1, 1, 5, 3)
-    #conv = cuda(conv)
-    #y = conv(x)
-    #gradient!(y)
-end
-=#
+##### conv1d #####
+x = param(randn(T,20,10))
+batchdims = [3,7]
+conv = Conv1d(T, 5, 20, 15, pad=2)
+@test_grad conv x batchdims
+@test_cuda conv x batchdims
 
 ##### dropout #####
 x = param(randn(T,10,5))
@@ -102,7 +99,7 @@ f = Linear(T, 10, 7, init_b=Uniform(-0.01,0.01))
 
 ##### lookup #####
 w = param(randn(T,10,15))
-x = Var(Array{Int32}(rand(1:15,10)))
+x = rand(1:15,10)
 @test_grad lookup w x
 @test_cuda lookup w x
 
@@ -157,20 +154,10 @@ x = param(rand(T,10,5))
 
 ##### split #####
 
-##### window1d #####
-x = param(randn(T,10,10))
-@test_grad window1d x 2 [5,3,2]
 
 #=
 @testset "standardize" for i = 1:5
     x = param(randn(T,1,5)*3+2)
-    #f = Standardize(T,size(x.data))
-    #@testgrad f(x,true) x f.scale f.bias
-end
-
-@testset "transpose_batch" for i = 1:5
-    x = param(randn(T,10,5))
-
     #f = Standardize(T,size(x.data))
     #@testgrad f(x,true) x f.scale f.bias
 end

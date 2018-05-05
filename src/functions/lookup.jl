@@ -1,14 +1,15 @@
 export lookup
 
-function lookup(w::Var, x::Var)
-    configure!(w, x)
+function lookup(w::Var, x::Array{Int})
+    configure!(w)
     y = lookup(w.data, x)
     Var(y, (lookup,w,x))
 end
 
-function lookup(w::UniMatrix{T}, x::Array{I}) where {T,I<:Integer}
+function lookup(w::UniMatrix{T}, x::Array{Int}) where T
     n = size(w, 1)
-    y = zeros(T, n*size(x,1), Base.tail(size(x))...)
+    y = similar(w, n*size(x,1), Base.tail(size(x))...)
+    fill!(y, 0)
     for i = 1:length(x)
         x[i] <= 0 && continue
         yi = (i-1) * n + 1
@@ -18,6 +19,27 @@ function lookup(w::UniMatrix{T}, x::Array{I}) where {T,I<:Integer}
     y
 end
 
+function addgrad!(y::Var, ::typeof(lookup), w::Var, x::Array{Int})
+    isvoid(w.grad) && return
+    ∇lookup!(y.grad, w.grad, x)
+end
+
+unsafe_array(x::Array, i::Int, dims) = unsafe_wrap(Array, pointer(x,i), dims)
+unsafe_array(x::CuArray, i::Int, dims) = unsafe_wrap(CuArray, pointer(x,i), dims)
+
+function ∇lookup!(gy::UniArray{T}, gw::UniArray{T}, x::Array{Int}) where T
+    n = size(gw, 1)
+    for i = 1:length(x)
+        x[i] <= 0 && continue
+        yi = (i-1) * n + 1
+        wi = (x[i]-1) * n + 1
+        unsafe_gy = unsafe_array(gy, yi, (n,))
+        unsafe_gw = unsafe_array(gw, wi, (n,))
+        add!(unsafe_gw, unsafe_gy)
+    end
+end
+
+#=
 @generated function lookup(w::CuMatrix{T}, x::CuArray{Cint}) where T
     Ct = cstring(T)
     k = Kernel("""
@@ -35,23 +57,6 @@ end
         gdims, bdims = cudims(length(y))
         $k(gdims, bdims, pointer(y), length(y), pointer(w), pointer(x), n)
         y
-    end
-end
-
-function addgrad!(y::Var, ::typeof(lookup), w::Var, x::Var)
-    isvoid(w.grad) && return
-    ∇lookup!(y.grad, w.grad, x.data)
-end
-
-function ∇lookup!(gy::Array{T}, gw::Array{T}, x::Array{I}) where {T,I<:Integer}
-    n = size(gw, 1)
-    for i = 1:length(x)
-        x[i] <= 0 && continue
-        yi = (i-1) * n + 1
-        wi = (x[i]-1) * n + 1
-        py = pointer(gy, yi)
-        pw = pointer(gw, wi)
-        BLAS.axpy!(n, T(1), py, 1, pw, 1)
     end
 end
 
@@ -76,3 +81,4 @@ end
         $k(gdims, bdims, pointer(gy), length(gy), pointer(gw), pointer(x), n)
     end
 end
+=#

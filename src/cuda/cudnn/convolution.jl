@@ -142,7 +142,7 @@ function ∇convolution_data!(convdesc, w::CuArray{T}, dy::CuArray{T}, dx::CuArr
     preference = CUDNN_CONVOLUTION_BWD_DATA_PREFER_FASTEST
     @cudnn(:cudnnGetConvolutionBackwardDataAlgorithm,
         (Cptr,Cptr,Cptr,Cptr,Cptr,Cint,Csize_t,Ptr{Cint}),
-        h, wdesc, dydesc, convdesc, dxdesc, preference, 0, ref)
+        h, wdesc, ydesc, convdesc, xdesc, preference, 0, ref)
     algo = ref[]
 
     ref = Ref{Csize_t}()

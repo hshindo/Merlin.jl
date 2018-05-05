@@ -10,6 +10,20 @@ using .CUDA
 export Functor
 abstract type Functor end
 
+export FunctorSet
+struct FunctorSet
+    funs::Tuple
+    params
+end
+
+function FunctorSet(funs::Functor...)
+    params = Var[]
+    for f in funs
+        append!(params, getparams(f))
+    end
+    FunctorSet(funs, params)
+end
+
 const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
 const UniVector{T} = UniArray{T,1}
 const UniMatrix{T} = UniArray{T,2}
@@ -45,7 +59,7 @@ for name in [
 
     "blas",
     "concat",
-    "conv",
+    "conv1d",
     "dropout",
     "getindex",
     "linear",

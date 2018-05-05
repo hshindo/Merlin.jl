@@ -1,6 +1,6 @@
 export pack, unpack
 
-function pack(xs::Vector; pad=0)
+function pack(xs::Vector{Var}; pad=0)
     T = eltype(xs[1])
     N = ndims(xs[1])
     maxdims = zeros(Int, N)
@@ -15,11 +15,12 @@ function pack(xs::Vector; pad=0)
     st = stride(y, N+1)
     yi = 1
     for x in xs
-        copy!(y, yi, x, 1)
+        copy!(y, yi, x.data, 1)
         yi += st
     end
-    y
+    Var(y, (pack,xs))
 end
+pack(x::Node) = Node(pack, x)
 
 function unpack(x::A, sizes::Vector) where A
     ys = map(A, sizes)
@@ -28,4 +29,3 @@ function unpack(x::A, sizes::Vector) where A
     end
     ys
 end
-Array{Float32,2}(2,3)
