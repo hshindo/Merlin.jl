@@ -47,8 +47,6 @@ for dim = 1:2
     @test_grad max x dim
     @test_cuda max x dim
 end
-# @test_grad max_batch x (3,2)
-# @test_cuda max_batch x [3,2]
 
 ##### blas #####
 A = param(randn(T,10,5))

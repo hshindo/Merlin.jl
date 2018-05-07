@@ -11,7 +11,3 @@ function argmax(x::Array, dim::Int)
     dims = ntuple(i -> i==dim ? 1 : size(x,i), ndims(x))
     reshape(y, dims)
 end
-
-function argmax(x::CuArray, dim)
-    throw("Not implemented yet.")
-end

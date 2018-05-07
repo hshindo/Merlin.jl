@@ -33,8 +33,6 @@ include("add.jl")
 include("var.jl")
 include("graph.jl")
 include("test.jl")
-include("initializer.jl")
-include("optimizer.jl")
 include("iterators.jl")
 
 for name in [
@@ -46,6 +44,9 @@ for name in [
     "activation/sigmoid",
     "activation/swish",
     "activation/tanh",
+
+    "cnn/conv1d",
+    # "cnn/conv2d",
 
     "loss/crossentropy",
     "loss/l2",
@@ -59,20 +60,29 @@ for name in [
 
     "blas",
     "concat",
-    "conv1d",
     "dropout",
     "getindex",
     "linear",
     "lookup",
     "lstm",
     "math",
-    "pack",
     "reshape",
     "softmax",
     "split"
     ]
     include("functions/$name.jl")
 end
+
+include("initializers/fill.jl")
+include("initializers/normal.jl")
+include("initializers/orthogonal.jl")
+include("initializers/orthonormal.jl")
+include("initializers/uniform.jl")
+include("initializers/xavier.jl")
+
+include("optimizers/adagrad.jl")
+include("optimizers/adam.jl")
+include("optimizers/sgd.jl")
 
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")

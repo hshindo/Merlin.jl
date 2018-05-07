@@ -1,5 +1,3 @@
-export IntDict
-
 """
     IntDict{T}
 
@@ -28,8 +26,9 @@ Base.count(dict::IntDict, id::Int) = dict.id2count[id]
 Base.getkey(dict::IntDict, id::Int) = dict.id2key[id]
 Base.getindex(dict::IntDict, key) = dict.key2id[key]
 Base.get(dict::IntDict, key) = get(dict.key2id, key, dict.default)
-Base.length(dict::IntDict) = length(dict.key2id)
-function Base.push!(dict::IntDict{T}, key::T) where T
+Base.length(d::IntDict) = length(d.key2id)
+
+function Base.push!(dict::IntDict, key)
     if haskey(dict.key2id, key)
         id = dict.key2id[key]
         dict.id2count[id] += 1
@@ -41,7 +40,7 @@ function Base.push!(dict::IntDict{T}, key::T) where T
     end
     id
 end
-Base.append!(dict::IntDict, keys) = map(k -> push!(dict,k), keys)
+Base.append!(dict::IntDict, keys::Vector) = map(k -> push!(dict,k), keys)
 
 function save(dict::IntDict)
     throw("Not implemented yet.")

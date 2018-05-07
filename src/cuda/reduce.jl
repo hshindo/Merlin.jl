@@ -14,10 +14,6 @@ function Base.norm(x::CuArray, dim::Int, p::Int)
 end
 
 function Base.sum(x::CuArray{T}) where T
-    # TODO: make this faster
     x = vec(x)
     Array(sum(x,1))[1]
-    #ref = Ref{Ptr{Void}}()
-    #bytesize = sizeof(T)
-    #@apicall :cuMemAllocHost (Ptr{Ptr{Void}},Csize_t) ref bytesize
 end

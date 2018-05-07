@@ -16,15 +16,6 @@ function max(x::Var, dim::Int)
     Var(y, (max,x,dim,idx))
 end
 
-function max(xs::Vector{Var}, dim::Int)
-    if dim == ndims(xs[1])
-        ys = map(x -> max(x,dim), xs)
-        concat(dim, ys)
-    else
-        map(x -> max(x,dim), xs)
-    end
-end
-
 function addgrad!(y::Var, ::typeof(max), x::Var, dim::Int, idx)
     isvoid(x.grad) && return
     ∇max!(y.grad, x.grad, dim, idx)

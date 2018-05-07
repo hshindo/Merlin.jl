@@ -1,24 +1,29 @@
 export unsafe_split
 
 doc"""
-    split(x::Var, dims::Vector{Int})
+    split(x::Var, dim::Int, batchdims::Vector{Int})
 
 # Example
 ```julia
 T = Float32
 x = Var(rand(T,10,10))
-ys = split(x, [2,3,5])
+ys = split(x, 2, [2,3,5])
 ```
 """
 function Base.split(x::Var, dim::Int, dims::Vector{Int})
+    cumdim = 0
+    for d in dims
+        y = x[]
+        cumdim += d
+    end
+    ys
+
+    @assert dim == ndims(x)
     @assert sum(dims) == size(x,dim)
-    front = [Colon() for _=1:ndims(x)-1]
+    front = Base.front(size(x))
     cumdim = 0
     ys = Var[]
     for d in dims
-        a = ntuple(N) do i
-            i == dim ? (cumdim+1:cumdim+d) : Colon()
-        end
         y = x[front...,cumdim+1:cumdim+d]
         push!(ys, y)
         cumdim += d
@@ -26,32 +31,21 @@ function Base.split(x::Var, dim::Int, dims::Vector{Int})
     ys
 end
 
-function unsafe_split(x::Array{T,N}, dims::Vector{Int}) where {T,N}
-    sum(dims) == size(x,N) || throw("Invalid dims: $dims.")
-    length(dims) == 1 && return [x]
+function unsafe_split(x::Var, dims::Vector{Int})
+    ys = unsafe_split(x.data, dims)
 
-    cumdim = 0
-    front = Base.front(size(x))
-    m = prod(front)
-    ys = Array{T,N}[]
-    for d in dims
-        y = unsafe_wrap(Array, pointer(x,m*cumdim+1), (front...,d))
-        push!(ys, y)
-        cumdim += d
-    end
-    ys
 end
 
-function unsafe_split(x::CuArray{T,N}, dims::Vector{Int}) where {T,N}
+function unsafe_split(x::UniArray{T,N}, dims::Vector{Int}) where {T,N}
     sum(dims) == size(x,N) || throw("Invalid dims: $dims.")
     length(dims) == 1 && return [x]
 
     cumdim = 0
     front = Base.front(size(x))
     m = prod(front)
-    ys = CuArray{T,N}[]
+    ys = typeof(x)[]
     for d in dims
-        y = unsafe_wrap(CuArray, pointer(x,m*cumdim+1), (front...,d))
+        y = unsafe_array(x, m*cumdim+1, (front...,d))
         push!(ys, y)
         cumdim += d
     end
