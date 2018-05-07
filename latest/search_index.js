@@ -305,54 +305,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "initializers.html#Merlin.Fill",
-    "page": "Initializaters",
-    "title": "Merlin.Fill",
-    "category": "type",
-    "text": "Fill(x)\n\nFill initializer.\n\n\n\n"
-},
-
-{
-    "location": "initializers.html#Merlin.Normal",
-    "page": "Initializaters",
-    "title": "Merlin.Normal",
-    "category": "type",
-    "text": "Normal(mean, var)\n\nGenerator of ndarray with a normal distribution.\n\nArguments\n\nmean: Mean of the random values.\nvar: Variance of the random values.\n\n\n\n"
-},
-
-{
-    "location": "initializers.html#Merlin.OrthoNormal",
-    "page": "Initializaters",
-    "title": "Merlin.OrthoNormal",
-    "category": "type",
-    "text": "OrthoNormal\n\n\n\n"
-},
-
-{
-    "location": "initializers.html#Merlin.Orthogonal",
-    "page": "Initializaters",
-    "title": "Merlin.Orthogonal",
-    "category": "type",
-    "text": "Orthogonal([gain=1.0])\n\nReferences\n\nSaxe et al., Exact solutions to the nonlinear dynamics of learning in deep linear neural networks\n\n\n\n"
-},
-
-{
-    "location": "initializers.html#Merlin.Uniform",
-    "page": "Initializaters",
-    "title": "Merlin.Uniform",
-    "category": "type",
-    "text": "Uniform(a, b)\nUniform(b)\n\nGenerator of ndarray with a uniform distribution.\n\nArguments\n\na: Lower bound of the range of random values.\nb: Upper bound of the range of random values.\n\n\n\n"
-},
-
-{
-    "location": "initializers.html#Merlin.Xavier",
-    "page": "Initializaters",
-    "title": "Merlin.Xavier",
-    "category": "type",
-    "text": "Xavier()\n\nXavier initialization.\n\n\n\n"
-},
-
-{
     "location": "initializers.html#Initializers-1",
     "page": "Initializaters",
     "title": "Initializers",
@@ -366,30 +318,6 @@ var documenterSearchIndex = {"docs": [
     "title": "Optimizers",
     "category": "page",
     "text": ""
-},
-
-{
-    "location": "optimizers.html#Merlin.AdaGrad",
-    "page": "Optimizers",
-    "title": "Merlin.AdaGrad",
-    "category": "type",
-    "text": "AdaGrad\n\nAdaGrad Optimizer.\n\nReferences\n\nDuchi t al., \"Adaptive Subgradient Methods for Online Learning and Stochastic Optimization\", JMLR 2011.\n\n\n\n"
-},
-
-{
-    "location": "optimizers.html#Merlin.Adam",
-    "page": "Optimizers",
-    "title": "Merlin.Adam",
-    "category": "type",
-    "text": "Adam\n\nAdam Optimizer\n\nReferences\n\nKingma and Ba, \"Adam: A Method for Stochastic Optimization\", ICLR 2015.\n\n\n\n"
-},
-
-{
-    "location": "optimizers.html#Merlin.SGD",
-    "page": "Optimizers",
-    "title": "Merlin.SGD",
-    "category": "type",
-    "text": "SGD\n\nStochastic Gradient Descent Optimizer.\n\nArguments\n\nrate: learning rate\n[momentum=0.0]: momentum coefficient\n[nesterov=false]: use nesterov acceleration or not\n\n\n\n"
 },
 
 {
