@@ -139,8 +139,8 @@ x = param(randn(T,10,1,5))
 x = param(randn(T,20,10))
 batchdims = [5,3,2]
 for nlayers = 1:1
-    #lstm = LSTM(T, 20, 15, nlayers, 0.0, true)
-    #@test_grad lstm x batchdims
+    lstm = LSTM(T, 20, 15, nlayers, 0.0, true)
+    @test_grad lstm x batchdims
     #@test_cuda lstm x batchdims
 end
 

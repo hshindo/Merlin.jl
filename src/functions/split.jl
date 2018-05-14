@@ -1,7 +1,7 @@
 export unsafe_split
 
 doc"""
-    split(x::Var, dim::Int, batchdims::Vector{Int})
+    split(x::Var, dim::Int, dims::Vector{Int})
 
 # Example
 ```julia
@@ -11,6 +11,12 @@ ys = split(x, 2, [2,3,5])
 ```
 """
 function Base.split(x::Var, dim::Int, dims::Vector{Int})
+    if dim == ndims(x)
+        copy()
+    else
+
+    end
+
     cumdim = 0
     for d in dims
         y = x[]
@@ -29,11 +35,6 @@ function Base.split(x::Var, dim::Int, dims::Vector{Int})
         cumdim += d
     end
     ys
-end
-
-function unsafe_split(x::Var, dims::Vector{Int})
-    ys = unsafe_split(x.data, dims)
-
 end
 
 function unsafe_split(x::UniArray{T,N}, dims::Vector{Int}) where {T,N}

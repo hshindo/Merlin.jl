@@ -37,6 +37,5 @@ function TensorDesc(x::CuArray{T}, N::Int=ndims(x)) where T
     end
     TensorDesc(T, dims)
 end
-TensorDesc(::Type{T}, dims::Int...) where T = TensorDesc(T, dims)
 
 Base.unsafe_convert(::Type{Cptr}, desc::TensorDesc) = desc.ptr

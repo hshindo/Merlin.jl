@@ -46,6 +46,7 @@ function linear(x::Var, w::Var, b::Var)
     end
     Var(y, (linear,x,w,b))
 end
+linear(x::Node, w, b) = Node(linear, x, w, b)
 
 function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
     T = eltype(x)

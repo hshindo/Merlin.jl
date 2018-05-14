@@ -15,6 +15,7 @@ function max(x::Var, dim::Int)
     y, idx = findmax(x.data, dim)
     Var(y, (max,x,dim,idx))
 end
+max(x::Node, dim) = Node(max, x, dim)
 
 function addgrad!(y::Var, ::typeof(max), x::Var, dim::Int, idx)
     isvoid(x.grad) && return

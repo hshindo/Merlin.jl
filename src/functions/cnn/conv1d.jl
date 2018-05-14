@@ -31,23 +31,24 @@ function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
     Conv1d(param(W), param(b), ksize, pad, stride, dilation)
 end
 
-function (f::Conv1d)(x::Var, batchdims::Vector{Int})
-    @assert ndims(x) == 2 && sum(batchdims) == size(x,ndims(x))
-    idx = conv1d_index(batchdims, f.ksize, f.pad, f.stride, f.dilation)
+function (f::Conv1d)(x::Var, batchsize::Vector{Int})
+    @assert ndims(x) == 2 && sum(batchsize) == size(x,ndims(x))
+    idx = conv1d_index(batchsize, f.ksize, f.pad, f.stride, f.dilation)
     h = lookup(x, idx)
     linear(h, f.W, f.b)
 end
+(f::Conv1d)(x::Node, batchsize) = Node(f, x, batchsize)
 
-function conv1d_index(batchdims::Vector{Int}, ksize::Int, pad::Int, stride::Int, dilation::Int)
-    outdims = map(batchdims) do d
+function conv1d_index(batchsize::Vector{Int}, ksize::Int, pad::Int, stride::Int, dilation::Int)
+    outdims = map(batchsize) do d
         k = (ksize - 1) * dilation + 1
         (d + 2pad - k) ÷ stride + 1
     end
     cumdim = 0
     y = Array{Int}(ksize, sum(outdims))
     yi = 1
-    for n = 1:length(batchdims)
-        ndims = batchdims[n]
+    for n = 1:length(batchsize)
+        ndims = batchsize[n]
         i = cumdim - pad + 1
         for d = 1:outdims[n]
             for j = i:dilation:i+(ksize-1)*dilation

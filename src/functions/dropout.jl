@@ -12,6 +12,7 @@ function dropout(x::Var, droprate::Float64)
     y, work = dropout(x.data, droprate)
     Var(y, (dropout,x,droprate,work))
 end
+dropout(x::Node, droprate) = Node(dropout, x, droprate)
 
 function dropout(x::Array{T}, droprate::Float64) where T
     work = rand(T, length(x))
@@ -37,4 +38,4 @@ function ∇dropout!(gy::Array{T}, gx::Array{T}, droprate::Float64, work::Vector
     end
 end
 
-∇dropout!(gy::CuArray, gx, droprate, dropdesc) = CUDNN.∇dropout!(gy, gx, droprate, dropdesc)
+∇dropout!(gy::CuArray, gx::CuArray, droprate, dropdesc) = CUDNN.∇dropout!(gy, gx, dropdesc)

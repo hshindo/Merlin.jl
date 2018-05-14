@@ -1,12 +1,14 @@
 mutable struct DropoutDesc
     ptr::Cptr
+    droprate::Float64
+    xdesc
     reserve_space
 
     function DropoutDesc(droprate::Float64, seed::Int=0)
         ref = Ref{Cptr}()
         @cudnn :cudnnCreateDropoutDescriptor (Ptr{Cptr},) ref
         ptr = ref[]
-        desc = new(ptr, nothing)
+        desc = new(ptr, droprate, nothing, nothing)
 
         h = gethandle()
         ref = Ref{Csize_t}()
@@ -26,6 +28,7 @@ Base.unsafe_convert(::Type{Cptr}, desc::DropoutDesc) = desc.ptr
 function dropout(x::CuArray{T,N}, droprate::Float64) where {T,N}
     dropdesc = DropoutDesc(droprate)
     xdesc = TensorDesc(x, 4)
+    dropdesc.xdesc = xdesc
 
     ref = Ref{Csize_t}()
     @cudnn :cudnnDropoutGetReserveSpaceSize (Cptr,Ptr{Csize_t}) xdesc ref
@@ -41,8 +44,8 @@ function dropout(x::CuArray{T,N}, droprate::Float64) where {T,N}
     y, dropdesc
 end
 
-function ∇dropout!(dy::CuArray, dx::CuArray, droprate, dropdesc)
-    xdesc = TensorDesc(dy, 4)
+function ∇dropout!(dy::CuArray, dx::CuArray, dropdesc)
+    xdesc = dropdesc.xdesc
     h = gethandle()
     reserve_space = dropdesc.reserve_space
     @cudnn(:cudnnDropoutBackward,

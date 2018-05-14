@@ -76,27 +76,28 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
     LSTM(insize, hsize, nlayers, droprate, bidirectional, params)
 end
 
-function (lstm::LSTM)(x::Var, batchdims::Vector{Int})
+function (lstm::LSTM)(x::Var, batchsize::Vector{Int})
     configure!(x, getparams(lstm)...)
     if iscpu()
-        lstm_naive(lstm, x, batchdims)
+        lstm_naive(lstm, x, batchsize)
     elseif iscuda()
-        lstm_cudnn(lstm, x, batchdims)
+        lstm_cudnn(lstm, x, batchsize)
     else
         throw("Invalid backend.")
     end
 end
+(lstm::LSTM)(x::Node, batchsize::Node) = Node(lstm, x, batchsize)
 
-function lstm_naive(lstm::LSTM, x::Var, batchdims::Vector{Int})
+function lstm_naive(lstm::LSTM, x::Var, batchsize::Vector{Int})
     h = x
     coef = lstm.bidirectional ? 2 : 1
     for l = 1:lstm.nlayers
         i = (l-1) * coef + 1
         p = lstm.params[i]
-        h1 = lstm_tstep(h, batchdims, p..., false)
+        h1 = lstm_tstep(h, batchsize, p..., false)
         if lstm.bidirectional
             p = lstm.params[i+1]
-            h2 = lstm_tstep(h, batchdims, p..., true)
+            h2 = lstm_tstep(h, batchsize, p..., true)
             h = concat(1, h1, h2)
         else
             h = h1
@@ -105,28 +106,28 @@ function lstm_naive(lstm::LSTM, x::Var, batchdims::Vector{Int})
     h
 end
 
-function lstm_tstep(x::Var, batchdims::Vector{Int}, W::Var, U::Var, b::Var, h0::Var, c0::Var, rev::Bool)
-    @assert sum(batchdims) == size(x,2)
+function lstm_tstep(x::Var, batchsize::Vector{Int}, W::Var, U::Var, b::Var, h0::Var, c0::Var, rev::Bool)
+    @assert sum(batchsize) == size(x,2)
     WU = concat(1, W, U)
 
-    cumdims = Array{Int}(length(batchdims)+1)
+    cumdims = Array{Int}(length(batchsize)+1)
     cumdims[1] = 1
-    for i = 1:length(batchdims)
-        cumdims[i+1] = cumdims[i] + batchdims[i]
+    for i = 1:length(batchsize)
+        cumdims[i+1] = cumdims[i] + batchsize[i]
     end
-    perm = sortperm(batchdims, rev=true)
+    perm = sortperm(batchsize, rev=true)
 
     hsize = length(h0)
-    ht = concat(2, [h0 for i=1:length(batchdims)]...)
-    ct = concat(2, [c0 for i=1:length(batchdims)]...)
+    ht = concat(2, [h0 for i=1:length(batchsize)]...)
+    ct = concat(2, [c0 for i=1:length(batchsize)]...)
     hts = Array{Var}(size(x,2))
     cts = Array{Var}(size(x,2))
-    for t = 1:batchdims[perm[1]]
+    for t = 1:batchsize[perm[1]]
         xts = Var[]
         for p in perm
-            t > batchdims[p] && break
+            t > batchsize[p] && break
             i = cumdims[p]
-            i += rev ? batchdims[p]-t : t-1
+            i += rev ? batchsize[p]-t : t-1
             push!(xts, x[:,i:i])
         end
         xt = concat(2, xts...)
@@ -137,9 +138,9 @@ function lstm_tstep(x::Var, batchdims::Vector{Int}, W::Var, U::Var, b::Var, h0::
         ht, ct = lstm_onestep(xt, WU, b, ht, ct)
         for j = 1:length(perm)
             p = perm[j]
-            t > batchdims[p] && break
+            t > batchsize[p] && break
             i = cumdims[p]
-            i += rev ? batchdims[p]-t : t-1
+            i += rev ? batchsize[p]-t : t-1
             hts[i] = ht[:,j:j]
             cts[i] = ct[:,j:j]
         end
@@ -158,14 +159,14 @@ function lstm_onestep(xt::Var, WU::Var, b::Var, ht::Var, ct::Var)
     ht, ct
 end
 
-function batchsort(x::UniArray, batchdims::Vector{Int})
-    perm = sortperm(batchdims, rev=true)
-    cumdims = cumsum(batchdims)
+function batchsort(x::UniArray, batchsize::Vector{Int})
+    perm = sortperm(batchsize, rev=true)
+    cumdims = cumsum(batchsize)
     front = Base.front(size(x))
     view(x)
 end
 
-function lstm_cudnn(lstm::LSTM, x::Var, batchdims::Vector{Int})
+function lstm_cudnn(lstm::LSTM, x::Var, batchsize::Vector{Int})
     Ws = Var[]
     h0s = Var[]
     c0s = Var[]
@@ -181,19 +182,19 @@ function lstm_cudnn(lstm::LSTM, x::Var, batchdims::Vector{Int})
     h0 = concat(1, h0s...)
     c0 = concat(1, c0s...)
 
-    xs = unsafe_split(x.data, batchdims)
-    perm = sortperm(batchdims, rev=true)
-    t_x, t_batchdims = transpose_batch(xs[perm])
+    xs = unsafe_split(x.data, batchsize)
+    perm = sortperm(batchsize, rev=true)
+    t_x, t_batchsize = transpose_batch(xs[perm])
 
     dir = lstm.bidirectional ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
     mode = CUDNN.CUDNN_LSTM
     t_y, work = CUDNN.rnn(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, dir, mode,
-        W.data, t_x, t_batchdims, istrain())
+        W.data, t_x, t_batchsize, istrain())
 
-    y, _ = transpose_batch(unsafe_split(t_y,t_batchdims))
-    ys = unsafe_split(y, batchdims[perm])
+    y, _ = transpose_batch(unsafe_split(t_y,t_batchsize))
+    ys = unsafe_split(y, batchsize[perm])
     y = cat(ndims(y), ys[perm]...)
-    Var(y, (lstm,x,batchdims,work,W))
+    Var(y, (lstm,x,batchsize,work,W))
 end
 
 function transpose_dims(dims::Vector{Int})
@@ -236,22 +237,22 @@ end
         }
     }""")
     quote
-        batchdims_x = Array{Int}(length(xs))
+        batchsize_x = Array{Int}(length(xs))
         for i = 1:length(xs)
-            batchdims_x[i] = size(xs[i], 2)
+            batchsize_x[i] = size(xs[i], 2)
         end
-        batchdims_y = transpose_dims(batchdims_x)
-        cumdims_x = CuArray(cumsum_cint(batchdims_x))
-        cumdims_y = CuArray(cumsum_cint(batchdims_y))
-        y = CuArray{T}(size(xs[1],1), sum(batchdims_x))
+        batchsize_y = transpose_dims(batchsize_x)
+        cumdims_x = CuArray(cumsum_cint(batchsize_x))
+        cumdims_y = CuArray(cumsum_cint(batchsize_y))
+        y = CuArray{T}(size(xs[1],1), sum(batchsize_x))
         p_xs = CuArray(map(pointer,xs))
-        gdims, bdims = cudims(size(xs[1],1)*batchdims_y[1]*batchdims_x[1])
+        gdims, bdims = cudims(size(xs[1],1)*batchsize_y[1]*batchsize_x[1])
         $k(gdims, bdims, size(xs[1],1), pointer(y), pointer(cumdims_y), pointer(p_xs), pointer(cumdims_x))
-        y, batchdims_y
+        y, batchsize_y
     end
 end
 
-@generated function transpose_batch2(x::CuMatrix{T}, batchdims_x::Vector{Int}) where T
+@generated function transpose_batch2(x::CuMatrix{T}, batchsize_x::Vector{Int}) where T
     Ct = cstring(T)
     k = Kernel("""
     __global__ void transpose_batch(int n, $Ct *y, int *cumdimsY, $Ct *x, int *cumdimsX) {
@@ -269,21 +270,21 @@ end
         }
     }""")
     quote
-        batchdims_y = transpose_dims(batchdims_x)
-        cumdims_x = CuArray(cumsum_cint(batchdims_x))
-        cumdims_y = CuArray(cumsum_cint(batchdims_y))
+        batchsize_y = transpose_dims(batchsize_x)
+        cumdims_x = CuArray(cumsum_cint(batchsize_x))
+        cumdims_y = CuArray(cumsum_cint(batchsize_y))
 
         y = similar(x)
-        gdims, bdims = cudims(size(x,1)*batchdims_y[1]*batchdims_x[1])
+        gdims, bdims = cudims(size(x,1)*batchsize_y[1]*batchsize_x[1])
         $k(gdims, bdims, size(x,1), pointer(y), pointer(cumdims_y), pointer(x), pointer(cumdims_x))
-        y, batchdims_y
+        y, batchsize_y
     end
 end
 
-function addgrad!(y::Var, lstm::LSTM, x::Var, batchdims::Vector{Int}, work, w::Var)
-    t_gy, t_batchdims = transpose_batch(y.grad, batchdims)
+function addgrad!(y::Var, lstm::LSTM, x::Var, batchsize::Vector{Int}, work, w::Var)
+    t_gy, t_batchsize = transpose_batch(y.grad, batchsize)
     t_gx = CUDNN.∇rnn_data(work, t_gy) # this call is required for ∇rnn_weights!
-    gx, _ = transpose_batch(t_gx, t_batchdims)
+    gx, _ = transpose_batch(t_gx, t_batchsize)
     isvoid(x.grad) || add!(x.grad, gx)
     isvoid(w.grad) || CUDNN.∇rnn_weights!(work, w.grad)
 end

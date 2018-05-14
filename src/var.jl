@@ -1,4 +1,4 @@
-export Var, param, zerograd!, isvoid, isparam, gradient!, topsort
+export Var, param, zerograd!, isvoid, isparam, gradient!, topsort, create_batch
 
 doc"""
     Var
@@ -114,16 +114,12 @@ function configure!(xs::Var...)
     end
 end
 
-function create_batch(batchsize::Int, data::Vector...; shuffle=false)
-    perm = randperm(length(data[1]))
-    map(data) do v
-        batches = []
-        v = v[perm]
-        for i = 1:batchsize:length(v)
-            range = i:min(i+batchsize-1,length(v))
-            x = cat(ndims(v[1]), v[range]...)
-            push!(batches, x)
-        end
-        batches
+function create_batch(cat::Function, batchsize::Int, data::Vector{T}) where T
+    batches = T[]
+    for i = 1:batchsize:length(data)
+        range = i:min(i+batchsize-1,length(data))
+        x = cat(data[range])
+        push!(batches, x)
     end
+    batches
 end

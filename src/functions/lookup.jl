@@ -5,6 +5,7 @@ function lookup(w::Var, x::Array{Int})
     y = lookup(w.data, x)
     Var(y, (lookup,w,x))
 end
+lookup(w::Var, x::Node) = Node(lookup, w, x)
 
 function lookup(w::UniMatrix{T}, x::Array{Int}) where T
     n = size(w, 1)

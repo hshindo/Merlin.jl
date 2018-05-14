@@ -13,6 +13,7 @@ function relu(x::Var)
     configure!(x)
     Var(relu(x.data), (relu,x))
 end
+relu(x::Node) = Node(relu, x)
 relu(x::T) where T<:AbstractFloat = max(x, zero(T))
 relu(x::Array) = relu.(x)
 relu(x::CuArray) = CUDNN.relu(x)
