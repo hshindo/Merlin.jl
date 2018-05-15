@@ -15,7 +15,13 @@ function max(x::Var, dim::Int)
     y, idx = findmax(x.data, dim)
     Var(y, (max,x,dim,idx))
 end
-max(x::Node, dim) = Node(max, x, dim)
+function max(x::Var, shapes::Vector, dim::Int)
+    padx = pad(x.data, shapes, padding=realmin(Float64))
+    y, idx = findmax(padx, dim)
+    y = squeeze(y, dim)
+    Var(y, (max,x,shapes,dim,idx))
+end
+max(x::Node, args...) = Node(max, args...)
 
 function addgrad!(y::Var, ::typeof(max), x::Var, dim::Int, idx)
     isvoid(x.grad) && return

@@ -44,14 +44,16 @@ for name in [
     "reduction/mean",
     "reduction/sum",
 
+    "rnn/lstm",
+
     "blas",
     "concat",
     "dropout",
     "getindex",
     "linear",
     "lookup",
-    "lstm",
     "math",
+    "pad",
     "reshape",
     "softmax",
     "split"
