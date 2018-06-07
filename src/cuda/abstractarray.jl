@@ -47,3 +47,9 @@ function add!(dest::AbstractCuArray{T}, src::AbstractCuArray{T}) where T
     end
     dest
 end
+
+function add!(n::Int, dest::CuArray{T}, doff::Int, src::CuArray{T}, soff::Int) where T
+    # unsafe_wrap(CuArray, pointer(x,i), dims)
+end
+
+unsafe_array(x::CuArray, i::Int, dims) = unsafe_wrap(CuArray, pointer(x,i), dims)

@@ -1,28 +1,33 @@
 export lookup
 
-function lookup(w::Var, x::Array{Int})
+function lookup(w::Var, idx::Var)
     configure!(w)
-    y = lookup(w.data, x)
-    Var(y, (lookup,w,x))
-end
-lookup(w::Var, x::Node) = Node(lookup, w, x)
-
-function lookup(w::UniMatrix{T}, x::Array{Int}) where T
     n = size(w, 1)
-    y = similar(w, n*size(x,1), Base.tail(size(x))...)
+    y = similar(w.data, n*size(idx,1), Base.tail(size(idx))...)
     fill!(y, 0)
-    for i = 1:length(x)
-        x[i] <= 0 && continue
+    for i = 1:length(idx)
+        idx.data[i] <= 0 && continue
         yi = (i-1) * n + 1
-        wi = (x[i]-1) * n + 1
-        copy!(y, yi, w, wi, n)
+        wi = (idx.data[i]-1) * n + 1
+        copy!(y, yi, w.data, wi, n)
     end
-    y
+    Var(y, (lookup,w,idx))
 end
+lookup(w::Var, idx::Node) = Node(lookup, w, idx)
 
-function addgrad!(y::Var, ::typeof(lookup), w::Var, x::Array{Int})
+function addgrad!(y::Var, ::typeof(lookup), w::Var, idx::Var)
     isvoid(w.grad) && return
-    ∇lookup!(y.grad, w.grad, x)
+    n = size(w, 1)
+    for i = 1:length(idx)
+        idx.data[i] <= 0 && continue
+        yi = (i-1) * n + 1
+        wi = (idx.data[i]-1) * n + 1
+        unsafe_gy = unsafe_array(gy, yi, (n,))
+        unsafe_gw = unsafe_array(gw, wi, (n,))
+        add!(unsafe_gw, unsafe_gy)
+    end
+
+    ∇lookup!(y.grad, w.grad, idx.data)
 end
 
 unsafe_array(x::Array, i::Int, dims) = unsafe_wrap(Array, pointer(x,i), dims)

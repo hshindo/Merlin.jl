@@ -31,15 +31,21 @@ function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
     Conv1d(param(W), param(b), ksize, pad, stride, dilation)
 end
 
-function (f::Conv1d)(x::Var, batchsize::Vector{Int})
-    @assert ndims(x) == 2 && sum(batchsize) == size(x,ndims(x))
+function (f::Conv1d)(xs::Vector{Var})
+    x = concat(2, xs)
+    batchsize = map(x -> size(x,2), xs)
     idx = conv1d_index(batchsize, f.ksize, f.pad, f.stride, f.dilation)
     h = lookup(x, idx)
-    linear(h, f.W, f.b)
+    y = linear(h, f.W, f.b)
+    ysize = map(xs) do x
+        k = (f.ksize - 1) * f.dilation + 1
+        (size(x,2) + 2*f.pad - k) ÷ f.stride + 1
+    end
+    unsafe_split(y, ysize)
 end
-(f::Conv1d)(x::Node, batchsize) = Node(f, x, batchsize)
+(f::Conv1d)(x::Node) = Node(f, x)
 
-function conv1d_index(batchsize::Vector{Int}, ksize::Int, pad::Int, stride::Int, dilation::Int)
+function conv1d_index(ksize::Int, pad::Int, stride::Int, dilation::Int, batchsize::Vector{Int})
     outdims = map(batchsize) do d
         k = (ksize - 1) * dilation + 1
         (d + 2pad - k) ÷ stride + 1

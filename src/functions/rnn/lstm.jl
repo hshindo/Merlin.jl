@@ -76,8 +76,9 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
     LSTM(insize, hsize, nlayers, droprate, bidirectional, params)
 end
 
-function (lstm::LSTM)(x::Var, batchsize::Vector{Int})
-    configure!(x, getparams(lstm)...)
+function (lstm::LSTM)(xs::Vector{Var})
+    x = concat(2, xs)
+    configure!(getparams(lstm))
     if iscpu()
         lstm_naive(lstm, x, batchsize)
     elseif iscuda()
@@ -86,7 +87,7 @@ function (lstm::LSTM)(x::Var, batchsize::Vector{Int})
         throw("Invalid backend.")
     end
 end
-(lstm::LSTM)(x::Node, batchsize::Node) = Node(lstm, x, batchsize)
+(lstm::LSTM)(x::Node) = Node(lstm, x)
 
 function lstm_naive(lstm::LSTM, x::Var, batchsize::Vector{Int})
     h = x

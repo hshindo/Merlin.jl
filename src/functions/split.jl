@@ -10,7 +10,7 @@ x = Var(rand(T,10,10))
 ys = split(x, 2, [2,3,5])
 ```
 """
-function Base.split(x::Var, dim::Int, dims::Vector{Int})
+function Base.split(x::Var, size::Vector)
     if dim == ndims(x)
         copy()
     else
@@ -33,6 +33,19 @@ function Base.split(x::Var, dim::Int, dims::Vector{Int})
         y = x[front...,cumdim+1:cumdim+d]
         push!(ys, y)
         cumdim += d
+    end
+    ys
+end
+
+function unsafe_split(x::Var, size::Vector)
+    ys = Var[]
+    offset = 1
+    for s in size
+        p = pointer(x.data, offset)
+        a = unsafe_wrap(Array, p, own=true)
+        y = Var(a, (unsafe_split,x,size))
+        push!(ys, y)
+        offset += prod(s)
     end
     ys
 end
