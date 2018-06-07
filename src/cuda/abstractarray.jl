@@ -35,21 +35,18 @@ end
 function add!(dest::AbstractCuArray{T}, src::AbstractCuArray{T}) where T
     @assert length(dest) == length(src)
     if iscontigious(dest) && iscontigious(src)
-        if isa(dest, CuSubArray)
-            dest = unsafe_wrap(CuArray, pointer(dest), size(dest))
-        end
-        if isa(src, CuSubArray)
-            src = unsafe_wrap(CuArray, pointer(src), size(src))
-        end
-        BLAS.axpy!(T(1), src, dest)
+        p_dest = pointer(dest)
+        p_src = pointer(src)
+        BLAS.axpy!(length(dest), T(1), p_src, p_dest)
     else
         add!(CuDeviceArray(dest), CuDeviceArray(src))
     end
     dest
 end
 
-function add!(n::Int, dest::CuArray{T}, doff::Int, src::CuArray{T}, soff::Int) where T
-    # unsafe_wrap(CuArray, pointer(x,i), dims)
+function add!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int) where T
+    p_dest = pointer(dest, doffs)
+    p_src = pointer(src, soffs)
+    BLAS.axpy!(n, T(1), p_dest, 1, p_src, 1)
+    dest
 end
-
-unsafe_array(x::CuArray, i::Int, dims) = unsafe_wrap(CuArray, pointer(x,i), dims)

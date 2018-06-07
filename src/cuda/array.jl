@@ -2,7 +2,7 @@ export CuArray, CuVector, CuMatrix, CuVecOrMat
 export curand, curandn
 
 mutable struct CuArray{T,N} <: AbstractCuArray{T,N}
-    mb::MemBlock
+    ptr::CuPtr{T}
     dims::NTuple{N,Int}
 end
 
@@ -11,8 +11,8 @@ const CuMatrix{T} = CuArray{T,2}
 const CuVecOrMat{T} = Union{CuVector{T},CuMatrix{T}}
 
 function CuArray{T}(dims::NTuple{N,Int}) where {T,N}
-    mb = malloc(sizeof(T)*prod(dims))
-    CuArray{T,N}(mb, dims)
+    ptr = malloc(T, prod(dims))
+    CuArray(ptr, dims)
 end
 CuArray{T}(dims::Int...) where T = CuArray{T}(dims)
 CuArray(x::Array{T,N}) where {T,N} = copy!(CuArray{T}(size(x)), x)
@@ -38,13 +38,9 @@ end
 
 Base.convert(::Type{Ptr{T}}, x::CuArray) where T = Ptr{T}(pointer(x))
 Base.unsafe_convert(::Type{Ptr{T}}, x::CuArray) where T = Ptr{T}(pointer(x))
-Base.pointer(x::CuArray{T}, index::Int=1) where T = Ptr{T}(x.mb) + sizeof(T)*(index-1)
-Base.Array(src::CuArray{T,N}) where {T,N} = copy!(Array{T}(size(src)), src)
-
-function Base.unsafe_wrap(::Type{CuArray}, ptr::Ptr{T}, dims::NTuple{N,Int}) where {T,N}
-    mb = MemBlock(ptr, -1, -1)
-    CuArray{T,N}(mb, dims)
-end
+Base.pointer(x::CuArray, index::Int=1) = index == 1 ? x.ptr : CuPtr(pointer(x.ptr,index),0,-1)
+rawpointer(x::CuArray, index::Int=1) = pointer(x.ptr, index)
+Base.Array(src::CuArray{T}) where T = copy!(Array{T}(size(src)), src)
 
 ##### indexing #####
 function Base.getindex(x::CuArray, I...)
@@ -52,7 +48,7 @@ function Base.getindex(x::CuArray, I...)
     copy!(similar(src), src)
 end
 function Base.getindex(x::CuArray{T}, index::Int) where T
-    dest = copy!(Array{T}(1), x, 1)
+    dest = copy!(Array{T}(1), 1, x, 1, 1)
     dest[1]
 end
 function Base.setindex!(y::CuArray{T}, x::CuArray{T}, I...) where T
@@ -79,16 +75,29 @@ Base.squeeze(x::CuArray, dims::Int...) = squeeze(x, dims)
 
 ##### copy #####
 Base.copy(src::CuArray) = copy!(similar(src), src)
-function Base.copy!(dest::Array{T}, src::CuArray{T}, n=length(src)) where T
+function Base.copy!(dest::Array{T}, src::CuArray{T}; stream=C_NULL) where T
+    @assert length(dest) == length(src)
+    copy!(dest, 1, src, 1, length(dest), stream=stream)
+end
+function Base.copy!(dest::CuArray{T}, src::Array{T}; stream=C_NULL) where T
+    @assert length(dest) == length(src)
+    copy!(dest, 1, src, 1, length(dest), stream=stream)
+end
+function Base.copy!(dest::CuArray{T}, src::CuArray{T}; stream=C_NULL) where T
+    @assert length(dest) == length(src)
+    copy!(dest, 1, src, 1, length(dest), stream=stream)
+end
+
+function Base.copy!(dest::Array{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int; stream=C_NULL) where T
+    p_dest = pointer(dest, doffs)
+    p_src = pointer(src, soffs)
     @apicall :cuMemcpyDtoH (Ptr{Void},Ptr{Void},Csize_t) dest src n*sizeof(T)
     dest
 end
-function Base.copy!(dest::CuArray{T}, src::Array{T}, n=length(src); stream=C_NULL) where T
+function Base.copy!(dest::CuArray{T}, doffs::Int, src::Array{T}, soffs::Int, n::Int; stream=C_NULL) where T
+    p_dest = pointer(dest, doffs)
+    p_src = pointer(src, soffs)
     @apicall :cuMemcpyHtoDAsync (Ptr{Void},Ptr{Void},Csize_t,Ptr{Void}) dest src n*sizeof(T) stream
-    dest
-end
-function Base.copy!(dest::CuArray{T}, src::CuArray{T}, n=length(src); stream=C_NULL) where T
-    @apicall :cuMemcpyDtoDAsync (Ptr{Void},Ptr{Void},Csize_t,Ptr{Void}) dest src n*sizeof(T) stream
     dest
 end
 function Base.copy!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int; stream=C_NULL) where T
@@ -108,7 +117,7 @@ end
     }""")
     quote
         gdims, bdims = cudims(length(x))
-        $k(gdims, bdims, pointer(x), length(x), T(value))
+        $k(gdims, bdims, rawpointer(x), length(x), T(value))
         x
     end
 end
@@ -156,7 +165,7 @@ curandn(dims::Int...) = curandn(Float64, dims)
     quote
         @assert length(perm) == N
         gdims, bdims = cudims(length(x))
-        $k(gdims, bdims, pointer(x), length(x), T(value))
+        $k(gdims, bdims, rawpointer(x), length(x), T(value))
         x
     end
 end

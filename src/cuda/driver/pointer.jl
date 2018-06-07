@@ -1,21 +1,24 @@
 mutable struct CuPtr{T}
     ptr::Ptr{T}
-    bytesize::Int
+    size::Int
     dev::Int
 end
 
-CuPtr(ptr::Ptr, bytesize::Int) = CuPtr(ptr, bytesize, getdevice())
-
 Base.convert(::Type{Ptr{T}}, x::CuPtr) where T = Ptr{T}(x.ptr)
 Base.unsafe_convert(::Type{Ptr{T}}, x::CuPtr) where T = Ptr{T}(x.ptr)
+Base.pointer(x::CuPtr{T}, index::Int=1) where T = x.ptr + sizeof(T)*(index-1)
 
 function memalloc(bytesize::Int)
     ref = Ref{Ptr{Void}}()
     @apicall :cuMemAlloc (Ptr{Ptr{Void}},Csize_t) ref bytesize
     ref[]
 end
+function memalloc(::Type{T}, size::Int) where T
+    ptr = Ptr{T}(memalloc(sizeof(T)*size))
+    CuPtr(ptr, size, getdevice())
+end
 
-function memfree(ptr::Ptr{Void})
+function memfree(ptr::CuPtr)
     @apicall :cuMemFree (Ptr{Void},) ptr
 end
 

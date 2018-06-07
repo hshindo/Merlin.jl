@@ -37,12 +37,14 @@ function Base.split(x::Var, size::Vector)
     ys
 end
 
-function unsafe_split(x::Var, size::Vector)
+function Base.split(x::Var, size::Vector)
     ys = Var[]
     offset = 1
     for s in size
+        
+        view(x.data, I...)
         p = pointer(x.data, offset)
-        a = unsafe_wrap(Array, p, own=true)
+        a = unsafe_wrap(Array, p)
         y = Var(a, (unsafe_split,x,size))
         push!(ys, y)
         offset += prod(s)

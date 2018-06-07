@@ -18,8 +18,8 @@ for (f,T,Ct) in (
     (:(:cublasDaxpy),:Float64,:Cdouble),
     (:(:cublasSaxpy),:Float32,:Cfloat))
     @eval begin
-        function axpy!(n::Int, alpha::$T, x::CuArray{$T}, incx::Int,
-            y::CuArray{$T}, incy::Int)
+        function axpy!(n::Int, alpha::$T, x::Union{CuArray{$T},CuPtr{$T}}, incx::Int,
+            y::Union{CuArray{$T},CuPtr{$T}}, incy::Int)
 
             @cublas($f, (
                 Ptr{Void},Cint,Ptr{$Ct},Ptr{$Ct},Cint,Ptr{$Ct},Cint),
@@ -29,10 +29,11 @@ for (f,T,Ct) in (
     end
 end
 
+function axpy!(n::Int, alpha::T, x::Union{CuArray{T},CuPtr{T}}, y::Union{CuArray{T},CuPtr{T}}) where T
+    axpy!(n, alpha, x, 1, y, 1)
+end
+
 function axpy!(alpha::T, x::CuArray{T}, y::CuArray{T}) where T
     length(x) == length(y) || throw(DimensionMismatch())
-    axpy!(length(x), alpha, x, 1, y, 1)
-end
-function axpy!(n::Int, alpha::T, x::CuArray{T}, y::CuArray{T}) where T
-    axpy!(n, alpha, x, 1, y, 1)
+    axpy!(length(x), alpha, x, y)
 end

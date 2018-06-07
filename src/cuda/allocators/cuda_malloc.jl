@@ -3,12 +3,11 @@ end
 
 function (::CUDAMalloc)(bytesize::Int)
     ptr = memalloc(bytesize)
-    mb = MemBlock(ptr, bytesize)
-    finalizer(mb, x -> free(CUDAMalloc(),x))
-    mb
+    finalizer(ptr, memfree)
+    ptr
 end
 
-free(::CUDAMalloc, x::MemBlock) = memfree(x.ptr)
+free(::CUDAMalloc, x::CuPtr) = memfree(x.ptr)
 
 function sss()
     ref = Ref{Ptr{Void}}()

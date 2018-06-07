@@ -31,8 +31,8 @@ function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
     Conv1d(param(W), param(b), ksize, pad, stride, dilation)
 end
 
-function (f::Conv1d)(xs::Vector{Var})
-    x = concat(2, xs)
+function (f::Conv1d)(v::Var)
+    x = cat(2, v)
     batchsize = map(x -> size(x,2), xs)
     idx = conv1d_index(batchsize, f.ksize, f.pad, f.stride, f.dilation)
     h = lookup(x, idx)
