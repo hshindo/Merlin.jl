@@ -10,7 +10,12 @@ export Functor
 abstract type Functor end
 const Arrays{T,N} = Vector{Array{T,N}}
 
-using LibCUDA
+#using LibCUDA
+mutable struct CuArray{T,N}
+end
+const CuVector{T} = CuArray{T,1}
+const CuMatrix{T} = CuArray{T,2}
+const CuVecOrMat{T} = Union{CuVector{T},CuMatrix{T}}
 
 mutable struct Config
     devices::Vector{Int}

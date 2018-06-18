@@ -1,27 +1,19 @@
 export LSTM
 
 struct LSTMParam
-    W::Var
+    w::Var
     b::Var
     h0::Var
     c0::Var
 end
 
-mutable struct LSTM <: Functor
+mutable struct LSTM
     insize::Int
     hsize::Int
     nlayers::Int
     droprate::Float64
     bidirectional::Bool
     params::Vector{LSTMParam}
-end
-
-function getparams(lstm::LSTM)
-    params = Var[]
-    for p in lstm.params
-        push!(params, p.W, p.b, p.h0, p.c0)
-    end
-    params
 end
 
 doc"""
@@ -59,114 +51,42 @@ h = f(x)
 ```
 """
 function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64, bidirectional::Bool;
-    init_W=Normal(0,0.001), init_U=Orthogonal(), init_b=Fill(0), init_h=Fill(0), init_c=Fill(0)) where T
+    init_w=Normal(0,0.001), init_u=Orthogonal(), init_b=Fill(0), init_h0=Fill(0), init_c0=Fill(0)) where T
 
     params = LSTMParam[]
     coef = bidirectional ? 2 : 1
     for l = 1:nlayers
         for _ = 1:coef
-            Ws = []
+            wus = Matrix{T}[]
             for i = 1:4
                 s = l == 1 ? insize : hsize*coef
-                W = init_W(T, s, hsize)
-                U = init_U(T, hsize, hsize)
-                push!(Ws, cat(1,W,U))
+                w = init_w(T, s, hsize)
+                u = init_u(T, hsize, hsize)
+                push!(wus, cat(1,w,u))
             end
-            W = cat(2, Ws...)
+            w = cat(2, wus...)
             b = init_b(T, 4hsize)
-            h = init_h(T, hsize)
-            c = init_c(T, hsize)
-            p = LSTMParam(zerograd(W), zerograd(b), Var(h), Var(c))
+            h0 = init_h0(T,hsize, 1)
+            c0 = init_c0(T,hsize, 1)
+            p = LSTMParam(zerograd(w), zerograd(b), zerograd(h0), zerograd(c0))
             push!(params, p)
         end
     end
     LSTM(insize, hsize, nlayers, droprate, bidirectional, params)
 end
 
-function (lstm::LSTM)(xs::Vector{Var})
-    configure!(xs)
-    configure!(getparams(lstm))
+function (lstm::LSTM)(x::Var, batchdims::Vector{Int})
+    configure!(x)
     if iscpu()
-        hs = xs
+        h = x
         coef = lstm.bidirectional ? 2 : 1
         for l = 1:lstm.nlayers
             i = (l-1) * coef + 1
             p = lstm.params[i]
-            hs1 = lstm_tstep(hs, p.W, p.b, p.h0, p.c0, false)
+            h1 = lstm_tstep(h, batchdims, p.w, p.b, p.h0, p.c0, false)
             if lstm.bidirectional
                 p = lstm.params[i+1]
-                hs2 = lstm_tstep(hs, p.W, p.b, p.h0, p.c0, true)
-                hs = [concat(1,hs1[k],hs2[k]) for k=1:length(hs1)]
-            else
-                hs = hs1
-            end
-        end
-        hs
-    elseif iscuda()
-        lstm_cudnn(lstm, xs)
-    else
-        throw("Invalid backend.")
-    end
-end
-
-function lstm_tstep(xs::Vector{Var}, W::Var, b::Var, h0::Var, c0::Var, rev::Bool)
-    batchdims = map(x -> size(x,2), xs)
-    perm = sortperm(batchdims, rev=true)
-
-    ht = concat(2, [h0 for i=1:length(xs)]...)
-    ct = concat(2, [c0 for i=1:length(xs)]...)
-    hts = map(x -> Array{Var}(size(x,2)), xs)
-    for t = 1:batchdims[perm[1]]
-        xts = Var[]
-        for p in perm
-            t > batchdims[p] && break
-            k = rev ? batchdims[p]+1-t : t
-            push!(xts, xs[p][:,k:k])
-        end
-        xt = concat(2, xts...)
-
-        if size(ht,2) > size(xt,2)
-            ht = ht[:,1:size(xt,2)]
-            ct = ct[:,1:size(xt,2)]
-        end
-        ht, ct = lstm_onestep(xt, W, b, ht, ct)
-        for i = 1:length(perm)
-            p = perm[i]
-            t > batchdims[p] && break
-            k = rev ? batchdims[p]+1-t : t
-            hts[p][k] = ht[:,i:i]
-        end
-    end
-    hs = map(x -> concat(2,x...), hts)
-    hs
-end
-
-function lstm_onestep(xt::Var, W::Var, b::Var, ht::Var, ct::Var)
-    a = linear(concat(1,xt,ht), W, b)
-    n = size(a,1) ÷ 4
-    i = sigmoid(a[1:n,:])
-    f = sigmoid(a[n+1:2n,:])
-    ct = f.*ct + i.*tanh(a[2n+1:3n,:])
-    o = sigmoid(a[3n+1:4n,:])
-    ht = o .* tanh(ct)
-    ht, ct
-end
-
-#=
-function lstm2(lstm::LSTM, xs::Vector{Var})
-    configure!(xs)
-    configure!(getparams(lstm))
-    if iscpu()
-        batchdims = map(x -> size(x,2), xs)
-        h = concat(2, xs...)
-        coef = lstm.bidirectional ? 2 : 1
-        for l = 1:lstm.nlayers
-            i = (l-1) * coef + 1
-            p = lstm.params[i]
-            h1 = lstm_tstep2(h, batchdims, p.W, p.b, p.h0, p.c0, false)
-            if lstm.bidirectional
-                p = lstm.params[i+1]
-                h2 = lstm_tstep2(h, batchdims, p.W, p.b, p.h0, p.c0, true)
+                h2 = lstm_tstep(h, batchdims, p.w, p.b, p.h0, p.c0, true)
                 h = concat(1, h1, h2)
             else
                 h = h1
@@ -174,14 +94,26 @@ function lstm2(lstm::LSTM, xs::Vector{Var})
         end
         h
     elseif iscuda()
-        lstm_cudnn(lstm, xs)
+        setcuda!(lstm)
+        w, = lstm.params
+        @assert issorted(batchdims, rev=true)
+        t_x, t_batchdims = transpose_batch(x.data, batchdims)
+        dir = lstm.bidirectional ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
+        mode = CUDNN.CUDNN_LSTM
+        t_y, work = rnn(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, dir, mode,
+            w, t_x, batchdims, training=CONFIG.train)
+
+        y, _ = transpose_batch(t_y, t_batchdims)
+        Var(y, (lstm,x,batchdims,work,w))
     else
-        throw("Invalid backend.")
+        throw("Invalid type.")
     end
 end
+(lstm::LSTM)(x::Node, batchdims::Vector{Int}) = Node(lstmn, x, batchdims)
 
-function lstm_tstep2(x::Var, batchdims::Vector{Int}, w::Var, b::Var, h0::Var, c0::Var, rev::Bool)
+function lstm_tstep(x::Var, batchdims::Vector{Int}, w::Var, b::Var, h0::Var, c0::Var, rev::Bool)
     @assert sum(batchdims) == size(x,2)
+    @assert issorted(batchdims, rev=true)
     cumdims = Array{Int}(length(batchdims)+1)
     cumdims[1] = 1
     for i = 1:length(batchdims)
@@ -207,7 +139,7 @@ function lstm_tstep2(x::Var, batchdims::Vector{Int}, w::Var, b::Var, h0::Var, c0
             ht = ht[:,1:size(xt,2)]
             ct = ct[:,1:size(xt,2)]
         end
-        ht, ct = lstm_onestep(xt, w, b, ht, ct)
+        ht, ct = lstm_onestep(w, b, xt, ht, ct)
         for j = 1:length(perm)
             p = perm[j]
             t > batchdims[p] && break
@@ -220,4 +152,14 @@ function lstm_tstep2(x::Var, batchdims::Vector{Int}, w::Var, b::Var, h0::Var, c0
     h = concat(2, hts...)
     h
 end
-=#
+
+function lstm_onestep(w::Var, b::Var, xt::Var, ht::Var, ct::Var)
+    a = linear(concat(1,xt,ht), w, b)
+    n = size(a,1) ÷ 4
+    i = sigmoid(a[1:n,:])
+    f = sigmoid(a[n+1:2n,:])
+    ct = f.*ct + i.*tanh(a[2n+1:3n,:])
+    o = sigmoid(a[3n+1:4n,:])
+    ht = o .* tanh(ct)
+    ht, ct
+end
