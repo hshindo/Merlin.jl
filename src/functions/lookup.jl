@@ -3,8 +3,7 @@ export lookup
 function lookup(w::Var, idx::Var)
     configure!(w)
     n = size(w, 1)
-    y = similar(w.data, n*size(idx,1), Base.tail(size(idx))...)
-    fill!(y, 0)
+    y = zeros(eltype(w), n*size(idx,1), Base.tail(size(idx))...)
     for i = 1:length(idx)
         idx.data[i] <= 0 && continue
         yi = (i-1) * n + 1
@@ -12,6 +11,11 @@ function lookup(w::Var, idx::Var)
         copy!(y, yi, w.data, wi, n)
     end
     Var(y, (lookup,w,idx))
+end
+function lookup(w::Var, idx::Vars)
+    y = lookup(w, Var(idx))
+    ysize = size(w,1)*size(idx,1), Base.tail(size(idx))...
+    Vars(y, ysize)
 end
 lookup(w::Var, idx::Node) = Node(lookup, w, idx)
 
@@ -22,26 +26,7 @@ function addgrad!(y::Var, ::typeof(lookup), w::Var, idx::Var)
         idx.data[i] <= 0 && continue
         yi = (i-1) * n + 1
         wi = (idx.data[i]-1) * n + 1
-        unsafe_gy = unsafe_array(gy, yi, (n,))
-        unsafe_gw = unsafe_array(gw, wi, (n,))
-        add!(unsafe_gw, unsafe_gy)
-    end
-
-    ∇lookup!(y.grad, w.grad, idx.data)
-end
-
-unsafe_array(x::Array, i::Int, dims) = unsafe_wrap(Array, pointer(x,i), dims)
-unsafe_array(x::CuArray, i::Int, dims) = unsafe_wrap(CuArray, pointer(x,i), dims)
-
-function ∇lookup!(gy::UniArray{T}, gw::UniArray{T}, x::Array{Int}) where T
-    n = size(gw, 1)
-    for i = 1:length(x)
-        x[i] <= 0 && continue
-        yi = (i-1) * n + 1
-        wi = (x[i]-1) * n + 1
-        unsafe_gy = unsafe_array(gy, yi, (n,))
-        unsafe_gw = unsafe_array(gw, wi, (n,))
-        add!(unsafe_gw, unsafe_gy)
+        add!(w.grad, wi, y.grad, yi, n)
     end
 end
 

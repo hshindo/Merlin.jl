@@ -107,6 +107,13 @@ function Base.copy!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n
     dest
 end
 
+function add!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int) where T
+    p_dest = pointer(dest, doffs)
+    p_src = pointer(src, soffs)
+    BLAS.axpy!(n, T(1), p_dest, 1, p_src, 1)
+    dest
+end
+
 @generated function Base.fill!(x::CuArray{T}, value) where T
     Ct = cstring(T)
     k = Kernel("""

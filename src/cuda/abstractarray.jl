@@ -43,10 +43,3 @@ function add!(dest::AbstractCuArray{T}, src::AbstractCuArray{T}) where T
     end
     dest
 end
-
-function add!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int) where T
-    p_dest = pointer(dest, doffs)
-    p_src = pointer(src, soffs)
-    BLAS.axpy!(n, T(1), p_dest, 1, p_src, 1)
-    dest
-end

@@ -13,6 +13,10 @@ function relu(x::Var)
     configure!(x)
     Var(relu(x.data), (relu,x))
 end
+function relu(xs::Vars)
+    y = relu(Var(xs))
+    Vars(y, size(xs))
+end
 relu(x::Node) = Node(relu, x)
 relu(x::T) where T<:AbstractFloat = max(x, zero(T))
 relu(x::Array) = relu.(x)

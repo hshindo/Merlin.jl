@@ -3,8 +3,8 @@ function add!(dest::AbstractArray{T}, src::AbstractArray{T}) where T
     broadcast!(+, dest, dest, src)
 end
 
-function add!(n::Int, dest::Array{T}, doff::Int, src::Array{T}, soff::Int) where T
-    BLAS.axpy!(n, T(1), pointer(src,soff), 1, pointer(dest,doff), 1)
+function add!(dest::Array{T}, doffs::Int, src::Array{T}, soffs::Int, n::Int) where T
+    BLAS.axpy!(n, T(1), pointer(src,soffs), 1, pointer(dest,doffs), 1)
     dest
 end
 

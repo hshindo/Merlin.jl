@@ -37,14 +37,20 @@ function linear(x::Var, w::Var, b::Var)
     T = eltype(x)
     if ndims(x) == 1
         y = BLAS.gemv('T', w.data, x.data)
-        BLAS.axpy!(T(1), b.data, y)
+        add!(y, b.data)
     elseif ndims(x) == 2
         y = BLAS.gemm('T', 'N', w.data, x.data)
         y .+= b.data
+        ysize = size(y,1), size(x,2)
     else
         throw("Invalid ndims of x: $(ndims(x))")
     end
     Var(y, (linear,x,w,b))
+end
+function linear(xs::Vars, w, b)
+    y = linear(Var(xs), w, b)
+    ysize = size(y,1), size(xs,2)
+    Vars(y, ysize)
 end
 linear(x::Node, w, b) = Node(linear, x, w, b)
 

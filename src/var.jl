@@ -19,12 +19,20 @@ x = zerograd(rand(T,10,5)) # x.grad is initialized as zero.
 """
 mutable struct Var
     data
+    size
     args
     grad
 end
 
-Var(data=nothing, args=()) = Var(data, args, nothing)
-param(data) = Var(data, (), zeros(data))
+Var(data::Array) = Var(data, size(data))
+Var(data, size) = Var(data, size, ())
+Var(data, size, args) = Var(data, size, args, nothing)
+
+function param(data::Array)
+    v = Var(data)
+    v.grad = zeros(data)
+    v
+end
 
 function zerograd!(x::Var)
     isvoid(x.grad) && throw("")
@@ -32,25 +40,31 @@ function zerograd!(x::Var)
     x
 end
 
-Base.size(x::Var) = size(x.data)
-Base.size(x::Var, i::Int) = size(x.data, i)
+function concat(x::Var)
+    size = map(x.size) do s
+        isa(s,Int) && return s
+        isa(s,Vector{Int}) && return sum(s)
+        throw("Unsupported size: $s")
+    end
+    Var(x.data, size, x.args, x.grad)
+end
+
+Base.size(x::Var) = x.size
+Base.size(x::Var, i::Int) = i <= ndims(x) ? x.size[i] : 1
 Base.length(x::Var) = length(x.data)
-Base.ndims(x::Var) = ndims(x.data)
+Base.ndims(x::Var) = length(x.size)
 Base.eltype(x::Var) = eltype(x.data)
-Base.strides(x::Var) = strides(x.data)
-Base.stride(x::Var, i::Int) = stride(x.data, i)
 Base.getindex(x::Var, i::Int) = x.args[i]
 isvoid(x) = x == nothing
-iscpu(x::Var) = isa(x.data,Array)
-iscuda(x::Var) = isa(x.data,CuAray)
+oncpu(x::Var) = isa(x.data, Array)
+oncuda(x::Var) = isa(x.data, CuAray)
 
 doc"""
     isparam(x::Var)
 
 Returns whether `x` is a parameter or not
 """
-isparam(x::Var) = !isvoid(x.grad) && isempty(x.args)
-isparam(x) = false
+isparam(x) = isa(x,Var) && !isvoid(x.grad) && isempty(x.args)
 
 doc"""
     topsort(tops::T...)

@@ -31,18 +31,15 @@ function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
     Conv1d(param(W), param(b), ksize, pad, stride, dilation)
 end
 
-function (f::Conv1d)(v::Var)
-    x = cat(2, v)
-    batchsize = map(x -> size(x,2), xs)
-    idx = conv1d_index(batchsize, f.ksize, f.pad, f.stride, f.dilation)
-    h = lookup(x, idx)
+function (f::Conv1d)(x::Var, length::Vector{Int})
+    @assert ndims(x) == 2 && sum(length) == size(x,2)
+    idx = conv1d_index(f.ksize, f.pad, f.stride, f.dilation, length)
+    h = lookup(x, Var(idx))
     y = linear(h, f.W, f.b)
-    ysize = map(xs) do x
-        k = (f.ksize - 1) * f.dilation + 1
-        (size(x,2) + 2*f.pad - k) ÷ f.stride + 1
-    end
-    unsafe_split(y, ysize)
+    y
 end
+(f::Conv1d)(x::Var) = f(x, [size(x,2)])
+(f::Conv1d)(xs::Vars) = f(Var(xs), size(xs,2))
 (f::Conv1d)(x::Node) = Node(f, x)
 
 function conv1d_index(ksize::Int, pad::Int, stride::Int, dilation::Int, batchsize::Vector{Int})
