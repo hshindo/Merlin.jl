@@ -1,7 +1,5 @@
-export unsafe_split
-
 doc"""
-    split(x::Var, dim::Int, dims::Vector{Int})
+    split(x::Var, dim::Int, size::Vector{Int})
 
 # Example
 ```julia
@@ -10,42 +8,22 @@ x = Var(rand(T,10,10))
 ys = split(x, 2, [2,3,5])
 ```
 """
-function Base.split(x::Var, size::Vector)
+function Base.split(x::Var, dim::Int, size::Vector{Int})
+    @assert sum(size) == Base.size(x,dim)
     if dim == ndims(x)
-        copy()
+        cumdim = 0
+        front = Base.front(Base.size(x))
+        m = prod(front)
+        ys = Var[]
+        for s in size
+            range = cumdim+1:cumdim+s
+            data = view(x.data, front..., range)
+            y = Var(data, (x,dim,range))
+            push!(ys, y)
+            cumdim += s
+        end
     else
-
-    end
-
-    cumdim = 0
-    for d in dims
-        y = x[]
-        cumdim += d
-    end
-    ys
-
-    @assert dim == ndims(x)
-    @assert sum(dims) == size(x,dim)
-    front = Base.front(size(x))
-    cumdim = 0
-    ys = Var[]
-    for d in dims
-        y = x[front...,cumdim+1:cumdim+d]
-        push!(ys, y)
-        cumdim += d
-    end
-    ys
-end
-
-function Base.split(x::Var, size::Vector)
-    ys = Var[]
-    offset = 0
-    for i = 1:length(size)
-        s = size[i]
-        y = view(x.data, I...)
-        y = Var(y, (split,x,size,i))
-        push!(ys, y)
-        offset += prod(s)
+        throw("Not implemented yet.")
     end
     ys
 end

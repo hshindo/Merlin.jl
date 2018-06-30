@@ -1,4 +1,5 @@
-export Var, param, zerograd!, isvoid, isparam, gradient!, topsort, create_batch
+export Var
+export param, zerograd!, isvoid, isparam, gradient!, topsort, create_batch
 
 doc"""
     Var
@@ -19,16 +20,13 @@ x = zerograd(rand(T,10,5)) # x.grad is initialized as zero.
 """
 mutable struct Var
     data
-    size
     args
     grad
 end
 
-Var(data::Array) = Var(data, size(data))
-Var(data, size) = Var(data, size, ())
-Var(data, size, args) = Var(data, size, args, nothing)
+Var(data, args=(); grad=nothing) = Var(data, args, grad)
 
-function param(data::Array)
+function param(data)
     v = Var(data)
     v.grad = zeros(data)
     v
@@ -49,10 +47,10 @@ function concat(x::Var)
     Var(x.data, size, x.args, x.grad)
 end
 
-Base.size(x::Var) = x.size
-Base.size(x::Var, i::Int) = i <= ndims(x) ? x.size[i] : 1
+Base.size(x::Var) = size(x.data)
+Base.size(x::Var, i::Int) = size(x.data, i)
 Base.length(x::Var) = length(x.data)
-Base.ndims(x::Var) = length(x.size)
+Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
 Base.getindex(x::Var, i::Int) = x.args[i]
 isvoid(x) = x == nothing

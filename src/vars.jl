@@ -1,11 +1,28 @@
+export Vars
+
 mutable struct Vars
     var::Var
-    size::Tuple
+    dims::Tuple
 end
 
-Base.size(x::Vars) = x.size
-Base.size(x::Vars, i::Int) = i <= length(x.size) ? x.size[i] : 1
-Base.ndims(x::Vars) = length(x.size)
+function Vars(xs::Vector{Var})
+    y = concat(dim, xs...)
+    dims = ntuple(ndims(y)) do i
+        i == dim ? map(x -> size(x,dim), xs) : size(y,i)
+    end
+    Vars(y, dims)
+end
+function Vars(xs::Vector{Array{T,N}}) where {T,N}
+    y = cat(dim, xs...)
+    dims = ntuple(ndims(y)) do i
+        i == dim ? map(x -> size(x,dim), xs) : size(y,i)
+    end
+    Vars(Var(y), dims)
+end
+
+Base.size(x::Vars) = x.dims
+Base.size(x::Vars, i::Int) = i <= ndims(x) ? x.dims[i] : 1
+Base.ndims(x::Vars) = length(x.dims)
 
 function Var(x::Vars)
     for s in x.size

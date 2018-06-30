@@ -76,7 +76,7 @@ end
 ##### conv1d #####
 x = param(randn(T,20,10))
 batchdims = [3,7]
-conv = Conv1d(T, 5, 20, 15, pad=2)
+conv = Conv1d(T, 5, 20, 15, padding=2)
 @test_grad conv x batchdims
 @test_cuda conv x batchdims
 
