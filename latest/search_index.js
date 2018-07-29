@@ -57,7 +57,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "var.html#Merlin.isparam-Tuple{Merlin.Var}",
+    "location": "var.html#Merlin.isparam-Tuple{Any}",
     "page": "Var",
     "title": "Merlin.isparam",
     "category": "method",
