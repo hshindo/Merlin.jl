@@ -1,5 +1,5 @@
 export CuArray, CuVector, CuMatrix, CuVecOrMat
-export curand, curandn
+export curand, curandn, rawpointer
 
 mutable struct CuArray{T,N} <: AbstractCuArray{T,N}
     ptr::CuPtr{T}
@@ -11,7 +11,7 @@ const CuMatrix{T} = CuArray{T,2}
 const CuVecOrMat{T} = Union{CuVector{T},CuMatrix{T}}
 
 function CuArray{T}(dims::NTuple{N,Int}) where {T,N}
-    ptr = malloc(T, prod(dims))
+    ptr = CUDAMalloc()(T, prod(dims))
     CuArray(ptr, dims)
 end
 CuArray{T}(dims::Int...) where T = CuArray{T}(dims)
@@ -38,7 +38,7 @@ end
 
 Base.convert(::Type{Ptr{T}}, x::CuArray) where T = Ptr{T}(pointer(x))
 Base.unsafe_convert(::Type{Ptr{T}}, x::CuArray) where T = Ptr{T}(pointer(x))
-Base.pointer(x::CuArray, index::Int=1) = index == 1 ? x.ptr : CuPtr(pointer(x.ptr,index),0,-1)
+Base.pointer(x::CuArray, index::Int=1) = index == 1 ? x.ptr : CuPtr(pointer(x.ptr,index),0,x.ptr.dev)
 rawpointer(x::CuArray, index::Int=1) = pointer(x.ptr, index)
 Base.Array(src::CuArray{T}) where T = copy!(Array{T}(size(src)), src)
 
@@ -56,9 +56,9 @@ function Base.setindex!(y::CuArray{T}, x::CuArray{T}, I...) where T
 end
 
 ##### reshape #####
-Base.reshape(x::CuArray{T}, dims::NTuple{N,Int}) where {T,N} = CuArray{T,N}(x.mb, dims)
+Base.reshape(x::CuArray{T}, dims::NTuple{N,Int}) where {T,N} = CuArray{T,N}(x.ptr, dims)
 Base.reshape{T}(x::CuArray{T}, dims::Int...) = reshape(x, dims)
-Base.vec(x::CuArray{T}) where T = ndims(x) == 1 ? x : CuArray(x.mb, (length(x),))
+Base.vec(x::CuArray{T}) where T = ndims(x) == 1 ? x : CuArray(x.ptr, (length(x),))
 function Base.squeeze(x::CuArray, dims::Dims)
     for i in dims
         size(x,i) == 1 || throw(ArgumentError("squeezed dims must all be size 1"))
@@ -110,7 +110,7 @@ end
 function add!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int) where T
     p_dest = pointer(dest, doffs)
     p_src = pointer(src, soffs)
-    BLAS.axpy!(n, T(1), p_dest, 1, p_src, 1)
+    BLAS.axpy!(n, T(1), p_src, 1, p_dest, 1)
     dest
 end
 
@@ -128,7 +128,6 @@ end
         x
     end
 end
-Base.fill(::Type{CuArray}, value::T, dims::NTuple) where T = fill!(CuArray{T}(dims), value)
 Base.zeros(::Type{CuArray{T}}, dims::Int...) where T = zeros(CuArray{T}, dims)
 Base.zeros(::Type{CuArray{T}}, dims::NTuple) where T = fill!(CuArray{T}(dims), 0)
 Base.ones(::Type{CuArray{T}}, dims::Int...) where T  = ones(CuArray{T}, dims)

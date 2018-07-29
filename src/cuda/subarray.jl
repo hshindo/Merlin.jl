@@ -20,6 +20,7 @@ Base.stride(x::CuSubArray, dim::Int) = stride(x.parent, dim)
 Base.convert(::Type{Ptr{T}}, x::CuSubArray) where T = Ptr{T}(pointer(x))
 Base.unsafe_convert(::Type{Ptr{T}}, x::CuSubArray) where T = Ptr{T}(pointer(x))
 Base.pointer(x::CuSubArray, index::Int=1) = pointer(x.parent, x.offset+index)
+rawpointer(x::CuSubArray, index::Int=1) = rawpointer(x.parent, x.offset+index)
 iscontigious(x::CuSubArray) = x.contigious
 
 function Base.view(x::CuArray{T,N}, I...) where {T,N}

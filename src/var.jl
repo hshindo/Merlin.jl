@@ -38,17 +38,10 @@ function zerograd!(x::Var)
     x
 end
 
-function concat(x::Var)
-    size = map(x.size) do s
-        isa(s,Int) && return s
-        isa(s,Vector{Int}) && return sum(s)
-        throw("Unsupported size: $s")
-    end
-    Var(x.data, size, x.args, x.grad)
-end
-
 Base.size(x::Var) = size(x.data)
 Base.size(x::Var, i::Int) = size(x.data, i)
+Base.stride(x::Var, i::Int) = stride(x.data, i)
+Base.strides(x::Var) = strides(x.data)
 Base.length(x::Var) = length(x.data)
 Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
@@ -56,6 +49,24 @@ Base.getindex(x::Var, i::Int) = x.args[i]
 isvoid(x) = x == nothing
 oncpu(x::Var) = isa(x.data, Array)
 oncuda(x::Var) = isa(x.data, CuAray)
+
+function array(arrays::Tuple{Vararg{Array}}, padding)
+    maxdims = zeros(Int, N)
+    for x in arrays
+        for d = 1:N
+            maxdims[d] < size(x,d) && (maxdims[d] = size(x,d))
+        end
+    end
+
+    y = similar(xs[1].data, maxdims..., length(xs))
+    fill!(y, T(padding))
+    st = stride(y, N+1)
+    yi = 1
+    for x in xs
+        copy!(y, yi, x.data, 1, length(x))
+        yi += st
+    end
+end
 
 doc"""
     isparam(x::Var)
@@ -116,11 +127,18 @@ function configure!(xs::Var...)
     if iscpu()
         for x in xs
             x.data = Array(x.data)
+            if eltype(x) == Cint
+                x.data = Array{Int}(x.data)
+            end
             isvoid(x.grad) || (x.grad = Array(x.grad))
         end
     elseif iscuda()
         for x in xs
-            x.data = CuArray(x.data)
+            if isa(x.data,Array) && eltype(x) == Int
+                x.data = CuArray(Array{Cint}(x.data))
+            else
+                x.data = CuArray(x.data)
+            end
             isvoid(x.grad) || (x.grad = CuArray(x.grad))
         end
     end

@@ -17,7 +17,7 @@ const UniMatrix{T} = UniArray{T,2}
 include("config.jl")
 include("add.jl")
 include("var.jl")
-include("vars.jl")
+# include("vars.jl")
 include("graph.jl")
 include("test.jl")
 include("iterators.jl")
@@ -46,6 +46,7 @@ for name in [
     "reduction/sum",
 
     "rnn/lstm",
+    "rnn/transpose_batch",
 
     "blas",
     "concat",

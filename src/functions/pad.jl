@@ -1,22 +1,33 @@
 export pad
 
-function pad(x::Array{T}, shapes::Vector{NTuple{N,Int}}; padding=0) where {T,N}
+function pad(xs::Vector{Var}, padding)
+    T = eltype(xs[1])
+    N = ndims(xs[1])
     maxdims = zeros(Int, N)
-    for s in shapes
-        for i = 1:N
-            maxdims[i] < s[i] && (maxdims[i] = s[i])
+    for x in xs
+        for d = 1:N
+            maxdims[d] < size(x,d) && (maxdims[d] = size(x,d))
         end
     end
 
-    y = fill(T(padding), maxdims..., length(shapes))
+    y = similar(xs[1].data, maxdims..., length(xs))
+    fill!(y, T(padding))
     st = stride(y, N+1)
-    xi = 1
     yi = 1
-    for s in shapes
-        n = prod(s)
-        copy!(y, yi, x, xi, n)
-        xi += n
+    for x in xs
+        copy!(y, yi, x.data, 1, length(x))
         yi += st
     end
-    y
+    Var(y, (pad,xs,padding))
+end
+pad(xs::Node, padding) = Node(pad, xs, padding)
+
+function addgrad!(y::Var, ::typeof(pad), xs::Vector{Var}, padding)
+    st = stride(y, ndims(y))
+    yi = 1
+    for x in xs
+        isvoid(x.grad) && continue
+        add!(x.grad, 1, y.grad, yi, length(x))
+        yi += st
+    end
 end

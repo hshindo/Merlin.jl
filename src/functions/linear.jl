@@ -47,10 +47,10 @@ function linear(x::Var, w::Var, b::Var)
     end
     Var(y, (linear,x,w,b))
 end
-function linear(xs::Vars, w, b)
-    y = linear(Var(xs), w, b)
-    ysize = size(y,1), size(xs,2)
-    Vars(y, ysize)
+function linear(xs::Vector{Var}, w, b)
+    y = linear(concat(2,xs), w, b)
+    s = map(x -> size(y,1,x,2), xs)
+    split(y, 2, s)
 end
 linear(x::Node, w, b) = Node(linear, x, w, b)
 

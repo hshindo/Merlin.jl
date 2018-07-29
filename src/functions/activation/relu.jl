@@ -13,10 +13,6 @@ function relu(x::Var)
     configure!(x)
     Var(relu(x.data), (relu,x))
 end
-function relu(xs::Vars)
-    y = relu(Var(xs))
-    Vars(y, size(xs))
-end
 relu(x::Node) = Node(relu, x)
 relu(x::T) where T<:AbstractFloat = max(x, zero(T))
 relu(x::Array) = relu.(x)
@@ -27,7 +23,7 @@ function addgrad!(y::Var, ::typeof(relu), x::Var)
     ∇relu!(y.data, y.grad, x.data, x.grad)
 end
 
-function ∇relu!(y, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
+function ∇relu!(y::Array{T}, gy::Array{T}, x::Array{T}, gx::Array{T}) where T
     @inbounds for i = 1:length(x)
         gx[i] += x[i] > T(0) ? gy[i] : T(0)
     end

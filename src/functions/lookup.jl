@@ -1,31 +1,26 @@
 export lookup
 
-function lookup(w::Var, idx::Var)
+function lookup(w::Var, idx::Array{Int})
     configure!(w)
     n = size(w, 1)
-    y = zeros(eltype(w), n*size(idx,1), Base.tail(size(idx))...)
+    y = similar(w.data, n*size(idx,1), Base.tail(size(idx))...)
     for i = 1:length(idx)
-        idx.data[i] <= 0 && continue
+        # idx[i] <= 0 && continue
         yi = (i-1) * n + 1
-        wi = (idx.data[i]-1) * n + 1
+        wi = (idx[i]-1) * n + 1
         copy!(y, yi, w.data, wi, n)
     end
     Var(y, (lookup,w,idx))
 end
-function lookup(w::Var, idx::Vars)
-    y = lookup(w, Var(idx))
-    ysize = size(w,1)*size(idx,1), Base.tail(size(idx))...
-    Vars(y, ysize)
-end
 lookup(w::Var, idx::Node) = Node(lookup, w, idx)
 
-function addgrad!(y::Var, ::typeof(lookup), w::Var, idx::Var)
+function addgrad!(y::Var, ::typeof(lookup), w::Var, idx::Array{Int})
     isvoid(w.grad) && return
     n = size(w, 1)
     for i = 1:length(idx)
-        idx.data[i] <= 0 && continue
+        # idx[i] <= 0 && continue
         yi = (i-1) * n + 1
-        wi = (idx.data[i]-1) * n + 1
+        wi = (idx[i]-1) * n + 1
         add!(w.grad, wi, y.grad, yi, n)
     end
 end

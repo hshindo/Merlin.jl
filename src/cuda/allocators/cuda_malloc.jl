@@ -1,8 +1,8 @@
 struct CUDAMalloc
 end
 
-function (::CUDAMalloc)(bytesize::Int)
-    ptr = memalloc(bytesize)
+function (::CUDAMalloc)(::Type{T}, size::Int) where T
+    ptr = memalloc(T, size)
     finalizer(ptr, memfree)
     ptr
 end

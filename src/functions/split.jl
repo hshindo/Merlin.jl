@@ -1,45 +1,45 @@
 doc"""
+    split(x::Var, size::Vector)
     split(x::Var, dim::Int, size::Vector{Int})
 
 # Example
 ```julia
 T = Float32
 x = Var(rand(T,10,10))
-ys = split(x, 2, [2,3,5])
+ys1 = split(x, [(5,10),(5,10)])
+ys2 = split(x, 2, [2,3,5])
 ```
 """
+function Base.split(x::Array{T,N}, size::Tuple) where {T,N}
+    offset = 0
+    map(size) do s
+        p = pointer(x, offset+1)
+        y = unsafe_wrap(typeof(x), p, s)
+        y = Var(y, (split,x,offset))
+        offset += length(y)
+        y
+    end
+end
+
 function Base.split(x::Var, dim::Int, size::Vector{Int})
     @assert sum(size) == Base.size(x,dim)
     if dim == ndims(x)
-        cumdim = 0
+        offset = 0
         front = Base.front(Base.size(x))
-        m = prod(front)
-        ys = Var[]
-        for s in size
-            range = cumdim+1:cumdim+s
-            data = view(x.data, front..., range)
-            y = Var(data, (x,dim,range))
-            push!(ys, y)
-            cumdim += s
+        map(size) do s
+            p = pointer(x.data, offset+1)
+            y = unsafe_wrap(typeof(x.data), p, (front...,s))
+            y = Var(y, (split,x,dim,offset))
+            offset += length(y)
+            y
         end
     else
         throw("Not implemented yet.")
     end
-    ys
 end
+Base.split(x::Node, args...) = Node(split, x, args...)
 
-function unsafe_split(x::UniArray{T,N}, dims::Vector{Int}) where {T,N}
-    sum(dims) == size(x,N) || throw("Invalid dims: $dims.")
-    length(dims) == 1 && return [x]
-
-    cumdim = 0
-    front = Base.front(size(x))
-    m = prod(front)
-    ys = typeof(x)[]
-    for d in dims
-        y = unsafe_array(x, m*cumdim+1, (front...,d))
-        push!(ys, y)
-        cumdim += d
-    end
-    ys
+function addgrad!(y::Var, ::typeof(split), x::Var, dim::Int, offset::Int)
+    isvoid(x.grad) && return
+    add!(x.grad, offset, y.grad, 1, length(y))
 end

@@ -1,5 +1,15 @@
 export Vars
 
+mutable struct Arrays{T,N}
+    data::Vector{Array{T,N}}
+end
+
+function Base.vec(xs::Arrays)
+    p = pointer(xs[1])
+    n = sum(length, xs.data)
+    unsafe_wrap(Array, p, (n,))
+end
+
 mutable struct Vars
     var::Var
     dims::Tuple
@@ -25,14 +35,15 @@ Base.size(x::Vars, i::Int) = i <= ndims(x) ? x.dims[i] : 1
 Base.ndims(x::Vars) = length(x.dims)
 
 function Var(x::Vars)
-    for s in x.size
+    for s in size(x)
         if isa(s, Int)
-        elseif isa(s, Vector{Int})
+
+        elseif isa(s, Tuple)
 
         end
     end
 end
 
-function Base.reshape(xs::Vars)
-
+function Base.vec(xs::Vars)
+    xs.var
 end

@@ -9,7 +9,7 @@ end
 
 function CuDeviceArray(x::AbstractCuArray)
     c = iscontigious(x) ? Cuchar(1) : Cuchar(0)
-    CuDeviceArray(pointer(x), map(Cint,size(x)), map(Cint,strides(x)), c)
+    CuDeviceArray(rawpointer(x), map(Cint,size(x)), map(Cint,strides(x)), c)
 end
 
 Base.length(x::CuDeviceArray) = Int(prod(x.dims))

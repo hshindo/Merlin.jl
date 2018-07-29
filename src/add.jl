@@ -1,3 +1,5 @@
+import .CUDA: add!
+
 function add!(dest::AbstractArray{T}, src::AbstractArray{T}) where T
     @assert length(dest) == length(src)
     broadcast!(+, dest, dest, src)
@@ -10,7 +12,7 @@ end
 
 function add!(dest::Array{T}, src::Array{T}) where T
     @assert length(dest) == length(src)
-    add!(length(dest), dest, 1, src, 1)
+    add!(dest, 1, src, 1, length(dest))
 end
 
-add!(dest::AbstractCuArray, src::AbstractCuArray) = CUDA.add!(dest, src)
+# add!(dest::AbstractCuArray, src::AbstractCuArray) = CUDA.add!(dest, src)

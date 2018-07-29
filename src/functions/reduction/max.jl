@@ -15,6 +15,12 @@ function max(x::Var, dim::Int)
     y, idx = findmax(x.data, dim)
     Var(y, (max,x,dim,idx))
 end
+
+function max(xs::Vector{Var}, dim::Int)
+    x = pad(xs, realmin(eltype(xs[1])))
+    y = max(x, dim)
+    split(y)
+end
 function max(x::Var, shapes::Vector, dim::Int)
     padx = pad(x.data, shapes, padding=realmin(Float64))
     y, idx = findmax(padx, dim)
