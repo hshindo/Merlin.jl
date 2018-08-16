@@ -126,12 +126,12 @@ function configure!(xs::Var...)
     end
 end
 
-function create_batch(cat::Function, batchsize::Int, data::Vector{T}) where T
-    batches = T[]
-    for i = 1:batchsize:length(data)
-        range = i:min(i+batchsize-1,length(data))
-        x = cat(data[range])
-        push!(batches, x)
+function create_batch(f::Function, batchsize::Int, samples::Vector{T}) where T
+    batches = Vector{T}[]
+    for i = 1:batchsize:length(samples)
+        range = i:min(i+batchsize-1,length(samples))
+        batch = f(samples[range])
+        push!(batches, batch)
     end
     batches
 end
