@@ -7,8 +7,8 @@ include("cuda/CUDA.jl")
 using .CUDA
 
 # const TEMP_CUDA = LibCUDA.AtomicMalloc()
-export Functor
-abstract type Functor end
+#export Functor
+#abstract type Functor end
 
 const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
 const UniVector{T} = UniArray{T,1}
@@ -17,7 +17,6 @@ const UniMatrix{T} = UniArray{T,2}
 include("config.jl")
 include("add.jl")
 include("var.jl")
-# include("vars.jl")
 include("graph.jl")
 include("test.jl")
 include("iterators.jl")
@@ -55,7 +54,7 @@ for name in [
     "linear",
     "lookup",
     "math",
-    "pad",
+    "pack",
     "reshape",
     "softmax",
     "split"

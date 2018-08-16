@@ -22,7 +22,7 @@ function crossentropy(p::Var, q::Var)
     Var(crossentropy(p.data,q.data), (crossentropy,p,q))
 end
 
-function crossentropy(p::Vector{I}, q::Matrix{T}) where {I<:Integer,T}
+function crossentropy(p::Vector{Int}, q::Matrix{T}) where T
     y = Array{T}(length(p))
     @inbounds for i = 1:length(p)
         y[i] = p[i] > 0 ? -log(q[p[i],i]) : T(0)

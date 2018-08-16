@@ -12,29 +12,40 @@ y = max(x, 1)
 """
 function max(x::Var, dim::Int)
     configure!(x)
-    y, idx = findmax(x.data, dim)
-    Var(y, (max,x,dim,idx))
+    ydata, idx = findmax(x.data, dim)
+    Var(ydata, (max,x,dim,idx))
 end
-
-function max(xs::Vector{Var}, dim::Int)
-    x = pad(xs, realmin(eltype(xs[1])))
-    y = max(x, dim)
-    split(y)
+function max(x::Var, batchdims::Vector{Int})
+    configure!(x)
+    @assert sum(batchdims) == size(x,ndims(x))
+    xdata = pack(x.data, batchdims, realmin(eltype(x)))
+    ydata, idx = findmax(xdata, ndims(x))
+    # ydata = squeeze(ydata, dim)
+    Var(ydata, (max,x,batchdims,idx))
 end
-function max(x::Var, shapes::Vector, dim::Int)
-    padx = pad(x.data, shapes, padding=realmin(Float64))
-    y, idx = findmax(padx, dim)
-    y = squeeze(y, dim)
-    Var(y, (max,x,shapes,dim,idx))
-end
-max(x::Node, args...) = Node(max, args...)
+max(x::Node, dim::Int) = Node(max, dim)
+max(x::Node, dims::Vector{Int}) = Node(max, dims)
 
 function addgrad!(y::Var, ::typeof(max), x::Var, dim::Int, idx)
     isvoid(x.grad) && return
     ∇max!(y.grad, x.grad, dim, idx)
 end
 
+function addgrad!(y::Var, ::typeof(max), x::Var, batchdims::Vector{Int}, idx)
+    isvoid(x.grad) && return
+    dim = ndims(x)
+    gx = pack(x.grad, batchdims, realmin(eltype(x)))
+    ∇max!(y.grad, gx, dim, idx)
+    add!(x.grad, unpack(gx,batchdims))
+end
+
 function ∇max!(gy::Array{T}, gx::Array{T}, dim::Int, idx::Array{Int}) where T
+    @inbounds for i = 1:length(idx)
+        gx[idx[i]] += gy[i]
+    end
+end
+
+function ∇max!(gy::Array{T}, gx::Array{T}, batchdims::Vector{Int}, idx::Array{Int}) where T
     @inbounds for i = 1:length(idx)
         gx[idx[i]] += gy[i]
     end

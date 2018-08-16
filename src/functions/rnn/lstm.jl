@@ -1,6 +1,6 @@
 export LSTM
 
-mutable struct LSTM <: Functor
+mutable struct LSTM
     insize::Int
     hsize::Int
     nlayers::Int
@@ -76,80 +76,31 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
     LSTM(insize, hsize, nlayers, droprate, bidirectional, params)
 end
 
-function (lstm::LSTM)(xs::Vector{Var})
+function (lstm::LSTM)(x::Var, batchdims::Vector{Int})
     configure!(getparams(lstm)...)
     if iscpu()
-        lstm_naive(lstm, xs)
+        h = x
+        coef = lstm.bidirectional ? 2 : 1
+        for l = 1:lstm.nlayers
+            i = (l-1) * coef + 1
+            p = lstm.params[i]
+            h1 = lstm_tstep(h, batchdims, p..., false)
+            if lstm.bidirectional
+                p = lstm.params[i+1]
+                h2 = lstm_tstep(h, batchdims, p..., true)
+                h = concat(1, h1, h2)
+            else
+                h = h1
+            end
+        end
+        h
     elseif iscuda()
         lstm_cudnn(lstm, xs)
     else
         throw("Invalid backend.")
     end
 end
-(lstm::LSTM)(x::Node) = Node(lstm, x)
-
-function lstm_naive(lstm::LSTM, xs::Vector{Var})
-    h = concat(2, xs...)
-    coef = lstm.bidirectional ? 2 : 1
-    for l = 1:lstm.nlayers
-        i = (l-1) * coef + 1
-        p = lstm.params[i]
-        h1 = lstm_tstep(h, p..., false)
-        if lstm.bidirectional
-            p = lstm.params[i+1]
-            h2 = lstm_tstep(h, p..., true)
-            h = concat(1, h1, h2)
-        else
-            h = h1
-        end
-    end
-    h
-end
-
-function lstm_tstep(xs::Vector{Var}, W::Var, U::Var, b::Var, h0::Var, c0::Var, rev::Bool)
-    @assert sum(batchsize) == size(x,2)
-    WU = concat(1, W, U)
-
-
-
-
-    cumdims = Array{Int}(length(batchsize)+1)
-    cumdims[1] = 1
-    for i = 1:length(batchsize)
-        cumdims[i+1] = cumdims[i] + batchsize[i]
-    end
-    perm = sortperm(batchsize, rev=true)
-
-    hsize = length(h0)
-    ht = concat(2, [h0 for i=1:length(batchsize)]...)
-    ct = concat(2, [c0 for i=1:length(batchsize)]...)
-    hts = Array{Var}(size(x,2))
-    cts = Array{Var}(size(x,2))
-    for t = 1:size(xs[1],2)
-        xts = Var[]
-        for p in perm
-            t > batchsize[p] && break
-            i = cumdims[p]
-            i += rev ? batchsize[p]-t : t-1
-            push!(xts, x[:,i:i])
-        end
-        xt = concat(2, xts...)
-        if size(ht,2) > size(xt,2)
-            ht = ht[:,1:size(xt,2)]
-            ct = ct[:,1:size(xt,2)]
-        end
-        ht, ct = lstm_onestep(xt, WU, b, ht, ct)
-        for j = 1:length(perm)
-            p = perm[j]
-            t > batchsize[p] && break
-            i = cumdims[p]
-            i += rev ? batchsize[p]-t : t-1
-            hts[i] = ht[:,j:j]
-            cts[i] = ct[:,j:j]
-        end
-    end
-    concat(2, hts...)
-end
+(lstm::LSTM)(x::Node, batchdims) = Node(lstm, x, batchdims)
 
 function lstm_tstep(x::Var, batchsize::Vector{Int}, W::Var, U::Var, b::Var, h0::Var, c0::Var, rev::Bool)
     @assert sum(batchsize) == size(x,2)

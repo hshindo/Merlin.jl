@@ -1,5 +1,5 @@
 export Var
-export param, zerograd!, isvoid, isparam, gradient!, topsort, create_batch
+export param, zerograd!, batchsize, isvoid, isparam, gradient!, topsort, create_batch
 
 doc"""
     Var
@@ -24,11 +24,11 @@ mutable struct Var
     grad
 end
 
-Var(data, args=(); grad=nothing) = Var(data, args, grad)
+Var(data, args=()) = Var(data, args, nothing)
 
 function param(data)
     v = Var(data)
-    v.grad = zeros(data)
+    v.grad = zeros(v.data)
     v
 end
 
@@ -40,33 +40,15 @@ end
 
 Base.size(x::Var) = size(x.data)
 Base.size(x::Var, i::Int) = size(x.data, i)
-Base.stride(x::Var, i::Int) = stride(x.data, i)
 Base.strides(x::Var) = strides(x.data)
+Base.stride(x::Var, i::Int) = stride(x.data, i)
 Base.length(x::Var) = length(x.data)
 Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
-Base.getindex(x::Var, i::Int) = x.args[i]
+
 isvoid(x) = x == nothing
 oncpu(x::Var) = isa(x.data, Array)
 oncuda(x::Var) = isa(x.data, CuAray)
-
-function array(arrays::Tuple{Vararg{Array}}, padding)
-    maxdims = zeros(Int, N)
-    for x in arrays
-        for d = 1:N
-            maxdims[d] < size(x,d) && (maxdims[d] = size(x,d))
-        end
-    end
-
-    y = similar(xs[1].data, maxdims..., length(xs))
-    fill!(y, T(padding))
-    st = stride(y, N+1)
-    yi = 1
-    for x in xs
-        copy!(y, yi, x.data, 1, length(x))
-        yi += st
-    end
-end
 
 doc"""
     isparam(x::Var)
@@ -89,8 +71,8 @@ function topsort(tops::T...) where T
         for arg in v.args
             if isa(arg, T)
                 visit(arg)
-            elseif isa(arg, Vector{T})
-                foreach(visit, arg)
+            #elseif isa(arg, Vector{T})
+            #    foreach(visit, arg)
             end
         end
         push!(sorted, v)
