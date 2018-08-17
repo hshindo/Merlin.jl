@@ -2,7 +2,7 @@ const sources = [
     "im2col.cpp",
     "pooling.cpp"]
 
-if is_windows()
+if Sys.iswindows()
     builddir = dirname(Base.source_path())
     println("Build directory is $(builddir)")
 
@@ -22,9 +22,9 @@ if is_windows()
 
     run(`$gpp --version`)
     cmd = `$gpp -Wall -O3 -fPIC -shared -I $incdir -o libmerlin.dll $sources`
-elseif is_apple()
+elseif Sys.isapple()
     cmd = `g++ -Wall -O3 -fPIC -shared -o libmerlin.so $sources`
-elseif is_linux()
+elseif Sys.islinux()
     cmd = `g++ -Wall -O3 -fPIC -shared -o libmerlin.so $sources`
 else
     throw("Unknown OS.")
