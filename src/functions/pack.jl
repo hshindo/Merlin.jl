@@ -12,7 +12,7 @@ function pack(x::UniArray, batchdims::Vector{Int}, padding)
     yi = 1
     for d in batchdims
         n = xst * d
-        copy!(y, yi, x, xi, n)
+        copyto!(y, yi, x, xi, n)
         xi += n
         yi += yst
     end
@@ -32,7 +32,7 @@ function pack(x::Var, batchdims::Vector{Int}, padding)
     yi = 1
     for d in batchdims
         n = xst * d
-        copy!(y.data, yi, x.data, xi, n)
+        copyto!(y.data, yi, x.data, xi, n)
         xi += n
         yi += yst
     end
@@ -47,7 +47,7 @@ function addgrad!(y::Var, ::typeof(pack), x::Var, batchdims::Vector{Int})
     yi = 1
     for d in batchdims
         n = xst * d
-        add!(x.grad, xi, y.grad, yi, n)
+        addto!(x.grad, xi, y.grad, yi, n)
         xi += n
         yi += yst
     end
@@ -64,7 +64,7 @@ function unpack(x::UniArray{T,N}, batchdims::Vector{Int}) where {T,N}
     yi = 1
     for d in batchdims
         n = yst * d
-        copy!(y, yi, x, xi, n)
+        copyto!(y, yi, x, xi, n)
         xi += xst
         yi += n
     end

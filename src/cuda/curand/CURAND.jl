@@ -1,6 +1,6 @@
 module CURAND
 
-if is_windows()
+if Sys.iswindows()
     const libcurand = Libdl.find_library(["curand64_91","curand64_90","curand64_80","curand64_75"])
 else
     const libcurand = Libdl.find_library(["libcurand"])
@@ -41,7 +41,7 @@ const API_VERSION = begin
     @apicall :curandGetVersion (Ptr{Cint},) ref
     Int(ref[])
 end
-info("CUDNN API $API_VERSION")
+@info "CUDNN API $API_VERSION"
 
 function _curand(rng)
     p = curandGenerator_t[0]
@@ -148,7 +148,7 @@ curandpoisson(num::Int, lambda::Float64) = curandpoisson(_rng, num, lambda)
 curandpoisson(lambda::Float64) = curandpoisson(_rng, 1, lambda)
 
 function curandcreatedist(lambda::Float64)
-  aptr = Ptr{Void}[0]
+  aptr = Ptr{Cvoid}[0]
   curandCreatePoissonDistribution(lambda, aptr)
   aptr[1]
 end

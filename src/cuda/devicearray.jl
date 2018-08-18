@@ -14,7 +14,7 @@ end
 
 Base.length(x::CuDeviceArray) = Int(prod(x.dims))
 
-@generated function Base.copy!(dest::CuDeviceArray{T,N}, src::CuDeviceArray{T,N}) where {T,N}
+@generated function Base.copyto!(dest::CuDeviceArray{T,N}, src::CuDeviceArray{T,N}) where {T,N}
     Ct = cstring(T)
     k = Kernel("""
     __global__ void copy(Array<$Ct,$N> dest, Array<$Ct,$N> src) {
@@ -32,7 +32,7 @@ Base.length(x::CuDeviceArray) = Int(prod(x.dims))
     end
 end
 
-@generated function add!(dest::CuDeviceArray{T,N}, src::CuDeviceArray{T,N}) where {T,N}
+@generated function addto!(dest::CuDeviceArray{T,N}, src::CuDeviceArray{T,N}) where {T,N}
     Ct = cstring(T)
     k = Kernel("""
     __global__ void add(Array<$Ct,$N> dest, Array<$Ct,$N> src) {

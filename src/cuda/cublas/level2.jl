@@ -14,7 +14,7 @@ for (f,T,Ct) in (
             incx = stride(x, 1)
             incy = stride(y, 1)
             @cublas($f, (
-                Ptr{Void},Cint,Cint,Cint,
+                Ptr{Cvoid},Cint,Cint,Cint,
                 Ptr{$Ct},Ptr{$Ct},Cint,
                 Ptr{$Ct},Cint,
                 Ptr{$Ct},Ptr{$Ct},Cint),

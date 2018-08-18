@@ -3,16 +3,18 @@ module CUDNN
 using ..CUDA
 import ..CUDA: ndevices, getdevice
 
-if is_windows()
+if Sys.iswindows()
     const libcudnn = Libdl.find_library(["cudnn64_7"])
 else
     const libcudnn = Libdl.find_library("libcudnn")
 end
 isempty(libcudnn) && error("CUDNN cannot be found.")
 
+const API_VERSION = Ref{Int}()
+
 function init()
-    global const API_VERSION = Int(ccall((:cudnnGetVersion,libcudnn),Cint,()))
-    info("CUDNN API $API_VERSION")
+    API_VERSION[] = Int(ccall((:cudnnGetVersion,libcudnn),Cint,()))
+    @info "CUDNN API $(API_VERSION[])"
 end
 init()
 
@@ -30,7 +32,7 @@ include("define.jl")
 include("handle.jl")
 
 function setstream(handle::Handle, stream)
-    @cudnn :cudnnSetStream (Ptr{Void},Ptr{Void}) handle stream
+    @cudnn :cudnnSetStream (Ptr{Cvoid},Ptr{Cvoid}) handle stream
 end
 
 include("activation.jl")
@@ -48,7 +50,7 @@ C = α*A + β*C
 The bias tensor A must match the corresponding dimension of the destination tensor
 C or must be equal to 1.
 """
-function add!(α, A::CuArray{T}, β, C::CuArray{T}) where T
+function addto!(α, A::CuArray{T}, β, C::CuArray{T}) where T
     h = gethandle()
     adesc = TensorDesc(A, 4)
     cdesc = TensorDesc(C, 4)

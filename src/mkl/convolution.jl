@@ -20,12 +20,12 @@ end
 function convolution{T}(x::Array{T}, w::Array{T}, padding, strides)
     desc = convolution_desc(x, w, padding, strides)
     y = Array{T}(desc[4]...)
-    p = Ptr{Void}[0]
+    p = Ptr{Cvoid}[0]
     attr = dnnPrimitiveAttributesCreate()
     dnnConvolutionCreateForward_F32(p, attr, desc...)
     p_conv = p[1]
 
-    resources = Ptr{Void}[pointer(x),pointer(y),pointer(w)]
+    resources = Ptr{Cvoid}[pointer(x),pointer(y),pointer(w)]
     dnnExecute(p_conv, resources)
 
     dnnPrimitiveAttributesDestroy(attr)
@@ -34,14 +34,14 @@ function convolution{T}(x::Array{T}, w::Array{T}, padding, strides)
 end
 
 function ∇convolution_data{T}(x::Array{T}, w::Array{T}, dy::Array{T}, padding, strides)
-    p = Ptr{Void}[0]
+    p = Ptr{Cvoid}[0]
     attr = dnnPrimitiveAttributesCreate()
     desc = convolution_desc(x, w, padding, strides)
     dnnConvolutionCreateBackwardData_F32(p, attr, desc...)
     p_conv = p[1]
 
     dx = similar(x)
-    resources = Ptr{Void}[0,0,pointer(w),0,pointer(dx),0,0,pointer(dy)]
+    resources = Ptr{Cvoid}[0,0,pointer(w),0,pointer(dx),0,0,pointer(dy)]
     dnnExecute(p_conv, resources)
 
     dnnPrimitiveAttributesDestroy(attr)
@@ -50,14 +50,14 @@ function ∇convolution_data{T}(x::Array{T}, w::Array{T}, dy::Array{T}, padding,
 end
 
 function ∇convolution_filter{T}(x::Array{T}, w::Array{T}, dy::Array{T}, padding, strides)
-    p = Ptr{Void}[0]
+    p = Ptr{Cvoid}[0]
     attr = dnnPrimitiveAttributesCreate()
     desc = convolution_desc(x, w, padding, strides)
     dnnConvolutionCreateBackwardFilter_F32(p, attr, desc...)
     p_conv = p[1]
 
     dw = similar(w)
-    resources = Ptr{Void}[pointer(x),0,0,0,0,pointer(dw),0,pointer(dy)]
+    resources = Ptr{Cvoid}[pointer(x),0,0,0,0,pointer(dw),0,pointer(dy)]
     dnnExecute(p_conv, resources)
 
     dnnPrimitiveAttributesDestroy(attr)
@@ -66,7 +66,7 @@ function ∇convolution_filter{T}(x::Array{T}, w::Array{T}, dy::Array{T}, paddin
 end
 
 function ∇convolution_bias{T}(x::Array{T}, w::Array{T}, b::Array{T}, dy::Array{T}, padding, strides)
-    p = Ptr{Void}[0]
+    p = Ptr{Cvoid}[0]
     attr = dnnPrimitiveAttributesCreate()
     algorithm,dimension,dstSize
     desc = convolution_desc(x, w, padding, strides)
@@ -74,7 +74,7 @@ function ∇convolution_bias{T}(x::Array{T}, w::Array{T}, b::Array{T}, dy::Array
     p_conv = p[1]
 
     db = similar(b)
-    resources = Ptr{Void}[0,0,0,0,0,0,pointer(db),pointer(dy)]
+    resources = Ptr{Cvoid}[0,0,0,0,0,0,pointer(db),pointer(dy)]
     dnnExecute(p_conv, resources)
 
     dnnPrimitiveAttributesDestroy(attr)

@@ -1,14 +1,16 @@
 module CUDA
 
+import Libdl
 using Base.Threads
 
-if is_windows()
+if Sys.iswindows()
     const libcuda = Libdl.find_library("nvcuda")
 else
     const libcuda = Libdl.find_library("libcuda")
 end
 const AVAILABLE = !isempty(libcuda)
-AVAILABLE || warn("CUDA cannot be found.")
+AVAILABLE || @warn "CUDA cannot be found."
+const API_VERSION = Ref{Int}()
 
 function checkstatus(status)
     if status != 0
@@ -27,10 +29,10 @@ function init()
         status = ccall((:cuDriverGetVersion,libcuda), Cint, (Ptr{Cint},), ref)
         checkstatus(status)
 
-        global const API_VERSION = Int(ref[])
-        info("CUDA API $API_VERSION")
+        API_VERSION[] = Int(ref[])
+        @info "CUDA API $(API_VERSION[])"
     else
-        global const API_VERSION = 0
+        API_VERSION[] = 0
     end
 end
 init()
@@ -38,7 +40,7 @@ init()
 include("define.jl")
 
 macro apicall(f, args...)
-    f = get(define, f.args[1], f.args[1])
+    f = get(define, f.value, f.value)
     quote
         status = ccall(($(QuoteNode(f)),libcuda), Cint, $(map(esc,args)...))
         checkstatus(status)
@@ -46,7 +48,7 @@ macro apicall(f, args...)
 end
 
 macro unsafe_apicall(f, args...)
-    f = get(define, f.args[1], f.args[1])
+    f = get(define, f.value, f.value)
     quote
         ccall(($(QuoteNode(f)),libcuda), Cint, $(map(esc,args)...))
     end
@@ -82,7 +84,7 @@ include("arraymath.jl")
 include("broadcast.jl")
 include("cat.jl")
 include("reduce.jl")
-include("reducedim.jl")
+# include("reducedim.jl")
 include("devicearray.jl")
 
 if AVAILABLE

@@ -10,10 +10,10 @@ AdaGrad Optimizer.
 """
 mutable struct AdaGrad
     alpha::Float64
-    states::ObjectIdDict
+    states::IdDict
 end
 
-AdaGrad(alpha::Float64) = AdaGrad(alpha, ObjectIdDict())
+AdaGrad(alpha::Float64) = AdaGrad(alpha, IdDict())
 
 function (opt::AdaGrad)(value::Array{T}, grad::Array{T}) where T
     state = get!(opt.states, value, nothing)

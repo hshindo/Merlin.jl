@@ -197,6 +197,6 @@ function addgrad!(y::Var, lstm::LSTM, x::Var, batchsize::Vector{Int}, work, w::V
     t_gy, t_batchsize = transpose_batch(y.grad, batchsize)
     t_gx = CUDNN.∇rnn_data(work, t_gy) # this call is required for ∇rnn_weights!
     gx, _ = transpose_batch(t_gx, t_batchsize)
-    isvoid(x.grad) || add!(x.grad, gx)
+    isvoid(x.grad) || addto!(x.grad, gx)
     isvoid(w.grad) || CUDNN.∇rnn_weights!(work, w.grad)
 end

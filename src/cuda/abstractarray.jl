@@ -14,9 +14,9 @@ Base.ndims(x::AbstractCuArray{T,N}) where {T,N} = N
 Base.eltype(x::AbstractCuArray{T}) where T = T
 Base.zeros(x::AbstractCuArray{T,N}) where {T,N} = zeros(CuArray{T}, size(x))
 Base.ones(x::AbstractCuArray{T}) where T = ones(CuArray{T}, size(x))
-Base.copy(src::AbstractCuArray) = copy!(similar(src), src)
+Base.copy(src::AbstractCuArray) = copyto!(similar(src), src)
 
-function Base.copy!(dest::AbstractCuArray{T}, src::AbstractCuArray{T}) where T
+function Base.copyto!(dest::AbstractCuArray{T}, src::AbstractCuArray{T}) where T
     @assert length(dest) == length(src)
     if iscontigious(dest) && iscontigious(src)
         if isa(dest, CuSubArray)
@@ -25,21 +25,21 @@ function Base.copy!(dest::AbstractCuArray{T}, src::AbstractCuArray{T}) where T
         if isa(src, CuSubArray)
             src = unsafe_wrap(CuArray, pointer(src), size(src))
         end
-        copy!(dest, src)
+        copyto!(dest, src)
     else
-        copy!(CuDeviceArray(dest), CuDeviceArray(src))
+        copyto!(CuDeviceArray(dest), CuDeviceArray(src))
     end
     dest
 end
 
-function add!(dest::AbstractCuArray{T}, src::AbstractCuArray{T}) where T
+function addto!(dest::AbstractCuArray{T}, src::AbstractCuArray{T}) where T
     @assert length(dest) == length(src)
     if iscontigious(dest) && iscontigious(src)
         p_dest = pointer(dest)
         p_src = pointer(src)
         BLAS.axpy!(length(dest), T(1), p_src, p_dest)
     else
-        add!(CuDeviceArray(dest), CuDeviceArray(src))
+        addto!(CuDeviceArray(dest), CuDeviceArray(src))
     end
     dest
 end

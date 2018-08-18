@@ -13,7 +13,7 @@ y = concat(2, x1, x2)
 ```
 """
 function concat(dim::Int, xs::Var...)
-    ydata = cat(dim, map(x -> x.data, xs)...)
+    ydata = cat(map(x -> x.data, xs)..., dims=dim)
     Var(ydata, (concat,dim,xs...))
 end
 concat(dim::Int, xs::Node...) = Node(concat, dim, xs...)
@@ -29,8 +29,10 @@ function ∇concat!(y::Var, dim::Int, xs::Var...)
                 i == dim ? (offset+1:offset+s) : Colon()
             end
             gy = view(y.grad, I...)
-            ndims(y) > ndims(x) && (gy = squeeze(gy,ndims(y)))
-            add!(x.grad, gy)
+            if ndims(y) > ndims(x)
+                gy = dropdims(gy, dims=ndims(y))
+            end
+            addto!(x.grad, gy)
         end
         offset += s
     end

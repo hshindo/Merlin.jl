@@ -1,7 +1,7 @@
 export Var
 export param, zerograd!, batchsize, isvoid, isparam, gradient!, topsort, create_batch
 
-doc"""
+"""
     Var
 
 Variable struct.
@@ -28,7 +28,7 @@ Var(data, args=()) = Var(data, args, nothing)
 
 function param(data)
     v = Var(data)
-    v.grad = zeros(v.data)
+    v.grad = fill!(similar(data), 0)
     v
 end
 
@@ -50,21 +50,21 @@ isvoid(x) = x == nothing
 oncpu(x::Var) = isa(x.data, Array)
 oncuda(x::Var) = isa(x.data, CuAray)
 
-doc"""
+"""
     isparam(x::Var)
 
 Returns whether `x` is a parameter or not
 """
 isparam(x) = isa(x,Var) && !isvoid(x.grad) && isempty(x.args)
 
-doc"""
+"""
     topsort(tops::T...)
 
 Topological sort.
 """
 function topsort(tops::T...) where T
     sorted = T[]
-    dict = ObjectIdDict()
+    dict = IdDict()
     function visit(v::T)
         haskey(dict,v) && return
         dict[v] = v
@@ -81,7 +81,7 @@ function topsort(tops::T...) where T
     sorted
 end
 
-doc"""
+"""
     gradient!(top::Var)
 
 Compute gradients.
@@ -89,11 +89,13 @@ Compute gradients.
 function gradient!(tops::Var...)
     sorted = topsort(tops...)
     for top in tops
-        isvoid(top.grad) && (top.grad = ones(top.data))
+        if isvoid(top.grad)
+            top.grad = fill!(similar(top.data), 1)
+        end
     end
     for v in sorted
         if !isempty(v.args) && isvoid(v.grad)
-            v.grad = zeros(v.data)
+            v.grad = fill!(similar(v.data), 0)
         end
     end
     for i = length(sorted):-1:1
@@ -107,24 +109,21 @@ end
 
 function configure!(xs::Var...)
     if iscpu()
-        for x in xs
-            x.data = Array(x.data)
-            if eltype(x) == Cint
-                x.data = Array{Int}(x.data)
-            end
-            isvoid(x.grad) || (x.grad = Array(x.grad))
-        end
+        f = tocpu
     elseif iscuda()
-        for x in xs
-            if isa(x.data,Array) && eltype(x) == Int
-                x.data = CuArray(Array{Cint}(x.data))
-            else
-                x.data = CuArray(x.data)
-            end
-            isvoid(x.grad) || (x.grad = CuArray(x.grad))
-        end
+        f = tocuda
+    end
+    for x in xs
+        x.data = f(x.data)
+        isvoid(x.grad) || (x.grad = f(x.grad))
     end
 end
+tocpu(x::Array) = x
+tocpu(x::CuArray) = Array(x)
+tocpu(x::CuArray{Cint}) = Array{Int}(Array(x))
+tocuda(x::CuArray) = x
+tocuda(x::Array{Int}) = CuArray(Array{Cint}(x))
+tocuda(x::Array) = CuArray(x)
 
 function create_batch(f::Function, batchsize::Int, samples::Vector{T}) where T
     batches = Vector{T}[]

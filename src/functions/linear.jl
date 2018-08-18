@@ -36,10 +36,10 @@ function linear(x::Var, w::Var, b::Var)
     configure!(x, w, b)
     T = eltype(x)
     if ndims(x) == 1
-        ydata = BLAS.gemv('T', w.data, x.data)
-        add!(ydata, b.data)
+        ydata = gemv('T', w.data, x.data)
+        addto!(ydata, b.data)
     elseif ndims(x) == 2
-        ydata = BLAS.gemm('T', 'N', w.data, x.data)
+        ydata = gemm('T', 'N', w.data, x.data)
         ydata .+= b.data
     else
         throw("Invalid ndims of x: $(ndims(x))")
@@ -53,13 +53,13 @@ function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
     if ndims(x) == 1
         gy = reshape(y.grad, length(y.grad), 1)
         xdata = reshape(x.data, length(x.data), 1)
-        isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), xdata, gy, T(1), w.grad)
-        isvoid(x.grad) || BLAS.gemv!('N', T(1), w.data, y.grad, T(1), x.grad)
-        isvoid(b.grad) || BLAS.axpy!(T(1), y.grad, b.grad)
+        isvoid(w.grad) || gemm!('N', 'T', T(1), xdata, gy, T(1), w.grad)
+        isvoid(x.grad) || gemv!('N', T(1), w.data, y.grad, T(1), x.grad)
+        isvoid(b.grad) || axpy!(T(1), y.grad, b.grad)
     elseif ndims(x) == 2
-        isvoid(x.grad) || BLAS.gemm!('N', 'N', T(1), w.data, y.grad, T(1), x.grad)
-        isvoid(w.grad) || BLAS.gemm!('N', 'T', T(1), x.data, y.grad, T(1), w.grad)
-        isvoid(b.grad) || BLAS.axpy!(T(1), sum(y.grad,2), b.grad)
+        isvoid(x.grad) || gemm!('N', 'N', T(1), w.data, y.grad, T(1), x.grad)
+        isvoid(w.grad) || gemm!('N', 'T', T(1), x.data, y.grad, T(1), w.grad)
+        isvoid(b.grad) || axpy!(T(1), sum(y.grad,dims=2), b.grad)
     else
         throw("Invalid ndims of x: $(ndims(x))")
     end

@@ -6,7 +6,7 @@ const CUDNN_DATA_INT8 = Cint(3)
 const CUDNN_DATA_INT32 = Cint(4)
 const CUDNN_DATA_INT8x4 = Cint(5)
 
-const Cptr = Ptr{Void}
+const Cptr = Ptr{Cvoid}
 datatype(::Type{Float32}) = CUDNN_DATA_FLOAT
 datatype(::Type{Float64}) = CUDNN_DATA_DOUBLE
 datatype(::Type{Float16}) = CUDNN_DATA_HALF

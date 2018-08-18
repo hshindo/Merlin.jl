@@ -3,31 +3,33 @@ module CUBLAS
 using ..CUDA
 import ..CUDA: ndevices, getdevice
 
-if is_windows()
+if Sys.iswindows()
     const libcublas = Libdl.find_library(["cublas64_91","cublas64_90","cublas64_80","cublas64_75"])
 else
     const libcublas = Libdl.find_library("libcublas")
 end
 isempty(libcublas) && error("CUBLAS cannot be found.")
 
+const API_VERSION = Ref{Int}()
+
 function init()
-    ref = Ref{Ptr{Void}}()
-    ccall((:cublasCreate_v2,libcublas), Cint, (Ptr{Ptr{Void}},), ref)
+    ref = Ref{Ptr{Cvoid}}()
+    ccall((:cublasCreate_v2,libcublas), Cint, (Ptr{Ptr{Cvoid}},), ref)
     h = ref[]
 
     ref = Ref{Cint}()
-    ccall((:cublasGetVersion_v2,libcublas), Cint, (Ptr{Void},Ptr{Cint}), h, ref)
-    global const API_VERSION = Int(ref[])
+    ccall((:cublasGetVersion_v2,libcublas), Cint, (Ptr{Cvoid},Ptr{Cint}), h, ref)
+    API_VERSION[] = Int(ref[])
 
-    info("CUBLAS API $API_VERSION")
-    ccall((:cublasDestroy_v2,libcublas), Cint, (Ptr{Void},), h)
+    @info "CUBLAS API $(API_VERSION[])"
+    ccall((:cublasDestroy_v2,libcublas), Cint, (Ptr{Cvoid},), h)
 end
 init()
 
 include("define.jl")
 
 macro cublas(f, rettypes, args...)
-    f = get(DEFINE, f.args[1], f.args[1])
+    f = get(DEFINE, f.value, f.value)
     quote
         status = ccall(($(QuoteNode(f)),libcublas), Cint, $(esc(rettypes)), $(map(esc,args)...))
         if status != 0

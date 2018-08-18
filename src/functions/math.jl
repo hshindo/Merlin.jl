@@ -1,7 +1,7 @@
 import Base: exp, log, broadcast, transpose
 import Base: +, -, *, /, ^
 
-doc"""
+"""
     exp(x)
 """
 function exp(x::Var)
@@ -21,7 +21,7 @@ function ∇exp!(y::Array{T}, gy::Array{T}, gx::Array{T}) where T
     end
 end
 
-doc"""
+"""
     log(x)
 """
 function log(x::Var)
@@ -41,7 +41,7 @@ function ∇log!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
     end
 end
 
-doc"""
+"""
     transpose(x)
 """
 function transpose(x::Var)
@@ -51,10 +51,10 @@ end
 
 function addgrad!(y::Var, ::typeof(transpose), x::Var)
     isvoid(x.grad) && return
-    add!(transpose(y.grad), x.grad)
+    addto!(transpose(y.grad), x.grad)
 end
 
-doc"""
+"""
     +(x1::Var, x2::Var)
     +(a::Number, x::Var)
     +(x::Var, a::Number)
@@ -68,11 +68,11 @@ end
 
 function addgrad!(y::Var, ::typeof(+), x1::Var, x2::Var)
     T = eltype(y)
-    isvoid(x1.grad) || add!(x1.grad, y.grad)
-    isvoid(x2.grad) || add!(x2.grad, y.grad)
+    isvoid(x1.grad) || addto!(x1.grad, y.grad)
+    isvoid(x2.grad) || addto!(x2.grad, y.grad)
 end
 
-doc"""
+"""
     -(x1, x2)
 """
 function -(x1::Var, x2::Var)
@@ -84,8 +84,8 @@ end
 
 function addgrad!(y::Var, ::typeof(-), x1::Var, x2::Var)
     T = eltype(y)
-    isvoid(x1.grad) || add!(x1.grad, y.grad)
-    isvoid(x2.grad) || BLAS.axpy!(T(-1), y.grad, x2.grad)
+    isvoid(x1.grad) || addto!(x1.grad, y.grad)
+    isvoid(x2.grad) || axpy!(T(-1), y.grad, x2.grad)
 end
 
 function -(x::Var)
@@ -95,10 +95,10 @@ end
 
 function addgrad!(y::Var, ::typeof(-), x::Var)
     T = eltype(y)
-    isvoid(x.grad) || BLAS.axpy!(T(-1), y.grad, x.grad)
+    isvoid(x.grad) || axpy!(T(-1), y.grad, x.grad)
 end
 
-doc"""
+"""
     .+(x1::Var, x2::Var)
 """
 function broadcast(::typeof(+), x1::Var, x2::Var)
@@ -116,10 +116,10 @@ function ∇broadcast_plus!(gy::Array{T}, gx::Array{T}) where T
     for i = 1:ndims(gy)
         size(gx,i) == 1 && size(gy,i) > 1 && push!(dims,i)
     end
-    BLAS.axpy!(T(1), sum(gy,dims), gx)
+    axpy!(T(1), sum(gy,dims=dims), gx)
 end
 
-doc"""
+"""
     .-(x1::Var, x2::Var)
 """
 function broadcast(::typeof(-), x1::Var, x2::Var)
@@ -137,10 +137,10 @@ function ∇broadcast_minus!(gy::Array{T}, gx::Array{T}) where T
     for i = 1:ndims(gy)
         size(gx,i) == 1 && size(gy,i) > 1 && push!(dims,i)
     end
-    BLAS.axpy!(T(-1), sum(gy,dims), gx)
+    axpy!(T(-1), sum(gy,dims=dims), gx)
 end
 
-doc"""
+"""
     *(A::Var, B::Var)
 """
 function *(A::Var, B::Var)
@@ -150,11 +150,11 @@ end
 
 function addgrad!(C::Var, ::typeof(*), A::Var, B::Var)
     T = eltype(C)
-    isvoid(A.grad) || BLAS.gemm!('N', 'T', T(1), C.grad, B.data, T(1), A.grad)
-    isvoid(B.grad) || BLAS.gemm!('T', 'N', T(1), A.data, C.grad, T(1), B.grad)
+    isvoid(A.grad) || gemm!('N', 'T', T(1), C.grad, B.data, T(1), A.grad)
+    isvoid(B.grad) || gemm!('T', 'N', T(1), A.data, C.grad, T(1), B.grad)
 end
 
-doc"""
+"""
     .*(x1::Var, x2::Var)
 """
 function broadcast(::typeof(*), x1::Var, x2::Var)
@@ -173,10 +173,10 @@ function ∇broadcast_times!(gy::Array{T}, x2::Array{T}, gx1::Array{T}) where T
     for i = 1:ndims(gy)
         size(gx1,i) == 1 && size(g,i) > 1 && push!(dims,i)
     end
-    BLAS.axpy!(T(1), sum(g,dims), gx1)
+    axpy!(T(1), sum(g,dims=dims), gx1)
 end
 
-doc"""
+"""
     /(x1::Var, a)
 """
 function /(x::Var, a::Number)
@@ -195,7 +195,7 @@ function ∇divide!(gy::Array{T}, gx::Array{T}, a::T) where T
     end
 end
 
-doc"""
+"""
     ^(x::Var, a::Number)
 """
 function ^(x::Var, a::Number)
@@ -214,7 +214,7 @@ function ∇elempow!(a::T, x::Array{T}, gx::Array{T}, y::Array{T}, gy::Array{T})
    end
 end
 
-@generated function ∇elemtimes!{T,N}(gy::CuArray{T,N}, x2::CuArray{T,N}, gx1::CuArray{T,N})
+@generated function ∇elemtimes!(gy::CuArray{T,N}, x2::CuArray{T,N}, gx1::CuArray{T,N}) where {T,N}
     f = CuFunction("""
     __global__ void f(Array<$T,$N> gy, Array<$T,$N> x2, Array<$T,$N> gx1) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -230,7 +230,7 @@ end
             for i = 1:N
                 size(gx1,i) == 1 && size(gx,i) > 1 && (gx = sum(gx,i))
             end
-            BLAS.axpy!(T(1), gx, gx1)
+            axpy!(T(1), gx, gx1)
         end
     end
 end

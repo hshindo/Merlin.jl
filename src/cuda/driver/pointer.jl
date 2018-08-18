@@ -13,14 +13,14 @@ Base.pointer(x::CuPtr{T}, index::Int=1) where T = x.ptr + sizeof(T)*(index-1)
 function memalloc(::Type{T}, size::Int) where T
     @assert size >= 0
     size == 0 && return CuPtr{T}(Ptr{T}(C_NULL), 0, getdevice())
-    ref = Ref{Ptr{Void}}()
-    @apicall :cuMemAlloc (Ptr{Ptr{Void}},Csize_t) ref sizeof(T)*size
+    ref = Ref{Ptr{Cvoid}}()
+    @apicall :cuMemAlloc (Ptr{Ptr{Cvoid}},Csize_t) ref sizeof(T)*size
     CuPtr(Ptr{T}(ref[]), size, getdevice())
 end
 
 function memfree(ptr::CuPtr)
     ptr.size == 0 && return
-    @apicall :cuMemFree (Ptr{Void},) ptr
+    @apicall :cuMemFree (Ptr{Cvoid},) ptr
 end
 
 function meminfo()

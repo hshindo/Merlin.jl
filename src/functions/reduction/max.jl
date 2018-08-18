@@ -12,15 +12,16 @@ y = max(x, 1)
 """
 function max(x::Var, dim::Int)
     configure!(x)
-    ydata, idx = findmax(x.data, dim)
+    ydata, idx = findmax(x.data, dims=dim)
     Var(ydata, (max,x,dim,idx))
 end
 function max(x::Var, batchdims::Vector{Int})
-    configure!(x)
     @assert sum(batchdims) == size(x,ndims(x))
-    xdata = pack(x.data, batchdims, realmin(eltype(x)))
-    ydata, idx = findmax(xdata, ndims(x))
-    # ydata = squeeze(ydata, dim)
+    configure!(x)
+
+    xdata = pack(x.data, batchdims, floatmin(eltype(x)))
+    ydata, idx = findmax(xdata, dims=ndims(x))
+    # ydata = dropdims(ydata, dims=dim)
     Var(ydata, (max,x,batchdims,idx))
 end
 max(x::Node, dim::Int) = Node(max, dim)
@@ -33,19 +34,12 @@ end
 
 function addgrad!(y::Var, ::typeof(max), x::Var, batchdims::Vector{Int}, idx)
     isvoid(x.grad) && return
-    dim = ndims(x)
-    gx = pack(x.grad, batchdims, realmin(eltype(x)))
-    ∇max!(y.grad, gx, dim, idx)
-    add!(x.grad, unpack(gx,batchdims))
+    gx = pack(x.grad, batchdims, floatmin(eltype(x)))
+    ∇max!(y.grad, gx, ndims(x), idx)
+    addto!(x.grad, unpack(gx,batchdims)) # TODO: more memory-efficient implementation
 end
 
-function ∇max!(gy::Array{T}, gx::Array{T}, dim::Int, idx::Array{Int}) where T
-    @inbounds for i = 1:length(idx)
-        gx[idx[i]] += gy[i]
-    end
-end
-
-function ∇max!(gy::Array{T}, gx::Array{T}, batchdims::Vector{Int}, idx::Array{Int}) where T
+function ∇max!(gy::Array{T}, gx::Array{T}, dim::Int, idx::Array) where T
     @inbounds for i = 1:length(idx)
         gx[idx[i]] += gy[i]
     end
@@ -66,6 +60,6 @@ end
     """)
     quote
         gdims, bdims = cudims(length(idx))
-        $k(gdims, bdims, gy, gx, dim-1, pointer(idx), length(idx))
+        $k(gdims, bdims, gy, gx, dim-1, rawpointer(idx), length(idx))
     end
 end

@@ -14,11 +14,11 @@ mutable struct SGD
     rate::Float64
     momentum::Float64
     nesterov::Bool
-    states::ObjectIdDict
+    states::IdDict
 end
 
 function SGD(rate=0.0; momentum=0.0, nesterov=false)
-    SGD(rate, momentum, nesterov, ObjectIdDict())
+    SGD(rate, momentum, nesterov, IdDict())
 end
 
 (opt::SGD)(x::Var) = opt(x.data, x.grad)

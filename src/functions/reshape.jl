@@ -1,4 +1,4 @@
-import Base: reshape, squeeze, vec
+import Base: reshape, dropdims, vec
 
 doc"""
     reshape(x, dims::Tuple)
@@ -20,29 +20,29 @@ vec(x::Var) = reshape(x, length(x))
 
 function addgrad!(y::Var, ::typeof(reshape), x::Var)
     isvoid(x.grad) && return
-    add!(x.grad, y.grad)
+    addto!(x.grad, y.grad)
 end
 
 doc"""
-    squeeze(x, dims::Tuple)
+    dropdims(x, dims::Tuple)
 
 Remove the dimensions of `x` specified by dims.
 """
-function squeeze(x::Var, dims::Tuple)
+function dropdims(x::Var, dims::Tuple)
     configure!(x)
-    y = squeeze(x.data, dims)
-    Var(y, (squeeze,x,dims))
+    y = dropdims(x.data, dims)
+    Var(y, (dropdims,x,dims))
 end
-squeeze(x::Var, dims::Int...) = squeeze(x, dims)
-function Base.squeeze(x::Var)
+dropdims(x::Var, dims::Int...) = dropdims(x, dims)
+function dropdims(x::Var)
     dims = Int[]
     for d in 1:ndims(x)
         size(x,d) == 1 && push!(dims,d)
     end
-    squeeze(x, dims...)
+    dropdims(x, dims...)
 end
 
-function addgrad!(y::Var, ::typeof(squeeze), x::Var, dims)
+function addgrad!(y::Var, ::typeof(dropdims), x::Var, dims)
     isvoid(x.grad) && return
-    add!(x.grad, y.grad)
+    addto!(x.grad, y.grad)
 end

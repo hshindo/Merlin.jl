@@ -1,6 +1,6 @@
 export softmax, logsoftmax
 
-"""
+doc"""
     softmax(x, dim::Int)
 
 Softmax function over the given dimension.
@@ -68,7 +68,7 @@ logsoftmax(x::CuArray) = CUDNN.softmax(x, CUDNN.CUDNN_SOFTMAX_LOG)
 
 function logsoftmax(x::Matrix{T}) where T
     y = similar(x)
-    max = maximum(x, 1)
+    max = maximum(x, dims=1)
     @inbounds for j = 1:size(x,2)
         sum = T(1e-10)
         for i = 1:size(x,1)

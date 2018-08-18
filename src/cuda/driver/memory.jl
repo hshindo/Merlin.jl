@@ -1,24 +1,24 @@
 export MemBlock
 
 mutable struct MemBlock
-    ptr::Ptr{Void}
+    ptr::Ptr{Cvoid}
     bytesize::Int
     dev::Int
 end
 
-MemBlock(ptr::Ptr{Void}, bytesize::Int) = MemBlock(ptr, bytesize, getdevice())
+MemBlock(ptr::Ptr{Cvoid}, bytesize::Int) = MemBlock(ptr, bytesize, getdevice())
 
 Base.convert(::Type{Ptr{T}}, x::MemBlock) where T = Ptr{T}(x.ptr)
 Base.unsafe_convert(::Type{Ptr{T}}, x::MemBlock) where T = Ptr{T}(x.ptr)
 
 function memalloc(bytesize::Int)
-    ref = Ref{Ptr{Void}}()
-    @apicall :cuMemAlloc (Ptr{Ptr{Void}},Csize_t) ref bytesize
+    ref = Ref{Ptr{Cvoid}}()
+    @apicall :cuMemAlloc (Ptr{Ptr{Cvoid}},Csize_t) ref bytesize
     ref[]
 end
 
-function memfree(ptr::Ptr{Void})
-    @apicall :cuMemFree (Ptr{Void},) ptr
+function memfree(ptr::Ptr{Cvoid})
+    @apicall :cuMemFree (Ptr{Cvoid},) ptr
 end
 
 function meminfo()

@@ -13,11 +13,11 @@ mutable struct Adam
     beta1::Float64
     beta2::Float64
     eps::Float64
-    states::ObjectIdDict
+    states::IdDict
 end
 
-Adam() = Adam(0.001, 0.9, 0.999, 1e-8, ObjectIdDict())
-Adam(alpha)= Adam(alpha, 0.9, 0.999, 1e-8, ObjectIdDict())
+Adam() = Adam(0.001, 0.9, 0.999, 1e-8, IdDict())
+Adam(alpha)= Adam(alpha, 0.9, 0.999, 1e-8, IdDict())
 
 function (opt::Adam)(param::Array{T}, grad::Array{T}) where T
     @assert length(param) == length(grad)
@@ -45,7 +45,7 @@ function (opt::Adam)(param::Array{T}, grad::Array{T}) where T
 end
 (opt::Adam)(x::Var) = opt(x.data, x.grad)
 
-function update_slow!{T}(opt::Adam, param::Array{T}, grad::Array{T})
+function update_slow!(opt::Adam, param::Array{T}, grad::Array{T}) where T
     state = get!(opt.states, param, nothing)
     if state == nothing
         m, v, t = zeros(param), zeros(grad), 1

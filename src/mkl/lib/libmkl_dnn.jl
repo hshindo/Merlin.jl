@@ -19,11 +19,11 @@ function dnnLayoutCompare_F32(l1,l2)
 end
 
 function dnnAllocateBuffer_F32(pPtr,layout)
-    check_dnnerror(ccall((:dnnAllocateBuffer_F32,libmkl),dnnError_t,(Ptr{Ptr{Void}},dnnLayout_t),pPtr,layout))
+    check_dnnerror(ccall((:dnnAllocateBuffer_F32,libmkl),dnnError_t,(Ptr{Ptr{Cvoid}},dnnLayout_t),pPtr,layout))
 end
 
 function dnnReleaseBuffer_F32(ptr)
-    check_dnnerror(ccall((:dnnReleaseBuffer_F32,libmkl),dnnError_t,(Ptr{Void},),ptr))
+    check_dnnerror(ccall((:dnnReleaseBuffer_F32,libmkl),dnnError_t,(Ptr{Cvoid},),ptr))
 end
 
 function dnnLayoutDelete_F32(layout)
@@ -43,11 +43,11 @@ function dnnPrimitiveGetAttributes_F32(primitive,attributes)
 end
 
 function dnnExecute_F32(primitive,resources)
-    check_dnnerror(ccall((:dnnExecute_F32,libmkl),dnnError_t,(dnnPrimitive_t,Ptr{Ptr{Void}}),primitive,resources))
+    check_dnnerror(ccall((:dnnExecute_F32,libmkl),dnnError_t,(dnnPrimitive_t,Ptr{Ptr{Cvoid}}),primitive,resources))
 end
 
 function dnnExecuteAsync_F32(primitive,resources)
-    check_dnnerror(ccall((:dnnExecuteAsync_F32,libmkl),dnnError_t,(dnnPrimitive_t,Ptr{Ptr{Void}}),primitive,resources))
+    check_dnnerror(ccall((:dnnExecuteAsync_F32,libmkl),dnnError_t,(dnnPrimitive_t,Ptr{Ptr{Cvoid}}),primitive,resources))
 end
 
 function dnnWaitFor_F32(primitive)
@@ -63,7 +63,7 @@ function dnnConversionCreate_F32(pConversion,from,to)
 end
 
 function dnnConversionExecute_F32(conversion,from,to)
-    check_dnnerror(ccall((:dnnConversionExecute_F32,libmkl),dnnError_t,(dnnPrimitive_t,Ptr{Void},Ptr{Void}),conversion,from,to))
+    check_dnnerror(ccall((:dnnConversionExecute_F32,libmkl),dnnError_t,(dnnPrimitive_t,Ptr{Cvoid},Ptr{Cvoid}),conversion,from,to))
 end
 
 function dnnSumCreate_F32(pSum,attributes,nSummands,layout,coefficients)
@@ -195,11 +195,11 @@ function dnnLayoutCompare_F64(l1,l2)
 end
 
 function dnnAllocateBuffer_F64(pPtr,layout)
-    check_dnnerror(ccall((:dnnAllocateBuffer_F64,libmkl),dnnError_t,(Ptr{Ptr{Void}},dnnLayout_t),pPtr,layout))
+    check_dnnerror(ccall((:dnnAllocateBuffer_F64,libmkl),dnnError_t,(Ptr{Ptr{Cvoid}},dnnLayout_t),pPtr,layout))
 end
 
 function dnnReleaseBuffer_F64(ptr)
-    check_dnnerror(ccall((:dnnReleaseBuffer_F64,libmkl),dnnError_t,(Ptr{Void},),ptr))
+    check_dnnerror(ccall((:dnnReleaseBuffer_F64,libmkl),dnnError_t,(Ptr{Cvoid},),ptr))
 end
 
 function dnnLayoutDelete_F64(layout)
@@ -219,11 +219,11 @@ function dnnPrimitiveGetAttributes_F64(primitive,attributes)
 end
 
 function dnnExecute_F64(primitive,resources)
-    check_dnnerror(ccall((:dnnExecute_F64,libmkl),dnnError_t,(dnnPrimitive_t,Ptr{Ptr{Void}}),primitive,resources))
+    check_dnnerror(ccall((:dnnExecute_F64,libmkl),dnnError_t,(dnnPrimitive_t,Ptr{Ptr{Cvoid}}),primitive,resources))
 end
 
 function dnnExecuteAsync_F64(primitive,resources)
-    check_dnnerror(ccall((:dnnExecuteAsync_F64,libmkl),dnnError_t,(dnnPrimitive_t,Ptr{Ptr{Void}}),primitive,resources))
+    check_dnnerror(ccall((:dnnExecuteAsync_F64,libmkl),dnnError_t,(dnnPrimitive_t,Ptr{Ptr{Cvoid}}),primitive,resources))
 end
 
 function dnnWaitFor_F64(primitive)
@@ -239,7 +239,7 @@ function dnnConversionCreate_F64(pConversion,from,to)
 end
 
 function dnnConversionExecute_F64(conversion,from,to)
-    check_dnnerror(ccall((:dnnConversionExecute_F64,libmkl),dnnError_t,(dnnPrimitive_t,Ptr{Void},Ptr{Void}),conversion,from,to))
+    check_dnnerror(ccall((:dnnConversionExecute_F64,libmkl),dnnError_t,(dnnPrimitive_t,Ptr{Cvoid},Ptr{Cvoid}),conversion,from,to))
 end
 
 function dnnSumCreate_F64(pSum,attributes,nSummands,layout,coefficients)

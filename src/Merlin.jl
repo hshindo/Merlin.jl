@@ -1,11 +1,12 @@
 module Merlin
 
 using Base.Threads
-info("# CPU threads: $(nthreads())")
+@info "# CPU threads: $(nthreads())"
 
 include("cuda/CUDA.jl")
 using .CUDA
 
+using Markdown
 # const TEMP_CUDA = LibCUDA.AtomicMalloc()
 #export Functor
 #abstract type Functor end
@@ -19,7 +20,7 @@ include("add.jl")
 include("var.jl")
 include("graph.jl")
 include("test.jl")
-include("iterators.jl")
+#include("iterators.jl")
 
 for name in [
     "activation/crelu",
@@ -39,10 +40,10 @@ for name in [
     "loss/mse",
     "loss/softmax_crossentropy",
 
-    "reduction/argmax",
+    #"reduction/argmax",
     "reduction/max",
-    "reduction/mean",
-    "reduction/sum",
+    #"reduction/mean",
+    #"reduction/sum",
 
     "rnn/lstm",
     "rnn/transpose_batch",
@@ -73,7 +74,7 @@ include("optimizers/adagrad.jl")
 include("optimizers/adam.jl")
 include("optimizers/sgd.jl")
 
-include("datasets/Datasets.jl")
+#include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")
 
 end

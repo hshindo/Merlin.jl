@@ -1,4 +1,4 @@
-function Base.cat(dim::Int, xs::CuArray{T}...) where T
+function Base.cat(xs::CuArray{T}...; dims::Int) where T
     length(xs) == 1 && return xs[1]
     N = max(dim, maximum(ndims,xs))
     dims = Int[size(xs[1],i) for i=1:N]
@@ -26,7 +26,7 @@ function Base.cat(dim::Int, xs::CuArray{T}...) where T
     for x in xs
         ysize[dim] = offset+1:offset+size(x,dim)
         suby = view(y, ysize...)
-        copy!(suby, x)
+        copyto!(suby, x)
         offset += size(x,dim)
     end
     y

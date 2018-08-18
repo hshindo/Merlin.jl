@@ -15,7 +15,7 @@ for (f,T) in (
                 throw(DimensionMismatch())
             end
             @cublas($f, (
-                Ptr{Void},Cint,Cint,
+                Ptr{Cvoid},Cint,Cint,
                 Cint,Cint,Cint,
                 Ptr{$T},Ptr{$T},Cint,
                 Ptr{$T},Cint,

@@ -1,4 +1,4 @@
-julia 0.6
+julia 0.7-
 GZip
 JLD2
 @windows WinRPM

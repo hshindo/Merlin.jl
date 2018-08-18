@@ -13,7 +13,7 @@ function _broadcast!(::typeof(+), dest::CuArray{T}, src::CuArray{T}) where T
     if length(dest) == length(src)
         BLAS.axpy!(T(1), src, dest)
     else
-        CUDNN.add!(1, src, 1, dest)
+        CUDNN.addto!(1, src, 1, dest)
     end
     dest
 end

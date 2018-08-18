@@ -1,18 +1,20 @@
-import .CUDA: add!
+export addto!
+import .CUDA: addto!
+import LinearAlgebra.BLAS: axpy!
 
-function add!(dest::AbstractArray{T}, src::AbstractArray{T}) where T
+function addto!(dest::AbstractArray{T}, src::AbstractArray{T}) where T
     @assert length(dest) == length(src)
     broadcast!(+, dest, dest, src)
 end
 
-function add!(dest::Array{T}, doffs::Int, src::Array{T}, soffs::Int, n::Int) where T
-    BLAS.axpy!(n, T(1), pointer(src,soffs), 1, pointer(dest,doffs), 1)
+function addto!(dest::Array{T}, doffs::Int, src::Array{T}, soffs::Int, n::Int) where T
+    axpy!(n, T(1), pointer(src,soffs), 1, pointer(dest,doffs), 1)
     dest
 end
 
-function add!(dest::Array{T}, src::Array{T}) where T
+function addto!(dest::Array{T}, src::Array{T}) where T
     @assert length(dest) == length(src)
-    add!(dest, 1, src, 1, length(dest))
+    addto!(dest, 1, src, 1, length(dest))
 end
 
-# add!(dest::AbstractCuArray, src::AbstractCuArray) = CUDA.add!(dest, src)
+# addto!(dest::AbstractCuArray, src::AbstractCuArray) = CUDA.addto!(dest, src)

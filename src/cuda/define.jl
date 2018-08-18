@@ -1,6 +1,6 @@
 const define = Dict{Symbol,Symbol}()
 
-if API_VERSION >= 3020
+if API_VERSION[] >= 3020
     define[:cuDeviceTotalMem]           = :cuDeviceTotalMem_v2
     define[:cuCtxCreate]                = :cuCtxCreate_v2
     define[:cuModuleGetGlobal]          = :cuModuleGetGlobal_v2
@@ -43,26 +43,26 @@ if API_VERSION >= 3020
     define[:cuTexRefGetAddress]         = :cuTexRefGetAddress_v2
     define[:cuGraphicsResourceGetMappedPointer] = :cuGraphicsResourceGetMappedPointer_v2
 end
-if API_VERSION >= 4000
+if API_VERSION[] >= 4000
     define[:cuCtxDestroy]               = :cuCtxDestroy_v2
     define[:cuCtxPopCurrent]            = :cuCtxPopCurrent_v2
     define[:cuCtxPushCurrent]           = :cuCtxPushCurrent_v2
     define[:cuStreamDestroy]            = :cuStreamDestroy_v2
     define[:cuEventDestroy]             = :cuEventDestroy_v2
 end
-if API_VERSION >= 4010
+if API_VERSION[] >= 4010
     define[:cuTexRefSetAddress2D]       = :cuTexRefSetAddress2D_v3
 end
-if API_VERSION >= 6050
+if API_VERSION[] >= 6050
     define[:cuLinkCreate]              = :cuLinkCreate_v2
     define[:cuLinkAddData]             = :cuLinkAddData_v2
     define[:cuLinkAddFile]             = :cuLinkAddFile_v2
 end
-if API_VERSION >= 6050
+if API_VERSION[] >= 6050
     define[:cuMemHostRegister]         = :cuMemHostRegister_v2
     define[:cuGraphicsResourceSetMapFlags] = :cuGraphicsResourceSetMapFlags_v2
 end
-if 3020 <= API_VERSION < 4010
+if 3020 <= API_VERSION[] < 4010
     define[:cuTexRefSetAddress2D]      = :cuTexRefSetAddress2D_v2
 end
 

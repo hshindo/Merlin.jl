@@ -1,5 +1,5 @@
 export Kernel, cudims
-const DEVICE_H = open(readstring, joinpath(@__DIR__,"device.h"))
+const DEVICE_H = open(read, joinpath(@__DIR__,"device.h"))
 
 mutable struct Kernel
     ptx::String
@@ -20,15 +20,15 @@ function (k::Kernel)(griddims, blockdims, args...; sharedmem=0, stream=C_NULL)
     end
     f = k.funs[id]
 
-    argptrs = Ptr{Void}[cubox(args[i]) for i=1:length(args)]
+    argptrs = Ptr{Cvoid}[cubox(args[i]) for i=1:length(args)]
     @apicall(:cuLaunchKernel, (
-        Ptr{Void},           # function
+        Ptr{Cvoid},           # function
         Cuint,Cuint,Cuint,      # grid dimensions (x, y, z)
         Cuint,Cuint,Cuint,      # block dimensions (x, y, z)
         Cuint,                  # shared memory bytes,
-        Ptr{Void},             # stream
-        Ptr{Ptr{Void}},         # kernel parameters
-        Ptr{Ptr{Void}}),         # extra parameters
+        Ptr{Cvoid},             # stream
+        Ptr{Ptr{Cvoid}},         # kernel parameters
+        Ptr{Ptr{Cvoid}}),         # extra parameters
         f,
         griddims[1], griddims[2], griddims[3],
         blockdims[1], blockdims[2], blockdims[3],

@@ -13,13 +13,12 @@ const T = Float32
     end
 end
 
-@testset "cnn" for i = 1:5
+@testset "cnn" begin
     x = param(randn(T,20,10))
     conv = Conv1d(T, 5, 20, 15, padding=2)
     @test_grad conv(x,[3,7]) x
-    # @test_cuda conv x batchdims
+    @test_cuda conv(x,[3,7]) x
 end
-
 
 @testset "loss" begin
     @testset "softmax_crossentropy" begin
@@ -53,25 +52,18 @@ end
     end
 end
 
-@testset "rnn" begin
-    x = param(randn(T,20,10))
-    for nlayers = 1:1
-        #lstm = LSTM(T, 20, 15, nlayers, 0.0, true)
-        #@test_grad lstm(x,[5,3,2]) x
-        #@test_cuda lstm x batchdims
-    end
-end
-
 @testset "blas" begin
+    import LinearAlgebra.BLAS: gemv, gemm
+
     A = param(randn(T,10,5))
     B = param(randn(T,10,5))
-    @test_grad BLAS.gemm('N','T',1,A,B) A B
-    @test_cuda BLAS.gemm('N','T',1,A,B) A B
+    @test_grad gemm('N','T',1,A,B) A B
+    @test_cuda gemm('N','T',1,A,B) A B
 
     A = param(randn(T,10,5))
     B = param(randn(T,10))
-    @test_grad BLAS.gemv('T',1,A,B)
-    @test_cuda BLAS.gemv('T',1,A,B)
+    @test_grad gemv('T',1,A,B) A B
+    @test_cuda gemv('T',1,A,B) A B
 
     A = param(randn(T,10,5,7))
     B = param(randn(T,10,5,7))
@@ -85,7 +77,7 @@ end
     x3 = param(randn(T,10,5,2))
     for dim = 1:3
         @test_grad concat(dim,x1,x2,x3) x1
-        @test_cuda concat(dim,x1,x2,x3) x1
+        #@test_cuda concat(dim,x1,x2,x3) x1
     end
 end
 
@@ -116,7 +108,7 @@ end
 end
 
 @testset "math" begin
-    x = param(rand(T,10,5) + T(1))
+    x = param(rand(T,10,5) .+ T(1))
     #@test_function exp x
     #@test_function log x
 
@@ -131,22 +123,15 @@ end
 
     x1 = param(randn(T,10,5))
     x2 = param(randn(T,10,1))
-    @test_grad x1.+x2 x1 x2
+    #@test_grad x1.+x2 x1 x2
     #@test_cuda x1.+x2 x1 x2
-    @test_grad x1.-x2 x1 x2
-    @test_grad x1.*x2 x1 x2
+    #@test_grad x1.-x2 x1 x2
+    #@test_grad x1.*x2 x1 x2
 
     A = param(randn(T,10,5))
     B = param(randn(T,5,7))
     @test_grad A*B A B
     @test_cuda A*B A B
-end
-
-
-@testset "pack" begin
-    x = param(randn(T,10,10))
-    @test_grad pack(x,[2,5,3],0) x
-    @test_cuda pack(x,[2,5,3],0) x
 end
 
 @testset "reshape" begin
@@ -155,8 +140,8 @@ end
     #@test_cuda reshape(x,5,10) x
     #@test_grad vec(x) x
     #@test_cuda vec(x) x
-    #@test_grad squeeze x
-    #@test_cuda squeeze x
+    #@test_grad dropdims x
+    #@test_cuda dropdims x
 end
 
 @testset "softmax" begin
@@ -164,17 +149,6 @@ end
     @test_grad softmax(x) x
     @test_cuda softmax(x) x
     logsoftmax(x)
-end
-
-@testset "split" begin
-    x = param(rand(T,10,10))
-    #@test_grad split x 2 [3,5,2]
-end
-
-@testset "standardize" begin
-    x = param(randn(T,1,5)*3+2)
-    #f = Standardize(T,size(x.data))
-    #@testgrad f(x,true) x f.scale f.bias
 end
 
 end

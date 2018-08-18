@@ -18,5 +18,5 @@ Base.getindex(x::Var, inds...) = getindex(x, inds)
 function addgrad!(y::Var, ::typeof(getindex), x::Var, inds::Tuple)
     isvoid(x.grad) && return
     gx = view(x.grad, inds...)
-    add!(gx, y.grad)
+    addto!(gx, y.grad)
 end

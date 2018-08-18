@@ -9,7 +9,7 @@ typealias _uniPrimitive_s Void
 typealias dnnPrimitive_t Ptr{_uniPrimitive_s}
 typealias _dnnLayout_s Void
 typealias dnnLayout_t Ptr{_dnnLayout_s}
-typealias dnnPrimitiveAttributes_t Ptr{Void}
+typealias dnnPrimitiveAttributes_t Ptr{Cvoid}
 
 # begin enum ANONYMOUS_1
 typealias ANONYMOUS_1 Cint

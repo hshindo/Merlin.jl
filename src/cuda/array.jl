@@ -15,7 +15,7 @@ function CuArray{T}(dims::NTuple{N,Int}) where {T,N}
     CuArray(ptr, dims)
 end
 CuArray{T}(dims::Int...) where T = CuArray{T}(dims)
-CuArray(x::Array{T,N}) where {T,N} = copy!(CuArray{T}(size(x)), x)
+CuArray(x::Array{T,N}) where {T,N} = copyto!(CuArray{T}(size(x)), x)
 CuArray(x::CuArray) = x
 iscontigious(x::CuArray) = true
 
@@ -40,28 +40,28 @@ Base.convert(::Type{Ptr{T}}, x::CuArray) where T = Ptr{T}(pointer(x))
 Base.unsafe_convert(::Type{Ptr{T}}, x::CuArray) where T = Ptr{T}(pointer(x))
 Base.pointer(x::CuArray, index::Int=1) = index == 1 ? x.ptr : CuPtr(pointer(x.ptr,index),0,x.ptr.dev)
 rawpointer(x::CuArray, index::Int=1) = pointer(x.ptr, index)
-Base.Array(src::CuArray{T}) where T = copy!(Array{T}(size(src)), src)
+Base.Array(src::CuArray{T}) where T = copyto!(Array{T}(size(src)), src)
 
 ##### indexing #####
 function Base.getindex(x::CuArray, I...)
     src = view(x, I...)
-    copy!(similar(src), src)
+    copyto!(similar(src), src)
 end
 function Base.getindex(x::CuArray{T}, index::Int) where T
-    dest = copy!(Array{T}(1), 1, x, 1, 1)
+    dest = copyto!(Array{T}(1), 1, x, 1, 1)
     dest[1]
 end
 function Base.setindex!(y::CuArray{T}, x::CuArray{T}, I...) where T
-    copy!(view(y,I...), x)
+    copyto!(view(y,I...), x)
 end
 
 ##### reshape #####
 Base.reshape(x::CuArray{T}, dims::NTuple{N,Int}) where {T,N} = CuArray{T,N}(x.ptr, dims)
-Base.reshape{T}(x::CuArray{T}, dims::Int...) = reshape(x, dims)
+Base.reshape(x::CuArray{T}, dims::Int...) where T = reshape(x, dims)
 Base.vec(x::CuArray{T}) where T = ndims(x) == 1 ? x : CuArray(x.ptr, (length(x),))
-function Base.squeeze(x::CuArray, dims::Dims)
+function Base.dropdims(x::CuArray, dims::Dims)
     for i in dims
-        size(x,i) == 1 || throw(ArgumentError("squeezed dims must all be size 1"))
+        size(x,i) == 1 || throw(ArgumentError("dropdims must all be size 1"))
     end
     d = ()
     for i = 1:ndims(x)
@@ -71,43 +71,43 @@ function Base.squeeze(x::CuArray, dims::Dims)
     end
     reshape(x, d)
 end
-Base.squeeze(x::CuArray, dims::Int...) = squeeze(x, dims)
+Base.dropdims(x::CuArray, dims::Int...) = dropdims(x, dims)
 
 ##### copy #####
-Base.copy(src::CuArray) = copy!(similar(src), src)
-function Base.copy!(dest::Array{T}, src::CuArray{T}; stream=C_NULL) where T
+Base.copy(src::CuArray) = copyto!(similar(src), src)
+function Base.copyto!(dest::Array{T}, src::CuArray{T}; stream=C_NULL) where T
     @assert length(dest) == length(src)
-    copy!(dest, 1, src, 1, length(dest), stream=stream)
+    copyto!(dest, 1, src, 1, length(dest), stream=stream)
 end
-function Base.copy!(dest::CuArray{T}, src::Array{T}; stream=C_NULL) where T
+function Base.copyto!(dest::CuArray{T}, src::Array{T}; stream=C_NULL) where T
     @assert length(dest) == length(src)
-    copy!(dest, 1, src, 1, length(dest), stream=stream)
+    copyto!(dest, 1, src, 1, length(dest), stream=stream)
 end
-function Base.copy!(dest::CuArray{T}, src::CuArray{T}; stream=C_NULL) where T
+function Base.copyto!(dest::CuArray{T}, src::CuArray{T}; stream=C_NULL) where T
     @assert length(dest) == length(src)
-    copy!(dest, 1, src, 1, length(dest), stream=stream)
+    copyto!(dest, 1, src, 1, length(dest), stream=stream)
 end
 
-function Base.copy!(dest::Array{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int; stream=C_NULL) where T
+function Base.copyto!(dest::Array{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int; stream=C_NULL) where T
     p_dest = pointer(dest, doffs)
     p_src = pointer(src, soffs)
-    @apicall :cuMemcpyDtoH (Ptr{Void},Ptr{Void},Csize_t) dest src n*sizeof(T)
+    @apicall :cuMemcpyDtoH (Ptr{Cvoid},Ptr{Cvoid},Csize_t) dest src n*sizeof(T)
     dest
 end
-function Base.copy!(dest::CuArray{T}, doffs::Int, src::Array{T}, soffs::Int, n::Int; stream=C_NULL) where T
+function Base.copyto!(dest::CuArray{T}, doffs::Int, src::Array{T}, soffs::Int, n::Int; stream=C_NULL) where T
     p_dest = pointer(dest, doffs)
     p_src = pointer(src, soffs)
-    @apicall :cuMemcpyHtoDAsync (Ptr{Void},Ptr{Void},Csize_t,Ptr{Void}) dest src n*sizeof(T) stream
+    @apicall :cuMemcpyHtoDAsync (Ptr{Cvoid},Ptr{Cvoid},Csize_t,Ptr{Cvoid}) dest src n*sizeof(T) stream
     dest
 end
-function Base.copy!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int; stream=C_NULL) where T
+function Base.copyto!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int; stream=C_NULL) where T
     p_dest = pointer(dest, doffs)
     p_src = pointer(src, soffs)
-    @apicall :cuMemcpyDtoDAsync (Ptr{Void},Ptr{Void},Csize_t,Ptr{Void}) p_dest p_src n*sizeof(T) stream
+    @apicall :cuMemcpyDtoDAsync (Ptr{Cvoid},Ptr{Cvoid},Csize_t,Ptr{Cvoid}) p_dest p_src n*sizeof(T) stream
     dest
 end
 
-function add!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int) where T
+function addto!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int) where T
     p_dest = pointer(dest, doffs)
     p_src = pointer(src, soffs)
     BLAS.axpy!(n, T(1), p_src, 1, p_dest, 1)
@@ -128,23 +128,10 @@ end
         x
     end
 end
-Base.zeros(::Type{CuArray{T}}, dims::Int...) where T = zeros(CuArray{T}, dims)
-Base.zeros(::Type{CuArray{T}}, dims::NTuple) where T = fill!(CuArray{T}(dims), 0)
-Base.ones(::Type{CuArray{T}}, dims::Int...) where T  = ones(CuArray{T}, dims)
-Base.ones(::Type{CuArray{T}}, dims::NTuple) where T = fill!(CuArray{T}(dims), 1)
 
 ##### IO #####
 Base.show(io::IO, ::Type{CuArray{T,N}}) where {T,N} = print(io, "CuArray{$T,$N}")
-function Base.showarray(io::IO, X::CuArray, repr::Bool=true; header=true)
-    if repr
-        print(io, "CuArray(")
-        Base.showarray(io, Array(X), true)
-        print(io, ")")
-    else
-        header && println(io, summary(X), ":")
-        Base.showarray(io, Array(X), false, header = false)
-    end
-end
+Base.print_array(io::IO, X::CuArray) = Base.print_array(io, Array(X))
 
 function curand(::Type{T}, dims::NTuple{N,Int}) where {T,N}
     # TODO: use curand library

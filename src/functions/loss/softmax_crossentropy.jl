@@ -27,9 +27,11 @@ end
 
 function softmax_crossentropy(p::Vector{Int}, logq::Matrix{T}) where T
     length(p) == size(logq,2) || throw("Length unmatch.")
-    y = Array{T}(length(p))
+    y = zeros(T, length(p))
     @inbounds for i = 1:length(y)
-        y[i] = p[i] > 0 ? -logq[p[i],i] : T(0)
+        if p[i] > 0
+            y[i] = -logq[p[i],i]
+        end
     end
     y
 end

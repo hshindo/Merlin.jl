@@ -6,17 +6,17 @@ function lookup(w::Var, x::Var)
     Var(ydata, (lookup,w,x))
 end
 lookup(w::Var, idx::Node) = Node(lookup, w, idx)
+lookup(w::Node, idx) = Node(lookup, w, idx)
 
 function lookup(w::UniMatrix{T}, x::Array{Int}) where T
     s = Base.setindex(size(x), size(x,1)*size(w,1), 1)
-    y = similar(w, s...)
-    fill!(y, T(0))
+    y = fill!(similar(w,s...), 0)
     n = size(w, 1)
     for i = 1:length(x)
         x[i] == 0 && continue
         yi = (i-1) * n + 1
         wi = (x[i]-1) * n + 1
-        copy!(y, yi, w, wi, n)
+        copyto!(y, yi, w, wi, n)
     end
     y
 end
@@ -52,7 +52,7 @@ function ∇lookup!(gy::UniArray, gw::UniArray, x::Array{Int})
         x[i] == 0 && continue
         yi = (i-1) * n + 1
         wi = (x[i]-1) * n + 1
-        add!(gw, wi, gy, yi, n)
+        addto!(gw, wi, gy, yi, n)
     end
 end
 
