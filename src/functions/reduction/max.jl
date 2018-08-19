@@ -21,11 +21,10 @@ function max(x::Var, batchdims::Vector{Int})
 
     xdata = pack(x.data, batchdims, floatmin(eltype(x)))
     ydata, idx = findmax(xdata, dims=ndims(x))
-    # ydata = dropdims(ydata, dims=dim)
+    ydata = dropdims(ydata, dims=ndims(x))
     Var(ydata, (max,x,batchdims,idx))
 end
-max(x::Node, dim::Int) = Node(max, dim)
-max(x::Node, dims::Vector{Int}) = Node(max, dims)
+max(x::Node, dims) = Node(max, x, dims)
 
 function addgrad!(y::Var, ::typeof(max), x::Var, dim::Int, idx)
     isvoid(x.grad) && return

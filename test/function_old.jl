@@ -5,14 +5,7 @@
 
 
 
-@testset "rnn" begin
-    x = param(randn(T,20,10))
-    for nlayers = 1:1
-        #lstm = LSTM(T, 20, 15, nlayers, 0.0, true)
-        #@test_grad lstm(x,[5,3,2]) x
-        #@test_cuda lstm x batchdims
-    end
-end
+
 
 
 

@@ -1,5 +1,4 @@
 export gemm_batch
-import LinearAlgebra.BLAS: gemv, gemv!, gemm, gemm!
 
 doc"""
     gemv(tA::Char, alpha, A::Var, x::Var)

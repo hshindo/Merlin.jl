@@ -7,7 +7,7 @@ include("cuda/CUDA.jl")
 using .CUDA
 
 using Markdown
-# const TEMP_CUDA = LibCUDA.AtomicMalloc()
+import LinearAlgebra.BLAS: scal!, axpy!, gemv, gemv!, gemm, gemm!
 #export Functor
 #abstract type Functor end
 
@@ -40,7 +40,6 @@ for name in [
     "loss/mse",
     "loss/softmax_crossentropy",
 
-    #"reduction/argmax",
     "reduction/max",
     #"reduction/mean",
     #"reduction/sum",

@@ -1,3 +1,4 @@
+export dot
 import Base: exp, log, broadcast, transpose
 import Base: +, -, *, /, ^
 
@@ -155,19 +156,19 @@ function addgrad!(C::Var, ::typeof(*), A::Var, B::Var)
 end
 
 """
-    .*(x1::Var, x2::Var)
+    dot(x1::Var, x2::Var)
 """
-function broadcast(::typeof(*), x1::Var, x2::Var)
+function dot(x1::Var, x2::Var)
     configure!(x1, x2)
-    Var(x1.data .* x2.data, (broadcast,*,x1,x2))
+    Var(x1.data .* x2.data, (dot,x1,x2))
 end
 
-function addgrad!(y::Var, ::typeof(broadcast), ::typeof(*), x1::Var, x2::Var)
-    isvoid(x1.grad) || ∇broadcast_times!(y.grad, x2.data, x1.grad)
-    isvoid(x2.grad) || ∇broadcast_times!(y.grad, x1.data, x2.grad)
+function addgrad!(y::Var, ::typeof(dot), x1::Var, x2::Var)
+    isvoid(x1.grad) || ∇dot!(y.grad, x2.data, x1.grad)
+    isvoid(x2.grad) || ∇dot!(y.grad, x1.data, x2.grad)
 end
 
-function ∇broadcast_times!(gy::Array{T}, x2::Array{T}, gx1::Array{T}) where T
+function ∇dot!(gy::Array{T}, x2::Array{T}, gx1::Array{T}) where T
     g = gy .* x2
     dims = Int[]
     for i = 1:ndims(gy)

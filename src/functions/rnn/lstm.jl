@@ -65,8 +65,8 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
                 push!(Ws, init_W(T,s,hsize))
                 push!(Us, init_U(T,hsize,hsize))
             end
-            W = param(cat(2,Ws...))
-            U = param(cat(2,Us...))
+            W = param(cat(Ws...,dims=2))
+            U = param(cat(Us...,dims=2))
             b = param(init_b(T,4hsize))
             h = param(init_h(T,hsize))
             c = param(init_c(T,hsize))
@@ -106,7 +106,7 @@ function lstm_tstep(x::Var, batchsize::Vector{Int}, W::Var, U::Var, b::Var, h0::
     @assert sum(batchsize) == size(x,2)
     WU = concat(1, W, U)
 
-    cumdims = Array{Int}(length(batchsize)+1)
+    cumdims = Array{Int}(undef, length(batchsize)+1)
     cumdims[1] = 1
     for i = 1:length(batchsize)
         cumdims[i+1] = cumdims[i] + batchsize[i]
@@ -116,8 +116,8 @@ function lstm_tstep(x::Var, batchsize::Vector{Int}, W::Var, U::Var, b::Var, h0::
     hsize = length(h0)
     ht = concat(2, [h0 for i=1:length(batchsize)]...)
     ct = concat(2, [c0 for i=1:length(batchsize)]...)
-    hts = Array{Var}(size(x,2))
-    cts = Array{Var}(size(x,2))
+    hts = Array{Var}(undef, size(x,2))
+    cts = Array{Var}(undef, size(x,2))
     for t = 1:batchsize[perm[1]]
         xts = Var[]
         for p in perm
@@ -149,9 +149,9 @@ function lstm_onestep(xt::Var, WU::Var, b::Var, ht::Var, ct::Var)
     n = size(a,1) ÷ 4
     i = sigmoid(a[1:n,:])
     f = sigmoid(a[n+1:2n,:])
-    ct = f.*ct + i.*tanh(a[2n+1:3n,:])
+    ct = dot(f,ct) + dot(i,tanh(a[2n+1:3n,:]))
     o = sigmoid(a[3n+1:4n,:])
-    ht = o .* tanh(ct)
+    ht = dot(o, tanh(ct))
     ht, ct
 end
 
@@ -189,7 +189,7 @@ function lstm_cudnn(lstm::LSTM, x::Var, batchsize::Vector{Int})
 
     y, _ = transpose_batch(unsafe_split(t_y,t_batchsize))
     ys = unsafe_split(y, batchsize[perm])
-    y = cat(ndims(y), ys[perm]...)
+    y = cat(ys[perm]...,dims=ndims(y))
     Var(y, (lstm,x,batchsize,work,W))
 end
 

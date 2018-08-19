@@ -126,7 +126,7 @@ tocuda(x::Array{Int}) = CuArray(Array{Cint}(x))
 tocuda(x::Array) = CuArray(x)
 
 function create_batch(f::Function, batchsize::Int, samples::Vector{T}) where T
-    batches = Vector{T}[]
+    batches = []
     for i = 1:batchsize:length(samples)
         range = i:min(i+batchsize-1,length(samples))
         batch = f(samples[range])

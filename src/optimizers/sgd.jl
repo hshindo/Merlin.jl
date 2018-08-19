@@ -39,10 +39,10 @@ function (opt::SGD)(x::AbstractArray{T,N}, gx::AbstractArray{T,N}) where {T,N}
             BLAS.scal!(length(v), m, v, 1)
             BLAS.axpy!(-rate, gx, v)
         end
-        BLAS.axpy!(T(1), v, x)
+        axpy!(T(1), v, x)
     else
-        # BLAS.axpy!(T(0.0005), x, gx)
-        BLAS.axpy!(T(-opt.rate), gx, x)
+        # axpy!(T(0.0005), x, gx)
+        axpy!(T(-opt.rate), gx, x)
     end
     fill!(gx, T(0))
 end
@@ -61,12 +61,12 @@ function (opt::SGD)(x::CuArray{T,N}, gx::CuArray{T,N}) where {T,N}
         v .= m .* v - rate * gx
         if opt.nesterov
             v = copy(v)
-            BLAS.scal!(length(v), m, v, 1)
-            BLAS.axpy!(-rate, gx, v)
+            scal!(length(v), m, v, 1)
+            axpy!(-rate, gx, v)
         end
-        BLAS.axpy!(T(1), v, x)
+        axpy!(T(1), v, x)
     else
-        BLAS.axpy!(T(-opt.rate), gx, x)
+        axpy!(T(-opt.rate), gx, x)
     end
     fill!(gx, T(0))
 end

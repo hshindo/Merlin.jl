@@ -52,6 +52,15 @@ end
     end
 end
 
+@testset "rnn" begin
+    x = param(randn(T,20,10))
+    for nlayers = 1:1
+        lstm = LSTM(T, 20, 15, nlayers, 0.0, true)
+        @test_grad lstm(x,[5,3,2]) x
+        #@test_cuda lstm x batchdims
+    end
+end
+
 @testset "blas" begin
     import LinearAlgebra.BLAS: gemv, gemm
 
@@ -126,7 +135,7 @@ end
     #@test_grad x1.+x2 x1 x2
     #@test_cuda x1.+x2 x1 x2
     #@test_grad x1.-x2 x1 x2
-    #@test_grad x1.*x2 x1 x2
+    @test_grad dot(x1,x2) x1 x2
 
     A = param(randn(T,10,5))
     B = param(randn(T,5,7))

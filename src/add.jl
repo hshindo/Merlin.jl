@@ -1,6 +1,5 @@
 export addto!
 import .CUDA: addto!
-import LinearAlgebra.BLAS: axpy!
 
 function addto!(dest::AbstractArray{T}, src::AbstractArray{T}) where T
     @assert length(dest) == length(src)
