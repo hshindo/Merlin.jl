@@ -1,4 +1,4 @@
-import Base.LinAlg.BLAS: axpy!
+import LinearAlgebra.BLAS: scal!, axpy!
 
 #=
 for (fname,elty) in (

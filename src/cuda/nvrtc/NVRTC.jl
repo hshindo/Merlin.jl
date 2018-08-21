@@ -1,11 +1,15 @@
 module NVRTC
 
+import Libdl
+
 if Sys.iswindows()
-    const libnvrtc = Libdl.find_library(["nvrtc64_91","nvrtc64_90","nvrtc64_80","nvrtc64_75"])
+    const libnvrtc = Libdl.find_library(["nvrtc64_92","nvrtc64_91","nvrtc64_90","nvrtc64_80","nvrtc64_75"])
 else
     const libnvrtc = Libdl.find_library("libnvrtc")
 end
 isempty(libnvrtc) && error("NVRTC cannot found.")
+
+const API_VERSION = Ref{Int}()
 
 function init()
     ref_major = Ref{Cint}()
@@ -13,8 +17,8 @@ function init()
     ccall((:nvrtcVersion,libnvrtc), Cint, (Ptr{Cint},Ptr{Cint}), ref_major, ref_minor)
     major = Int(ref_major[])
     minor = Int(ref_minor[])
-    const API_VERSION = 1000major + 10minor
-    @info "NVRTC API $API_VERSION"
+    API_VERSION[] = 1000major + 10minor
+    @info "NVRTC API $(API_VERSION[])"
 end
 init()
 

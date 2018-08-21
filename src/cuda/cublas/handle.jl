@@ -12,7 +12,7 @@ end
 
 Base.unsafe_convert(::Type{Ptr{Cvoid}}, h::Handle) = h.ptr
 
-const HANDLES = Array{Handle}(ndevices())
+const HANDLES = Array{Handle}(undef, ndevices())
 
 function gethandle()
     dev = getdevice()

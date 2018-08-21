@@ -1,8 +1,10 @@
 module NCCL
 
 using ..CUDA
+import Libdl
 
 if Sys.iswindows()
+    const libnccl = ""
 else
     const libnccl = Libdl.find_library("libnccl")
 end

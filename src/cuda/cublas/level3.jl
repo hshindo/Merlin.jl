@@ -1,4 +1,4 @@
-import Base.LinAlg.BLAS: gemm, gemm!
+import LinearAlgebra.BLAS: gemm, gemm!
 
 for (f,T) in (
     (:(:cublasDgemm),:Float64),
