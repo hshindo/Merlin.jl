@@ -5,7 +5,9 @@ mutable struct Handle
         ref = Ref{Ptr{Cvoid}}()
         @cudnn :cudnnCreate (Ptr{Ptr{Cvoid}},) ref
         h = new(ref[])
-        finalizer(h, x -> @cudnn :cudnnDestroy (Ptr{Cvoid},) x)
+        finalizer(h) do x
+            @cudnn :cudnnDestroy (Ptr{Cvoid},) x
+        end
         h
     end
 end

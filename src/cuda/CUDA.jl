@@ -1,7 +1,8 @@
 module CUDA
 
-import Libdl
+using Libdl
 using Base.Threads
+import LinearAlgebra.BLAS: scal!, axpy!, gemv, gemv!, gemm, gemm!
 
 if Sys.iswindows()
     const libcuda = Libdl.find_library("nvcuda")
@@ -20,22 +21,19 @@ function checkstatus(status)
     end
 end
 
-function init()
-    if AVAILABLE
-        status = ccall((:cuInit,libcuda), Cint, (Cint,), 0)
-        checkstatus(status)
+if AVAILABLE
+    status = ccall((:cuInit,libcuda), Cint, (Cint,), 0)
+    checkstatus(status)
 
-        ref = Ref{Cint}()
-        status = ccall((:cuDriverGetVersion,libcuda), Cint, (Ptr{Cint},), ref)
-        checkstatus(status)
+    ref = Ref{Cint}()
+    status = ccall((:cuDriverGetVersion,libcuda), Cint, (Ptr{Cint},), ref)
+    checkstatus(status)
 
-        API_VERSION[] = Int(ref[])
-        @info "CUDA API $(API_VERSION[])"
-    else
-        API_VERSION[] = 0
-    end
+    API_VERSION[] = Int(ref[])
+    @info "CUDA API $(API_VERSION[])"
+else
+    API_VERSION[] = 0
 end
-init()
 
 include("define.jl")
 

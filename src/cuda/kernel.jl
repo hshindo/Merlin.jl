@@ -1,5 +1,5 @@
 export Kernel, cudims
-const DEVICE_H = open(read, joinpath(@__DIR__,"device.h"))
+const DEVICE_H = String(open(read, joinpath(@__DIR__,"device.h")))
 
 mutable struct Kernel
     ptx::String
@@ -9,7 +9,7 @@ end
 function Kernel(kernel::String)
     kernel = "$DEVICE_H\n$kernel"
     ptx = NVRTC.compile(kernel)
-    funs = Array{CuFunction}(nthreads()*ndevices())
+    funs = Array{CuFunction}(undef, nthreads()*ndevices())
     Kernel(ptx, funs)
 end
 
@@ -20,7 +20,7 @@ function (k::Kernel)(griddims, blockdims, args...; sharedmem=0, stream=C_NULL)
     end
     f = k.funs[id]
 
-    argptrs = Ptr{Cvoid}[cubox(args[i]) for i=1:length(args)]
+    argptrs = [cubox(args[i]) for i=1:length(args)]
     @apicall(:cuLaunchKernel, (
         Ptr{Cvoid},           # function
         Cuint,Cuint,Cuint,      # grid dimensions (x, y, z)
@@ -32,7 +32,7 @@ function (k::Kernel)(griddims, blockdims, args...; sharedmem=0, stream=C_NULL)
         f,
         griddims[1], griddims[2], griddims[3],
         blockdims[1], blockdims[2], blockdims[3],
-        sharedmem, stream, argptrs, C_NULL)
+        sharedmem, stream, pointer(argptrs), C_NULL)
 end
 
 function cudims(n::Int)
@@ -42,5 +42,12 @@ function cudims(n::Int)
 end
 
 cubox(x::AbstractCuArray) = cubox(CuDeviceArray(x))
-cubox(x::Int) = cubox(Cint(x))
-cubox(x) = pointer_from_objref(x)
+cubox(x::Int) = Cint(x)
+cubox(x::Ptr) = x
+function cubox(x)
+    if isbits(x)
+        x
+    else
+        pointer_from_objref(x)
+    end
+end

@@ -3,7 +3,7 @@ end
 
 function (::CUDAMalloc)(::Type{T}, size::Int) where T
     ptr = memalloc(T, size)
-    finalizer(ptr, memfree)
+    finalizer(memfree, ptr)
     ptr
 end
 

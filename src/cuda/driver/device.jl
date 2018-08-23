@@ -5,9 +5,11 @@ function getdevice()
 end
 
 function setdevice(dev::Int)
-    # cap = capability(dev)
-    # mem = round(Int, totalmem(dev) / (1024^2))
-    # info("device[$dev]: $(devicename(dev)), capability $(cap[1]).$(cap[2]), totalmem = $(mem) MB")
+    #cap = capability(dev)
+    #mem = round(Int, totalmem(dev) / (1024^2))
+    #@info "device[$dev]: $(devicename(dev)), capability $(cap[1]).$(cap[2]), totalmem = $(mem) MB"
+    getdevice() == dev && return
+    isassigned(CONTEXTS,dev) || (CONTEXTS[dev+1] = CuContext(dev))
     setcontext(CONTEXTS[dev+1])
     dev
 end

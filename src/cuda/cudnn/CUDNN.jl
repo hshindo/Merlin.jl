@@ -13,11 +13,10 @@ isempty(libcudnn) && error("CUDNN cannot be found.")
 
 const API_VERSION = Ref{Int}()
 
-function init()
+function __init__()
     API_VERSION[] = Int(ccall((:cudnnGetVersion,libcudnn),Cint,()))
     @info "CUDNN API $(API_VERSION[])"
 end
-init()
 
 macro cudnn(f, args...)
     quote

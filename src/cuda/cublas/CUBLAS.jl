@@ -13,7 +13,7 @@ isempty(libcublas) && error("CUBLAS cannot be found.")
 
 const API_VERSION = Ref{Int}()
 
-function init()
+function __init__()
     ref = Ref{Ptr{Cvoid}}()
     ccall((:cublasCreate_v2,libcublas), Cint, (Ptr{Ptr{Cvoid}},), ref)
     h = ref[]
@@ -25,7 +25,6 @@ function init()
     @info "CUBLAS API $(API_VERSION[])"
     ccall((:cublasDestroy_v2,libcublas), Cint, (Ptr{Cvoid},), h)
 end
-init()
 
 include("define.jl")
 

@@ -1,6 +1,6 @@
 import Base: reshape, dropdims, vec
 
-doc"""
+"""
     reshape(x, dims::Tuple)
 
 # Example

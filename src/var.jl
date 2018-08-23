@@ -100,6 +100,9 @@ function gradient!(tops::Var...)
     end
     for i = length(sorted):-1:1
         y = sorted[i]
+        all(y.args) do x
+            isa(x,Var) &&
+        end
         isvoid(y.grad) && continue
         isempty(y.args) && continue
         addgrad!(y, y.args...)

@@ -2,7 +2,7 @@ module NVML
 
 using ..CUDA
 import ..CUDA: ndevices, getdevice
-import Libdl
+using Libdl
 
 if Sys.iswindows()
     const libnvml = Libdl.find_library("nvml", [joinpath(ENV["ProgramFiles"],"NVIDIA Corporation","NVSMI")])
@@ -20,7 +20,7 @@ function checkresult(result::Cint)
     end
 end
 
-function init()
+function __init__()
     result = ccall((:nvmlInit_v2,libnvml), Cint, ())
     checkresult(result)
 
@@ -31,7 +31,6 @@ function init()
     API_VERSION[] = unsafe_string(pointer(ref))
     @info "NVML $(API_VERSION[])"
 end
-init()
 
 include("define.jl")
 

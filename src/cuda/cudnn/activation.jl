@@ -19,7 +19,9 @@ mutable struct ActivationDesc
         ref = Ref{Cptr}()
         @cudnn :cudnnCreateActivationDescriptor (Ptr{Cptr},) ref
         desc = new(ref[])
-        finalizer(desc, x -> @cudnn :cudnnDestroyActivationDescriptor (Cptr,) x.ptr)
+        finalizer(desc) do x
+            @cudnn :cudnnDestroyActivationDescriptor (Cptr,) x.ptr
+        end
 
         @cudnn(:cudnnSetActivationDescriptor,
             (Cptr,Cint,Cint,Cdouble),

@@ -11,7 +11,7 @@ isempty(libnvrtc) && error("NVRTC cannot found.")
 
 const API_VERSION = Ref{Int}()
 
-function init()
+function __init__()
     ref_major = Ref{Cint}()
     ref_minor = Ref{Cint}()
     ccall((:nvrtcVersion,libnvrtc), Cint, (Ptr{Cint},Ptr{Cint}), ref_major, ref_minor)
@@ -20,7 +20,6 @@ function init()
     API_VERSION[] = 1000major + 10minor
     @info "NVRTC API $(API_VERSION[])"
 end
-init()
 
 macro nvrtc(f, args...)
     quote
@@ -46,7 +45,7 @@ function compile(code::String; headers=[], include_names=[], options=[])
     catch
         ref = Ref{Csize_t}()
         @nvrtc :nvrtcGetProgramLogSize (Ptr{Cvoid},Ptr{Csize_t}) prog ref
-        log = Array{UInt8}(Int(ref[]))
+        log = Array{UInt8}(undef, Int(ref[]))
         @nvrtc :nvrtcGetProgramLog (Ptr{Cvoid},Ptr{UInt8}) prog log
         println()
         println("Error log:")
@@ -58,7 +57,7 @@ function compile(code::String; headers=[], include_names=[], options=[])
     @nvrtc :nvrtcGetPTXSize (Ptr{Cvoid},Ptr{Csize_t}) prog ref
     ptxsize = ref[]
 
-    ptx = Array{UInt8}(ptxsize)
+    ptx = Array{UInt8}(undef, ptxsize)
     @nvrtc :nvrtcGetPTX (Ptr{Cvoid},Ptr{UInt8}) prog ptx
     @nvrtc :nvrtcDestroyProgram (Ptr{Ptr{Cvoid}},) Ref{Ptr{Cvoid}}(prog)
 

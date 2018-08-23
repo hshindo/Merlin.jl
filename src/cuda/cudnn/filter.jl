@@ -5,7 +5,9 @@ mutable struct FilterDesc
         ref = Ref{Cptr}()
         @cudnn :cudnnCreateFilterDescriptor (Ptr{Cptr},) ref
         desc = new(ref[])
-        finalizer(desc, x -> @cudnn :cudnnDestroyFilterDescriptor (Cptr,) x.ptr)
+        finalizer(desc) do x
+            @cudnn :cudnnDestroyFilterDescriptor (Cptr,) x.ptr
+        end
 
         csize = Cint[reverse(dims)...]
         @cudnn(:cudnnSetFilterNdDescriptor,

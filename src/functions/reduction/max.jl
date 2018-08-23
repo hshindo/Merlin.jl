@@ -11,20 +11,16 @@ y = max(x, 1)
 ```
 """
 function max(x::Var, dim::Int)
-    configure!(x)
+    isvoid(x.data) && return Var(nothing,max,(x,dim))
     ydata, idx = findmax(x.data, dims=dim)
-    Var(ydata, (max,x,dim,idx))
+    Var(ydata, max, (x,dim,idx))
 end
 function max(x::Var, batchdims::Vector{Int})
-    @assert sum(batchdims) == size(x,ndims(x))
-    configure!(x)
-
-    xdata = pack(x.data, batchdims, floatmin(eltype(x)))
-    ydata, idx = findmax(xdata, dims=ndims(x))
-    ydata = dropdims(ydata, dims=ndims(x))
-    Var(ydata, (max,x,batchdims,idx))
+    h = pack(x, batchdims, floatmin(eltype(x)))
+    h = max(h, ndims(x))
+    dropdims(h, dims=ndims(x))
 end
-max(x::Node, dims) = Node(max, x, dims)
+max(x::Node, args...) = Node(x, args...)
 
 function addgrad!(y::Var, ::typeof(max), x::Var, dim::Int, idx)
     isvoid(x.grad) && return

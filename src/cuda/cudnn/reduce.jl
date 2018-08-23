@@ -20,7 +20,9 @@ mutable struct ReduceTensorDesc
         ref = Ref{Cptr}()
         @cudnn :cudnnCreateReduceTensorDescriptor (Ptr{Cptr},) ref
         desc = new(ref[])
-        finalizer(desc, x -> @cudnn :cudnnDestroyReduceTensorDescriptor (Cptr,) x.ptr)
+        finalizer(desc) do x
+            @cudnn :cudnnDestroyReduceTensorDescriptor (Cptr,) x.ptr
+        end
 
         ind = op == CUDNN_REDUCE_TENSOR_MIN || op == CUDNN_REDUCE_TENSOR_MAX ?
             CUDNN_REDUCE_TENSOR_FLATTENED_INDICES :

@@ -40,7 +40,7 @@ Base.convert(::Type{Ptr{T}}, x::CuArray) where T = Ptr{T}(pointer(x))
 Base.unsafe_convert(::Type{Ptr{T}}, x::CuArray) where T = Ptr{T}(pointer(x))
 Base.pointer(x::CuArray, index::Int=1) = index == 1 ? x.ptr : CuPtr(pointer(x.ptr,index),0,x.ptr.dev)
 rawpointer(x::CuArray, index::Int=1) = pointer(x.ptr, index)
-Base.Array(src::CuArray{T}) where T = copyto!(Array{T}(size(src)), src)
+Base.Array(src::CuArray{T}) where T = copyto!(Array{T}(undef,size(src)), src)
 
 ##### indexing #####
 function Base.getindex(x::CuArray, I...)
@@ -59,7 +59,7 @@ end
 Base.reshape(x::CuArray{T}, dims::NTuple{N,Int}) where {T,N} = CuArray{T,N}(x.ptr, dims)
 Base.reshape(x::CuArray{T}, dims::Int...) where T = reshape(x, dims)
 Base.vec(x::CuArray{T}) where T = ndims(x) == 1 ? x : CuArray(x.ptr, (length(x),))
-function Base.dropdims(x::CuArray, dims::Dims)
+function Base.dropdims(x::CuArray; dims)
     for i in dims
         size(x,i) == 1 || throw(ArgumentError("dropdims must all be size 1"))
     end

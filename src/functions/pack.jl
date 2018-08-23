@@ -1,24 +1,5 @@
 export pack, unpack
 
-function pack(x::UniArray, batchdims::Vector{Int}, padding)
-    @assert sum(batchdims) == size(x,ndims(x))
-    s = Base.setindex(size(x), maximum(batchdims), ndims(x))
-    y = similar(x, s..., length(batchdims))
-    fill!(y, padding)
-
-    xst = stride(x, ndims(x))
-    yst = stride(y, ndims(y))
-    xi = 1
-    yi = 1
-    for d in batchdims
-        n = xst * d
-        copyto!(y, yi, x, xi, n)
-        xi += n
-        yi += yst
-    end
-    y
-end
-
 function pack(x::Var, batchdims::Vector{Int}, padding)
     @assert sum(batchdims) == size(x,ndims(x))
     s = Base.setindex(size(x), maximum(batchdims), ndims(x))
@@ -40,7 +21,7 @@ function pack(x::Var, batchdims::Vector{Int}, padding)
 end
 
 function addgrad!(y::Var, ::typeof(pack), x::Var, batchdims::Vector{Int})
-    isvoid(x.grad) && return
+    isvoid(x.grad) && fill!(similar(x.grad),0)
     xst = stride(x, ndims(x))
     yst = stride(y, ndims(y))
     xi = 1

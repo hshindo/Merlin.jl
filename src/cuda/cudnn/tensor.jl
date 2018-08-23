@@ -6,14 +6,15 @@ const CUDNN_TENSOR_NCHW_VECT_C = Cint(2)
 mutable struct TensorDesc
     ptr::Cptr
 
-    function TensorDesc(::Type{T}, dims::Union{Vector{Int},Tuple}) where T
+    function TensorDesc(::Type{T}, dims::NTuple{N,Int}) where {T,N}
         ref = Ref{Cptr}()
         @cudnn :cudnnCreateTensorDescriptor (Ptr{Cptr},) ref
         desc = new(ref[])
-        finalizer(desc, x -> @cudnn :cudnnDestroyTensorDescriptor (Cptr,) x.ptr)
+        finalizer(desc) do x
+            @cudnn :cudnnDestroyTensorDescriptor (Cptr,) x.ptr
+        end
 
-        N = length(dims)
-        strides = Array{Int}(length(dims))
+        strides = Array{Int}(undef, N)
         strides[1] = 1
         for i = 1:length(strides)-1
             strides[i+1] = strides[i] * dims[i]
@@ -33,9 +34,9 @@ function TensorDesc(x::CuArray{T}, N::Int=ndims(x)) where T
     dims = [size(x)...]
     ndims(x) == 1 && push!(dims,1)
     while length(dims) < N
-        unshift!(dims, 1)
+        pushfirst!(dims, 1)
     end
-    TensorDesc(T, dims)
+    TensorDesc(T, tuple(dims...))
 end
 
 Base.unsafe_convert(::Type{Cptr}, desc::TensorDesc) = desc.ptr

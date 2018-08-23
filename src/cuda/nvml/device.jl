@@ -2,8 +2,14 @@ export free_device, free_devices
 
 function gethandle(dev::Int)
     ref = Ref{Ptr{Cvoid}}()
-    @nvml :nvmlDeviceGetHandleByIndex (Cuint,Ptr{Cvoid}) dev ref
+    @nvml :nvmlDeviceGetHandleByIndex (Cuint,Ptr{Ptr{Cvoid}}) dev ref
     ref[]
+end
+
+function getcount()
+    ref = Ref{Cuint}()
+    @nvml :nvmlDeviceGetCount (Ptr{Cuint},) ref
+    Int(ref[])
 end
 
 """
