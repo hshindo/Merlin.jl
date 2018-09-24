@@ -11,16 +11,16 @@ julia:
 notifications:
     email: false
 
-before_script:
-  - export PATH=$HOME/.local/bin:$PATH
+#before_script:
+#  - export PATH=$HOME/.local/bin:$PATH
 
-install:
+#install:
   #- sudo pip install pymdown-extensions
 
-script:
-  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'using Pkg; Pkg.clone(pwd()); Pkg.build("Merlin"); Pkg.test("Merlin"; coverage=true)'
+#script:
+#  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+#  - julia -e 'using Pkg; Pkg.clone(pwd()); Pkg.build("Merlin"); Pkg.test("Merlin"; coverage=true)'
 
-after_success:
+#after_success:
   # - julia -e 'Pkg.add("Documenter")'
   # - julia -e 'cd(Pkg.dir("Merlin")); include(joinpath("docs", "make.jl"))'
