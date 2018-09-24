@@ -12,7 +12,7 @@ mutable struct Handle
     end
 end
 
-Base.unsafe_convert(::Type{Ptr{Cvoid}}, h::Handle) = h.ptr
+Base.cconvert(::Type{Ptr{Cvoid}}, h::Handle) = h.ptr
 
 const HANDLES = Array{Handle}(undef, ndevices())
 

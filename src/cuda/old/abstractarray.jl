@@ -20,12 +20,24 @@ function Base.copyto!(dest::AbstractCuArray{T}, src::AbstractCuArray{T}) where T
     @assert length(dest) == length(src)
     if iscontigious(dest) && iscontigious(src)
         if isa(dest, CuSubArray)
-            dest = unsafe_wrap(CuArray, pointer(dest), size(dest))
+            doffs = dest.offset + 1
+            dest = dest.parent
+        else
+            doffs = 1
         end
         if isa(src, CuSubArray)
-            src = unsafe_wrap(CuArray, pointer(src), size(src))
+            soffs = src.offset + 1
+            src = src.parent
+        else
+            soffs = 1
         end
-        copyto!(dest, src)
+        #if isa(dest, CuSubArray)
+        #    dest = unsafe_wrap(CuArray, pointer(dest), size(dest))
+        #end
+        #if isa(src, CuSubArray)
+        #    src = unsafe_wrap(CuArray, pointer(src), size(src))
+        #end
+        copyto!(dest, doffs, src, soffs, length(dest))
     else
         copyto!(CuDeviceArray(dest), CuDeviceArray(src))
     end
@@ -37,7 +49,7 @@ function addto!(dest::AbstractCuArray{T}, src::AbstractCuArray{T}) where T
     if iscontigious(dest) && iscontigious(src)
         p_dest = pointer(dest)
         p_src = pointer(src)
-        BLAS.axpy!(length(dest), T(1), p_src, p_dest)
+        axpy!(length(dest), T(1), p_src, p_dest)
     else
         addto!(CuDeviceArray(dest), CuDeviceArray(src))
     end

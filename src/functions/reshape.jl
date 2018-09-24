@@ -11,15 +11,16 @@ y = reshape(x, 5, 10)
 ```
 """
 function reshape(x::Var, dims::Tuple)
+    isnothing(x.data) && return Var(nothing,reshape,(x,dims))
     configure!(x)
-    Var(reshape(x.data,dims), (reshape,x))
+    Var(reshape(x.data,dims), ∇reshape!, (x,))
 end
 reshape(x::Var, dims::Int...) = reshape(x, dims)
 
 vec(x::Var) = reshape(x, length(x))
 
-function addgrad!(y::Var, ::typeof(reshape), x::Var)
-    isvoid(x.grad) && return
+function ∇reshape!(y::Var, x::Var)
+    isnothing(x.grad) && return
     addto!(x.grad, y.grad)
 end
 
@@ -29,20 +30,23 @@ doc"""
 Remove the dimensions of `x` specified by dims.
 """
 function dropdims(x::Var, dims::Tuple)
+    isnothing(x.data) && return Var(nothing,dropdims,(x,dims))
     configure!(x)
-    y = dropdims(x.data, dims)
-    Var(y, (dropdims,x,dims))
+    ydata = dropdims(x.data, dims=dims)
+    Var(ydata, ∇dropdims!, (x,))
 end
 dropdims(x::Var, dims::Int...) = dropdims(x, dims)
 function dropdims(x::Var)
-    dims = Int[]
-    for d in 1:ndims(x)
-        size(x,d) == 1 && push!(dims,d)
+    dims = ()
+    for i = 1:ndims(x)
+        if size(x,i) == 1
+            dims = tuple(dims..., i)
+        end
     end
-    dropdims(x, dims...)
+    dropdims(x, dims)
 end
 
-function addgrad!(y::Var, ::typeof(dropdims), x::Var, dims)
-    isvoid(x.grad) && return
+function ∇dropdims!(y::Var, x::Var)
+    isnothing(x.grad) && return
     addto!(x.grad, y.grad)
 end

@@ -1,12 +1,12 @@
 # cudnnTensorFormat_t
-const CUDNN_TENSOR_NCHW = Cint(0)
-const CUDNN_TENSOR_NHWC = Cint(1)
-const CUDNN_TENSOR_NCHW_VECT_C = Cint(2)
+const CUDNN_TENSOR_NCHW = 0
+const CUDNN_TENSOR_NHWC = 1
+const CUDNN_TENSOR_NCHW_VECT_C = 2
 
 mutable struct TensorDesc
     ptr::Cptr
 
-    function TensorDesc(::Type{T}, dims::NTuple{N,Int}) where {T,N}
+    function TensorDesc(::Type{T}, dims::Dims{N}) where {T,N}
         ref = Ref{Cptr}()
         @cudnn :cudnnCreateTensorDescriptor (Ptr{Cptr},) ref
         desc = new(ref[])
@@ -28,6 +28,7 @@ mutable struct TensorDesc
         desc
     end
 end
+TensorDesc(::Type{T}, dims::Int...) where T = TensorDesc(T, dims)
 
 function TensorDesc(x::CuArray{T}, N::Int=ndims(x)) where T
     @assert ndims(x) <= N && N > 1
@@ -39,4 +40,4 @@ function TensorDesc(x::CuArray{T}, N::Int=ndims(x)) where T
     TensorDesc(T, tuple(dims...))
 end
 
-Base.unsafe_convert(::Type{Cptr}, desc::TensorDesc) = desc.ptr
+Base.cconvert(::Type{Cptr}, desc::TensorDesc) = desc.ptr

@@ -6,14 +6,6 @@ mutable struct LSTM
     nlayers::Int
     droprate::Float64
     bidirectional::Bool
-    params::Vector          # W, U, b, h, c
-end
-
-function getparams(lstm::LSTM)
-    params = Var[]
-    for p in lstm.params
-        append!(params, p)
-    end
     params
 end
 
@@ -76,55 +68,79 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
     LSTM(insize, hsize, nlayers, droprate, bidirectional, params)
 end
 
-function (lstm::LSTM)(x::Var, batchdims::Vector{Int})
-    configure!(getparams(lstm)...)
-    if iscpu()
+function (lstm::LSTM)(x::Var, dims::Var)
+    if iscuda()
+        length(lstm.params) == 1 || setcuda!(lstm)
+        configure!(x, lstm.params...)
+        W = lstm.params[1]
+        t_x = transpose_batch(x, dims)
+        dir = lstm.bidirectional ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
+        mode = CUDNN.CUDNN_LSTM
+        t_y, work = CUDNN.rnn(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, dir, mode,
+            W.data, t_x, t_dims, istrain())
+
+        transpose_batch(t_y)
+    else
         h = x
         coef = lstm.bidirectional ? 2 : 1
         for l = 1:lstm.nlayers
             i = (l-1) * coef + 1
             p = lstm.params[i]
-            h1 = lstm_tstep(h, batchdims, p..., false)
+            h1 = lstm_tstep(h, dims.data, p..., false)
             if lstm.bidirectional
                 p = lstm.params[i+1]
-                h2 = lstm_tstep(h, batchdims, p..., true)
+                h2 = lstm_tstep(h, dims.data, p..., true)
                 h = concat(1, h1, h2)
             else
                 h = h1
             end
         end
         h
-    elseif iscuda()
-        lstm_cudnn(lstm, xs)
-    else
-        throw("Invalid backend.")
     end
 end
-(lstm::LSTM)(x::Node, batchdims) = Node(lstm, x, batchdims)
 
-function lstm_tstep(x::Var, batchsize::Vector{Int}, W::Var, U::Var, b::Var, h0::Var, c0::Var, rev::Bool)
-    @assert sum(batchsize) == size(x,2)
+function setcuda!(lstm::LSTM)
+    Ws = []
+    hs = []
+    cs = []
+    for (W,U,b,h,c) in lstm.param
+        push!(Ws, vec(W.data), vec(U.data))
+    end
+    for (W,U,b,h,c) in lstm.param
+        push!(Ws, b.data, fill!(similar(b.data),0))
+        push!(hs, h)
+        push!(cs, c)
+    end
+    W = param(cat(Ws...,dims=1))
+    h = cat(hs..., dims=1)
+    c = cat(cs..., dims=1)
+    lstm.params = (W,)
+end
+
+function lstm_tstep(x::Var, dims::Vector{Int}, W::Var, U::Var, b::Var, h::Var, c::Var, rev::Bool)
+    @assert sum(dims) == size(x,2)
+    @assert issorted(dims, rev=true)
     WU = concat(1, W, U)
 
-    cumdims = Array{Int}(undef, length(batchsize)+1)
+    cumdims = Array{Int}(undef, length(dims)+1)
     cumdims[1] = 1
-    for i = 1:length(batchsize)
-        cumdims[i+1] = cumdims[i] + batchsize[i]
+    for i = 1:length(dims)
+        cumdims[i+1] = cumdims[i] + dims[i]
     end
-    perm = sortperm(batchsize, rev=true)
 
-    hsize = length(h0)
-    ht = concat(2, [h0 for i=1:length(batchsize)]...)
-    ct = concat(2, [c0 for i=1:length(batchsize)]...)
+    hsize = length(h)
+    ht = concat(2, [h for i=1:length(dims)]...)
+    ct = concat(2, [c for i=1:length(dims)]...)
     hts = Array{Var}(undef, size(x,2))
     cts = Array{Var}(undef, size(x,2))
-    for t = 1:batchsize[perm[1]]
+    for t = 1:dims[1]
         xts = Var[]
-        for p in perm
-            t > batchsize[p] && break
-            i = cumdims[p]
-            i += rev ? batchsize[p]-t : t-1
-            push!(xts, x[:,i:i])
+        for j = 1:length(dims)
+            d = dims[j]
+            t > d && break
+            k = cumdims[j]
+            k += rev ? d-t : t-1
+            push!(xts, x[:,k:k])
         end
         xt = concat(2, xts...)
         if size(ht,2) > size(xt,2)
@@ -132,13 +148,13 @@ function lstm_tstep(x::Var, batchsize::Vector{Int}, W::Var, U::Var, b::Var, h0::
             ct = ct[:,1:size(xt,2)]
         end
         ht, ct = lstm_onestep(xt, WU, b, ht, ct)
-        for j = 1:length(perm)
-            p = perm[j]
-            t > batchsize[p] && break
-            i = cumdims[p]
-            i += rev ? batchsize[p]-t : t-1
-            hts[i] = ht[:,j:j]
-            cts[i] = ct[:,j:j]
+        for j = 1:length(dims)
+            d = dims[j]
+            t > d && break
+            k = cumdims[j]
+            k += rev ? d-t : t-1
+            hts[k] = ht[:,j:j]
+            cts[k] = ct[:,j:j]
         end
     end
     concat(2, hts...)
@@ -149,54 +165,98 @@ function lstm_onestep(xt::Var, WU::Var, b::Var, ht::Var, ct::Var)
     n = size(a,1) ÷ 4
     i = sigmoid(a[1:n,:])
     f = sigmoid(a[n+1:2n,:])
-    ct = dot(f,ct) + dot(i,tanh(a[2n+1:3n,:]))
+    ct = (f .* ct) + (i .* tanh(a[2n+1:3n,:]))
     o = sigmoid(a[3n+1:4n,:])
-    ht = dot(o, tanh(ct))
+    ht = o .* tanh(ct)
     ht, ct
 end
 
-function batchsort(x::UniArray, batchsize::Vector{Int})
-    perm = sortperm(batchsize, rev=true)
-    cumdims = cumsum(batchsize)
-    front = Base.front(size(x))
-    view(x)
-end
-
-function lstm_cudnn(lstm::LSTM, x::Var, batchsize::Vector{Int})
-    Ws = Var[]
-    h0s = Var[]
-    c0s = Var[]
-    for (W,U,b,h,c) in lstm.params
-        push!(Ws, vec(W), vec(U))
-    end
-    for (W,U,b,h,c) in lstm.params
-        push!(Ws, b, b)
-        push!(h0s, h)
-        push!(c0s, c)
-    end
-    W = concat(1, Ws...)
-    h0 = concat(1, h0s...)
-    c0 = concat(1, c0s...)
-
-    xs = unsafe_split(x.data, batchsize)
-    perm = sortperm(batchsize, rev=true)
-    t_x, t_batchsize = transpose_batch(xs[perm])
-
+function lstm(f::LSTM, x::Var, dims::Var)
+    configure!(lstm.W, x)
+    t_x, t_dims = transpose_batch(x.data, dims.data)
     dir = lstm.bidirectional ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
     mode = CUDNN.CUDNN_LSTM
     t_y, work = CUDNN.rnn(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, dir, mode,
-        W.data, t_x, t_batchsize, istrain())
-
-    y, _ = transpose_batch(unsafe_split(t_y,t_batchsize))
-    ys = unsafe_split(y, batchsize[perm])
-    y = cat(ys[perm]...,dims=ndims(y))
-    Var(y, (lstm,x,batchsize,work,W))
+        lstm.W.data, t_x, t_dims, istrain())
+    Var(t_y, ∇lstm!, (x,dims,work))
 end
 
-function addgrad!(y::Var, lstm::LSTM, x::Var, batchsize::Vector{Int}, work, w::Var)
-    t_gy, t_batchsize = transpose_batch(y.grad, batchsize)
+function ∇lstm!(y::Var, f::LSTM, x::Var, dims::Var, work)
+    t_gy, t_dims = transpose_batch(y.grad, dims)
     t_gx = CUDNN.∇rnn_data(work, t_gy) # this call is required for ∇rnn_weights!
-    gx, _ = transpose_batch(t_gx, t_batchsize)
-    isvoid(x.grad) || addto!(x.grad, gx)
-    isvoid(w.grad) || CUDNN.∇rnn_weights!(work, w.grad)
+    gx, _ = transpose_batch(t_gx, t_dims)
+    isnothing(x.grad) || addto!(x.grad,gx)
+    isnothing(w.grad) || CUDNN.∇rnn_weights!(work,w.grad)
+end
+
+function transpose_batch(x::Matrix{T}, dims::Vector{Int}) where T
+    cumdims = Array{Int}(undef, length(dims))
+    cumdims[1] = 1
+    for i = 2:length(dims)
+        cumdims[i] = cumdims[i-1] + dims[i-1]
+    end
+
+    n = size(x, 1)
+    y = similar(x)
+    yi = 1
+    for t = 1:dims[1]
+        for i = 1:length(dims)
+            dims[i] < t && break
+            # i = rev ? size(x,2)-t+1 : t
+            k = cumdims[i] + t - 1
+            xi = n * (k-1) + 1
+            copyto!(y, yi, x, xi, n)
+            yi += n
+        end
+    end
+    y
+end
+
+@generated function transpose_batch(x::CuMatrix{T}, dims::Vector{Int}) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void transpose_batch(int n, $Ct *t_x, int *t_cumdims, $Ct *x, int *cumdims) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= n*t_cumdims[1]*cumdims[1]) return;
+
+        int vj = idx / n;
+        int vi = idx - vj * n;
+        int j = vj / t_cumdims[1];
+        int i = vj - j * t_cumdims[1];
+        if (t_cumdims[j] + i < t_cumdims[j+1]) {
+            int t_idx = (t_cumdims[j] + i) * n + vi;
+            idx = (cumdims[i] + j) * n + vi;
+            t_x[t_idx] = x[idx];
+        }
+    }""")
+    quote
+        t_x = similar(x)
+        t_dims = transpose_dims(dims)
+        cumdims = Array{Cint}(undef, length(dims)+1)
+        t_cudims = Array{Cint}(undef, length(t_dims)+1)
+        cumdims[1] = 0
+        t_cudims[1] = 0
+        for i = 2:length(cumdims)
+            cumdims[i] = cumdims[i-1] + dims[i-1]
+            t_cumdims[i] = t_cumdims[i-1] + t_dims[i-1]
+        end
+        cudims = CuArray(cudims)
+        t_cudims = CuArray(t_cudims)
+
+        gdims, bdims = cudims(size(x,1)*dims[1]*t_dims[1])
+        $k(gdims, bdims, size(x,1), pointer(t_x), pointer(t_cumdims), pointer(x), pointer(cumdims))
+        t_x, t_dims
+    end
+end
+
+function transpose_dims(dims::Vector{Int})
+    k = length(dims)
+    t_dims = Int[]
+    for t = 1:dims[1]
+        while dims[k] < t
+            k -= 1
+        end
+        push!(t_dims, k)
+    end
+    t_dims
 end

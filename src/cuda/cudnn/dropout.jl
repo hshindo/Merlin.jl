@@ -18,12 +18,14 @@ mutable struct DropoutDesc
             (Cptr,Cptr,Cfloat,Cptr,Csize_t,Culonglong),
             desc, h, droprate, states, length(states), seed)
 
-        finalizer(desc, x -> @cudnn :cudnnDestroyDropoutDescriptor (Cptr,) x.ptr)
+        finalizer(desc) do x
+            @cudnn :cudnnDestroyDropoutDescriptor (Cptr,) x.ptr
+        end
         desc
     end
 end
 
-Base.unsafe_convert(::Type{Cptr}, desc::DropoutDesc) = desc.ptr
+Base.cconvert(::Type{Cptr}, desc::DropoutDesc) = desc.ptr
 
 function dropout(x::CuArray{T,N}, droprate::Float64) where {T,N}
     dropdesc = DropoutDesc(droprate)

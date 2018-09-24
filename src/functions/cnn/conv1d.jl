@@ -29,26 +29,26 @@ function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
     Conv1d(param(W), param(b), ksize, padding, stride, dilation)
 end
 
-function (f::Conv1d)(x::Var, batchdims::Vector{Int})
-    @assert ndims(x) == 2 && sum(batchdims) == size(x,2)
-    idx = conv1d_index(f, batchdims)
+function (f::Conv1d)(x::Var, dims::Var)
+    isnothing(x.data) && return Var(nothing,f,(x,dims))
+    @assert ndims(x) == 2 && sum(dims.data) == size(x,2)
+    idx = conv1d_index(f, dims.data)
     h = lookup(x, Var(idx))
     y = linear(h, f.W, f.b)
     y
 end
-(f::Conv1d)(x::Node, batchdims) = Node(f, x, batchdims)
 
-function conv1d_index(f::Conv1d, batchdims::Vector{Int})
+function conv1d_index(f::Conv1d, dims::Vector{Int})
     ksize, padding, stride, dilation = f.ksize, f.padding, f.stride, f.dilation
-    outdims = map(batchdims) do d
+    outdims = map(dims) do d
         k = (ksize - 1) * dilation + 1
         (d + 2padding - k) ÷ stride + 1
     end
     cumdim = 0
     y = zeros(Int, ksize, sum(outdims))
     yi = 1
-    for n = 1:length(batchdims)
-        ndims = batchdims[n]
+    for n = 1:length(dims)
+        ndims = dims[n]
         i = cumdim - padding + 1
         for d = 1:outdims[n]
             for j = i:dilation:i+(ksize-1)*dilation

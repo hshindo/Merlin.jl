@@ -1,5 +1,5 @@
 export Var
-export param, zerograd!, batchsize, isvoid, isparam, gradient!, topsort, create_batch
+export param, zerograd!, isnothing, isparam, gradient!, topsort, create_batch
 
 """
     Var
@@ -20,11 +20,13 @@ x = zerograd(rand(T,10,5)) # x.grad is initialized as zero.
 """
 mutable struct Var
     data
+    f
     args
     grad
+    name::String
 end
 
-Var(data, args=()) = Var(data, args, nothing)
+Var(data, f=nothing, args=(); name="") = Var(data, f, args, nothing, name)
 
 function param(data)
     v = Var(data)
@@ -32,44 +34,35 @@ function param(data)
     v
 end
 
-function zerograd!(x::Var)
-    isvoid(x.grad) && throw("")
-    fill!(x.grad, 0)
-    x
-end
+zerograd!(x::Var) = fill!(x.grad, 0)
 
 Base.size(x::Var) = size(x.data)
 Base.size(x::Var, i::Int) = size(x.data, i)
-Base.strides(x::Var) = strides(x.data)
-Base.stride(x::Var, i::Int) = stride(x.data, i)
 Base.length(x::Var) = length(x.data)
 Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
-
-isvoid(x) = x == nothing
-oncpu(x::Var) = isa(x.data, Array)
-oncuda(x::Var) = isa(x.data, CuAray)
+isnothing(x) = x == nothing
 
 """
     isparam(x::Var)
 
 Returns whether `x` is a parameter or not
 """
-isparam(x) = isa(x,Var) && !isvoid(x.grad) && isempty(x.args)
+isparam(x) = isa(x,Var) && !isa(x.grad,Nothing) && isempty(x.args)
 
 """
     topsort(tops::T...)
 
 Topological sort.
 """
-function topsort(tops::T...) where T
-    sorted = T[]
-    dict = IdDict()
-    function visit(v::T)
+function topsort(top::Var)
+    sorted = Var[]
+    dict = IdDict{Var,Var}()
+    function visit(v::Var)
         haskey(dict,v) && return
         dict[v] = v
         for arg in v.args
-            if isa(arg, T)
+            if arg isa Var
                 visit(arg)
             #elseif isa(arg, Vector{T})
             #    foreach(visit, arg)
@@ -77,7 +70,7 @@ function topsort(tops::T...) where T
         end
         push!(sorted, v)
     end
-    foreach(visit, tops)
+    visit(top)
     sorted
 end
 
@@ -86,31 +79,26 @@ end
 
 Compute gradients.
 """
-function gradient!(tops::Var...)
-    sorted = topsort(tops...)
-    for top in tops
-        if isvoid(top.grad)
-            top.grad = fill!(similar(top.data), 1)
-        end
+function gradient!(top::Var)
+    sorted = topsort(top)
+    if isnothing(top.grad)
+        top.grad = fill!(similar(top.data), 1)
     end
     for v in sorted
-        if !isempty(v.args) && isvoid(v.grad)
+        if !isempty(v.args) && v.grad isa Nothing
             v.grad = fill!(similar(v.data), 0)
         end
     end
     for i = length(sorted):-1:1
         y = sorted[i]
-        all(y.args) do x
-            isa(x,Var) &&
-        end
-        isvoid(y.grad) && continue
+        isnothing(y.grad) && continue
         isempty(y.args) && continue
-        addgrad!(y, y.args...)
+        y.f(y, y.args...)
     end
-    collect(Iterators.filter(isparam,sorted))
+    sorted
 end
 
-function configure!(xs::Var...)
+function configure!(xs::Vararg{Var})
     if iscpu()
         f = tocpu
     elseif iscuda()
@@ -118,7 +106,7 @@ function configure!(xs::Var...)
     end
     for x in xs
         x.data = f(x.data)
-        isvoid(x.grad) || (x.grad = f(x.grad))
+        isnothing(x.grad) || (x.grad = f(x.grad))
     end
 end
 tocpu(x::Array) = x
@@ -128,12 +116,11 @@ tocuda(x::CuArray) = x
 tocuda(x::Array{Int}) = CuArray(Array{Cint}(x))
 tocuda(x::Array) = CuArray(x)
 
-function create_batch(f::Function, batchsize::Int, samples::Vector{T}) where T
+function create_batch(batchsize::Int, samples::Vector)
     batches = []
     for i = 1:batchsize:length(samples)
         range = i:min(i+batchsize-1,length(samples))
-        batch = f(samples[range])
-        push!(batches, batch)
+        push!(batches, samples[range])
     end
     batches
 end

@@ -31,14 +31,12 @@ if AVAILABLE
 
     API_VERSION[] = Int(ref[])
     @info "CUDA API $(API_VERSION[])"
-else
-    API_VERSION[] = 0
 end
 
 include("define.jl")
 
 macro apicall(f, args...)
-    f = get(define, f.value, f.value)
+    f = get(DEFINE, f.value, f.value)
     quote
         status = ccall(($(QuoteNode(f)),libcuda), Cint, $(map(esc,args)...))
         checkstatus(status)
@@ -46,7 +44,7 @@ macro apicall(f, args...)
 end
 
 macro unsafe_apicall(f, args...)
-    f = get(define, f.value, f.value)
+    f = get(DEFINE, f.value, f.value)
     quote
         ccall(($(QuoteNode(f)),libcuda), Cint, $(map(esc,args)...))
     end
@@ -74,15 +72,12 @@ if AVAILABLE
     using .NVML
 end
 
-include("abstractarray.jl")
-include("kernel.jl")
 include("array.jl")
-include("subarray.jl")
+include("kernel.jl")
 include("arraymath.jl")
 include("broadcast.jl")
 include("cat.jl")
 include("reduce.jl")
-# include("reducedim.jl")
 include("devicearray.jl")
 
 if AVAILABLE

@@ -34,7 +34,7 @@ mutable struct ReduceTensorDesc
     end
 end
 
-Base.unsafe_convert(::Type{Cptr}, desc::ReduceTensorDesc) = desc.ptr
+Base.cconvert(::Type{Cptr}, desc::ReduceTensorDesc) = desc.ptr
 
 function reduce(A::CuArray{T}, dim, op) where T
     if size(A,dim) == 1 # CUDNN_STATUS_BAD_PARAM

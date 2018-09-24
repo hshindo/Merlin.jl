@@ -41,13 +41,9 @@ function cudims(n::Int)
     (gx,1,1), (bx,1,1)
 end
 
-cubox(x::AbstractCuArray) = cubox(CuDeviceArray(x))
-cubox(x::Int) = Cint(x)
+cubox(x::Int) = cubox(Cint(x))
 cubox(x::Ptr) = x
-function cubox(x)
-    if isbits(x)
-        x
-    else
-        pointer_from_objref(x)
-    end
-end
+cubox(x::CuPtr) = x.ptr
+cubox(x::Ref) = x
+cubox(x) = Ref(x)
+cubox(x::CuArray) = cubox(CuDeviceArray(x))

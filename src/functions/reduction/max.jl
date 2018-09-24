@@ -11,14 +11,17 @@ y = max(x, 1)
 ```
 """
 function max(x::Var, dim::Int)
-    isvoid(x.data) && return Var(nothing,max,(x,dim))
+    isa(x.data,Nothing) && return Var(nothing,max,(x,dim))
+    configure!(x)
     ydata, idx = findmax(x.data, dims=dim)
-    Var(ydata, max, (x,dim,idx))
+    Var(ydata, ∇max!, (x,dim,idx))
 end
-function max(x::Var, batchdims::Vector{Int})
-    h = pack(x, batchdims, floatmin(eltype(x)))
-    h = max(h, ndims(x))
-    dropdims(h, dims=ndims(x))
+function max(x::Var, dims::Var)
+    isa(x.data,Nothing) && return Var(nothing,max,(x,dims))
+    h = pack(x, dims, floatmin(eltype(x)))
+    y = max(h, ndims(x))
+    y.data = dropdims(y.data, dims=ndims(x))
+    y
 end
 max(x::Node, args...) = Node(x, args...)
 

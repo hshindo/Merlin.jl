@@ -44,3 +44,10 @@ public:
         return;
     }
 };
+
+template<int N>
+struct Dims {
+    const int data[N];
+public:
+    __device__ int operator[](int i) { return data[i]; }
+};

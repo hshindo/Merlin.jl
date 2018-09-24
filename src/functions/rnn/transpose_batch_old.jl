@@ -1,5 +1,3 @@
-export transpose_batch
-
 function transpose_batch(xs::Vector{Var}, rev::Bool)
     @assert issorted(xs, rev=true, by = x -> size(x,2))
     y = transpose_batch(map(x -> x.data, xs), rev)

@@ -33,6 +33,7 @@ end
 (f::Linear)(x) = linear(x, f.w, f.b)
 
 function linear(x::Var, w::Var, b::Var)
+    isnothing(x.data) && return Var(nothing,linear,(x,w,b))
     configure!(x, w, b)
     T = eltype(x)
     if ndims(x) == 1
@@ -40,26 +41,25 @@ function linear(x::Var, w::Var, b::Var)
         addto!(ydata, b.data)
     elseif ndims(x) == 2
         ydata = gemm('T', 'N', w.data, x.data)
-        ydata .+= b.data
+        broadcast_addto!(ydata, b.data)
     else
         throw("Invalid ndims of x: $(ndims(x))")
     end
-    Var(ydata, (linear,x,w,b))
+    Var(ydata, ∇linear!, (x,w,b))
 end
-linear(x::Node, w, b) = Node(linear, x, w, b)
 
-function addgrad!(y::Var, ::typeof(linear), x::Var, w::Var, b::Var)
+function ∇linear!(y::Var, x::Var, w::Var, b::Var)
     T = eltype(x)
     if ndims(x) == 1
         gy = reshape(y.grad, length(y.grad), 1)
         xdata = reshape(x.data, length(x.data), 1)
-        isvoid(w.grad) || gemm!('N', 'T', T(1), xdata, gy, T(1), w.grad)
-        isvoid(x.grad) || gemv!('N', T(1), w.data, y.grad, T(1), x.grad)
-        isvoid(b.grad) || axpy!(T(1), y.grad, b.grad)
+        isa(w.grad,Nothing) || gemm!('N', 'T', T(1), xdata, gy, T(1), w.grad)
+        isa(x.grad,Nothing) || gemv!('N', T(1), w.data, y.grad, T(1), x.grad)
+        isa(b.grad,Nothing) || axpy!(T(1), y.grad, b.grad)
     elseif ndims(x) == 2
-        isvoid(x.grad) || gemm!('N', 'N', T(1), w.data, y.grad, T(1), x.grad)
-        isvoid(w.grad) || gemm!('N', 'T', T(1), x.data, y.grad, T(1), w.grad)
-        isvoid(b.grad) || axpy!(T(1), sum(y.grad,dims=2), b.grad)
+        isa(x.grad,Nothing) || gemm!('N', 'N', T(1), w.data, y.grad, T(1), x.grad)
+        isa(w.grad,Nothing) || gemm!('N', 'T', T(1), x.data, y.grad, T(1), w.grad)
+        isa(b.grad,Nothing) || axpy!(T(1), sum(y.grad,dims=2), b.grad)
     else
         throw("Invalid ndims of x: $(ndims(x))")
     end

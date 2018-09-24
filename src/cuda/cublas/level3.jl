@@ -24,15 +24,14 @@ for (f,T) in (
                 $T[alpha], A, stride(A,2), B, stride(B,2), $T[beta], C, stride(C,2))
             C
         end
+        function gemm(tA::Char, tB::Char, alpha::$T, A::CuVecOrMat{$T}, B::CuVecOrMat{$T})
+            C = similar(B, size(A, tA=='N' ? 1 : 2), size(B, tB=='N' ? 2 : 1))
+            gemm!(tA, tB, alpha, A, B, zero($T), C)
+        end
+        gemm(tA::Char, tB::Char, A::CuVecOrMat{$T}, B::CuVecOrMat{$T}) = gemm(tA, tB, one($T), A, B)
+        gemm(A::CuVecOrMat{$T}, B::CuVecOrMat{$T}; tA='N', tB='N', alpha=1) = gemm(tA, tB, $T(alpha), A, B)
     end
 end
-
-function gemm(tA::Char, tB::Char, alpha::T, A::CuVecOrMat{T}, B::CuVecOrMat{T}) where T
-    C = similar(B, size(A, tA=='N' ? 1 : 2), size(B, tB=='N' ? 2 : 1))
-    gemm!(tA, tB, alpha, A, B, zero(T), C)
-end
-gemm(tA::Char, tB::Char, A::CuVecOrMat{T}, B::CuVecOrMat{T}) where T = gemm(tA, tB, one(T), A, B)
-gemm(A::CuVecOrMat{T}, B::CuVecOrMat{T}; tA='N', tB='N', alpha=1) where T = gemm(tA, tB, T(alpha), A, B)
 
 #=
 for (fname,elty) in ((:cublasDgemmBatched,:Float64), (:cublasSgemmBatched,:Float32))

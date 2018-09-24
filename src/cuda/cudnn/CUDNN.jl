@@ -50,7 +50,7 @@ C = α*A + β*C
 The bias tensor A must match the corresponding dimension of the destination tensor
 C or must be equal to 1.
 """
-function addto!(α, A::CuArray{T}, β, C::CuArray{T}) where T
+function add!(α, A::CuArray{T}, β, C::CuArray{T}) where T
     h = gethandle()
     adesc = TensorDesc(A, 4)
     cdesc = TensorDesc(C, 4)

@@ -8,6 +8,7 @@ using .CUDA
 
 using Markdown
 import LinearAlgebra.BLAS: scal!, axpy!, gemv, gemv!, gemm, gemm!
+export gemv, gemm
 #export Functor
 #abstract type Functor end
 
@@ -39,13 +40,14 @@ for name in [
     "loss/l2",
     "loss/mse",
     "loss/softmax_crossentropy",
+    "math/arithmetic",
+    "math/broadcast",
 
     "reduction/max",
     #"reduction/mean",
     #"reduction/sum",
 
     "rnn/lstm",
-    "rnn/transpose_batch",
 
     "blas",
     "concat",
@@ -53,7 +55,6 @@ for name in [
     "getindex",
     "linear",
     "lookup",
-    "math",
     "pack",
     "reshape",
     "softmax",

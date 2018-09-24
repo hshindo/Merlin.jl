@@ -4,14 +4,15 @@ doc"""
 Hyperbolic tangent function.
 """
 function Base.tanh(x::Var)
+    isnothing(x.data) && return Var(x,tanh,(x,))
     configure!(x)
-    Var(tanh(x.data), (tanh,x))
+    Var(tanh(x.data), ∇tanh!, (x,))
 end
 Base.tanh(x::Array) = tanh.(x)
 Base.tanh(x::CuArray) = CUDNN.tanh(x)
 
-function addgrad!(y::Var, ::typeof(tanh), x::Var)
-    isvoid(x.grad) && return
+function ∇tanh!(y::Var, x::Var)
+    isnothing(x.grad) && return
     ∇tanh!(y.data, y.grad, x.data, x.grad)
 end
 

@@ -1,12 +1,11 @@
 export lookup
 
 function lookup(w::Var, x::Var)
+    (isnothing(w.data) || isnothing(x.data)) && return Var(nothing,lookup,(w,x))
     configure!(w)
     ydata = lookup(w.data, x.data)
-    Var(ydata, (lookup,w,x))
+    Var(ydata, ∇lookup!, (w,x))
 end
-lookup(w::Var, idx::Node) = Node(lookup, w, idx)
-lookup(w::Node, idx) = Node(lookup, w, idx)
 
 function lookup(w::UniMatrix{T}, x::Array{Int}) where T
     s = Base.setindex(size(x), size(x,1)*size(w,1), 1)
@@ -34,15 +33,16 @@ end
     }""")
     quote
         n = size(w, 1)
-        y = CuArray{T}(n*size(x,1), Base.tail(size(x))...)
+        ysize = Base.setindex(size(x), n*size(x,1), 1)
+        y = similar(w, ysize)
         gdims, bdims = cudims(length(y))
-        $k(gdims, bdims, rawpointer(y), length(y), rawpointer(w), rawpointer(x), n)
+        $k(gdims, bdims, pointer(y), length(y), pointer(w), pointer(x), n)
         y
     end
 end
 
-function addgrad!(y::Var, ::typeof(lookup), w::Var, x::Var)
-    isvoid(w.grad) && return
+function ∇lookup!(y::Var, w::Var, x::Var)
+    isnothing(w.grad) && return
     ∇lookup!(y.grad, w.grad, x.data)
 end
 

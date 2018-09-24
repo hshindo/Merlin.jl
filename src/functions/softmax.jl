@@ -10,8 +10,9 @@ f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
 function softmax(x::Var)
+    isnothing(x.data) && return Var(nothing,softmax,(x,))
     configure!(x)
-    Var(softmax(x.data), (softmax,x))
+    Var(softmax(x.data), ∇softmax!, (x,))
 end
 softmax(x::CuArray) = CUDNN.softmax(x)
 
@@ -36,8 +37,8 @@ function softmax(x::Matrix{T}) where T
     y
 end
 
-function addgrad!(y::Var, ::typeof(softmax), x::Var)
-    isvoid(x.grad) && return
+function ∇softmax!(y::Var, x::Var)
+    isnothing(x.grad) && return
     ∇softmax!(y.data, y.grad, x.grad)
 end
 
@@ -61,8 +62,9 @@ end
 Logarithm of softmax function.
 """
 function logsoftmax(x::Var)
+    isnothing(x.data) && return Var(nothing,logsoftmax,(x,))
     configure!(x)
-    Var(logsoftmax(x.data), (logsoftmax,x))
+    Var(logsoftmax(x.data), ∇logsoftmax!, (x,))
 end
 logsoftmax(x::CuArray) = CUDNN.softmax(x, CUDNN.CUDNN_SOFTMAX_LOG)
 
@@ -82,8 +84,8 @@ function logsoftmax(x::Matrix{T}) where T
     y
 end
 
-function addgrad!(y::Var, ::typeof(logsoftmax), x::Var)
-    isvoid(x.grad) && return
+function ∇logsoftmax!(y::Var, x::Var)
+    isnothing(x.grad) && return
     ∇logsoftmax!(y.data, y.grad, x.grad)
 end
 

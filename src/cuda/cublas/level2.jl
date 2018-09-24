@@ -21,10 +21,9 @@ for (f,T,Ct) in (
                 gethandle(), cublasop(tA), m, n, [alpha], A, lda, x, incx, [beta], y, incy)
             y
         end
+        function gemv(tA::Char, alpha::$T, A::CuMatrix{$T}, x::CuVector{$T})
+            y = similar(A, size(A, tA=='N' ? 1 : 2))
+            gemv!(tA, alpha, A, x, $T(0), y)
+        end
     end
-end
-
-function gemv(tA::Char, alpha::T, A::CuMatrix{T}, x::CuVector{T}) where T
-    y = similar(A, size(A, tA=='N' ? 1 : 2))
-    gemv!(tA, alpha, A, x, T(0), y)
 end

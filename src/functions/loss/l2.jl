@@ -15,6 +15,7 @@ y = l2(x, 0.01)
 ```
 """
 function l2(x::Var, lambda::Float64)
+    isnothing(x.data) && return Var(nothing,l2,(x,lambda))
     T = eltype(x)
     y = mapreduce(x -> x*x, +, x.data) * T(lambda) / 2
     Var([y], (l2,x,lambda))

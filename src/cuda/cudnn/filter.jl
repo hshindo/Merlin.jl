@@ -20,4 +20,4 @@ end
 FilterDesc(::Type{T}, dims::Int...) where T = FilterDesc(T, dims)
 FilterDesc(x::CuArray) = FilterDesc(eltype(x), size(x))
 
-Base.unsafe_convert(::Type{Cptr}, desc::FilterDesc) = desc.ptr
+Base.cconvert(::Type{Cptr}, desc::FilterDesc) = desc.ptr

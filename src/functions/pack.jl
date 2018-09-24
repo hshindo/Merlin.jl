@@ -1,32 +1,34 @@
 export pack, unpack
 
-function pack(x::Var, batchdims::Vector{Int}, padding)
-    @assert sum(batchdims) == size(x,ndims(x))
-    s = Base.setindex(size(x), maximum(batchdims), ndims(x))
-    ydata = similar(x.data, s..., length(batchdims))
-    fill!(ydata, padding)
-    y = Var(ydata, (pack,x,batchdims))
+function pack(x::Var, dims::Var, padding)
+    isnothing(x.data) && return Var(nothing,pack,(x,dims,padding))
+    configure!(x)
+    @assert sum(dims.data) == size(x,ndims(x))
 
-    xst = stride(x, ndims(x))
-    yst = stride(y, ndims(y))
+    s = Base.setindex(size(x), maximum(dims.data), ndims(x))
+    ydata = similar(x.data, s..., length(dims))
+    fill!(ydata, padding)
+
+    xst = stride(x.data, ndims(x))
+    yst = stride(ydata, ndims(ydata))
     xi = 1
     yi = 1
-    for d in batchdims
+    for d in dims.data
         n = xst * d
-        copyto!(y.data, yi, x.data, xi, n)
+        copyto!(ydata, yi, x.data, xi, n)
         xi += n
         yi += yst
     end
-    y
+    Var(ydata, ∇pack!, (x,dims))
 end
 
-function addgrad!(y::Var, ::typeof(pack), x::Var, batchdims::Vector{Int})
-    isvoid(x.grad) && fill!(similar(x.grad),0)
-    xst = stride(x, ndims(x))
-    yst = stride(y, ndims(y))
+function ∇pack!(y::Var, x::Var, dims::Var)
+    isnothing(x.grad) && return
+    xst = stride(x.data, ndims(x))
+    yst = stride(y.data, ndims(y))
     xi = 1
     yi = 1
-    for d in batchdims
+    for d in dims.data
         n = xst * d
         addto!(x.grad, xi, y.grad, yi, n)
         xi += n

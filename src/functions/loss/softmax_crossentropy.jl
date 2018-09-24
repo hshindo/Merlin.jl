@@ -19,10 +19,11 @@ y = softmax_crossentropy(p, x)
 ```
 """
 function softmax_crossentropy(p::Var, q::Var)
+    (isnothing(p.data) || isnothing(q.data)) && return Var(nothing,softmax_crossentropy,(p,q))
     configure!(p, q)
     logq = logsoftmax(q.data)
     ydata = softmax_crossentropy(p.data, logq)
-    Var(ydata, (softmax_crossentropy,p,q,logq))
+    Var(ydata, ∇softmax_crossentropy!,(p,q,logq))
 end
 
 function softmax_crossentropy(p::Vector{Int}, logq::Matrix{T}) where T
@@ -49,8 +50,8 @@ function softmax_crossentropy(p::Matrix{Int}, logq::Matrix{T}) where T
     y
 end
 
-function addgrad!(y::Var, ::typeof(softmax_crossentropy), p::Var, q::Var, logq)
-    isvoid(q.grad) && return
+function ∇softmax_crossentropy!(y::Var, p::Var, q::Var, logq)
+    isnothing(q.grad) && return
     ∇softmax_crossentropy!(y.grad, p.data, q.grad, logq)
 end
 
@@ -75,17 +76,16 @@ end
 @generated function softmax_crossentropy(p::CuVector{Cint}, logq::CuMatrix{T}) where T
     Ct = cstring(T)
     k = Kernel("""
-    __global__ void softmax_crossentropy($Ct *y, int *p, Array<$Ct,2> logq, int length) {
+    __global__ void softmax_crossentropy($Ct *y, int *p, Array<$Ct,2> logq) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx < length) {
-            y[idx] = p[idx] > 0 ? -logq(p[idx]-1,idx) : 0;
-        }
+        if (idx >= logq.dims[1]) return;
+        y[idx] = p[idx] > 0 ? -logq(p[idx]-1,idx) : 0;
     }""")
     quote
         length(p) == size(logq,2) || throw("Length unmatch.")
         y = CuArray{T}(length(p))
         gdims, bdims = cudims(length(y))
-        $k(gdims, bdims, rawpointer(y), rawpointer(p), logq, length(y))
+        $k(gdims, bdims, pointer(y), pointer(p), logq)
         y
     end
 end
@@ -115,10 +115,10 @@ end
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= logq.length()) return;
 
-        int ndIdx[2];
-        logq.ind2sub(ndIdx, idx);
-        int i = ndIdx[0];
-        int j = ndIdx[1];
+        int ndidxs[2];
+        logq.ndindex(ndidxs, idx);
+        int i = ndidxs[0];
+        int j = ndidxs[1];
         if (p[j] > 0) {
             $Ct delta = (i == p[j]-1) ? 1 : 0;
             gq(i,j) += gy[j] * (exp(logq(i,j)) - delta);
@@ -126,7 +126,7 @@ end
     }""")
     quote
         gdims, bdims = cudims(length(logq))
-        $k(gdims, bdims, rawpointer(gy), rawpointer(p), gq, logq)
+        $k(gdims, bdims, pointer(gy), pointer(p), gq, logq)
     end
 end
 
@@ -137,10 +137,10 @@ end
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= logq.length()) return;
 
-        int ndIdx[2];
-        logq.ind2sub(ndIdx, idx);
-        int i = ndIdx[0];
-        int j = ndIdx[1];
+        int ndidxs[2];
+        logq.ndindex(ndidxs, idx);
+        int i = ndidxs[0];
+        int j = ndidxs[1];
         gq[idx] += gy[j] * (exp(logq[idx]) - p[idx]);
     }""")
     quote

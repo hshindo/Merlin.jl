@@ -1,11 +1,12 @@
 import Base: sum, findmax, findmin, maximum
-import Statistics: mean
 import LinearAlgebra: norm
 
-sum(x::CuArray; dims::Int) = CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_ADD)[1]
-function sum(x::CuArray)
-    x = vec(x)
-    Array(sum(x,1))[1]
+function sum(x::CuArray; dims)
+    isa(dims,Int) && (dims = (dims,))
+    for d in dims
+        x = CUDNN.reduce(x, d, CUDNN.CUDNN_REDUCE_TENSOR_ADD)[1]
+    end
+    x
 end
 
 findmax(x::CuArray; dims::Int) = CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_MAX)
