@@ -65,8 +65,9 @@ include("allocators/atomic_malloc.jl")
 include("allocators/cuda_malloc.jl")
 include("allocators/malloc.jl")
 
-# This must be loaded before kernel.jl and kernels.jl
 if AVAILABLE
+    const CONTEXTS = Array{CuContext}(undef, ndevices())
+    # This must be loaded before kernel.jl and kernels.jl
     include("nvml/NVML.jl")
     include("nvrtc/NVRTC.jl")
     using .NVML

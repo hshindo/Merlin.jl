@@ -10,8 +10,6 @@ function CuContext(dev::Int)
     ctx
 end
 
-const CONTEXTS = Array{CuContext}(undef, ndevices())
-
 Base.:(==)(a::CuContext, b::CuContext) = a.ptr == b.ptr
 Base.hash(ctx::CuContext, h::UInt) = hash(ctx.ptr, h)
 Base.unsafe_convert(::Type{Ptr{Cvoid}}, ctx::CuContext) = ctx.ptr
