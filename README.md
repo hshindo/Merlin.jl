@@ -6,7 +6,7 @@
 
 It aims to provide a fast, flexible and compact deep learning library for machine learning.
 
-`Merlin` is tested against Julia `0.6` on Linux, OS X, and Windows (x64).
+`Merlin` is tested against Julia `1.0` on Linux, OS X, and Windows (x64).
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/ks18dkc3gucf0yso?svg=true)](https://ci.appveyor.com/project/hshindo/merlin-jl)
@@ -16,8 +16,7 @@ It aims to provide a fast, flexible and compact deep learning library for machin
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](http://hshindo.github.io/Merlin.jl/latest/)
 
 ## Requirements
-- Julia 0.6
-- g++ (for OSX or Linux)
+- Julia 1.0
 
 ## Installation
 ```julia

@@ -20,7 +20,7 @@ function check_dnnerror(e)
 end
 
 function dnnLayoutCreate{T}(x::Array{T})
-    p = Ptr{Void}[0]
+    p = Ptr{Cvoid}[0]
     csize = Csize_t[size(x)...]
     cstrides = Csize_t[strides(x)...]
     dnnLayoutCreate_F32(p, ndims(x), csize, cstrides)
@@ -28,7 +28,7 @@ function dnnLayoutCreate{T}(x::Array{T})
 end
 
 function dnnPrimitiveAttributesCreate()
-    p = Ptr{Void}[0]
+    p = Ptr{Cvoid}[0]
     dnnPrimitiveAttributesCreate_F32(p)
     p[1]
 end

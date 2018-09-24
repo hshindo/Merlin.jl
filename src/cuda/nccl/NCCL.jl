@@ -1,17 +1,19 @@
 module NCCL
 
 using ..CUDA
+import Libdl
 
-if is_windows()
+if Sys.iswindows()
+    const libnccl = ""
 else
     const libnccl = Libdl.find_library("libnccl")
 end
-isempty(libnccl) && warn("NCCL cannot be found.")
+isempty(libnccl) && @warn "NCCL cannot be found."
 
 function init()
-    info("NCCL API xxxx")
+    @info "NCCL API xxxx"
     # global const API_VERSION = Int(ccall((:cudnnGetVersion,libcudnn),Cint,()))
-    # info("NCCL API $API_VERSION")
+    # @info("NCCL API $API_VERSION")
 end
 init()
 

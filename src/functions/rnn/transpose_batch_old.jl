@@ -1,5 +1,3 @@
-export transpose_batch
-
 function transpose_batch(xs::Vector{Var}, rev::Bool)
     @assert issorted(xs, rev=true, by = x -> size(x,2))
     y = transpose_batch(map(x -> x.data, xs), rev)
@@ -28,7 +26,7 @@ function transpose_batch(xs::Vector{Matrix{T}}, rev::Bool) where T
             size(x,2) < t && break
             i = rev ? size(x,2)-t+1 : t
             xi = n * (i-1) + 1
-            copy!(y, yi, x, xi, n)
+            copyto!(y, yi, x, xi, n)
             yi += n
         end
     end

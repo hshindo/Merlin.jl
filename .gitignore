@@ -8,3 +8,4 @@ benchmark.jl
 /mkl
 *.h5
 *.jld2
+*.log

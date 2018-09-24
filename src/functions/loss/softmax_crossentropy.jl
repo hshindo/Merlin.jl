@@ -18,131 +18,133 @@ x = Var(rand(Float32,10,5))
 y = softmax_crossentropy(p, x)
 ```
 """
-function softmax_crossentropy(x::Var, y::Var)
-    configure!(x, y)
-    logx = logsoftmax(x.data)
-    l = softmax_crossentropy(logx, y.data)
-    Var(l, (softmax_crossentropy,x,y,logx))
+function softmax_crossentropy(p::Var, q::Var)
+    (isnothing(p.data) || isnothing(q.data)) && return Var(nothing,softmax_crossentropy,(p,q))
+    configure!(p, q)
+    logq = logsoftmax(q.data)
+    ydata = softmax_crossentropy(p.data, logq)
+    Var(ydata, ∇softmax_crossentropy!,(p,q,logq))
 end
 
-function softmax_crossentropy(logx::Matrix{T}, y::Vector{Int}) where T
-    size(logx,2) == length(y) || throw("Length unmatch.")
-    l = Array{T}(length(y))
+function softmax_crossentropy(p::Vector{Int}, logq::Matrix{T}) where T
+    length(p) == size(logq,2) || throw("Length unmatch.")
+    y = zeros(T, length(p))
     @inbounds for i = 1:length(y)
-        l[i] = y[i] > 0 ? -logx[y[i],i] : T(0)
+        if p[i] > 0
+            y[i] = -logq[p[i],i]
+        end
     end
-    l
+    y
 end
 
-function softmax_crossentropy(logx::Matrix{T}, y::Matrix{T}) where T
-    size(logx) == size(y) || throw("Size mismatch.")
-    l = Array{T}(size(y,2))
-    @inbounds for j = 1:size(y,2)
+function softmax_crossentropy(p::Matrix{Int}, logq::Matrix{T}) where T
+    size(p) == size(logq) || throw("Size mismatch.")
+    y = Array{T}(size(p,2))
+    @inbounds for j = 1:size(p,2)
         s = T(0)
-        for i = 1:size(y,1)
-            s += -y[i,j] * logx[i,j]
+        for i = 1:size(p,1)
+            s += -p[i,j] * logq[i,j]
         end
-        l[j] = s
+        y[j] = s
     end
-    l
+    y
 end
 
-function addgrad!(l::Var, ::typeof(softmax_crossentropy), x::Var, y::Var, logx)
-    isvoid(x.grad) && return
-    ∇softmax_crossentropy!(l.grad, x.grad, y.data, logx)
+function ∇softmax_crossentropy!(y::Var, p::Var, q::Var, logq)
+    isnothing(q.grad) && return
+    ∇softmax_crossentropy!(y.grad, p.data, q.grad, logq)
 end
 
-function ∇softmax_crossentropy!(gl::Vector{T}, gx::Matrix{T}, y::Vector{Int}, logx::Matrix{T}) where T
-    @inbounds for j = 1:length(y)
-        y[j] <= 0 && continue
-        for i = 1:size(logx,1)
-            delta = i == y[j] ? T(1) : T(0)
-            gx[i,j] += gl[j] * (exp(logx[i,j]) - delta)
-        end
-    end
-end
-
-function ∇softmax_crossentropy!(gl::Vector{T}, gx::Matrix{T}, y::Matrix{T}, logx::Matrix{T}) where T
-    @inbounds for j = 1:size(y,2)
-        for i = 1:size(logx,1)
-            gx[i,j] += gl[j] * (exp(logx[i,j]) - y[i,j])
+function ∇softmax_crossentropy!(gy::Vector{T}, p::Vector{Int}, gq::Matrix{T}, logq::Matrix{T}) where T
+    @inbounds for j = 1:length(p)
+        p[j] <= 0 && continue
+        for i = 1:size(logq,1)
+            delta = i == p[j] ? T(1) : T(0)
+            gq[i,j] += gy[j] * (exp(logq[i,j]) - delta)
         end
     end
 end
 
-@generated function softmax_crossentropy(logx::CuMatrix{T}, y::CuVector{Cint}) where T
+function ∇softmax_crossentropy!(gy::Vector{T}, p::Matrix{T}, gq::Matrix{T}, logq::Matrix{T}) where T
+    @inbounds for j = 1:size(p,2)
+        for i = 1:size(logq,1)
+            gq[i,j] += gy[j] * (exp(logq[i,j]) - p[i,j])
+        end
+    end
+end
+
+@generated function softmax_crossentropy(p::CuVector{Cint}, logq::CuMatrix{T}) where T
     Ct = cstring(T)
     k = Kernel("""
-    __global__ void softmax_crossentropy($Ct *l, Array<$Ct,2> logx, int *y, int length) {
+    __global__ void softmax_crossentropy($Ct *y, int *p, Array<$Ct,2> logq) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= logq.dims[1]) return;
+        y[idx] = p[idx] > 0 ? -logq(p[idx]-1,idx) : 0;
+    }""")
+    quote
+        length(p) == size(logq,2) || throw("Length unmatch.")
+        y = CuArray{T}(length(p))
+        gdims, bdims = cudims(length(y))
+        $k(gdims, bdims, pointer(y), pointer(p), logq)
+        y
+    end
+end
+
+@generated function softmax_crossentropy(p::CuMatrix{T}, logq::CuMatrix{T}) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void softmax_crossentropy($Ct *y, $Ct *p, $Ct *logq, int length) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx < length) {
-            l[idx] = y[idx] > 0 ? -logx(y[idx]-1,idx) : 0;
+            y[idx] = -p[idx] * logq[idx];
         }
     }""")
     quote
-        size(logx,2) == length(y) || throw("Length unmatch.")
-        l = CuArray{T}(length(y))
-        gdims, bdims = cudims(length(l))
-        $k(gdims, bdims, rawpointer(l), logx, rawpointer(y), length(l))
-        l
+        size(p) == size(logq) || throw("Length unmatch.")
+        y = similar(p)
+        gdims, bdims = cudims(length(y))
+        $k(gdims, bdims, rawpointer(y), rawpointer(p), rawpointer(logq), length(y))
+        vec(sum(y,1))
     end
 end
 
-@generated function softmax_crossentropy(logx::CuMatrix{T}, y::CuMatrix{T}) where T
+@generated function ∇softmax_crossentropy!(gy::CuVector{T}, p::CuVector{Cint}, gq::CuMatrix{T}, logq::CuMatrix{T}) where T
     Ct = cstring(T)
     k = Kernel("""
-    __global__ void softmax_crossentropy($Ct *l, $Ct *logx, $Ct *y, int length) {
+    __global__ void softmax_crossentropy_grad($Ct *gy, int *p, Array<$Ct,2> gq, Array<$Ct,2> logq) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx < length) {
-            l[idx] = -y[idx] * logx[idx];
+        if (idx >= logq.length()) return;
+
+        int ndidxs[2];
+        logq.ndindex(ndidxs, idx);
+        int i = ndidxs[0];
+        int j = ndidxs[1];
+        if (p[j] > 0) {
+            $Ct delta = (i == p[j]-1) ? 1 : 0;
+            gq(i,j) += gy[j] * (exp(logq(i,j)) - delta);
         }
     }""")
     quote
-        size(logx) == size(y) || throw("Length unmatch.")
-        l = similar(y)
-        gdims, bdims = cudims(length(l))
-        $k(gdims, bdims, rawpointer(l), rawpointer(logx), rawpointer(y), length(l))
-        vec(sum(l,1))
+        gdims, bdims = cudims(length(logq))
+        $k(gdims, bdims, pointer(gy), pointer(p), gq, logq)
     end
 end
 
-@generated function ∇softmax_crossentropy!(gl::CuVector{T}, gx::CuMatrix{T}, y::CuVector{Cint}, logx::CuMatrix{T}) where T
+@generated function ∇softmax_crossentropy!(gy::CuVector{T}, p::CuMatrix{T}, gq::CuMatrix{T}, logq::CuMatrix{T}) where T
     Ct = cstring(T)
     k = Kernel("""
-    __global__ void softmax_crossentropy_grad($Ct *gl, Array<$Ct,2> gx, int *y, Array<$Ct,2> logx) {
+    __global__ void softmax_crossentropy_grad($Ct *gy, $Ct *p, $Ct *gq, Array<$Ct,2> logq) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx >= logx.length()) return;
+        if (idx >= logq.length()) return;
 
-        int ndIdx[2];
-        logx.ind2sub(ndIdx, idx);
-        int i = ndIdx[0];
-        int j = ndIdx[1];
-        if (y[j] > 0) {
-            $Ct delta = (i == y[j]-1) ? 1 : 0;
-            gx(i,j) += gl[j] * (exp(logx(i,j)) - delta);
-        }
+        int ndidxs[2];
+        logq.ndindex(ndidxs, idx);
+        int i = ndidxs[0];
+        int j = ndidxs[1];
+        gq[idx] += gy[j] * (exp(logq[idx]) - p[idx]);
     }""")
     quote
-        gdims, bdims = cudims(length(logx))
-        $k(gdims, bdims, rawpointer(gl), gx, rawpointer(y), logx)
-    end
-end
-
-@generated function ∇softmax_crossentropy!(gl::CuVector{T}, gx::CuMatrix{T}, y::CuMatrix{T}, logx::CuMatrix{T}) where T
-    Ct = cstring(T)
-    k = Kernel("""
-    __global__ void softmax_crossentropy_grad($Ct *gl, $Ct *gx, $Ct *y, Array<$Ct,2> logx) {
-        int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx >= logx.length()) return;
-
-        int ndIdx[2];
-        logx.ind2sub(ndIdx, idx);
-        int i = ndIdx[0];
-        int j = ndIdx[1];
-        gx[idx] += gl[j] * (exp(logx[idx]) - y[idx]);
-    }""")
-    quote
-        gdims, bdims = cudims(length(logx))
-        $k(gdims, bdims, rawpointer(gl), rawpointer(gx), rawpointer(y), logx)
+        gdims, bdims = cudims(length(logq))
+        $k(gdims, bdims, rawpointer(gy), rawpointer(p), rawpointer(gq), logq)
     end
 end

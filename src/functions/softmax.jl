@@ -1,6 +1,6 @@
 export softmax, logsoftmax
 
-"""
+doc"""
     softmax(x, dim::Int)
 
 Softmax function over the given dimension.
@@ -10,8 +10,9 @@ f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
 function softmax(x::Var)
+    isnothing(x.data) && return Var(nothing,softmax,(x,))
     configure!(x)
-    Var(softmax(x.data), (softmax,x))
+    Var(softmax(x.data), ∇softmax!, (x,))
 end
 softmax(x::CuArray) = CUDNN.softmax(x)
 
@@ -36,8 +37,8 @@ function softmax(x::Matrix{T}) where T
     y
 end
 
-function addgrad!(y::Var, ::typeof(softmax), x::Var)
-    isvoid(x.grad) && return
+function ∇softmax!(y::Var, x::Var)
+    isnothing(x.grad) && return
     ∇softmax!(y.data, y.grad, x.grad)
 end
 
@@ -61,14 +62,15 @@ end
 Logarithm of softmax function.
 """
 function logsoftmax(x::Var)
+    isnothing(x.data) && return Var(nothing,logsoftmax,(x,))
     configure!(x)
-    Var(logsoftmax(x.data), (logsoftmax,x))
+    Var(logsoftmax(x.data), ∇logsoftmax!, (x,))
 end
 logsoftmax(x::CuArray) = CUDNN.softmax(x, CUDNN.CUDNN_SOFTMAX_LOG)
 
 function logsoftmax(x::Matrix{T}) where T
     y = similar(x)
-    max = maximum(x, 1)
+    max = maximum(x, dims=1)
     @inbounds for j = 1:size(x,2)
         sum = T(1e-10)
         for i = 1:size(x,1)
@@ -82,8 +84,8 @@ function logsoftmax(x::Matrix{T}) where T
     y
 end
 
-function addgrad!(y::Var, ::typeof(logsoftmax), x::Var)
-    isvoid(x.grad) && return
+function ∇logsoftmax!(y::Var, x::Var)
+    isnothing(x.grad) && return
     ∇logsoftmax!(y.data, y.grad, x.grad)
 end
 

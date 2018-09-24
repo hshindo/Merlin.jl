@@ -1,9 +1,15 @@
 export free_device, free_devices
 
 function gethandle(dev::Int)
-    ref = Ref{Ptr{Void}}()
-    @nvml :nvmlDeviceGetHandleByIndex (Cuint,Ptr{Void}) dev ref
+    ref = Ref{Ptr{Cvoid}}()
+    @nvml :nvmlDeviceGetHandleByIndex (Cuint,Ptr{Ptr{Cvoid}}) dev ref
     ref[]
+end
+
+function getcount()
+    ref = Ref{Cuint}()
+    @nvml :nvmlDeviceGetCount (Ptr{Cuint},) ref
+    Int(ref[])
 end
 
 """
@@ -17,7 +23,7 @@ function free_devices(maxcount::Int)
         length(devs) >= maxcount && break
         h = gethandle(i)
         res = @nvml_nocheck(:nvmlDeviceGetComputeRunningProcesses,
-            (Ptr{Void},Ptr{Cuint},Ptr{Void}),
+            (Ptr{Cvoid},Ptr{Cuint},Ptr{Cvoid}),
             h, Ref{Cuint}(0), C_NULL)
         (res == 0 || res == 7) && push!(devs,i)
     end

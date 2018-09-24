@@ -1,9 +1,23 @@
-Base.sum(x::CuArray, dim::Int) = CUDNN.reduce(x, dim, CUDNN.CUDNN_REDUCE_TENSOR_ADD)[1]
-Base.findmax(x::CuArray, dim::Int) = CUDNN.reduce(x, dim, CUDNN.CUDNN_REDUCE_TENSOR_MAX)
-Base.findmin(x::CuArray, dim::Int) = CUDNN.reduce(x, dim, CUDNN.CUDNN_REDUCE_TENSOR_MIN)
-Base.maximum(::typeof(abs), x::CuArray, dim::Int) = CUDNN.reduce(x, dim, CUDNN.CUDNN_REDUCE_TENSOR_AMAX)[1]
-Base.mean(x::CuArray, dim) = CUDNN.reduce(x, dim, CUDNN.CUDNN_REDUCE_TENSOR_AVG)[1]
-function Base.norm(x::CuArray, dim::Int, p::Int)
+import Base: sum, findmax, findmin, maximum
+import LinearAlgebra: norm
+
+function sum(x::CuArray; dims)
+    isa(dims,Int) && (dims = (dims,))
+    for d in dims
+        x = CUDNN.reduce(x, d, CUDNN.CUDNN_REDUCE_TENSOR_ADD)[1]
+    end
+    x
+end
+
+findmax(x::CuArray; dims::Int) = CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_MAX)
+
+findmin(x::CuArray; dims::Int) = CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_MIN)
+
+# maximum(::typeof(abs), x::CuArray, dim::Int) = CUDNN.reduce(x, dim, CUDNN.CUDNN_REDUCE_TENSOR_AMAX)[1]
+
+mean(x::CuArray; dims::Int) = CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_AVG)[1]
+
+function norm(x::CuArray, dim::Int, p::Int)
     if p == 1
         CUDNN.reduce(x, dim, CUDNN.CUDNN_REDUCE_TENSOR_NORM1)[1]
     elseif p == 2
@@ -13,7 +27,11 @@ function Base.norm(x::CuArray, dim::Int, p::Int)
     end
 end
 
-function Base.sum(x::CuArray{T}) where T
-    x = vec(x)
-    Array(sum(x,1))[1]
+#=
+function argmax(x::Array, dim::Int)
+    _, index = findmax(x, dim)
+    y = ind2sub(size(x), vec(index))[dim]
+    dims = ntuple(i -> i==dim ? 1 : size(x,i), ndims(x))
+    reshape(y, dims)
 end
+=#

@@ -1,4 +1,6 @@
-doc"""
+import Base.getindex
+
+"""
     getindex(x::Var, inds...)
 
 ```julia
@@ -9,14 +11,14 @@ y = x[2:2]
 Note that `y = x[i]` throws an error since `y` is not a vector but a scholar.
 Instead, use `y = x[i:i]`.
 """
-function Base.getindex(x::Var, inds::Tuple)
+function getindex(x::Var, I::Tuple)
+    isnothing(x.data) && return Var(nothing,getindex,(x,I))
     configure!(x)
-    Var(x.data[inds...], (getindex,x,inds))
+    Var(x.data[I...], ∇getindex!, (x,I))
 end
-Base.getindex(x::Var, inds...) = getindex(x, inds)
+getindex(x::Var, inds...) = getindex(x, inds)
 
-function addgrad!(y::Var, ::typeof(getindex), x::Var, inds::Tuple)
-    isvoid(x.grad) && return
-    gx = view(x.grad, inds...)
-    add!(gx, y.grad)
+function ∇getindex!(y::Var, x::Var, I::Tuple)
+    isnothing(x.grad) && return
+    addto!(x.grad, I, y.grad)
 end

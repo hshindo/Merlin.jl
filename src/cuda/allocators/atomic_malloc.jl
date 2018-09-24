@@ -1,12 +1,12 @@
 mutable struct AtomicMalloc
     blocksize::Int
     device::Int
-    ptrs::Vector{Ptr{Void}}
+    ptrs::Vector{Ptr{Cvoid}}
     index::Int
     offset::Int
 
     function AtomicMalloc(blocksize::Int=1024*1000*1000)
-        m = new(blocksize, getdevice(), Ptr{Void}[], 0, 0)
+        m = new(blocksize, getdevice(), Ptr{Cvoid}[], 0, 0)
         # finalizer(m, dispose)
         m
     end

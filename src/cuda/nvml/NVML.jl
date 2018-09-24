@@ -2,13 +2,16 @@ module NVML
 
 using ..CUDA
 import ..CUDA: ndevices, getdevice
+using Libdl
 
-if is_windows()
+if Sys.iswindows()
     const libnvml = Libdl.find_library("nvml", [joinpath(ENV["ProgramFiles"],"NVIDIA Corporation","NVSMI")])
 else
     const libnvml = Libdl.find_library("libnvidia-ml")
 end
 isempty(libnvml) && error("NVML cannot be found.")
+
+const API_VERSION = Ref{String}()
 
 function checkresult(result::Cint)
     if result != 0
@@ -17,23 +20,22 @@ function checkresult(result::Cint)
     end
 end
 
-function init()
+function __init__()
     result = ccall((:nvmlInit_v2,libnvml), Cint, ())
     checkresult(result)
 
-    ref = Array{Cchar}(80)
+    ref = Array{Cchar}(undef, 80)
     result = ccall((:nvmlSystemGetNVMLVersion,libnvml), Cint, (Ptr{Cchar},Cuint), ref, 80)
     checkresult(result)
 
-    const API_VERSION = unsafe_string(pointer(ref))
-    info("NVML $API_VERSION")
+    API_VERSION[] = unsafe_string(pointer(ref))
+    @info "NVML $(API_VERSION[])"
 end
-init()
 
 include("define.jl")
 
 macro nvml(f, args...)
-    f = get(DEFINE, f.args[1], f.args[1])
+    f = get(DEFINE, f.value, f.value)
     quote
         result = ccall(($(QuoteNode(f)),libnvml), Cint, $(map(esc,args)...))
         checkresult(result)
@@ -41,7 +43,7 @@ macro nvml(f, args...)
 end
 
 macro nvml_nocheck(f, args...)
-    f = get(DEFINE, f.args[1], f.args[1])
+    f = get(DEFINE, f.value, f.value)
     quote
         ccall(($(QuoteNode(f)),libnvml), Cint, $(map(esc,args)...))
     end

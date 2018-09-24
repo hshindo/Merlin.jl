@@ -1,18 +1,20 @@
 mutable struct Handle
-    ptr::Ptr{Void}
+    ptr::Ptr{Cvoid}
 
     function Handle()
-        ref = Ref{Ptr{Void}}()
-        @cudnn :cudnnCreate (Ptr{Ptr{Void}},) ref
+        ref = Ref{Ptr{Cvoid}}()
+        @cudnn :cudnnCreate (Ptr{Ptr{Cvoid}},) ref
         h = new(ref[])
-        finalizer(h, x -> @cudnn :cudnnDestroy (Ptr{Void},) x)
+        finalizer(h) do x
+            @cudnn :cudnnDestroy (Ptr{Cvoid},) x
+        end
         h
     end
 end
 
-Base.unsafe_convert(::Type{Ptr{Void}}, h::Handle) = h.ptr
+Base.cconvert(::Type{Ptr{Cvoid}}, h::Handle) = h.ptr
 
-const HANDLES = Array{Handle}(ndevices())
+const HANDLES = Array{Handle}(undef, ndevices())
 
 function gethandle()
     dev = getdevice()

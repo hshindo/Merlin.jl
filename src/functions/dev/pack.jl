@@ -15,7 +15,7 @@ function pack(xs::Vector{Var}; pad=0)
     st = stride(y, N+1)
     yi = 1
     for x in xs
-        copy!(y, yi, x.data, 1)
+        copyto!(y, yi, x.data, 1)
         yi += st
     end
     Var(y, (pack,xs))

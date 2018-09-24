@@ -25,9 +25,9 @@ function pairwise{T}(x1::Matrix{T}, batchdims1::Vector{Int}, x2::Matrix{T}, batc
         n2 = batchdims2[k]
         for i = cumdim1+1:cumdim1+n1
             for j = cumdim2+1:cumdim2+n2
-                copy!(y, yi, x1, (i-1)*m1+1, m1)
+                copyto!(y, yi, x1, (i-1)*m1+1, m1)
                 yi += m1
-                copy!(y, yi, x2, (j-1)*m2+1, m2)
+                copyto!(y, yi, x2, (j-1)*m2+1, m2)
                 yi += m2
             end
         end

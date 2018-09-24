@@ -2,19 +2,21 @@ module CUDNN
 
 using ..CUDA
 import ..CUDA: ndevices, getdevice
+import Libdl
 
-if is_windows()
+if Sys.iswindows()
     const libcudnn = Libdl.find_library(["cudnn64_7"])
 else
     const libcudnn = Libdl.find_library("libcudnn")
 end
 isempty(libcudnn) && error("CUDNN cannot be found.")
 
-function init()
-    global const API_VERSION = Int(ccall((:cudnnGetVersion,libcudnn),Cint,()))
-    info("CUDNN API $API_VERSION")
+const API_VERSION = Ref{Int}()
+
+function __init__()
+    API_VERSION[] = Int(ccall((:cudnnGetVersion,libcudnn),Cint,()))
+    @info "CUDNN API $(API_VERSION[])"
 end
-init()
 
 macro cudnn(f, args...)
     quote
@@ -30,7 +32,7 @@ include("define.jl")
 include("handle.jl")
 
 function setstream(handle::Handle, stream)
-    @cudnn :cudnnSetStream (Ptr{Void},Ptr{Void}) handle stream
+    @cudnn :cudnnSetStream (Ptr{Cvoid},Ptr{Cvoid}) handle stream
 end
 
 include("activation.jl")

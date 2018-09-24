@@ -1,0 +1,74 @@
+import Base.Broadcast: broadcasted
+
+"""
+    .+(x1::Var, x2::Var)
+"""
+function broadcasted(::typeof(+), x1::Var, x2::Var)
+    (isnothing(x1.data) || isnothing(x2.data)) && return Var(nothing,broadcasted,(+,x1,x2))
+    configure!(x1, x2)
+    Var(x1.data .+ x2.data, ∇broadcasted!, (+,x1,x2))
+end
+
+function ∇broadcasted!(y::Var, ::typeof(+), x1::Var, x2::Var)
+    isnothing(x1.grad) || ∇broadcast_plus!(y.grad, x1.grad)
+    isnothing(x2.grad) || ∇broadcast_plus!(y.grad, x2.grad)
+end
+
+function ∇broadcast_plus!(gy::UniArray{T}, gx::UniArray{T}) where T
+    dims = ()
+    for i = 1:ndims(gy)
+        if size(gx,i) == 1 && size(gy,i) > 1
+            dims = tuple(dims..., i)
+        end
+    end
+    addto!(gx, sum(gy,dims=dims))
+end
+
+"""
+    .-(x1::Var, x2::Var)
+"""
+function broadcasted(::typeof(-), x1::Var, x2::Var)
+    (isnothing(x1.data) || isnothing(x2.data)) && return Var(nothing,broadcasted,(-,x1,x2))
+    configure!(x1, x2)
+    Var(x1.data .- x2.data, ∇broadcasted!, (-,x1,x2))
+end
+
+function ∇broadcasted!(y::Var, ::typeof(-), x1::Var, x2::Var)
+    isnothing(x1.grad) || ∇broadcast_plus!(y.grad, x1.grad)
+    isnothing(x2.grad) || ∇broadcast_minus!(y.grad, x2.grad)
+end
+
+function ∇broadcast_minus!(gy::UniArray{T}, gx::UniArray{T}) where T
+    dims = ()
+    for i = 1:ndims(gy)
+        if size(gx,i) == 1 && size(gy,i) > 1
+            dims = tuple(dims..., i)
+        end
+    end
+    axpy!(T(-1), sum(gy,dims=dims), gx)
+end
+
+"""
+    .*(x1::Var, x2::Var)
+"""
+function broadcasted(::typeof(*), x1::Var, x2::Var)
+    (isnothing(x1.data) || isnothing(x2.data)) && return Var(nothing,broadcasted,(*,x1,x2))
+    configure!(x1, x2)
+    Var(x1.data .* x2.data, ∇broadcasted!, (*,x1,x2))
+end
+
+function ∇broadcasted!(y::Var, ::typeof(*), x1::Var, x2::Var)
+    isnothing(x1.grad) || ∇dottimes!(y.grad, x2.data, x1.grad)
+    isnothing(x2.grad) || ∇dottimes!(y.grad, x1.data, x2.grad)
+end
+
+function ∇dottimes!(gy::UniArray{T}, x2::UniArray{T}, gx1::UniArray{T}) where T
+    g = gy .* x2
+    dims = ()
+    for i = 1:ndims(gy)
+        if size(gx1,i) == 1 && size(g,i) > 1
+            dims = tuple(dims..., i)
+        end
+    end
+    addto!(gx1, sum(g,dims=dims))
+end

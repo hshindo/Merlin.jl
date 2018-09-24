@@ -1,13 +1,13 @@
 export CuFunction
 
 mutable struct CuFunction
-    ptr::Ptr{Void}
+    ptr::Ptr{Cvoid}
     mod::CuModule # avoid CuModule gc-ed
 end
 
 function CuFunction(mod::CuModule, name::String)
-    ref = Ref{Ptr{Void}}()
-    @apicall :cuModuleGetFunction (Ptr{Ptr{Void}},Ptr{Void},Cstring) ref mod name
+    ref = Ref{Ptr{Cvoid}}()
+    @apicall :cuModuleGetFunction (Ptr{Ptr{Cvoid}},Ptr{Cvoid},Cstring) ref mod name
     CuFunction(ref[], mod)
 end
 
@@ -23,4 +23,4 @@ function CuFunction(ptx::String)
     CuFunction(mod, fnames[1])
 end
 
-Base.unsafe_convert(::Type{Ptr{Void}}, f::CuFunction) = f.ptr
+Base.unsafe_convert(::Type{Ptr{Cvoid}}, f::CuFunction) = f.ptr

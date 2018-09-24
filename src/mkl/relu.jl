@@ -1,13 +1,13 @@
 export relu
 
 function relu(x::Array)
-    p = Ptr{Void}[0]
+    p = Ptr{Cvoid}[0]
     dnnPrimitiveAttributesCreate_F32(p)
     attr = p[1]
 
     layout = create_layout(x)
 
-    p = Ptr{Void}[0]
+    p = Ptr{Cvoid}[0]
     dnnReLUCreateForward_F32(p, attr, layout, Cfloat(0))
     primitive = p[1]
 

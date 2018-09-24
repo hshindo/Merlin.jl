@@ -14,7 +14,7 @@ for (f,T) in (
             end
 
             @cublas($f, (
-                Ptr{Void},Cint,Cint,Cint,Cint,
+                Ptr{Cvoid},Cint,Cint,Cint,Cint,
                 Ptr{$T},Ptr{$T},Cint,
                 Ptr{$T},Ptr{$T},Cint,
                 Ptr{$T},Cint),
@@ -47,7 +47,7 @@ for (f,T) in (
             end
 
             @cublas($f, (
-                Ptr{Void},Cint,Cint,Cint,Cint,Cint,
+                Ptr{Cvoid},Cint,Cint,Cint,Cint,Cint,
                 Ptr{$T},Ptr{Ptr{$T}},Cint,
                 Ptr{Ptr{$T}},Cint,
                 Ptr{$T},Ptr{Ptr{$T}},Cint,Cint),

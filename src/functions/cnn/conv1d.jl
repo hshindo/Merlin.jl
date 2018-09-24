@@ -12,7 +12,7 @@ f = Conv1d(T, 5, 10, 3, padding=2)
 y = f(x)
 ```
 """
-mutable struct Conv1d <: Functor
+mutable struct Conv1d
     W::Var
     b::Var
     ksize::Int
@@ -20,8 +20,6 @@ mutable struct Conv1d <: Functor
     stride::Int
     dilation::Int
 end
-
-getparams(f::Conv1d) = (f.W, f.b)
 
 function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
     padding=0, stride=1, dilation=1, init_W=Xavier(), init_b=Fill(0)) where T
@@ -31,23 +29,40 @@ function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
     Conv1d(param(W), param(b), ksize, padding, stride, dilation)
 end
 
-function (f::Conv1d)(xs::Vector{Var})
-    idxs = map(xs) do x
-        @assert size(x) == 2
-        conv1d_index(f, size(x,2))
-    end
-    idx = cat(2, idxs...)
-    x = concat(2, xs...)
-    h = lookup(x, Var(idx))
-
-    @assert ndims(x) == 2 && sum(length) == size(x,2)
-    idx = conv1d_index(f.ksize, f.padding, f.stride, f.dilation, length)
+function (f::Conv1d)(x::Var, dims::Var)
+    isnothing(x.data) && return Var(nothing,f,(x,dims))
+    @assert ndims(x) == 2 && sum(dims.data) == size(x,2)
+    idx = conv1d_index(f, dims.data)
     h = lookup(x, Var(idx))
     y = linear(h, f.W, f.b)
     y
 end
-(f::Conv1d)(x::Node) = Node(f, x)
 
+function conv1d_index(f::Conv1d, dims::Vector{Int})
+    ksize, padding, stride, dilation = f.ksize, f.padding, f.stride, f.dilation
+    outdims = map(dims) do d
+        k = (ksize - 1) * dilation + 1
+        (d + 2padding - k) ÷ stride + 1
+    end
+    cumdim = 0
+    y = zeros(Int, ksize, sum(outdims))
+    yi = 1
+    for n = 1:length(dims)
+        ndims = dims[n]
+        i = cumdim - padding + 1
+        for d = 1:outdims[n]
+            for j = i:dilation:i+(ksize-1)*dilation
+                y[yi] = cumdim < j <= cumdim+ndims ? j : 0
+                yi += 1
+            end
+            i += stride
+        end
+        cumdim += ndims
+    end
+    y
+end
+
+#=
 function conv1d_index(f::Conv1d, inlength::Int)
     ksize, padding, stride, dilation = f.ksize, f.padding, f.stride, f.dilation
     k = (ksize - 1) * dilation + 1
@@ -66,27 +81,4 @@ function conv1d_index(f::Conv1d, inlength::Int)
     end
     y
 end
-
-function conv1d_index(ksize::Int, padding::Int, stride::Int, dilation::Int, batchsize::Vector{Int})
-    outdims = map(batchsize) do d
-        k = (ksize - 1) * dilation + 1
-        (d + 2padding - k) ÷ stride + 1
-    end
-    cumdim = 0
-    y = Array{Int}(ksize, sum(outdims))
-    yi = 1
-    for n = 1:length(batchsize)
-        ndims = batchsize[n]
-        i = cumdim - padding + 1
-        for d = 1:outdims[n]
-            for j = i:dilation:i+(ksize-1)*dilation
-                xi = cumdim < j <= cumdim+ndims ? j : 0
-                y[yi] = xi
-                yi += 1
-            end
-            i += stride
-        end
-        cumdim += ndims
-    end
-    y
-end
+=#

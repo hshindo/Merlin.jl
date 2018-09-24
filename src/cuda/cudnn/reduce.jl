@@ -20,7 +20,9 @@ mutable struct ReduceTensorDesc
         ref = Ref{Cptr}()
         @cudnn :cudnnCreateReduceTensorDescriptor (Ptr{Cptr},) ref
         desc = new(ref[])
-        finalizer(desc, x -> @cudnn :cudnnDestroyReduceTensorDescriptor (Cptr,) x.ptr)
+        finalizer(desc) do x
+            @cudnn :cudnnDestroyReduceTensorDescriptor (Cptr,) x.ptr
+        end
 
         ind = op == CUDNN_REDUCE_TENSOR_MIN || op == CUDNN_REDUCE_TENSOR_MAX ?
             CUDNN_REDUCE_TENSOR_FLATTENED_INDICES :
@@ -32,7 +34,7 @@ mutable struct ReduceTensorDesc
     end
 end
 
-Base.unsafe_convert(::Type{Cptr}, desc::ReduceTensorDesc) = desc.ptr
+Base.cconvert(::Type{Cptr}, desc::ReduceTensorDesc) = desc.ptr
 
 function reduce(A::CuArray{T}, dim, op) where T
     if size(A,dim) == 1 # CUDNN_STATUS_BAD_PARAM

@@ -11,30 +11,33 @@ y = max(x, 1)
 ```
 """
 function max(x::Var, dim::Int)
+    isa(x.data,Nothing) && return Var(nothing,max,(x,dim))
     configure!(x)
-    y, idx = findmax(x.data, dim)
-    Var(y, (max,x,dim,idx))
+    ydata, idx = findmax(x.data, dims=dim)
+    Var(ydata, ∇max!, (x,dim,idx))
 end
-
-function max(xs::Vector{Var}, dim::Int)
-    x = pad(xs, realmin(eltype(xs[1])))
-    y = max(x, dim)
-    split(y)
+function max(x::Var, dims::Var)
+    isa(x.data,Nothing) && return Var(nothing,max,(x,dims))
+    h = pack(x, dims, floatmin(eltype(x)))
+    y = max(h, ndims(x))
+    y.data = dropdims(y.data, dims=ndims(x))
+    y
 end
-function max(x::Var, shapes::Vector, dim::Int)
-    padx = pad(x.data, shapes, padding=realmin(Float64))
-    y, idx = findmax(padx, dim)
-    y = squeeze(y, dim)
-    Var(y, (max,x,shapes,dim,idx))
-end
-max(x::Node, args...) = Node(max, args...)
+max(x::Node, args...) = Node(x, args...)
 
 function addgrad!(y::Var, ::typeof(max), x::Var, dim::Int, idx)
     isvoid(x.grad) && return
     ∇max!(y.grad, x.grad, dim, idx)
 end
 
-function ∇max!(gy::Array{T}, gx::Array{T}, dim::Int, idx::Array{Int}) where T
+function addgrad!(y::Var, ::typeof(max), x::Var, batchdims::Vector{Int}, idx)
+    isvoid(x.grad) && return
+    gx = pack(x.grad, batchdims, floatmin(eltype(x)))
+    ∇max!(y.grad, gx, ndims(x), idx)
+    addto!(x.grad, unpack(gx,batchdims)) # TODO: more memory-efficient implementation
+end
+
+function ∇max!(gy::Array{T}, gx::Array{T}, dim::Int, idx::Array) where T
     @inbounds for i = 1:length(idx)
         gx[idx[i]] += gy[i]
     end
@@ -55,6 +58,6 @@ end
     """)
     quote
         gdims, bdims = cudims(length(idx))
-        $k(gdims, bdims, gy, gx, dim-1, pointer(idx), length(idx))
+        $k(gdims, bdims, gy, gx, dim-1, rawpointer(idx), length(idx))
     end
 end

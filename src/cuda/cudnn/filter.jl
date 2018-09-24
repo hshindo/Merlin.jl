@@ -5,7 +5,9 @@ mutable struct FilterDesc
         ref = Ref{Cptr}()
         @cudnn :cudnnCreateFilterDescriptor (Ptr{Cptr},) ref
         desc = new(ref[])
-        finalizer(desc, x -> @cudnn :cudnnDestroyFilterDescriptor (Cptr,) x.ptr)
+        finalizer(desc) do x
+            @cudnn :cudnnDestroyFilterDescriptor (Cptr,) x.ptr
+        end
 
         csize = Cint[reverse(dims)...]
         @cudnn(:cudnnSetFilterNdDescriptor,
@@ -18,4 +20,4 @@ end
 FilterDesc(::Type{T}, dims::Int...) where T = FilterDesc(T, dims)
 FilterDesc(x::CuArray) = FilterDesc(eltype(x), size(x))
 
-Base.unsafe_convert(::Type{Cptr}, desc::FilterDesc) = desc.ptr
+Base.cconvert(::Type{Cptr}, desc::FilterDesc) = desc.ptr

@@ -17,6 +17,14 @@ const CUDNN_RNN_ALGO_STANDARD = Cint(0)
 const CUDNN_RNN_ALGO_PERSIST_STATIC = Cint(1)
 const CUDNN_RNN_ALGO_PERSIST_DYNAMIC = Cint(2)
 
+# cudnnRNNClipMode_t
+const CUDNN_RNN_CLIP_NONE = 0
+const CUDNN_RNN_CLIP_MINMAX = 1
+
+# cudnnRNNPaddingMode_t
+const CUDNN_RNN_PADDED_IO_DISABLED = 0
+const CUDNN_RNN_PADDED_IO_ENABLED = 1
+
 mutable struct RNNDesc
     ptr::Cptr
     direction
@@ -34,12 +42,14 @@ mutable struct RNNDesc
             (Cptr,Cptr,Cint,Cint,Cptr,Cint,Cint,Cint,Cint,Cint),
             h, desc, hsize, nlayers, dropdesc, CUDNN_LINEAR_INPUT, direction, mode, algo, datatype(T))
 
-        finalizer(desc, x -> @cudnn :cudnnDestroyRNNDescriptor (Cptr,) x.ptr)
+        finalizer(desc) do x
+            @cudnn :cudnnDestroyRNNDescriptor (Cptr,) x.ptr
+        end
         desc
     end
 end
 
-Base.unsafe_convert(::Type{Cptr}, desc::RNNDesc) = desc.ptr
+Base.cconvert(::Type{Cptr}, desc::RNNDesc) = desc.ptr
 
 struct RNNWork
     direction

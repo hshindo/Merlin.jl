@@ -1,4 +1,4 @@
-import Base.LinAlg.BLAS: gemv, gemv!
+import LinearAlgebra.BLAS: gemv, gemv!
 
 for (f,T,Ct) in (
     (:(:cublasDgemv),:Float64,:Cdouble),
@@ -14,17 +14,16 @@ for (f,T,Ct) in (
             incx = stride(x, 1)
             incy = stride(y, 1)
             @cublas($f, (
-                Ptr{Void},Cint,Cint,Cint,
+                Ptr{Cvoid},Cint,Cint,Cint,
                 Ptr{$Ct},Ptr{$Ct},Cint,
                 Ptr{$Ct},Cint,
                 Ptr{$Ct},Ptr{$Ct},Cint),
                 gethandle(), cublasop(tA), m, n, [alpha], A, lda, x, incx, [beta], y, incy)
             y
         end
+        function gemv(tA::Char, alpha::$T, A::CuMatrix{$T}, x::CuVector{$T})
+            y = similar(A, size(A, tA=='N' ? 1 : 2))
+            gemv!(tA, alpha, A, x, $T(0), y)
+        end
     end
-end
-
-function gemv(tA::Char, alpha::T, A::CuMatrix{T}, x::CuVector{T}) where T
-    y = similar(A, size(A, tA=='N' ? 1 : 2))
-    gemv!(tA, alpha, A, x, T(0), y)
 end

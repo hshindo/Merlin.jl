@@ -1,11 +1,13 @@
-function Base.cat(dim::Int, xs::CuArray{T}...) where T
+function Base.cat(xs::CuArray{T}...; dims::Int) where T
+    dim = dims
     length(xs) == 1 && return xs[1]
     N = max(dim, maximum(ndims,xs))
-    dims = Int[size(xs[1],i) for i=1:N]
+    # dims = Int[size(xs[1],i) for i=1:N]
     xs = map(xs) do x
         if ndims(x) == N
             x
         else
+            Base.setindex(size(x), dims)
             dims[dim] = size(x,dim)
             reshape(x, dims...)
         end
@@ -20,14 +22,21 @@ function Base.cat(dim::Int, xs::CuArray{T}...) where T
         end
     end
 
-    y = CuArray{T}(dims...)
+    cumdim = sum(x -> size(x,dims), xs)
+    if dims <= N
+        y = Base.setindex(size(xs[1]), cumdim, dims)
+    elseif dims == N+1
+        y = similar(xs[1], size(xs[1])..., cumdim)
+    end
     ysize = Any[Colon() for i=1:N]
     offset = 0
     for x in xs
-        ysize[dim] = offset+1:offset+size(x,dim)
-        suby = view(y, ysize...)
-        copy!(suby, x)
-        offset += size(x,dim)
+        s = size(x,dims)
+        I = ntuple(size(y)) do i
+            i == dims ? (offset+1:offset+s) : Colon()
+        end
+        copyto!(y, I, x)
+        offset += s
     end
     y
 end

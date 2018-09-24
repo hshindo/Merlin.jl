@@ -4,23 +4,23 @@ const CU_STREAM_DEFAULT = Cint(0)
 const CU_STREAM_NON_BLOCKING = Cint(1)
 
 mutable struct CuStream
-    ptr::Ptr{Void}
+    ptr::Ptr{Cvoid}
 
     function CuStream(flags::Cint=CU_STREAM_DEFAULT)
-        ref = Ref{Ptr{Void}}()
-        @apicall :cuStreamCreate (Ptr{Ptr{Void}},Cuint) ref flags
+        ref = Ref{Ptr{Cvoid}}()
+        @apicall :cuStreamCreate (Ptr{Ptr{Cvoid}},Cuint) ref flags
         s = new(ref[], getcontext())
         finalizer(s, destroy)
         s
     end
 end
 
-Base.unsafe_convert(::Type{Ptr{Void}}, s::CuStream) = s.ptr
+Base.unsafe_convert(::Type{Ptr{Cvoid}}, s::CuStream) = s.ptr
 
 function destroy(s::CuStream)
     setcontext(s.ctx) do
-        @apicall :cuStreamDestroy (Ptr{Void},) s
+        @apicall :cuStreamDestroy (Ptr{Cvoid},) s
     end
 end
 
-synchronize(s::CuStream) = @apicall :cuStreamSynchronize (Ptr{Void},) s
+synchronize(s::CuStream) = @apicall :cuStreamSynchronize (Ptr{Cvoid},) s

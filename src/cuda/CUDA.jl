@@ -1,14 +1,17 @@
 module CUDA
 
+using Libdl
 using Base.Threads
+import LinearAlgebra.BLAS: scal!, axpy!, gemv, gemv!, gemm, gemm!
 
-if is_windows()
+if Sys.iswindows()
     const libcuda = Libdl.find_library("nvcuda")
 else
     const libcuda = Libdl.find_library("libcuda")
 end
 const AVAILABLE = !isempty(libcuda)
-AVAILABLE || warn("CUDA cannot be found.")
+AVAILABLE || @warn "CUDA cannot be found."
+const API_VERSION = Ref{Int}()
 
 function checkstatus(status)
     if status != 0
@@ -18,27 +21,22 @@ function checkstatus(status)
     end
 end
 
-function init()
-    if AVAILABLE
-        status = ccall((:cuInit,libcuda), Cint, (Cint,), 0)
-        checkstatus(status)
+if AVAILABLE
+    status = ccall((:cuInit,libcuda), Cint, (Cint,), 0)
+    checkstatus(status)
 
-        ref = Ref{Cint}()
-        status = ccall((:cuDriverGetVersion,libcuda), Cint, (Ptr{Cint},), ref)
-        checkstatus(status)
+    ref = Ref{Cint}()
+    status = ccall((:cuDriverGetVersion,libcuda), Cint, (Ptr{Cint},), ref)
+    checkstatus(status)
 
-        global const API_VERSION = Int(ref[])
-        info("CUDA API $API_VERSION")
-    else
-        global const API_VERSION = 0
-    end
+    API_VERSION[] = Int(ref[])
+    @info "CUDA API $(API_VERSION[])"
 end
-init()
 
 include("define.jl")
 
 macro apicall(f, args...)
-    f = get(define, f.args[1], f.args[1])
+    f = get(DEFINE, f.value, f.value)
     quote
         status = ccall(($(QuoteNode(f)),libcuda), Cint, $(map(esc,args)...))
         checkstatus(status)
@@ -46,7 +44,7 @@ macro apicall(f, args...)
 end
 
 macro unsafe_apicall(f, args...)
-    f = get(define, f.args[1], f.args[1])
+    f = get(DEFINE, f.value, f.value)
     quote
         ccall(($(QuoteNode(f)),libcuda), Cint, $(map(esc,args)...))
     end
@@ -67,22 +65,20 @@ include("allocators/atomic_malloc.jl")
 include("allocators/cuda_malloc.jl")
 include("allocators/malloc.jl")
 
-# This must be loaded before kernel.jl and kernels.jl
 if AVAILABLE
+    const CONTEXTS = Array{CuContext}(undef, ndevices())
+    # This must be loaded before kernel.jl and kernels.jl
     include("nvml/NVML.jl")
     include("nvrtc/NVRTC.jl")
     using .NVML
 end
 
-include("abstractarray.jl")
-include("kernel.jl")
 include("array.jl")
-include("subarray.jl")
+include("kernel.jl")
 include("arraymath.jl")
 include("broadcast.jl")
 include("cat.jl")
 include("reduce.jl")
-include("reducedim.jl")
 include("devicearray.jl")
 
 if AVAILABLE

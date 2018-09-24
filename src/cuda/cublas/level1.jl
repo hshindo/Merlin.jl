@@ -1,4 +1,4 @@
-import Base.LinAlg.BLAS: axpy!
+import LinearAlgebra.BLAS: scal!, axpy!
 
 #=
 for (fname,elty) in (
@@ -22,7 +22,7 @@ for (f,T,Ct) in (
             y::Union{CuArray{$T},CuPtr{$T}}, incy::Int)
 
             @cublas($f, (
-                Ptr{Void},Cint,Ptr{$Ct},Ptr{$Ct},Cint,Ptr{$Ct},Cint),
+                Ptr{Cvoid},Cint,Ptr{$Ct},Ptr{$Ct},Cint,Ptr{$Ct},Cint),
                 gethandle(), n, [alpha], x, incx, y, incy)
             y
         end

@@ -1,6 +1,6 @@
 export CuSubArray, CuSubVector, CuSubMatrix, CuSubVecOrMat
 
-type CuSubArray{T,N} <: AbstractCuArray{T,N}
+struct CuSubArray{T,N} <: AbstractCuArray{T,N}
     parent::CuArray{T}
     indices::Tuple
     offset::Int
@@ -11,7 +11,7 @@ const CuSubVector{T} = CuSubArray{T,1}
 const CuSubMatrix{T} = CuSubArray{T,2}
 const CuSubVecOrMat{T} = Union{CuSubVector{T},CuSubMatrix{T}}
 
-CuArray(x::CuSubArray) = copy!(similar(x), x)
+CuArray(x::CuSubArray) = copyto!(similar(x), x)
 Base.Array(x::CuSubArray) = Array(CuArray(x))
 Base.size(x::CuSubArray) = map(length, x.indices)
 Base.size(x::CuSubArray, i::Int) = length(x.indices[i])
@@ -39,13 +39,4 @@ function Base.view(x::CuArray{T,N}, I...) where {T,N}
 end
 
 Base.show(io::IO, ::Type{CuSubArray{T,N}}) where {T,N} = print(io, "CuSubArray{$T,$N}")
-function Base.showarray(io::IO, X::CuSubArray, repr::Bool=true; header=true)
-    if repr
-        print(io, "CuSubArray(")
-        Base.showarray(io, Array(X), true)
-        print(io, ")")
-    else
-        header && println(io, summary(X), ":")
-        Base.showarray(io, Array(X), false, header = false)
-    end
-end
+Base.print_array(io::IO, X::CuSubArray) = Base.showarray(io, Array(X))

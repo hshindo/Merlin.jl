@@ -1,4 +1,4 @@
-export setcpu, setcuda
+export setcpu, setcuda, settrain
 
 mutable struct Config
     device::Int

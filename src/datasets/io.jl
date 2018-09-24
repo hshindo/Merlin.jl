@@ -1,4 +1,4 @@
-if is_unix() && !is_bsd()
+if Sys.isunix() && !Sys.isbsd()
     function unpack(file,directory,extension,secondary_extension)
         if ((extension == ".gz" || extension == ".Z") && secondary_extension == ".tar") || extension == ".tgz"
             return (`tar xzf $file --directory=$directory`)
@@ -17,7 +17,7 @@ if is_unix() && !is_bsd()
     end
 end
 
-if is_windows()
+if Sys.iswindows()
     const exe7z = joinpath(JULIA_HOME, "7z.exe")
 
     function unpack(file,directory,extension,secondary_extension)

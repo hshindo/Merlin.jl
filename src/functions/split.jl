@@ -41,5 +41,5 @@ Base.split(x::Node, args...) = Node(split, x, args...)
 
 function addgrad!(y::Var, ::typeof(split), x::Var, dim::Int, offset::Int)
     isvoid(x.grad) && return
-    add!(x.grad, offset, y.grad, 1, length(y))
+    addto!(x.grad, offset, y.grad, 1, length(y))
 end

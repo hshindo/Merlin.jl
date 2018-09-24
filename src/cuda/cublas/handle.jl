@@ -1,18 +1,20 @@
 mutable struct Handle
-    ptr::Ptr{Void}
+    ptr::Ptr{Cvoid}
 
     function Handle()
-        ref = Ref{Ptr{Void}}()
-        @cublas :cublasCreate (Ptr{Ptr{Void}},) ref
+        ref = Ref{Ptr{Cvoid}}()
+        @cublas :cublasCreate (Ptr{Ptr{Cvoid}},) ref
         h = new(ref[])
-        finalizer(h, x -> @cublas :cublasDestroy (Ptr{Void},) x)
+        finalizer(h) do x
+            @cublas :cublasDestroy (Ptr{Cvoid},) x
+        end
         h
     end
 end
 
-Base.unsafe_convert(::Type{Ptr{Void}}, h::Handle) = h.ptr
+Base.unsafe_convert(::Type{Ptr{Cvoid}}, h::Handle) = h.ptr
 
-const HANDLES = Array{Handle}(ndevices())
+const HANDLES = Array{Handle}(undef, ndevices())
 
 function gethandle()
     dev = getdevice()

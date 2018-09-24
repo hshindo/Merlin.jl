@@ -1,41 +1,12 @@
-import Base: broadcast, broadcast!
+#import Base.Broadcast: Broadcasted
+import Base.Broadcast: Broadcasted, BroadcastStyle, ArrayStyle
 
-function broadcast!(::typeof(+), dest::CuArray{T}, srcs::AbstractCuArray{T}...) where T
-    for src in srcs
-        dest === src && continue
-        @assert ndims(dest) >= ndims(src)
-        _broadcast!(+, dest, src)
-    end
-    dest
+BroadcastStyle(::Type{<:CuArray}) = ArrayStyle{CuArray}()
+
+function Base.similar(bc::Broadcasted{ArrayStyle{CuArray}}, ::Type{T}) where T
+    similar(CuArray, T, length.(axes(bc)))
 end
 
-function _broadcast!(::typeof(+), dest::CuArray{T}, src::CuArray{T}) where T
-    if length(dest) == length(src)
-        BLAS.axpy!(T(1), src, dest)
-    else
-        CUDNN.add!(1, src, 1, dest)
-    end
-    dest
-end
-
-@generated function _broadcast!(::typeof(+), dest::CuArray{T,N}, src::AbstractCuArray{T}) where {T,N}
-    Ct = cstring(T)
-    k = Kernel("""
-    __global__ void broadcast_add(Array<$Ct,$N> dest, Array<$Ct,$N> src) {
-        int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx >= dest.length()) return;
-
-        int sub[$N];
-        dest.ind2sub(sub, idx);
-        dest(sub) += src(sub);
-    }""")
-    quote
-        gdims, bdims = cudims(length(dest))
-        $k(gdims, bdims, dest, src)
-        dest
-    end
-end
-
-function broadcast!(::typeof(*), y::CuArray{T}, x1::CuArray{T}, x2::CuArray{T}) where T
+function Base.copyto!(dest::CuArray, bc::Broadcasted{Nothing})
     throw("Not implemented yet.")
 end

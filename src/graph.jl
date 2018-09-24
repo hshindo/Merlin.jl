@@ -45,7 +45,7 @@ Base.getindex(g::Graph, s::String) = g.dict[s]
 
 function (g::Graph)(xs...)
     @assert length(xs) == length(g.inids)
-    temps = Array{Any}(length(g.nodes))
+    temps = Array{Any}(undef, length(g.nodes))
     for i = 1:length(xs)
         temps[g.inids[i]] = xs[i]
     end
