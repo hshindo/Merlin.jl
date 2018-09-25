@@ -10,7 +10,7 @@ function addto!(dest::Array{T}, src::Array{T}) where T
 end
 
 function addto!(dest::Array{T}, I::Tuple, src::Array{T}) where T
-    broadcast!(+, view(dest,I...), src)
+    dest[I...] += src
 end
 
 function addto!(dest::Array{T}, src::Array{T}, I::Tuple) where T

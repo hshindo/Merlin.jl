@@ -87,7 +87,7 @@ end
     dims = Var([5,3,2])
     for nlayers = 1:1
         lstm = LSTM(T, 20, 15, nlayers, 0.0, false)
-        #@test_grad lstm(x,dims) x
+        @test_grad lstm(x,dims) x
         #@test_cuda lstm x batchdims
     end
 end
@@ -114,7 +114,7 @@ end
     x2 = param(randn(T,10,5,2))
     x3 = param(randn(T,10,5,2))
     for dim = 1:3
-        @test_grad concat(dim,x1,x2,x3) x1
+        @test_grad concat(dim,x1,x2,x3) x1 x2 x3
         #@test_cuda concat(dim,x1,x2,x3) x1
     end
 end
@@ -135,7 +135,7 @@ end
 
 @testset "linear" begin
     x = param(randn(T,10,5))
-    f = Linear(T, 10, 7, init_b=Uniform(-0.01,0.01))
+    f = Linear(T, 10, 7, init_b=Uniform(-1,1))
     @test_grad f(x) x f.w f.b
     @test_cuda f(x) x f.w f.b
 end
