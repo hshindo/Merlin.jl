@@ -17,8 +17,8 @@ end
     x = param(randn(T,20,10))
     dims = [3, 7]
     conv = Conv1d(T, 5, 20, 15, padding=2)
-    @test_grad conv(x,dims) x
-    @test_cuda conv(x,dims) x
+    @test_grad conv(x,dims) x conv.W conv.b
+    @test_cuda conv(x,dims) x conv.W conv.b
 end
 
 @testset "loss" begin
