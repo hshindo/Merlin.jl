@@ -10,13 +10,13 @@ f(x) = (1 + \exp(-x))^{-1}
 ```
 """
 function sigmoid(x::Var)
-    isnothing(x.data) && return Var(x,sigmoid,(x,))
     configure!(x)
     Var(sigmoid(x.data), ∇sigmoid!, (x,))
 end
 sigmoid(x::Array) = sigmoid.(x)
 sigmoid(x::T) where T<:AbstractFloat = T(1 / (1 + exp(-x)))
 sigmoid(x::CuArray) = CUDNN.sigmoid(x)
+sigmoid(x::Node) = Node(sigmoid, (x,))
 
 function ∇sigmoid!(y::Var, x::Var)
     isnothing(x.grad) && return

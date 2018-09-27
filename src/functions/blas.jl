@@ -17,23 +17,23 @@ B = gemv('N', 1, A, x)
 ```
 """
 function gemv(tA::Char, alpha::Number, A::Var, x::Var)
-    (isa(A.data,Nothing) || isa(x.data,Nothing)) && return Var(nothing,gemv,(tA,alpha,A,x))
     configure!(A, x)
     T = eltype(A)
     ydata = gemv(tA, T(alpha), A.data, x.data)
     Var(ydata, ∇gemv!, (tA,alpha,A,x))
 end
+gemv(tA, alpha, A::Node, x) = Node(gemv, (tA,alpha,A,x))
 
 function ∇gemv!(y::Var, tA::Char, alpha::Number, A::Var, x::Var)
     T = eltype(A)
-    if !isa(A.grad,Nothing)
+    if !isnothing(A.grad)
         gy = reshape(y.grad, length(y.grad), 1)
         xdata = reshape(x.data, length(x.data), 1)
         tA == 'N' ?
         gemm!('N', 'T', T(alpha), gy, xdata, T(1), A.grad) :
         gemm!('N', 'T', T(alpha), xdata, gy, T(1), A.grad)
     end
-    if !isa(x.grad,Nothing)
+    if !isnothing(x.grad)
         gemv!(tA=='N' ? 'T' : 'N', T(alpha), A.data, y.grad, T(1), x.grad)
     end
 end
@@ -56,12 +56,13 @@ C = gemm('T', 'N', 1, A, B)
 ```
 """
 function gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
-    (isa(A.data,Nothing) || isa(B.data,Nothing)) && return Var(nothing,gemm,(tA,tB,alpha,A,B))
     configure!(A, B)
     T = eltype(A)
     ydata = gemm(tA, tB, T(alpha), A.data, B.data)
     Var(ydata, ∇gemm!, (tA,tB,alpha,A,B))
 end
+gemm(tA, tB, alpha, A::Node, B) = Node(gemm, (tA,tB,alpha,A,B))
+gemm(tA, tB, alpha, A, B::Node) = Node(gemm, (tA,tB,alpha,A,B))
 
 function ∇gemm!(C::Var, tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
     isa(A.grad,Nothing) || ∇gemm_A!(C.grad, tA, tB, alpha, A.grad, B.data)
@@ -90,7 +91,6 @@ doc"""
     gemm_batch(tA::Char, tB::Char, alpha, A::Var, B::Var)
 """
 function gemm_batch(tA::Char, tB::Char, alpha, A::Var, B::Var)
-    (isa(A.data,Nothing) || isa(B.data,Nothing)) && return Var(nothing,gemm_batch,(tA,tB,alpha,A,B))
     configure!(A, B)
     T = eltype(A)
     ydata = gemm_batch(tA, tB, T(alpha), A.data, B.data)

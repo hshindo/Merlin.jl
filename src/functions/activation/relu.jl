@@ -10,13 +10,13 @@ f(x) = \max(0, x)
 ```
 """
 function relu(x::Var)
-    isnothing(x.data) && return Var(x,relu,(x,))
     configure!(x)
     Var(relu(x.data), ∇relu!, (x,))
 end
 relu(x::T) where T<:AbstractFloat = max(x, zero(T))
 relu(x::Array) = relu.(x)
 relu(x::CuArray) = CUDNN.relu(x)
+relu(x::Node) = Node(relu, (x,))
 
 function ∇relu!(y::Var, x::Var)
     isnothing(x.grad) && return

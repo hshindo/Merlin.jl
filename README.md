@@ -42,7 +42,7 @@ Here is an example of three-layer network:
 using Merlin
 
 T = Float32
-x = zerograd(rand(T,10,5)) # instanciate Var with zero gradients
+x = param(rand(T,10,5)) # instanciate Var with zero gradients
 y = Linear(T,10,7)(x)
 y = relu(y)
 y = Linear(T,7,3)(y)
@@ -72,7 +72,7 @@ n = Linear(T,7,3)(n)
 @assert typeof(n) == Node
 g = Graph(n)
 
-x = zerograd(rand(T,10,10))
+x = param(rand(T,10,10))
 y = g("x"=>x)
 
 params = gradient!(y)

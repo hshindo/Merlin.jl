@@ -4,9 +4,8 @@ mutable struct Node
     f
     args::Tuple
     name::String
-
-    Node(f, args...; name="") = new(f, args, name)
 end
+Node(f, args; name="") = Node(f, args, name)
 Node(; name="") = Node(nothing, name=name)
 
 Base.getindex(x::Node, i::Int) = x.args[i]
@@ -15,11 +14,10 @@ struct NodeId
     id::Int
 end
 
-
 struct Graph
     nodes::Vector{Node} # topological order
-    inids::Tuple{Vararg{Int}}
-    outids::Tuple{Vararg{Int}}
+    inids::Tuple
+    outids::Tuple
 end
 
 function Graph(outs::Node...)

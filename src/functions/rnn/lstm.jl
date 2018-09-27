@@ -5,12 +5,13 @@ mutable struct LSTM
     hsize::Int
     nlayers::Int
     droprate::Float64
-    bidirectional::Bool
+    bidir::Bool
     params
+    iscuda::Bool
 end
 
 doc"""
-    LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64, bidirectional::Bool,
+    LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64, bidir::Bool,
         [init_w=Orthogonal(), init_u=Orthogonal(), init_b=Fill(0)])
 
 Long Short-Term Memory network.
@@ -43,11 +44,11 @@ f = LSTM(T, 100, 100)
 h = f(x)
 ```
 """
-function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64, bidirectional::Bool;
+function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64, bidir::Bool;
     init_W=Normal(0,0.001), init_U=Orthogonal(), init_b=Fill(0), init_h=Fill(0), init_c=Fill(0)) where T
 
     params = []
-    coef = bidirectional ? 2 : 1
+    coef = bidir ? 2 : 1
     for l = 1:nlayers
         for _ = 1:coef
             Ws = []
@@ -65,31 +66,53 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
             push!(params, (W,U,b,h,c))
         end
     end
-    LSTM(insize, hsize, nlayers, droprate, bidirectional, params)
+    LSTM(insize, hsize, nlayers, droprate, bidir, params, false)
 end
 
-function (lstm::LSTM)(x::Var, dims::Var)
-    if iscuda()
-        length(lstm.params) == 1 || setcuda!(lstm)
-        configure!(x, lstm.params...)
-        W = lstm.params[1]
-        t_x = transpose_batch(x, dims)
-        dir = lstm.bidirectional ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
-        mode = CUDNN.CUDNN_LSTM
-        t_y, work = CUDNN.rnn(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, dir, mode,
-            W.data, t_x, t_dims, istrain())
+function configure!(lstm::LSTM)
+    if iscuda() && !lstm.iscuda
+        lstm.iscuda = true
+        Ws = []
+        hs = []
+        cs = []
+        for (W,U,b,h,c) in lstm.params
+            push!(Ws, vec(W.data), vec(U.data))
+        end
+        for (W,U,b,h,c) in lstm.params
+            push!(Ws, b.data, fill!(similar(b.data),0))
+            push!(hs, h.data)
+            push!(cs, c.data)
+        end
+        W = param(cat(Ws...,dims=1))
+        h = param(cat(hs...,dims=1))
+        c = param(cat(cs...,dims=1))
+        configure!(W, h, c)
+        lstm.params = (W,)
+    end
+end
 
-        transpose_batch(t_y)
+function (lstm::LSTM)(x::Var, dims::Vector{Int})
+    if iscuda()
+        lstm.iscuda || configure!(lstm)
+        configure!(x)
+        W = lstm.params[1]
+        t_xdata, t_dims = transpose_batch(x.data, dims)
+        dir = lstm.bidir ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
+        mode = CUDNN.CUDNN_LSTM
+        t_ydata, work = CUDNN.rnn(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, dir, mode,
+            W.data, t_xdata, t_dims, istrain())
+        ydata, _ = transpose_batch(t_ydata, t_dims)
+        Var(ydata, ∇lstm!, (lstm,x,dims,work,W))
     else
         h = x
-        coef = lstm.bidirectional ? 2 : 1
+        coef = lstm.bidir ? 2 : 1
         for l = 1:lstm.nlayers
             i = (l-1) * coef + 1
             p = lstm.params[i]
-            h1 = lstm_tstep(h, dims.data, p..., false)
-            if lstm.bidirectional
+            h1 = lstm_tstep(h, dims, p..., false)
+            if lstm.bidir
                 p = lstm.params[i+1]
-                h2 = lstm_tstep(h, dims.data, p..., true)
+                h2 = lstm_tstep(h, dims, p..., true)
                 h = concat(1, h1, h2)
             else
                 h = h1
@@ -98,24 +121,7 @@ function (lstm::LSTM)(x::Var, dims::Var)
         h
     end
 end
-
-function setcuda!(lstm::LSTM)
-    Ws = []
-    hs = []
-    cs = []
-    for (W,U,b,h,c) in lstm.param
-        push!(Ws, vec(W.data), vec(U.data))
-    end
-    for (W,U,b,h,c) in lstm.param
-        push!(Ws, b.data, fill!(similar(b.data),0))
-        push!(hs, h)
-        push!(cs, c)
-    end
-    W = param(cat(Ws...,dims=1))
-    h = cat(hs..., dims=1)
-    c = cat(cs..., dims=1)
-    lstm.params = (W,)
-end
+(lstm::LSTM)(x::Node, dims) = Node(lstm, (x,dims))
 
 function lstm_tstep(x::Var, dims::Vector{Int}, W::Var, U::Var, b::Var, h::Var, c::Var, rev::Bool)
     @assert sum(dims) == size(x,2)
@@ -171,45 +177,12 @@ function lstm_onestep(xt::Var, WU::Var, b::Var, ht::Var, ct::Var)
     ht, ct
 end
 
-function lstm(f::LSTM, x::Var, dims::Var)
-    configure!(lstm.W, x)
-    t_x, t_dims = transpose_batch(x.data, dims.data)
-    dir = lstm.bidirectional ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
-    mode = CUDNN.CUDNN_LSTM
-    t_y, work = CUDNN.rnn(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, dir, mode,
-        lstm.W.data, t_x, t_dims, istrain())
-    Var(t_y, ∇lstm!, (x,dims,work))
-end
-
-function ∇lstm!(y::Var, f::LSTM, x::Var, dims::Var, work)
+function ∇lstm!(y::Var, f::LSTM, x::Var, dims, work, W)
     t_gy, t_dims = transpose_batch(y.grad, dims)
     t_gx = CUDNN.∇rnn_data(work, t_gy) # this call is required for ∇rnn_weights!
     gx, _ = transpose_batch(t_gx, t_dims)
-    isnothing(x.grad) || addto!(x.grad,gx)
-    isnothing(w.grad) || CUDNN.∇rnn_weights!(work,w.grad)
-end
-
-function transpose_batch(x::Matrix{T}, dims::Vector{Int}) where T
-    cumdims = Array{Int}(undef, length(dims))
-    cumdims[1] = 1
-    for i = 2:length(dims)
-        cumdims[i] = cumdims[i-1] + dims[i-1]
-    end
-
-    n = size(x, 1)
-    y = similar(x)
-    yi = 1
-    for t = 1:dims[1]
-        for i = 1:length(dims)
-            dims[i] < t && break
-            # i = rev ? size(x,2)-t+1 : t
-            k = cumdims[i] + t - 1
-            xi = n * (k-1) + 1
-            copyto!(y, yi, x, xi, n)
-            yi += n
-        end
-    end
-    y
+    isnothing(x.grad) || addto!(x.grad, gx)
+    isnothing(W.grad) || CUDNN.∇rnn_weights!(work, W.grad)
 end
 
 @generated function transpose_batch(x::CuMatrix{T}, dims::Vector{Int}) where T
@@ -230,18 +203,21 @@ end
         }
     }""")
     quote
+        @assert issorted(dims, rev=true)
         t_x = similar(x)
         t_dims = transpose_dims(dims)
         cumdims = Array{Cint}(undef, length(dims)+1)
-        t_cudims = Array{Cint}(undef, length(t_dims)+1)
+        t_cumdims = Array{Cint}(undef, length(t_dims)+1)
         cumdims[1] = 0
-        t_cudims[1] = 0
+        t_cumdims[1] = 0
         for i = 2:length(cumdims)
             cumdims[i] = cumdims[i-1] + dims[i-1]
+        end
+        for i = 2:length(t_cumdims)
             t_cumdims[i] = t_cumdims[i-1] + t_dims[i-1]
         end
-        cudims = CuArray(cudims)
-        t_cudims = CuArray(t_cudims)
+        cumdims = CuArray(cumdims)
+        t_cumdims = CuArray(t_cumdims)
 
         gdims, bdims = cudims(size(x,1)*dims[1]*t_dims[1])
         $k(gdims, bdims, size(x,1), pointer(t_x), pointer(t_cumdims), pointer(x), pointer(cumdims))

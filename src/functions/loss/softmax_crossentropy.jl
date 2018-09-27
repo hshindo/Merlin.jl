@@ -19,12 +19,12 @@ y = softmax_crossentropy(p, x)
 ```
 """
 function softmax_crossentropy(p::Var, q::Var)
-    (isnothing(p.data) || isnothing(q.data)) && return Var(nothing,softmax_crossentropy,(p,q))
     configure!(p, q)
     logq = logsoftmax(q.data)
     ydata = softmax_crossentropy(p.data, logq)
-    Var(ydata, ∇softmax_crossentropy!,(p,q,logq))
+    Var(ydata, ∇softmax_crossentropy!, (p,q,logq))
 end
+softmax_crossentropy(p::Node, q::Node) = Node(softmax_crossentropy, (p,q))
 
 function softmax_crossentropy(p::Vector{Int}, logq::Matrix{T}) where T
     length(p) == size(logq,2) || throw("Length unmatch.")

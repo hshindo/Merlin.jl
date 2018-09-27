@@ -23,10 +23,9 @@ mutable struct Var
     f
     args
     grad
-    name::String
 end
 
-Var(data, f=nothing, args=(); name="") = Var(data, f, args, nothing, name)
+Var(data, f=nothing, args=()) = Var(data, f, args, nothing)
 
 function param(data)
     v = Var(data)
@@ -48,7 +47,7 @@ isnothing(x) = x == nothing
 
 Returns whether `x` is a parameter or not
 """
-isparam(x) = isa(x,Var) && !isa(x.grad,Nothing) && isempty(x.args)
+isparam(x) = isa(x,Var) && !isnothing(x.grad) && isempty(x.args)
 
 """
     topsort(tops::T...)
@@ -62,11 +61,7 @@ function topsort(top::Var)
         haskey(dict,v) && return
         dict[v] = v
         for arg in v.args
-            if arg isa Var
-                visit(arg)
-            #elseif isa(arg, Vector{T})
-            #    foreach(visit, arg)
-            end
+            isa(arg,Var) && visit(arg)
         end
         push!(sorted, v)
     end
@@ -85,7 +80,7 @@ function gradient!(top::Var)
         top.grad = fill!(similar(top.data), 1)
     end
     for v in sorted
-        if !isempty(v.args) && v.grad isa Nothing
+        if !isempty(v.args) && isnothing(v.grad)
             v.grad = fill!(similar(v.data), 0)
         end
     end

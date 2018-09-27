@@ -1,11 +1,10 @@
 export pack, unpack
 
-function pack(x::Var, dims::Var, padding)
-    isnothing(x.data) && return Var(nothing,pack,(x,dims,padding))
+function pack(x::Var, dims::Vector{Int}, padding)
     configure!(x)
-    @assert sum(dims.data) == size(x,ndims(x))
+    @assert sum(dims) == size(x,ndims(x))
 
-    s = Base.setindex(size(x), maximum(dims.data), ndims(x))
+    s = Base.setindex(size(x), maximum(dims), ndims(x))
     ydata = similar(x.data, s..., length(dims))
     fill!(ydata, padding)
 
@@ -13,7 +12,7 @@ function pack(x::Var, dims::Var, padding)
     yst = stride(ydata, ndims(ydata))
     xi = 1
     yi = 1
-    for d in dims.data
+    for d in dims
         n = xst * d
         copyto!(ydata, yi, x.data, xi, n)
         xi += n
@@ -21,14 +20,15 @@ function pack(x::Var, dims::Var, padding)
     end
     Var(ydata, ∇pack!, (x,dims))
 end
+pack(x::Node, dims, padding) = Node(pack, (x,dims,padding))
 
-function ∇pack!(y::Var, x::Var, dims::Var)
+function ∇pack!(y::Var, x::Var, dims::Vector{Int})
     isnothing(x.grad) && return
     xst = stride(x.data, ndims(x))
     yst = stride(y.data, ndims(y))
     xi = 1
     yi = 1
-    for d in dims.data
+    for d in dims
         n = xst * d
         addto!(x.grad, xi, y.grad, yi, n)
         xi += n

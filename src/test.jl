@@ -35,7 +35,7 @@ function test_grad(f, params::Var...; atol=1e-3)
     end
 
     for (gx1,gx2) in zip(gxs1,gxs2)
-        @test maximum(abs.(gx1-gx2)) < atol
+        @test maximum(abs,gx1-gx2) < atol
     end
 end
 

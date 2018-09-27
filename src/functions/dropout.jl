@@ -6,13 +6,13 @@ doc"""
 Drops elements randomly with probability ``droprate`` and scales the other elements by factor ``1 / (1 - droprate)``.
 """
 function dropout(x::Var, droprate::Float64)
-    isnothing(x.data) && return Var(nothing,dropout,(x,droprate))
     configure!(x)
     droprate == 0.0 && return x
     istrain() || return x
     ydata, work = dropout(x.data, droprate)
     Var(ydata, ∇dropout!, (x,droprate,work))
 end
+dropout(x::Node, droprate) = Node(dropout, (x,droprate))
 
 function dropout(x::Array{T}, droprate::Float64) where T
     work = rand(T, length(x))

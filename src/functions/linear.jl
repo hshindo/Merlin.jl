@@ -2,7 +2,7 @@ export Linear
 export linear
 
 struct Linear
-    w::Var
+    W::Var
     b::Var
 end
 
@@ -24,42 +24,42 @@ y = f(x)
 ```
 """
 function Linear(::Type{T}, insize::Int, outsize::Int;
-    init_w=Xavier(), init_b=Fill(0)) where T
+    init_W=Xavier(), init_b=Fill(0)) where T
 
-    w = init_w(T, insize, outsize)
+    W = init_W(T, insize, outsize)
     b = init_b(T, outsize)
-    Linear(param(w), param(b))
+    Linear(param(W), param(b))
 end
-(f::Linear)(x) = linear(x, f.w, f.b)
+(f::Linear)(x) = linear(x, f.W, f.b)
 
-function linear(x::Var, w::Var, b::Var)
-    isnothing(x.data) && return Var(nothing,linear,(x,w,b))
-    configure!(x, w, b)
+function linear(x::Var, W::Var, b::Var)
+    configure!(x, W, b)
     T = eltype(x)
     if ndims(x) == 1
-        ydata = gemv('T', w.data, x.data)
+        ydata = gemv('T', W.data, x.data)
         addto!(ydata, b.data)
     elseif ndims(x) == 2
-        ydata = gemm('T', 'N', w.data, x.data)
+        ydata = gemm('T', 'N', W.data, x.data)
         broadcast_addto!(ydata, b.data)
     else
         throw("Invalid ndims of x: $(ndims(x))")
     end
-    Var(ydata, ∇linear!, (x,w,b))
+    Var(ydata, ∇linear!, (x,W,b))
 end
+linear(x::Node, W, b) = Node(linear, (x,W,b))
 
-function ∇linear!(y::Var, x::Var, w::Var, b::Var)
+function ∇linear!(y::Var, x::Var, W::Var, b::Var)
     T = eltype(x)
     if ndims(x) == 1
         gy = reshape(y.grad, length(y.grad), 1)
         xdata = reshape(x.data, length(x.data), 1)
-        isa(w.grad,Nothing) || gemm!('N', 'T', T(1), xdata, gy, T(1), w.grad)
-        isa(x.grad,Nothing) || gemv!('N', T(1), w.data, y.grad, T(1), x.grad)
-        isa(b.grad,Nothing) || axpy!(T(1), y.grad, b.grad)
+        isnothing(W.grad) || gemm!('N', 'T', T(1), xdata, gy, T(1), W.grad)
+        isnothing(x.grad) || gemv!('N', T(1), W.data, y.grad, T(1), x.grad)
+        isnothing(b.grad) || addto!(b.grad, y.grad)
     elseif ndims(x) == 2
-        isa(x.grad,Nothing) || gemm!('N', 'N', T(1), w.data, y.grad, T(1), x.grad)
-        isa(w.grad,Nothing) || gemm!('N', 'T', T(1), x.data, y.grad, T(1), w.grad)
-        isa(b.grad,Nothing) || axpy!(T(1), sum(y.grad,dims=2), b.grad)
+        isnothing(x.grad) || gemm!('N', 'N', T(1), W.data, y.grad, T(1), x.grad)
+        isnothing(W.grad) || gemm!('N', 'T', T(1), x.data, y.grad, T(1), W.grad)
+        isnothing(b.grad) || addto!(b.grad, sum(y.grad,dims=2))
     else
         throw("Invalid ndims of x: $(ndims(x))")
     end

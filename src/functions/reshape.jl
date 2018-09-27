@@ -10,12 +10,11 @@ x = Var(rand(T,10,5))
 y = reshape(x, 5, 10)
 ```
 """
-function reshape(x::Var, dims::Tuple)
-    isnothing(x.data) && return Var(nothing,reshape,(x,dims))
+function reshape(x::Var, dims::Vararg{Int})
     configure!(x)
     Var(reshape(x.data,dims), ∇reshape!, (x,))
 end
-reshape(x::Var, dims::Int...) = reshape(x, dims)
+reshape(x::Node, dims::Vararg{Int}) = Node(reshape, (x,dims))
 
 vec(x::Var) = reshape(x, length(x))
 
@@ -25,17 +24,17 @@ function ∇reshape!(y::Var, x::Var)
 end
 
 doc"""
-    dropdims(x, dims::Tuple)
+    dropdims(x, dims::Int...)
 
 Remove the dimensions of `x` specified by dims.
 """
-function dropdims(x::Var, dims::Tuple)
-    isnothing(x.data) && return Var(nothing,dropdims,(x,dims))
+function dropdims(x::Var, dims::Vararg{Int})
     configure!(x)
     ydata = dropdims(x.data, dims=dims)
     Var(ydata, ∇dropdims!, (x,))
 end
-dropdims(x::Var, dims::Int...) = dropdims(x, dims)
+dropdims(x::Node, dims::Vararg{Int}) = Node(dropdims, (x,dims))
+
 function dropdims(x::Var)
     dims = ()
     for i = 1:ndims(x)
@@ -43,7 +42,7 @@ function dropdims(x::Var)
             dims = tuple(dims..., i)
         end
     end
-    dropdims(x, dims)
+    dropdims(x, dims...)
 end
 
 function ∇dropdims!(y::Var, x::Var)

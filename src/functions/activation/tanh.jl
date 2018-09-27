@@ -4,12 +4,12 @@ doc"""
 Hyperbolic tangent function.
 """
 function Base.tanh(x::Var)
-    isnothing(x.data) && return Var(x,tanh,(x,))
     configure!(x)
     Var(tanh(x.data), ∇tanh!, (x,))
 end
 Base.tanh(x::Array) = tanh.(x)
 Base.tanh(x::CuArray) = CUDNN.tanh(x)
+Base.tanh(x::Node) = Node(tanh, (x,))
 
 function ∇tanh!(y::Var, x::Var)
     isnothing(x.grad) && return

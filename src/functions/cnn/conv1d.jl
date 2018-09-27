@@ -29,14 +29,14 @@ function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
     Conv1d(param(W), param(b), ksize, padding, stride, dilation)
 end
 
-function (f::Conv1d)(x::Var, dims::Var)
-    isnothing(x.data) && return Var(nothing,f,(x,dims))
-    @assert ndims(x) == 2 && sum(dims.data) == size(x,2)
-    idx = conv1d_index(f, dims.data)
+function (f::Conv1d)(x::Var, dims::Vector{Int})
+    @assert ndims(x) == 2 && sum(dims) == size(x,2)
+    idx = conv1d_index(f, dims)
     h = lookup(x, Var(idx))
     y = linear(h, f.W, f.b)
     y
 end
+
 
 function conv1d_index(f::Conv1d, dims::Vector{Int})
     ksize, padding, stride, dilation = f.ksize, f.padding, f.stride, f.dilation

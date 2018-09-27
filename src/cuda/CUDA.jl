@@ -74,6 +74,7 @@ if AVAILABLE
 end
 
 include("array.jl")
+include("subarray.jl")
 include("kernel.jl")
 include("arraymath.jl")
 include("broadcast.jl")

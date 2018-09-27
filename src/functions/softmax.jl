@@ -10,11 +10,11 @@ f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
 function softmax(x::Var)
-    isnothing(x.data) && return Var(nothing,softmax,(x,))
     configure!(x)
     Var(softmax(x.data), ∇softmax!, (x,))
 end
 softmax(x::CuArray) = CUDNN.softmax(x)
+softmax(x::Node) = Node(softmax, (x,))
 
 function softmax(x::Matrix{T}) where T
     y = similar(x)
@@ -62,11 +62,11 @@ end
 Logarithm of softmax function.
 """
 function logsoftmax(x::Var)
-    isnothing(x.data) && return Var(nothing,logsoftmax,(x,))
     configure!(x)
     Var(logsoftmax(x.data), ∇logsoftmax!, (x,))
 end
 logsoftmax(x::CuArray) = CUDNN.softmax(x, CUDNN.CUDNN_SOFTMAX_LOG)
+logsoftmax(x::Node) = Node(logsoftmax, (x,))
 
 function logsoftmax(x::Matrix{T}) where T
     y = similar(x)
