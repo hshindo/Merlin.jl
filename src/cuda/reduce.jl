@@ -1,5 +1,6 @@
 import Base: sum, findmax, findmin, maximum
 import LinearAlgebra: norm
+export average
 
 function sum(x::CuArray; dims)
     isa(dims,Int) && (dims = (dims,))
@@ -9,13 +10,18 @@ function sum(x::CuArray; dims)
     x
 end
 
-findmax(x::CuArray; dims::Int) = CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_MAX)
+function findmax(x::CuArray; dims::Int)
+    dim = dims
+    y, idx = CUDNN.reduce(x, dim, CUDNN.CUDNN_REDUCE_TENSOR_MAX)
+    idx = reshape(idx, Base.setindex(size(x),1,dim))
+    y, idx
+end
 
-findmin(x::CuArray; dims::Int) = CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_MIN)
+function findmin(x::CuArray; dims::Int)
+    CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_MIN)
+end
 
-# maximum(::typeof(abs), x::CuArray, dim::Int) = CUDNN.reduce(x, dim, CUDNN.CUDNN_REDUCE_TENSOR_AMAX)[1]
-
-mean(x::CuArray; dims::Int) = CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_AVG)[1]
+average(x::CuArray; dims::Int) = CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_AVG)[1]
 
 function norm(x::CuArray, dim::Int, p::Int)
     if p == 1

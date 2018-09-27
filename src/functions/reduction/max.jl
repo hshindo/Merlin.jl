@@ -11,30 +11,30 @@ y = max(x, 1)
 ```
 """
 function max(x::Var, dim::Int)
-    isa(x.data,Nothing) && return Var(nothing,max,(x,dim))
     configure!(x)
     ydata, idx = findmax(x.data, dims=dim)
     Var(ydata, ∇max!, (x,dim,idx))
 end
-function max(x::Var, dims::Var)
-    isa(x.data,Nothing) && return Var(nothing,max,(x,dims))
-    h = pack(x, dims, floatmin(eltype(x)))
-    y = max(h, ndims(x))
-    y.data = dropdims(y.data, dims=ndims(x))
-    y
+function max(x::Var, dims::Vector{Int})
+    configure!(x)
+    hdata = pack(x.data, dims, floatmin(eltype(x)))
+    ydata, idx = findmax(hdata, dims=ndims(x))
+    ydata = dropdims(ydata, dims=ndims(x))
+    Var(ydata, ∇max!, (x,dims,idx))
 end
-max(x::Node, args...) = Node(x, args...)
+max(x::Node, dims) = Node(max, (x,dims))
 
-function addgrad!(y::Var, ::typeof(max), x::Var, dim::Int, idx)
-    isvoid(x.grad) && return
+function ∇max!(y::Var, x::Var, dim::Int, idx)
+    isnothing(x.grad) && return
     ∇max!(y.grad, x.grad, dim, idx)
 end
 
-function addgrad!(y::Var, ::typeof(max), x::Var, batchdims::Vector{Int}, idx)
-    isvoid(x.grad) && return
-    gx = pack(x.grad, batchdims, floatmin(eltype(x)))
-    ∇max!(y.grad, gx, ndims(x), idx)
-    addto!(x.grad, unpack(gx,batchdims)) # TODO: more memory-efficient implementation
+function ∇max!(y::Var, x::Var, dims::Vector{Int}, idx)
+    isnothing(x.grad) && return
+    gh = pack(x.grad, dims, floatmin(eltype(x)))
+    gy = reshape(y.grad, Base.front(size(y))..., 1, size(y,ndims(y)))
+    ∇max!(gy, gh, ndims(x), idx)
+    addto!(x.grad, unpack(gh,dims))
 end
 
 function ∇max!(gy::Array{T}, gx::Array{T}, dim::Int, idx::Array) where T
@@ -43,21 +43,21 @@ function ∇max!(gy::Array{T}, gx::Array{T}, dim::Int, idx::Array) where T
     end
 end
 
-@generated function ∇max!(gy::CuArray{T,N}, gx::CuArray{T,N}, dim::Int, idx::CuArray{Cint}) where {T,N}
+@generated function ∇max!(gy::CuArray{T,N}, gx::CuArray{T,N}, dim::Int, maxidx::CuArray{Cint}) where {T,N}
     Ct = cstring(T)
     k = Kernel("""
-    __global__ void max_grad(Array<$Ct,$N> gy, Array<$Ct,$N> gx, int dim, int *idx, int length) {
-        int i = blockIdx.x * blockDim.x + threadIdx.x;
-        if (i >= length) return;
+    __global__ void max_grad(Array<$Ct,$N> gy, Array<$Ct,$N> gx, int dim, int *maxidx) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= gy.length()) return;
 
-        int sub[$N];
-        gy.ind2sub(sub, i);
-        sub[dim] = idx[i];
-        gx(sub) += gy[i];
+        int ndidx[$N];
+        gy.ndindex(ndidx, idx);
+        ndidx[dim-1] = maxidx[idx];
+        gx(ndidx) += gy[idx];
     }
     """)
     quote
-        gdims, bdims = cudims(length(idx))
-        $k(gdims, bdims, gy, gx, dim-1, rawpointer(idx), length(idx))
+        gdims, bdims = cudims(length(gy))
+        $k(gdims, bdims, gy, gx, dim, pointer(maxidx))
     end
 end

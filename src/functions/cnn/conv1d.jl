@@ -45,7 +45,7 @@ function conv1d_index(f::Conv1d, dims::Vector{Int})
         (d + 2padding - k) ÷ stride + 1
     end
     cumdim = 0
-    y = zeros(Int, ksize, sum(outdims))
+    y = Array{Int}(undef, ksize, sum(outdims))
     yi = 1
     for n = 1:length(dims)
         ndims = dims[n]

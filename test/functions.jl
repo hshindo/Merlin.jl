@@ -14,11 +14,11 @@ const T = Float32
 end
 
 @testset "cnn" begin
-    x = param(randn(T,20,10))
+    x = param(randn(T,10,10))
     dims = [3, 7]
-    conv = Conv1d(T, 5, 20, 15, padding=2)
-    @test_grad conv(x,dims) x
-    @test_cuda conv(x,dims) x
+    conv = Conv1d(T, 5, 10, 7, padding=2)
+    @test_grad conv(x,dims) x conv.W conv.b
+    @test_cuda conv(x,dims) x conv.W conv.b
 end
 
 @testset "loss" begin
@@ -74,11 +74,12 @@ end
     x = param(randn(T,10,10)*T(10))
     @testset "max" begin
         for dim = 1:2
-            #@test_grad max(x,dim) x
-            #@test_cuda max(x,dim) x
+            @test_grad max(x,dim) x
+            @test_cuda max(x,dim) x
         end
-        #@test_grad max(x,[2,5,3]) x
-        #@test_cuda max(x,[2,5,3]) x
+        dims = [2, 5, 3]
+        @test_grad max(x,dims) x
+        @test_cuda max(x,dims) x
     end
 end
 

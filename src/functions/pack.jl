@@ -36,16 +36,35 @@ function ∇pack!(y::Var, x::Var, dims::Vector{Int})
     end
 end
 
-function unpack(x::UniArray{T,N}, batchdims::Vector{Int}) where {T,N}
-    @assert length(batchdims) == size(x,N)
-    s = Base.setindex(Base.front(size(x)), sum(batchdims), N-1)
-    y = similar(x, s...)
+function pack(x::UniArray{T,N}, dims::Vector{Int}, padding) where {T,N}
+    @assert sum(dims) == size(x,N)
+    s = Base.setindex(size(x), maximum(dims), N)
+    y = similar(x, s..., length(dims))
+    fill!(y, padding)
 
-    xst = stride(x, ndims(x))
-    yst = stride(y, ndims(y))
+    xst = stride(x, N)
+    yst = stride(y, N+1)
     xi = 1
     yi = 1
-    for d in batchdims
+    for d in dims
+        n = xst * d
+        copyto!(y, yi, x, xi, n)
+        xi += n
+        yi += yst
+    end
+    y
+end
+
+function unpack(x::UniArray{T,N}, dims::Vector{Int}) where {T,N}
+    @assert length(dims) == size(x,N)
+    s = Base.setindex(Base.front(size(x)), sum(dims), N-1)
+    y = similar(x, s...)
+
+    xst = stride(x, N)
+    yst = stride(y, N-1)
+    xi = 1
+    yi = 1
+    for d in dims
         n = yst * d
         copyto!(y, yi, x, xi, n)
         xi += xst
