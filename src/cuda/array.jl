@@ -119,10 +119,6 @@ end
 Base.show(io::IO, x::CuArray) = print(io, Array(x))
 
 #####
-cuzeros(::Type{T}, dims::Dims) where T = fill!(CuArray{T}(dims), 0)
-cuzeros(::Type{T}, dims::Int...) where T = cuzeros(T, dims)
-cuones(::Type{T}, dims::Dims) where T = fill!(CuArray{T}(dims), 1)
-cuones(::Type{T}, dims::Int...) where T = cuones(T, dims)
 function curand(::Type{T}, dims::Dims{N}) where {T,N}
     # TODO: use curand library
     CuArray(rand(T,dims))

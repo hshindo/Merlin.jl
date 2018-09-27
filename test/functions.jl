@@ -74,11 +74,12 @@ end
     x = param(randn(T,10,10)*T(10))
     @testset "max" begin
         for dim = 1:2
-            #@test_grad max(x,dim) x
-            #@test_cuda max(x,dim) x
+            @test_grad max(x,dim) x
+            @test_cuda max(x,dim) x
         end
-        #@test_grad max(x,[2,5,3]) x
-        #@test_cuda max(x,[2,5,3]) x
+        dims = [2, 5, 3]
+        @test_grad max(x,dims) x
+        @test_cuda max(x,dims) x
     end
 end
 
