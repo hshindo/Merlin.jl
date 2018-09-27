@@ -4,10 +4,12 @@ import Base.Broadcast: broadcasted
     .+(x1::Var, x2::Var)
 """
 function broadcasted(::typeof(+), x1::Var, x2::Var)
-    (isnothing(x1.data) || isnothing(x2.data)) && return Var(nothing,broadcasted,(+,x1,x2))
     configure!(x1, x2)
-    Var(x1.data .+ x2.data, ∇broadcasted!, (+,x1,x2))
+    ydata = x1.data .+ x2.data
+    Var(ydata, ∇broadcasted!, (+,x1,x2))
 end
+broadcasted(::typeof(+), x1::Node, x2) = Node(broadcasted, (+,x1,x2))
+broadcasted(::typeof(+), x1, x2::Node) = Node(broadcasted, (+,x1,x2))
 
 function ∇broadcasted!(y::Var, ::typeof(+), x1::Var, x2::Var)
     isnothing(x1.grad) || ∇broadcast_plus!(y.grad, x1.grad)
@@ -28,10 +30,12 @@ end
     .-(x1::Var, x2::Var)
 """
 function broadcasted(::typeof(-), x1::Var, x2::Var)
-    (isnothing(x1.data) || isnothing(x2.data)) && return Var(nothing,broadcasted,(-,x1,x2))
     configure!(x1, x2)
-    Var(x1.data .- x2.data, ∇broadcasted!, (-,x1,x2))
+    ydata = x1.data .- x2.data
+    Var(ydata, ∇broadcasted!, (-,x1,x2))
 end
+broadcasted(::typeof(-), x1::Node, x2) = Node(broadcasted, (-,x1,x2))
+broadcasted(::typeof(-), x1, x2::Node) = Node(broadcasted, (-,x1,x2))
 
 function ∇broadcasted!(y::Var, ::typeof(-), x1::Var, x2::Var)
     isnothing(x1.grad) || ∇broadcast_plus!(y.grad, x1.grad)
@@ -52,10 +56,12 @@ end
     .*(x1::Var, x2::Var)
 """
 function broadcasted(::typeof(*), x1::Var, x2::Var)
-    (isnothing(x1.data) || isnothing(x2.data)) && return Var(nothing,broadcasted,(*,x1,x2))
     configure!(x1, x2)
-    Var(x1.data .* x2.data, ∇broadcasted!, (*,x1,x2))
+    ydata = x1.data .* x2.data
+    Var(ydata, ∇broadcasted!, (*,x1,x2))
 end
+broadcasted(::typeof(*), x1::Node, x2) = Node(broadcasted, (*,x1,x2))
+broadcasted(::typeof(*), x1, x2::Node) = Node(broadcasted, (*,x1,x2))
 
 function ∇broadcasted!(y::Var, ::typeof(*), x1::Var, x2::Var)
     isnothing(x1.grad) || ∇dottimes!(y.grad, x2.data, x1.grad)

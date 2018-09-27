@@ -47,3 +47,4 @@ cubox(x::CuPtr) = x.ptr
 cubox(x::Ref) = x
 cubox(x) = Ref(x)
 cubox(x::CuArray) = cubox(CuDeviceArray(x))
+cubox(x::CuSubArray) = cubox(CuDeviceArray(x))

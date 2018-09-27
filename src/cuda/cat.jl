@@ -2,40 +2,23 @@ function Base.cat(xs::CuArray{T}...; dims::Int) where T
     dim = dims
     length(xs) == 1 && return xs[1]
     N = max(dim, maximum(ndims,xs))
-    # dims = Int[size(xs[1],i) for i=1:N]
-    xs = map(xs) do x
-        if ndims(x) == N
-            x
-        else
-            Base.setindex(size(x), dims)
-            dims[dim] = size(x,dim)
-            reshape(x, dims...)
-        end
+    cumdim = sum(x -> size(x,dim), xs)
+    if dim <= N
+        ysize = Base.setindex(size(xs[1]), cumdim, dim)
+    elseif dim == N+1
+        ysize = (size(xs[1])..., cumdim)
+    else
+        throw("Error.")
     end
+    y = similar(xs[1], ysize)
 
-    dims[dim] = 0
-    for x in xs
-        dims[dim] += size(x,dim)
-        for d = 1:N
-            d == dim && continue
-            @assert size(x,d) == size(xs[1],d)
-        end
-    end
-
-    cumdim = sum(x -> size(x,dims), xs)
-    if dims <= N
-        y = Base.setindex(size(xs[1]), cumdim, dims)
-    elseif dims == N+1
-        y = similar(xs[1], size(xs[1])..., cumdim)
-    end
-    ysize = Any[Colon() for i=1:N]
     offset = 0
     for x in xs
-        s = size(x,dims)
-        I = ntuple(size(y)) do i
-            i == dims ? (offset+1:offset+s) : Colon()
+        s = size(x, dim)
+        I = ntuple(ndims(y)) do i
+            i == dim ? (offset+1:offset+s) : Colon()
         end
-        copyto!(y, I, x)
+        copyto!(view(y,I...), x)
         offset += s
     end
     y

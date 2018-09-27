@@ -8,6 +8,8 @@ function +(x1::Var, x2::Var)
     configure!(x1, x2)
     Var(x1.data + x2.data, ∇plus!, (x1,x2))
 end
++(x1::Node, x2) = Node(+, (x1,x2))
++(x1, x2::Node) = Node(+, (x1,x2))
 
 function ∇plus!(y::Var, x1::Var, x2::Var)
     T = eltype(y)
@@ -19,10 +21,11 @@ end
     -(x1, x2)
 """
 function -(x1::Var, x2::Var)
-    (isnothing(x1.data) || isnothing(x2.data)) && return Var(nothing,-,(x1,x2))
     configure!(x1, x2)
     Var(x1.data - x2.data, ∇minus!, (x1,x2))
 end
+-(x1::Node, x2) = Node(-, (x1,x2))
+-(x1, x2::Node) = Node(-, (x1,x2))
 
 function ∇minus!(y::Var, x1::Var, x2::Var)
     T = eltype(y)
@@ -37,6 +40,8 @@ function *(A::Var, B::Var)
     configure!(A, B)
     Var(A.data * B.data, ∇times!, (A,B))
 end
+*(x1::Node, x2) = Node(*, (x1,x2))
+*(x1, x2::Node) = Node(*, (x1,x2))
 
 function ∇times!(C::Var, A::Var, B::Var)
     T = eltype(C)

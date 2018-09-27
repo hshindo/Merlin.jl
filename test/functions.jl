@@ -15,7 +15,7 @@ end
 
 @testset "cnn" begin
     x = param(randn(T,20,10))
-    dims = Var([3,7])
+    dims = [3, 7]
     conv = Conv1d(T, 5, 20, 15, padding=2)
     @test_grad conv(x,dims) x
     @test_cuda conv(x,dims) x
@@ -84,11 +84,11 @@ end
 
 @testset "rnn" begin
     x = param(randn(T,20,10))
-    dims = Var([5,3,2])
+    dims = [5, 3, 2]
     for nlayers = 1:1
-        lstm = LSTM(T, 20, 15, nlayers, 0.0, false)
+        lstm = LSTM(T, 20, 15, nlayers, 0.0, true)
         @test_grad lstm(x,dims) x
-        #@test_cuda lstm x batchdims
+        @test_cuda lstm(x,dims) x
     end
 end
 
@@ -115,7 +115,7 @@ end
     x3 = param(randn(T,10,5,2))
     for dim = 1:3
         @test_grad concat(dim,x1,x2,x3) x1 x2 x3
-        #@test_cuda concat(dim,x1,x2,x3) x1
+        @test_cuda concat(dim,x1,x2,x3) x1 x2 x3
     end
 end
 
@@ -136,8 +136,8 @@ end
 @testset "linear" begin
     x = param(randn(T,10,5))
     f = Linear(T, 10, 7, init_b=Uniform(-1,1))
-    @test_grad f(x) x f.w f.b
-    @test_cuda f(x) x f.w f.b
+    @test_grad f(x) x f.W f.b
+    @test_cuda f(x) x f.W f.b
 end
 
 @testset "lookup" begin
@@ -149,7 +149,7 @@ end
 
 @testset "pack" begin
     x = param(randn(T,10,10))
-    dims = Var([2,5,3])
+    dims = [2, 5, 3]
     @test_grad pack(x,dims,0) x
     @test_cuda pack(x,dims,0) x
 end

@@ -19,12 +19,9 @@ CuArray(x::Array{T,N}) where {T,N} = copyto!(CuArray{T}(size(x)), x)
 
 ### AbstractArray interface
 Base.size(x::CuArray) = x.dims
+Base.size(x::CuArray, i::Int) = i <= ndims(x) ? x.dims[i] : 1
 Base.getindex(x::CuArray, i::Int) = throw("getindex $i")
-function Base.getindex(x::CuArray{T}, I...) where T
-    src = CuDeviceArray(x, I)
-    dest = similar(x, size(src))
-    copyto!(dest, src)
-end
+Base.getindex(x::CuArray, I...) = CuArray(view(x,I...))
 Base.setindex!(y::CuArray, v::Number, i::Int) = throw("setindex!")
 function Base.setindex!(y::CuArray{T}, x::CuArray{T}, I...) where T
     dest = CuDeviceArray(y, I)

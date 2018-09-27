@@ -19,6 +19,7 @@ y = crossentropy(p, q)
 ```
 """
 function crossentropy(p::Var, q::Var)
+    configure!(p, q)
     Var(crossentropy(p.data,q.data), (crossentropy,p,q))
 end
 

@@ -13,11 +13,11 @@ y = concat(2, x1, x2)
 ```
 """
 function concat(dim::Int, xs::Vararg{Var})
-    any(x -> isnothing(x.data), xs) && return Var(nothing,concat,(dim,xs...))
     configure!(xs...)
     ydata = cat(map(x -> x.data, xs)..., dims=dim)
     Var(ydata, ∇concat!, (dim,xs...))
 end
+concat(dim, xs::Vararg{Node}) = Node(concat, (dim,xs...))
 
 function ∇concat!(y::Var, dim::Int, xs::Var...)
     offset = 0
@@ -31,7 +31,7 @@ function ∇concat!(y::Var, dim::Int, xs::Var...)
             #if ndims(y) > ndims(x)
             #    gy = dropdims(gy, dims=ndims(y))
             #end
-            addto!(x.grad, y.grad, I)
+            addto!(x.grad, view(y.grad,I...))
         end
         offset += s
     end
