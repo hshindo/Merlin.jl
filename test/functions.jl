@@ -14,9 +14,9 @@ const T = Float32
 end
 
 @testset "cnn" begin
-    x = param(randn(T,20,10))
+    x = param(randn(T,10,10))
     dims = [3, 7]
-    conv = Conv1d(T, 5, 20, 15, padding=2)
+    conv = Conv1d(T, 5, 10, 7, padding=2)
     @test_grad conv(x,dims) x conv.W conv.b
     @test_cuda conv(x,dims) x conv.W conv.b
 end
