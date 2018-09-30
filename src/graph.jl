@@ -6,7 +6,7 @@ mutable struct Node
     name::String
 end
 Node(f, args; name="") = Node(f, args, name)
-Node(; name="") = Node(nothing, name=name)
+Node(; name="") = Node(nothing, (), name=name)
 
 Base.getindex(x::Node, i::Int) = x.args[i]
 
