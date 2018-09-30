@@ -8,25 +8,23 @@ const T = Float32
         abs(x.data[i]) < 0.1 && (x.data[i] += 1)
     end
     for f in (relu,sigmoid,tanh)
-        @test_grad f(x) x
-        @test_cuda f(x) x
+        checkgrad(()->f(x), x)
     end
 end
+
 
 @testset "cnn" begin
     x = param(randn(T,10,10))
     dims = [3, 7]
     conv = Conv1d(T, 5, 10, 7, padding=2)
-    @test_grad conv(x,dims) x conv.W conv.b
-    @test_cuda conv(x,dims) x conv.W conv.b
+    checkgrad(()->conv(x,dims), x, conv.W, conv.b)
 end
 
 @testset "loss" begin
     @testset "softmax_crossentropy" begin
         p = Var(rand(1:10,5))
         q = param(rand(T,10,5))
-        @test_grad softmax_crossentropy(p,q) q
-        @test_cuda softmax_crossentropy(p,q) q
+        checkgrad(()->softmax_crossentropy(p,q), q)
     end
 
     @testset "l2" begin
@@ -48,38 +46,29 @@ end
 
     x1 = param(randn(T,10,5))
     x2 = param(randn(T,10,5))
-    @test_grad x1+x2 x1 x2
-    @test_cuda x1+x2 x1 x2
-    @test_grad x1-x2 x1 x2
-    @test_cuda x1-x2 x1 x2
-    @test_grad x1.*x2 x1 x2
-    @test_cuda x1.*x2 x1 x2
+    checkgrad(()->x1+x2, x1, x2)
+    checkgrad(()->x1-x2, x1, x2)
+    checkgrad(()->x1.*x2, x1, x2)
 
     A = param(randn(T,10,5))
     B = param(randn(T,5,7))
-    @test_grad A*B A B
-    @test_cuda A*B A B
+    checkgrad(()->A*B, A, B)
 
     x1 = param(randn(T,10,5))
     x2 = param(randn(T,10,1))
-    @test_grad x1.+x2 x1 x2
-    @test_cuda x1.+x2 x1 x2
-    @test_grad x1.-x2 x1 x2
-    @test_cuda x1.-x2 x1 x2
-    @test_grad x1.*x2 x1 x2
-    @test_cuda x1.*x2 x1 x2
+    checkgrad(()->x1.+x2, x1, x2)
+    checkgrad(()->x1.-x2, x1, x2)
+    checkgrad(()->x1.*x2, x1, x2)
 end
 
 @testset "reduction" begin
     x = param(randn(T,10,10)*T(10))
     @testset "max" begin
         for dim = 1:2
-            @test_grad max(x,dim) x
-            @test_cuda max(x,dim) x
+            checkgrad(()->max(x,dim), x)
         end
         dims = [2, 5, 3]
-        @test_grad max(x,dims) x
-        @test_cuda max(x,dims) x
+        checkgrad(()->max(x,dims), x)
     end
 end
 
@@ -88,21 +77,18 @@ end
     dims = [5, 3, 2]
     for nlayers = 1:1
         lstm = LSTM(T, 20, 15, nlayers, 0.0, true)
-        @test_grad lstm(x,dims) x
-        @test_cuda lstm(x,dims) x
+        checkgrad(()->lstm(x,dims), x)
     end
 end
 
 @testset "blas" begin
     A = param(randn(T,10,5))
     x = param(randn(T,10))
-    @test_grad gemv('T',1,A,x) A x
-    @test_cuda gemv('T',1,A,x) A x
+    checkgrad(()->gemv('T',1,A,x), A, x)
 
     A = param(randn(T,10,5))
     B = param(randn(T,10,5))
-    @test_grad gemm('N','T',1,A,B) A B
-    @test_cuda gemm('N','T',1,A,B) A B
+    checkgrad(()->gemm('N','T',1,A,B), A, B)
 
     A = param(randn(T,10,5,7))
     B = param(randn(T,10,5,7))
@@ -115,8 +101,7 @@ end
     x2 = param(randn(T,10,5,2))
     x3 = param(randn(T,10,5,2))
     for dim = 1:3
-        @test_grad concat(dim,x1,x2,x3) x1 x2 x3
-        @test_cuda concat(dim,x1,x2,x3) x1 x2 x3
+        checkgrad(()->concat(dim,x1,x2,x3), x1, x2, x3)
     end
 end
 
@@ -127,48 +112,39 @@ end
 
 @testset "getindex" begin
     x = param(randn(T,10,5,4))
-    @test_grad x[2:7,:,1:3] x
-    @test_cuda x[2:7,:,1:3] x
+    checkgrad(()->x[2:7,:,1:3], x)
     x = param(randn(T,10,5))
-    @test_grad x[:,3:3] x
-    @test_cuda x[:,3:3] x
+    checkgrad(()->x[:,3:3], x)
 end
 
 @testset "linear" begin
     x = param(randn(T,10,5))
     f = Linear(T, 10, 7, init_b=Uniform(-1,1))
-    @test_grad f(x) x f.W f.b
-    @test_cuda f(x) x f.W f.b
+    checkgrad(()->f(x), x, f.W, f.b)
 end
 
 @testset "lookup" begin
     w = param(randn(T,10,15))
     x = Var(rand(1:15,10))
-    @test_grad lookup(w,x) w
-    @test_cuda lookup(w,x) w
+    checkgrad(()->lookup(w,x), w)
 end
 
 @testset "pack" begin
     x = param(randn(T,10,10))
     dims = [2, 5, 3]
-    @test_grad pack(x,dims,0) x
-    @test_cuda pack(x,dims,0) x
+    checkgrad(()->pack(x,dims,0), x)
 end
 
 @testset "reshape" begin
     x = param(randn(T,10,1,5))
-    @test_grad reshape(x,5,10) x
-    @test_cuda reshape(x,5,10) x
-    @test_grad vec(x) x
-    @test_cuda vec(x) x
-    @test_grad dropdims(x) x
-    #@test_cuda dropdims x
+    checkgrad(()->reshape(x,5,10), x)
+    checkgrad(()->vec(x), x)
+    checkgrad(()->dropdims(x), x)
 end
 
 @testset "softmax" begin
     x = param(rand(T,10,5))
-    @test_grad softmax(x) x
-    @test_cuda softmax(x) x
+    checkgrad(()->softmax(x), x)
     logsoftmax(x)
 end
 

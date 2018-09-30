@@ -36,7 +36,7 @@ function (f::Conv1d)(x::Var, dims::Vector{Int})
     y = linear(h, f.W, f.b)
     y
 end
-
+(f::Conv1d)(x::Node, dims) = Node(f, (x,dims))
 
 function conv1d_index(f::Conv1d, dims::Vector{Int})
     ksize, padding, stride, dilation = f.ksize, f.padding, f.stride, f.dilation

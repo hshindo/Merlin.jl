@@ -9,3 +9,4 @@ benchmark.jl
 *.h5
 *.jld2
 *.log
+Manifest.toml

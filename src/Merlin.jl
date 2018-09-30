@@ -20,7 +20,7 @@ include("config.jl")
 include("add.jl")
 include("var.jl")
 include("graph.jl")
-include("test.jl")
+include("check.jl")
 #include("iterators.jl")
 
 for name in [

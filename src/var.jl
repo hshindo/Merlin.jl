@@ -54,16 +54,16 @@ isparam(x) = isa(x,Var) && !isnothing(x.grad) && isempty(x.args)
 
 Topological sort.
 """
-function topsort(top::Var)
-    sorted = Var[]
-    dict = IdDict{Var,Var}()
-    function visit(v::Var)
-        haskey(dict,v) && return
-        dict[v] = v
-        for arg in v.args
-            isa(arg,Var) && visit(arg)
+function topsort(top::T) where T
+    sorted = T[]
+    dict = IdDict{T,T}()
+    function visit(x::T)
+        haskey(dict,x) && return
+        dict[x] = x
+        for arg in x.args
+            isa(arg,T) && visit(arg)
         end
-        push!(sorted, v)
+        push!(sorted, x)
     end
     visit(top)
     sorted
@@ -111,7 +111,7 @@ tocuda(x::CuArray) = x
 tocuda(x::Array{Int}) = CuArray(Array{Cint}(x))
 tocuda(x::Array) = CuArray(x)
 
-function create_batch(batchsize::Int, samples::Vector)
+function create_batch(samples::Vector, batchsize::Int)
     batches = []
     for i = 1:batchsize:length(samples)
         range = i:min(i+batchsize-1,length(samples))
