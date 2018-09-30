@@ -53,7 +53,8 @@ Base.Array(x::CuArray{T}) where T = copyto!(Array{T}(undef,size(x)), x)
 Base.reshape(x::CuArray{T}, dims::Dims{N}) where {T,N} = CuArray{T,N}(x.ptr, dims)
 Base.reshape(x::CuArray{T}, dims::Int...) where T = reshape(x, dims)
 Base.vec(x::CuArray{T}) where T = ndims(x) == 1 ? x : reshape(x,length(x))
-function Base.dropdims(x::CuArray; dims::Tuple)
+function Base.dropdims(x::CuArray; dims)
+    isa(dims,Int) && (dims = (dims,))
     for i in dims
         size(x,i) == 1 || throw(ArgumentError("dropdims must all be size 1"))
     end
@@ -65,7 +66,6 @@ function Base.dropdims(x::CuArray; dims::Tuple)
     end
     reshape(x, d)
 end
-Base.dropdims(x::CuArray; dims::Int) = dropdims(x, (dims,))
 
 ##### copy #####
 Base.copy(src::CuArray) = copyto!(similar(src), src)
