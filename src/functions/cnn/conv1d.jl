@@ -13,12 +13,12 @@ y = f(x)
 ```
 """
 mutable struct Conv1d
-    W::Var
-    b::Var
     ksize::Int
     padding::Int
     stride::Int
     dilation::Int
+    W::Var
+    b::Var
 end
 
 function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
@@ -26,20 +26,24 @@ function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
 
     W = init_W(T, ksize*inchannel, outchannel)
     b = init_b(T, outchannel)
-    Conv1d(param(W), param(b), ksize, padding, stride, dilation)
+    Conv1d(ksize, padding, stride, dilation, parameter(W), parameter(b))
 end
 
-function (f::Conv1d)(x::Var, dims::Vector{Int})
+function (f::Conv1d)(x, dims)
+    conv1d(x, dims, f.W, f.b, (ksize=f.ksize,padding=f.padding,stride=f.stride,dilation=f.dilation))
+end
+
+function conv1d(x::Var, dims, W::Var, b::Var, p)
     @assert ndims(x) == 2 && sum(dims) == size(x,2)
-    idx = conv1d_index(f, dims)
+    idx = conv1d_index(p, dims)
     h = lookup(x, Var(idx))
-    y = linear(h, f.W, f.b)
+    y = linear(h, W, b)
     y
 end
-(f::Conv1d)(x::Node, dims) = Node(f, (x,dims))
+conv1d(x::Node, args...) = Node(conv1d, (x,args...))
 
-function conv1d_index(f::Conv1d, dims::Vector{Int})
-    ksize, padding, stride, dilation = f.ksize, f.padding, f.stride, f.dilation
+function conv1d_index(p::NamedTuple, dims::Vector{Int})
+    ksize, padding, stride, dilation = p.ksize, p.padding, p.stride, p.dilation
     outdims = map(dims) do d
         k = (ksize - 1) * dilation + 1
         (d + 2padding - k) ÷ stride + 1

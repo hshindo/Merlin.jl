@@ -3,9 +3,9 @@ function Base.cat(xs::CuArray{T}...; dims::Int) where T
     length(xs) == 1 && return xs[1]
     N = max(dim, maximum(ndims,xs))
     cumdim = sum(x -> size(x,dim), xs)
-    if dim <= N
+    if ndims(xs[1]) == N
         ysize = Base.setindex(size(xs[1]), cumdim, dim)
-    elseif dim == N+1
+    elseif ndims(xs[1])+1 == N
         ysize = (size(xs[1])..., cumdim)
     else
         throw("Error.")

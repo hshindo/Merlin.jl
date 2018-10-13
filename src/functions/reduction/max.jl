@@ -11,12 +11,10 @@ y = max(x, 1)
 ```
 """
 function max(x::Var, dim::Int)
-    configure!(x)
     ydata, idx = findmax(x.data, dims=dim)
     Var(ydata, ∇max!, (x,dim,idx))
 end
 function max(x::Var, dims::Vector{Int})
-    configure!(x)
     hdata = pack(x.data, dims, floatmin(eltype(x)))
     ydata, idx = findmax(hdata, dims=ndims(x))
     ydata = dropdims(ydata, dims=ndims(x))

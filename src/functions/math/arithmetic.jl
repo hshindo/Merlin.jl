@@ -4,8 +4,6 @@ import Base: +, -, *
     +(x1::Var, x2::Var)
 """
 function +(x1::Var, x2::Var)
-    (isnothing(x1.data) || isnothing(x2.data)) && return Var(nothing,+,(x1,x2))
-    configure!(x1, x2)
     Var(x1.data + x2.data, ∇plus!, (x1,x2))
 end
 +(x1::Node, x2) = Node(+, (x1,x2))
@@ -21,7 +19,6 @@ end
     -(x1, x2)
 """
 function -(x1::Var, x2::Var)
-    configure!(x1, x2)
     Var(x1.data - x2.data, ∇minus!, (x1,x2))
 end
 -(x1::Node, x2) = Node(-, (x1,x2))
@@ -37,7 +34,6 @@ end
     *(A::Var, B::Var)
 """
 function *(A::Var, B::Var)
-    configure!(A, B)
     Var(A.data * B.data, ∇times!, (A,B))
 end
 *(x1::Node, x2) = Node(*, (x1,x2))

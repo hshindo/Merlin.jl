@@ -9,6 +9,11 @@ function sum(x::CuArray; dims)
     end
     x
 end
+function sum(x::CuArray)
+    s = sum(vec(x), dims=1)
+    a = Array(s)
+    a[1]
+end
 
 function findmax(x::CuArray; dims::Int)
     dim = dims

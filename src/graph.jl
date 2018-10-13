@@ -1,12 +1,13 @@
 export Graph, Node
+export graphs
 
-mutable struct Node
+struct Node
     f
     args::Tuple
-    name::String
+    name::Symbol
 end
-Node(f, args; name="") = Node(f, args, name)
-Node(; name="") = Node(nothing, (), name=name)
+Node(f, args) = Node(f, args, Symbol())
+Node(; name::Symbol) = Node(nothing, (), name)
 
 Base.getindex(x::Node, i::Int) = x.args[i]
 
@@ -16,51 +17,66 @@ end
 
 struct Graph
     nodes::Vector{Node} # topological order
-    inids::Tuple
-    outids::Tuple
+    inputids::Tuple
+    outputids::Tuple
 end
 
 function Graph(outs::Node...)
     nodes = topsort(outs...)
     node2id = Dict(nodes[i]=>i for i=1:length(nodes))
-    dict = Dict{String,Node}()
-    for node in nodes
-        node.args = map(node.args) do arg
+    nodes = map(nodes) do n
+        args = map(n.args) do arg
             isa(arg,Node) ? NodeId(node2id[arg]) : arg
         end
-        isempty(node.name) || (dict[node.name] = node)
+        Node(n.f, args, n.name)
     end
-
-    names = collect(keys(dict))
-    sort!(names)
-    inids = map(x -> node2id[dict[x]], tuple(names...))
-    outids = map(x -> node2id[x], outs)
-    Graph(nodes, inids, outids)
+    name2id = Dict{Symbol,Int}()
+    for i = 1:length(nodes)
+        n = nodes[i]
+        isempty(n.args) && (name2id[n.name] = i)
+    end
+    inputids = tuple(name2id...)
+    outputids = map(x -> node2id[x], outs)
+    Graph(nodes, inputids, outputids)
 end
 
 Base.getindex(g::Graph, i::Int) = g.nodes[i]
 Base.getindex(g::Graph, s::String) = g.dict[s]
-
-function (g::Graph)(xs...)
-    @assert length(xs) == length(g.inids)
-    temps = Array{Any}(undef, length(g.nodes))
-    for i = 1:length(xs)
-        temps[g.inids[i]] = xs[i]
-    end
-    for i = 1:length(g.nodes)
-        node = g.nodes[i]
-        if isempty(node.args)
-            isassigned(temps,i) || (temps[i] = node.f)
-        else
-            args = map(node.args) do arg
-                isa(arg,NodeId) ? temps[arg.id] : arg
-            end
-            temps[i] = node.f(args...)
+graphs(g::Graph) = (g,)
+function parameters(g::Graph)
+    params = Var[]
+    for n in g.nodes
+        for arg in n.args
+            isparam(arg) && push!(params,arg)
         end
     end
-    if length(g.outids) == 1
-        temps[g.outids[1]]
-    else
-        map(id -> temps[id], g.outids)
+    params
+end
+
+function (g::Graph)(xs::NamedTuple)
+    temps = Array{Any}(undef, length(g.nodes))
+    for (name,id) in g.inputids
+        temps[id] = xs[name]
     end
+    for i = 1:length(g.nodes)
+        isassigned(temps,i) && continue
+        node = g.nodes[i]
+        args = map(node.args) do arg
+            isa(arg,NodeId) ? temps[arg.id] : arg
+        end
+        temps[i] = node.f(args...)
+    end
+    map(id -> temps[id], g.outputids)
+end
+
+function todevice(g::Graph)
+    dev = getdevice()
+    dev < 0 && return g
+    nodes = map(g.nodes) do n
+        args = map(n.args) do arg
+            isa(arg,Var) ? todevice(arg) : arg
+        end
+        Node(n.f, args, n.name)
+    end
+    Graph(nodes, g.inputids, g.outputids)
 end

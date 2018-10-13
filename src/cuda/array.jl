@@ -11,22 +11,20 @@ const CuMatrix{T} = CuArray{T,2}
 const CuVecOrMat{T} = Union{CuVector{T},CuMatrix{T}}
 
 function CuArray{T}(dims::Dims{N}) where {T,N}
-    ptr = CUDAMalloc()(T, prod(dims))
+    ptr = MEMPOOL(T, prod(dims))
     CuArray(ptr, dims)
 end
 CuArray{T}(dims::Int...) where T = CuArray{T}(dims)
 CuArray(x::Array{T,N}) where {T,N} = copyto!(CuArray{T}(size(x)), x)
 
 ### AbstractArray interface
+getdevice(x::CuArray) = x.ptr.dev
 Base.size(x::CuArray) = x.dims
 Base.size(x::CuArray, i::Int) = i <= ndims(x) ? x.dims[i] : 1
 Base.getindex(x::CuArray, i::Int) = throw("getindex $i")
 Base.getindex(x::CuArray, I...) = CuArray(view(x,I...))
 Base.setindex!(y::CuArray, v::Number, i::Int) = throw("setindex!")
-function Base.setindex!(y::CuArray{T}, x::CuArray{T}, I...) where T
-    dest = CuDeviceArray(y, I)
-    copyto!(dest, x)
-end
+Base.setindex!(y::CuArray{T}, x::CuArray{T}, I...) where T = copyto!(view(y,I), x)
 Base.IndexStyle(::Type{<:CuArray}) = IndexLinear()
 Base.length(x::CuArray) = prod(x.dims)
 Base.similar(x::CuArray, ::Type{T}, dims::Dims{N}) where {T,N} = CuArray{T}(dims)
@@ -46,8 +44,12 @@ function Base.stride(x::CuArray, i::Int)
 end
 
 Base.cconvert(::Type{Ptr{T}}, x::CuArray) where T = Base.cconvert(Ptr{T}, pointer(x))
-Base.pointer(x::CuArray, index::Int=1) = index == 1 ? x.ptr : CuPtr(pointer(x.ptr,index),0,x.ptr.dev)
+function Base.pointer(x::CuArray, index::Int=1)
+    @assert index > 0
+    index == 1 ? x.ptr : CuPtr(pointer(x.ptr,index),0,x.ptr.dev)
+end
 Base.Array(x::CuArray{T}) where T = copyto!(Array{T}(undef,size(x)), x)
+Base.unsafe_wrap(::Type{A}, ptr::CuPtr{T}, dims) where {A<:CuArray,T} = CuArray{T}(ptr, dims)
 
 ##### reshape #####
 Base.reshape(x::CuArray{T}, dims::Dims{N}) where {T,N} = CuArray{T,N}(x.ptr, dims)
@@ -100,7 +102,23 @@ function Base.copyto!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int,
     dest
 end
 
-@generated function Base.fill!(x::CuArray{T}, value) where T
+function Base.fill!(x::CuArray{T}, value; stream=C_NULL) where T
+    if sizeof(T) == 4
+        ui = reinterpret(Cuint, T(value))
+        @apicall :cuMemsetD32Async (Ptr{Cvoid},Cuint,Csize_t,Ptr{Cvoid}) x ui length(x) stream
+    elseif sizeof(T) == 2
+        us = reinterpret(Cushort, T(value))
+        @apicall :cuMemsetD16Async (Ptr{Cvoid},Cushort,Csize_t,Ptr{Cvoid}) x us length(x) stream
+    elseif sizeof(T) == 1
+        uc = reinterpret(Cuchar, T(value))
+        @apicall :cuMemsetD8Async (Ptr{Cvoid},Cuchar,Csize_t,Ptr{Cvoid}) x us length(x) stream
+    else
+        throw("Not supported.")
+    end
+    x
+end
+
+@generated function fill2!(x::CuArray{T}, value) where T
     Ct = cstring(T)
     k = Kernel("""
     __global__ void fill($Ct *x, int n, $Ct value) {
@@ -117,6 +135,7 @@ end
 
 ##### IO #####
 Base.show(io::IO, x::CuArray) = print(io, Array(x))
+Base.display(x::CuArray) = display(Array(x))
 
 #####
 function curand(::Type{T}, dims::Dims{N}) where {T,N}

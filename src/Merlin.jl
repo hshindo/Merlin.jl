@@ -9,19 +9,20 @@ using .CUDA
 using Markdown
 import LinearAlgebra.BLAS: scal!, axpy!, gemv, gemv!, gemm, gemm!
 export gemv, gemm
-#export Functor
-#abstract type Functor end
+#export Parametric
+#abstract type Parametric end
 
 const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
 const UniVector{T} = UniArray{T,1}
 const UniMatrix{T} = UniArray{T,2}
 
-include("config.jl")
 include("add.jl")
+#include("devices.jl")
 include("var.jl")
 include("graph.jl")
+include("dataset.jl")
 include("check.jl")
-#include("iterators.jl")
+include("config.jl")
 
 for name in [
     "activation/crelu",

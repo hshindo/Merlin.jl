@@ -9,10 +9,7 @@ Softmax function over the given dimension.
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
-function softmax(x::Var)
-    configure!(x)
-    Var(softmax(x.data), ∇softmax!, (x,))
-end
+softmax(x::Var) = Var(softmax(x.data), ∇softmax!, (x,))
 softmax(x::CuArray) = CUDNN.softmax(x)
 softmax(x::Node) = Node(softmax, (x,))
 
@@ -61,10 +58,7 @@ end
 
 Logarithm of softmax function.
 """
-function logsoftmax(x::Var)
-    configure!(x)
-    Var(logsoftmax(x.data), ∇logsoftmax!, (x,))
-end
+logsoftmax(x::Var) = Var(logsoftmax(x.data), ∇logsoftmax!, (x,))
 logsoftmax(x::CuArray) = CUDNN.softmax(x, CUDNN.CUDNN_SOFTMAX_LOG)
 logsoftmax(x::Node) = Node(logsoftmax, (x,))
 

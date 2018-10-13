@@ -28,12 +28,11 @@ const CUDNN_RNN_PADDED_IO_ENABLED = 1
 mutable struct RNNDesc
     ptr::Cptr
     direction
-    work
 
     function RNNDesc(::Type{T}, hsize::Int, nlayers::Int, droprate::Float64, direction::Cint, mode::Cint) where T
         ref = Ref{Cptr}()
         @cudnn :cudnnCreateRNNDescriptor (Ptr{Cptr},) ref
-        desc = new(ref[], direction, nothing)
+        desc = new(ref[], direction)
 
         h = gethandle()
         dropdesc = DropoutDesc(droprate)
@@ -51,26 +50,8 @@ end
 
 Base.cconvert(::Type{Cptr}, desc::RNNDesc) = desc.ptr
 
-struct RNNWork
-    direction
-    seqlength
-    rnndesc
-    xdesc
-    wdesc
-    hxdesc
-    cxdesc
-    ydesc
-    hydesc
-    cydesc
-    workspace
-    reserve_space
-    x
-    batchdims
-    y
-end
-
 function rnn(insize::Int, hsize::Int, nlayers::Int, droprate::Float64, direction::Cint, mode::Cint,
-    w::CuVector{T}, x::CuMatrix{T}, batchdims::Vector{Int}, train::Bool) where T
+    x::CuArray{T}, batchdims::Vector{Int}, hx::CuArray{T}, cx::CuArray{T}, w::CuArray{T}, train::Bool) where T
 
     @assert insize == size(x,1)
     rnndesc = RNNDesc(T, hsize, nlayers, droprate, direction, mode)
@@ -85,15 +66,10 @@ function rnn(insize::Int, hsize::Int, nlayers::Int, droprate::Float64, direction
 
     # hx,cx,hy,cy: (H,B,L) where H = hidden size, L = numLayers * (bidirectional ? 2 : 1)
     coef = direction == CUDNN_UNIDIRECTIONAL ? 1 : 2
-    hxdesc = cxdesc = hydesc = cydesc = C_NULL
-    #hxdesc = TensorDesc(T, hsize, batchdims[1], nlayers*coef)
-    #cxdesc = TensorDesc(T, hsize, batchdims[1], nlayers*coef)
-    #hydesc = TensorDesc(T, hsize, batchdims[1], nlayers*coef)
-    #cydesc = TensorDesc(T, hsize, batchdims[1], nlayers*coef)
-    # hy = zeros(rnn.hx)
-    # cy = zeros(rnn.cx)
-    hy = C_NULL
-    cy = C_NULL
+    #hxdesc = cxdesc = hydesc = cydesc = hy = cy = C_NULL
+    hxdesc = TensorDesc(T, hsize, batchdims[1], nlayers*coef)
+    cxdesc = TensorDesc(T, hsize, batchdims[1], nlayers*coef)
+    hy = cy = C_NULL
 
     # y: (1,Y,B,T) where Y = hiddenSize * (bidirectional ? 2 : 1)
     # ydesc: Array of T (1,Y,B) descriptors
@@ -129,16 +105,16 @@ function rnn(insize::Int, hsize::Int, nlayers::Int, droprate::Float64, direction
             Cptr,Csize_t),      # reserve_space
             h, rnndesc, seqlength,
             xdesc, x,
-            hxdesc, C_NULL,
-            cxdesc, C_NULL,
+            hxdesc, hx,
+            cxdesc, cx,
             wdesc, w,
             ydesc, y,
-            hydesc, C_NULL,
-            cydesc, C_NULL,
+            hxdesc, hy,
+            cxdesc, cy,
             workspace, length(workspace),
             reserve_space, length(reserve_space))
-        rnndesc.work = w,x,y,seqlength,wdesc,xdesc,hxdesc,cxdesc,ydesc,workspace,reserve_space
-        y, rnndesc
+        work = rnndesc,x,hx,cx,w,y,hy,cy,seqlength,xdesc,hxdesc,cxdesc,wdesc,ydesc,workspace,reserve_space
+        y, work
     else
         @cudnn(:cudnnRNNForwardInference,
             (Cptr,Cptr,Cint,
@@ -152,25 +128,26 @@ function rnn(insize::Int, hsize::Int, nlayers::Int, droprate::Float64, direction
             Cptr,Csize_t),      # workspace
             h, rnndesc, seqlength,
             xdesc, x,
-            hxdesc, C_NULL,
-            cxdesc, C_NULL,
+            hxdesc, hx,
+            cxdesc, cx,
             wdesc, w,
             ydesc, y,
-            hydesc, C_NULL,
-            cydesc, C_NULL,
+            hxdesc, hy,
+            cxdesc, cy,
             workspace, length(workspace))
-        y, rnndesc
+        y, nothing
     end
 end
 
-function ∇rnn_data(rnndesc::RNNDesc, dy::CuArray)
+function ∇rnn_data(dy::CuArray, work::Tuple)
+    rnndesc,x,hx,cx,w,y,hy,cy,seqlength,xdesc,hxdesc,cxdesc,wdesc,ydesc,workspace,reserve_space = work
     coef = rnndesc.direction == CUDNN_UNIDIRECTIONAL ? 1 : 2
-    w,x,y,seqlength,wdesc,xdesc,hxdesc,cxdesc,ydesc,workspace,reserve_space = rnndesc.work
 
     dx = similar(x)
-    dhy = dcy = hx = cx = dhx = dcx = C_NULL
-    hydesc = cydesc = C_NULL
-    dhxdesc = dcxdesc = C_NULL
+    dhx = similar(hx)
+    dcx = similar(cx)
+    dhy = dcy = C_NULL
+    # dhy = dcy = hx = cx = dhx = dcx = C_NULL
     @cudnn(:cudnnRNNBackwardData,
         (Cptr,Cptr,Cint,
         Ptr{Cptr},Cptr,     # y
@@ -188,8 +165,8 @@ function ∇rnn_data(rnndesc::RNNDesc, dy::CuArray)
         gethandle(), rnndesc, seqlength,
         ydesc, y,
         ydesc, dy,
-        hydesc, dhy,
-        cydesc, dcy,
+        hxdesc, dhy,
+        cxdesc, dcy,
         wdesc, w,
         hxdesc, hx,
         cxdesc, cx,
@@ -198,13 +175,13 @@ function ∇rnn_data(rnndesc::RNNDesc, dy::CuArray)
         cxdesc, dcx,
         workspace, length(workspace),
         reserve_space, length(reserve_space))
-    dx
+    dx, dhx, dcx
 end
 
-function ∇rnn_weights!(rnndesc::RNNDesc, dw::CuArray)
-    w,x,y,seqlength,wdesc,xdesc,hxdesc,cxdesc,ydesc,workspace,reserve_space = rnndesc.work
+function ∇rnn_weights!(dw::CuArray, work::Tuple)
+    rnndesc,x,hx,cx,w,y,hy,cy,seqlength,xdesc,hxdesc,cxdesc,wdesc,ydesc,workspace,reserve_space = work
 
-    hx = C_NULL
+    # hx = C_NULL
     @cudnn(:cudnnRNNBackwardWeights,
         (Cptr,Cptr,Cint,
         Ptr{Cptr},Cptr,     # x

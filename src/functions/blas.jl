@@ -17,7 +17,6 @@ B = gemv('N', 1, A, x)
 ```
 """
 function gemv(tA::Char, alpha::Number, A::Var, x::Var)
-    configure!(A, x)
     T = eltype(A)
     ydata = gemv(tA, T(alpha), A.data, x.data)
     Var(ydata, ∇gemv!, (tA,alpha,A,x))
@@ -56,7 +55,6 @@ C = gemm('T', 'N', 1, A, B)
 ```
 """
 function gemm(tA::Char, tB::Char, alpha::Number, A::Var, B::Var)
-    configure!(A, B)
     T = eltype(A)
     ydata = gemm(tA, tB, T(alpha), A.data, B.data)
     Var(ydata, ∇gemm!, (tA,tB,alpha,A,B))
@@ -91,7 +89,6 @@ doc"""
     gemm_batch(tA::Char, tB::Char, alpha, A::Var, B::Var)
 """
 function gemm_batch(tA::Char, tB::Char, alpha, A::Var, B::Var)
-    configure!(A, B)
     T = eltype(A)
     ydata = gemm_batch(tA, tB, T(alpha), A.data, B.data)
     Var(ydata, ∇gemm_batch!, (tA,tB,alpha,A,B))

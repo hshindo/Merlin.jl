@@ -1,9 +1,7 @@
 export pack, unpack
 
 function pack(x::Var, dims::Vector{Int}, padding)
-    configure!(x)
     @assert sum(dims) == size(x,ndims(x))
-
     s = Base.setindex(size(x), maximum(dims), ndims(x))
     ydata = similar(x.data, s..., length(dims))
     fill!(ydata, padding)

@@ -1,7 +1,6 @@
 export lookup
 
 function lookup(w::Var, x::Var)
-    configure!(w)
     ydata = lookup(w.data, x.data)
     Var(ydata, ∇lookup!, (w,x))
 end
@@ -57,7 +56,6 @@ function ∇lookup!(gy::UniArray, gw::UniArray, x::Array{Int})
     end
 end
 
-#=
 @generated function ∇lookup!(gy::CuArray{T}, gw::CuArray{T}, x::CuArray{Cint}) where T
     Ct = cstring(T)
     k = Kernel("""
@@ -79,4 +77,3 @@ end
         $k(gdims, bdims, pointer(gy), length(gy), pointer(gw), pointer(x), n)
     end
 end
-=#

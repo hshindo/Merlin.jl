@@ -6,8 +6,7 @@ mutable struct LSTM
     nlayers::Int
     droprate::Float64
     bidir::Bool
-    params
-    iscuda::Bool
+    weights::Vector
 end
 
 doc"""
@@ -47,7 +46,7 @@ h = f(x)
 function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64, bidir::Bool;
     init_W=Normal(0,0.001), init_U=Orthogonal(), init_b=Fill(0), init_h=Fill(0), init_c=Fill(0)) where T
 
-    params = []
+    weights = []
     coef = bidir ? 2 : 1
     for l = 1:nlayers
         for _ = 1:coef
@@ -58,76 +57,58 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
                 push!(Ws, init_W(T,s,hsize))
                 push!(Us, init_U(T,hsize,hsize))
             end
-            W = param(cat(Ws...,dims=2))
-            U = param(cat(Us...,dims=2))
-            b = param(init_b(T,4hsize))
-            h = param(init_h(T,hsize))
-            c = param(init_c(T,hsize))
-            push!(params, (W,U,b,h,c))
+            W = parameter(cat(Ws...,dims=2))
+            U = parameter(cat(Us...,dims=2))
+            b = parameter(init_b(T,4hsize))
+            h = parameter(init_h(T,hsize))
+            c = parameter(init_c(T,hsize))
+            push!(weights, W, U, b, h, c)
         end
     end
-    LSTM(insize, hsize, nlayers, droprate, bidir, params, false)
+    LSTM(insize, hsize, nlayers, droprate, bidir, weights)
 end
 
-function configure!(lstm::LSTM)
-    if iscuda() && !lstm.iscuda
-        lstm.iscuda = true
-        Ws = []
-        hs = []
-        cs = []
-        for (W,U,b,h,c) in lstm.params
-            push!(Ws, vec(W.data), vec(U.data))
-        end
-        for (W,U,b,h,c) in lstm.params
-            push!(Ws, b.data, fill!(similar(b.data),0))
-            push!(hs, h.data)
-            push!(cs, c.data)
-        end
-        W = param(cat(Ws...,dims=1))
-        h = param(cat(hs...,dims=1))
-        c = param(cat(cs...,dims=1))
-        configure!(W, h, c)
-        lstm.params = (W,)
-    end
+function (f::LSTM)(x, dims)
+    p = (insize=f.insize,hsize=f.hsize,nlayers=f.nlayers,droprate=f.droprate,bidir=f.bidir)
+    lstm(x, dims, p, f.weights...)
 end
 
-function (lstm::LSTM)(x::Var, dims::Vector{Int})
-    if iscuda()
-        lstm.iscuda || configure!(lstm)
-        configure!(x)
-        W = lstm.params[1]
-        t_xdata, t_dims = transpose_batch(x.data, dims)
-        dir = lstm.bidir ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
-        mode = CUDNN.CUDNN_LSTM
-        t_ydata, work = CUDNN.rnn(lstm.insize, lstm.hsize, lstm.nlayers, lstm.droprate, dir, mode,
-            W.data, t_xdata, t_dims, istrain())
-        ydata, _ = transpose_batch(t_ydata, t_dims)
-        Var(ydata, ∇lstm!, (lstm,x,dims,work,W))
-    else
-        h = x
-        coef = lstm.bidir ? 2 : 1
-        for l = 1:lstm.nlayers
-            i = (l-1) * coef + 1
-            p = lstm.params[i]
-            h1 = lstm_tstep(h, dims, p..., false)
-            if lstm.bidir
-                p = lstm.params[i+1]
-                h2 = lstm_tstep(h, dims, p..., true)
-                h = concat(1, h1, h2)
-            else
-                h = h1
-            end
-        end
-        h
-    end
-end
-(lstm::LSTM)(x::Node, dims) = Node(lstm, (x,dims))
-
-function lstm_tstep(x::Var, dims::Vector{Int}, W::Var, U::Var, b::Var, h::Var, c::Var, rev::Bool)
+function lstm(x::Var, dims, p, weights::Var...)
     @assert sum(dims) == size(x,2)
     @assert issorted(dims, rev=true)
-    WU = concat(1, W, U)
+    if isa(x.data, Array)
+        lstm_cpu(x, dims, p, weights)
+    elseif isa(x.data, CuArray)
+        lstm_cuda(x, dims, p, weights)
+    else
+        throw("Invalid backend.")
+    end
+end
+lstm(x::Node, args...) = Node(lstm, (x,args...))
 
+function lstm_cpu(x::Var, dims, p, weights)
+    h = x
+    #coef = p.bidir ? 2 : 1
+    i = 0
+    for l = 1:p.nlayers
+        #i = (l-1) * coef + 1
+        #p = lstm.params[i]
+        h1 = lstm_tstep(h, dims, weights[i+1:i+5]..., false)
+        i += 5
+        if p.bidir
+            #p = lstm.params[i+1]
+            h2 = lstm_tstep(h, dims, weights[i+1:i+5]..., true)
+            h = concat(1, h1, h2)
+            i += 5
+        else
+            h = h1
+        end
+    end
+    h
+end
+
+function lstm_tstep(x::Var, dims, W::Var, U::Var, b::Var, h::Var, c::Var, rev::Bool)
+    WU = concat(1, W, U)
     cumdims = Array{Int}(undef, length(dims)+1)
     cumdims[1] = 1
     for i = 1:length(dims)
@@ -177,12 +158,73 @@ function lstm_onestep(xt::Var, WU::Var, b::Var, ht::Var, ct::Var)
     ht, ct
 end
 
-function ∇lstm!(y::Var, f::LSTM, x::Var, dims, work, W)
+function lstm_cuda(x::Var, dims, p, weights)
+    Ws, hs, cs = [], [], []
+    for i = 1:5:length(weights)
+        W, U, b, h, c = weights[i:i+4]
+        push!(Ws, vec(W.data), vec(U.data))
+        for _ = 1:length(dims)
+            push!(hs, h.data)
+            push!(cs, c.data)
+        end
+    end
+    for i = 1:5:length(weights)
+        W, U, b, h, c = weights[i:i+4]
+        push!(Ws, b.data, fill!(similar(b.data),0)) # b
+    end
+
+
+    #for (W,U,b,h,c) in lstm.params
+    #    push!(Ws, vec(W.data), vec(U.data))
+    #end
+    #for (W,U,b,h,c) in lstm.params
+    #    push!(Ws, b.data, fill!(similar(b.data),0))
+    #    for i = 1:length(dims)
+    #        push!(hs, h.data)
+    #        push!(cs, c.data)
+    #    end
+    #end
+    W = cat(Ws..., dims=1)
+    h = cat(hs..., dims=1)
+    c = cat(cs..., dims=1)
+
+    t_xdata, t_dims = transpose_batch(x.data, dims)
+    dir = p.bidir ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
+    mode = CUDNN.CUDNN_LSTM
+    t_ydata, work = CUDNN.rnn(p.insize, p.hsize, p.nlayers, p.droprate, dir, mode,
+        t_xdata, t_dims, h, c, W, istrain())
+    ydata, _ = transpose_batch(t_ydata, t_dims)
+    Var(ydata, ∇lstm_cuda!, (x,dims,p,weights,W,work))
+end
+
+function ∇lstm_cuda!(y::Var, x::Var, dims, p, weights, dW, work)
+    @assert !isnothing(x.grad)
     t_gy, t_dims = transpose_batch(y.grad, dims)
-    t_gx = CUDNN.∇rnn_data(work, t_gy) # this call is required for ∇rnn_weights!
+    t_gx, gh, gc = CUDNN.∇rnn_data(t_gy, work) # this call is required for ∇rnn_weights!
     gx, _ = transpose_batch(t_gx, t_dims)
-    isnothing(x.grad) || addto!(x.grad, gx)
-    isnothing(W.grad) || CUDNN.∇rnn_weights!(work, W.grad)
+    addto!(x.grad, gx)
+
+    gW = fill!(similar(dW), 0)
+    CUDNN.∇rnn_weights!(gW, work)
+    Wi = 0
+    hi = 0
+    for i = 1:5:length(weights)
+        W, U, b, h, c = weights[i:i+4]
+        addto!(W.grad, 1, gW, Wi+1, length(W))
+        Wi += length(W)
+        addto!(U.grad, 1, gW, Wi+1, length(U))
+        Wi += length(U)
+        for _ = 1:length(dims)
+            addto!(h.grad, 1, gh, hi+1, length(h))
+            addto!(c.grad, 1, gc, hi+1, length(c))
+            hi += length(h)
+        end
+    end
+    for i = 1:5:length(weights)
+        W, U, b, h, c = weights[i:i+4]
+        addto!(b.grad, 1, gW, Wi+1, length(b))
+        Wi += 2length(b)
+    end
 end
 
 @generated function transpose_batch(x::CuMatrix{T}, dims::Vector{Int}) where T
@@ -203,7 +245,6 @@ end
         }
     }""")
     quote
-        @assert issorted(dims, rev=true)
         t_x = similar(x)
         t_dims = transpose_dims(dims)
         cumdims = Array{Cint}(undef, length(dims)+1)
