@@ -35,54 +35,98 @@ end
 
 function conv1d(x::Var, dims, W::Var, b::Var, p)
     @assert ndims(x) == 2 && sum(dims) == size(x,2)
-    idx = conv1d_index(p, dims)
-    h = lookup(x, Var(idx))
+    h = conv1d_index(x, dims, p)
     y = linear(h, W, b)
     y
 end
 conv1d(x::Node, args...) = Node(conv1d, (x,args...))
 
-function conv1d_index(p::NamedTuple, dims::Vector{Int})
+function conv1d_index(x::Var, dims, p)
+    ydata = conv1d_index(x.data, dims, p)
+    Var(ydata, ∇conv1d_index!, (x,dims,p))
+end
+
+function conv1d_index(x::Matrix, dims::Vector{Int}, p::NamedTuple)
     ksize, padding, stride, dilation = p.ksize, p.padding, p.stride, p.dilation
     outdims = map(dims) do d
         k = (ksize - 1) * dilation + 1
         (d + 2padding - k) ÷ stride + 1
     end
     cumdim = 0
-    y = Array{Int}(undef, ksize, sum(outdims))
-    yi = 1
+    h = Array{Int}(undef, ksize, sum(outdims))
+    hi = 1
     for n = 1:length(dims)
         ndims = dims[n]
         i = cumdim - padding + 1
         for d = 1:outdims[n]
             for j = i:dilation:i+(ksize-1)*dilation
-                y[yi] = cumdim < j <= cumdim+ndims ? j : 0
-                yi += 1
+                h[hi] = cumdim < j <= cumdim+ndims ? j : 0
+                hi += 1
             end
             i += stride
         end
         cumdim += ndims
     end
-    y
+    lookup(x, h)
 end
 
-#=
-function conv1d_index(f::Conv1d, inlength::Int)
-    ksize, padding, stride, dilation = f.ksize, f.padding, f.stride, f.dilation
-    k = (ksize - 1) * dilation + 1
-    outlength = (inlength + 2padding - k) ÷ stride + 1
+function ∇conv1d_index!(y::Var, x::Var, dims, p)
+    ∇conv1d_index!(y.grad, x.grad, dims, p)
+end
 
-    y = Array{Int}(ksize, outlength)
-    yi = 1
-    i = -padding + 1
-    for d = 1:outlength
-        j = i + (ksize-1)*dilation
-        for k = i:dilation:j
-            y[yi] = 0 < k <= inlength ? k : 0
-            yi += 1
+function ∇conv1d_index!(gy::Array, gx::Array, dims, p)
+    ∇lookup!()
+end
+
+@generated function conv1d_index(x::CuMatrix{T}, dims::Vector{Int}, p::NamedTuple) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void conv1d_index($Ct *y, $Ct *x, int sizeY, int sizeX, int n, int ksize, int padding, int stride) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= sizeY) return;
+
+        int vj = idx / n;
+        int vi = idx - vj * n;
+        int kj = vj / ksize;
+        int ki = vj - kj * ksize;
+        int xj = -padding + ki + kj * stride;
+        int xi = vi + xj * n;
+        if (xj < 0 || xj >= sizeX) y[idx] = 0;
+        else y[idx] = x[xi];
+    }""")
+    quote
+        ksize, padding, stride, dilation = p.ksize, p.padding, p.stride, p.dilation
+        ydims = Array{Int}(undef, length(dims))
+        for i = 1:length(dims)
+            d = dims[i]
+            k = (ksize - 1) * dilation + 1
+            ydims[i] = (d + 2padding - k) ÷ stride + 1
         end
-        i += stride
+        y = similar(x, ksize*size(x,1), sum(ydims))
+        gdims, bdims = cudims(length(y))
+        $k(gdims, bdims, pointer(y), pointer(x), length(y), size(x,2), size(x,1), ksize, padding, stride)
+        y
     end
-    y
 end
-=#
+
+@generated function ∇conv1d_index!(gy::CuMatrix{T}, gx::CuMatrix{T}, dims::Vector{Int}, p::NamedTuple) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void conv1d_index_grad($Ct *gy, $Ct *gx, int sizeY, int sizeX, int n, int ksize, int padding, int stride) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= sizeY) return;
+
+        int vj = idx / n;
+        int vi = idx - vj * n;
+        int kj = vj / ksize;
+        int ki = vj - kj * ksize;
+        int xj = -padding + ki + kj * stride;
+        int xi = vi + xj * n;
+        if (xj >= 0 || xj < sizeX) atomicAdd(&gx[xi], gy[idx]);
+    }""")
+    quote
+        ksize, padding, stride, dilation = p.ksize, p.padding, p.stride, p.dilation
+        gdims, bdims = cudims(length(gy))
+        $k(gdims, bdims, pointer(gy), pointer(gx), length(gy), size(gx,2), size(gx,1), ksize, padding, stride)
+    end
+end

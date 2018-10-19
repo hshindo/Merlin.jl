@@ -7,7 +7,7 @@ mutable struct CuPtr{T}
 end
 
 CuPtr(ptr::Ptr{T}, size::Int) where T = CuPtr(ptr, size, getdevice())
-CuPtr{T}() where T = CuPtr(Ptr{T}(C_NULL), 0, -1)
+CuPtr{T}() where T = CuPtr(Ptr{T}(C_NULL), 0)
 
 Base.cconvert(::Type{Ptr{T}}, x::CuPtr) where T = Ptr{T}(x.ptr)
 Base.pointer(x::CuPtr{T}, index::Int=1) where T = x.ptr + sizeof(T)*(index-1)

@@ -48,10 +48,10 @@ function fit!(lossfun, model, dataset, opt; batchsize, shuffle)
     params = collect(Iterators.flatten(parameters.(graphs(model))))
     res = eachbatch(dataset, batchsize, shuffle) do data
         y = lossfun((model,data))
-        #loss = sum(y.data)
-        #gradient!(y)
-        #foreach(opt, params)
-        0.0
+        loss = sum(y.data)
+        gradient!(y)
+        foreach(opt, params)
+        loss
     end
     res = Vector{typeof(res[1])}(res)
     loss = sum(res) / length(dataset)

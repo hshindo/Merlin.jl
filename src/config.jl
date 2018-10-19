@@ -1,5 +1,3 @@
-export setcpu, setcuda, settrain
-
 mutable struct Config
     device::Int
     train::Bool
@@ -9,8 +7,8 @@ const CONFIGS = [Config(-1,true) for i=1:nthreads()]
 getconfig() = CONFIGS[threadid()]
 setconfig(config::Config) = CONFIGS[threadid()] = config
 
-iscpu() = getconfig().device < 0
-iscuda() = !iscpu()
+oncpu() = getconfig().device < 0
+ongpu() = !oncpu()
 
 getdevice() = getconfig().device
 function setdevice(dev::Int)

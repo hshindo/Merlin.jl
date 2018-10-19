@@ -30,10 +30,14 @@ mutable struct ActivationDesc
     end
 end
 
+const ACTIVATION_DESCS = Dict{Tuple,ActivationDesc}()
+
 Base.unsafe_convert(::Type{Cptr}, desc::ActivationDesc) = desc.ptr
 
 function activation(x::CuArray{T}, mode::Cint, coef::Float64) where T
-    actdesc = ActivationDesc(mode, coef)
+    actdesc = get!(ACTIVATION_DESCS, (mode,coef)) do
+        ActivationDesc(mode, coef)
+    end
     xdesc = TensorDesc(x, 4)
     y = similar(x)
     @cudnn(:cudnnActivationForward,

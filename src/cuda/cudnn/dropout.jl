@@ -1,14 +1,12 @@
 mutable struct DropoutDesc
     ptr::Cptr
-    droprate::Float64
-    xdesc
-    reserve_space
+    states
 
-    function DropoutDesc(droprate::Float64, seed::Int=0)
+    function DropoutDesc(droprate::Float64)
+        seed = 0
         ref = Ref{Cptr}()
         @cudnn :cudnnCreateDropoutDescriptor (Ptr{Cptr},) ref
-        ptr = ref[]
-        desc = new(ptr, droprate, nothing, nothing)
+        desc = new(ref[])
 
         h = gethandle()
         ref = Ref{Csize_t}()
@@ -17,6 +15,7 @@ mutable struct DropoutDesc
         @cudnn(:cudnnSetDropoutDescriptor,
             (Cptr,Cptr,Cfloat,Cptr,Csize_t,Culonglong),
             desc, h, droprate, states, length(states), seed)
+        desc.states = states
 
         finalizer(desc) do x
             @cudnn :cudnnDestroyDropoutDescriptor (Cptr,) x.ptr
@@ -25,31 +24,32 @@ mutable struct DropoutDesc
     end
 end
 
+const DROPOUT_DESCS = Dict{Tuple,DropoutDesc}()
+
 Base.cconvert(::Type{Cptr}, desc::DropoutDesc) = desc.ptr
 
 function dropout(x::CuArray{T,N}, droprate::Float64) where {T,N}
-    dropdesc = DropoutDesc(droprate)
+    h = gethandle()
+    dropdesc = get!(DROPOUT_DESCS, (h,droprate)) do
+        DropoutDesc(droprate)
+    end
     xdesc = TensorDesc(x, 4)
-    dropdesc.xdesc = xdesc
 
     ref = Ref{Csize_t}()
     @cudnn :cudnnDropoutGetReserveSpaceSize (Cptr,Ptr{Csize_t}) xdesc ref
     reserve_space = CuArray{UInt8}(Int(ref[]))
-    dropdesc.reserve_space = reserve_space
 
-    h = gethandle()
     y = similar(x)
     @cudnn(:cudnnDropoutForward,
         (Cptr,Cptr,Cptr,Cptr,Cptr,Cptr,Cptr,Csize_t),
         h, dropdesc, xdesc, x, xdesc, y, reserve_space, length(reserve_space))
 
-    y, dropdesc
+    y, (dropdesc,xdesc,reserve_space)
 end
 
-function ∇dropout!(dy::CuArray, dx::CuArray, dropdesc)
-    xdesc = dropdesc.xdesc
+function ∇dropout!(dy::CuArray, dx::CuArray, work)
+    dropdesc, xdesc, reserve_space = work
     h = gethandle()
-    reserve_space = dropdesc.reserve_space
     @cudnn(:cudnnDropoutBackward,
         (Cptr,Cptr,Cptr,Cptr,Cptr,Cptr,Cptr,Csize_t),
         h, dropdesc, xdesc, dy, xdesc, dx, reserve_space, length(reserve_space))

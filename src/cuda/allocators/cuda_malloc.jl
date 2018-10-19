@@ -5,7 +5,7 @@ function (::CUDAMalloc)(::Type{T}, size::Int) where T
     @assert size >= 0
     size == 0 && return CuPtr{T}()
     ptr = Ptr{T}(memalloc(sizeof(T)*size))
-    cuptr = CuPtr(ptr, size)
+    cuptr = CuPtr(ptr)
     finalizer(x -> memfree(x.ptr), cuptr)
     cuptr
 end

@@ -1,4 +1,4 @@
-const MALLOC = Ref{Any}(CUDAMalloc())
+#const MALLOC = Ref{Any}(CUDAMalloc())
 
 function malloc(::Type{T}, size::Int) where T
     @assert size >= 0
