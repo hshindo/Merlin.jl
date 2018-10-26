@@ -59,7 +59,8 @@ for name in [
     "pack",
     "reshape",
     "softmax",
-    "split"
+    "split",
+    "window1d"
     ]
     include("functions/$name.jl")
 end

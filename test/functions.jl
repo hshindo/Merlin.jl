@@ -144,4 +144,10 @@ end
     logsoftmax(x)
 end
 
+@testset "window1d" begin
+    x = parameter(randn(T,10,10))
+    ksize, padding, stride, dilation = 5, 2, 1, 1
+    checkgrad(()->window1d(x,[3,7],ksize,padding,stride,dilation), x)
+end
+
 end

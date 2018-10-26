@@ -2,17 +2,16 @@ import Base: sum, findmax, findmin, maximum, argmax
 import LinearAlgebra: norm
 export average
 
-function sum(x::CuArray; dims=())
-    if isempty(dims)
-        y = CUDNN.reduce(vec(x), 1, CUDNN.CUDNN_REDUCE_TENSOR_ADD)[1]
-        Array(y)[1]
-    else
-        isa(dims,Int) && (dims = (dims,))
-        for d in dims
-            x = CUDNN.reduce(x, d, CUDNN.CUDNN_REDUCE_TENSOR_ADD)[1]
-        end
-        x
+function sum(x::CuArray; dims)
+    isa(dims,Int) && (dims = (dims,))
+    for d in dims
+        x = CUDNN.reduce(x, d, CUDNN.CUDNN_REDUCE_TENSOR_ADD)[1]
     end
+    x
+end
+function sum(x::CuArray)
+    y = CUDNN.reduce(vec(x), 1, CUDNN.CUDNN_REDUCE_TENSOR_ADD)[1]
+    Array(y)[1]
 end
 
 function argmax(x::CuArray, dims::Int)
