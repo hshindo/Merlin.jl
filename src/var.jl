@@ -1,5 +1,6 @@
 export Var
-export param, zerograd!, isnothing, isparam, gradient!, topsort, create_batch
+export parameter, zerograd!, isnothing, isparam, gradient!, topsort
+export todevice, todevice!
 
 """
     Var
@@ -27,20 +28,67 @@ end
 
 Var(data, f=nothing, args=()) = Var(data, f, args, nothing)
 
-function param(data)
+function parameter(data)
     v = Var(data)
-    v.grad = fill!(similar(data), 0)
+    v.grad = fill!(similar(v.data), 0)
     v
 end
 
-zerograd!(x::Var) = fill!(x.grad, 0)
+function zerograd!(x::Var)
+    fill!(x.grad, 0)
+    x
+end
 
+data(x::Var) = x.data
+gradient(x::Var) = x.grad
 Base.size(x::Var) = size(x.data)
 Base.size(x::Var, i::Int) = size(x.data, i)
 Base.length(x::Var) = length(x.data)
 Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
 isnothing(x) = x == nothing
+
+#getdevice(x::Var) = getdevice(x.data)
+#getdevice(x::Array) = -1
+#getdevice(x::CuArray) = CUDA.getdevice(x)
+
+todevice(x) = x
+function todevice(x::Array{T}) where T
+    dev = getdevice()
+    if dev < 0
+        x
+    else
+        if T == Int
+            CuArray(Array{Cint}(x))
+        else
+            CuArray(x)
+        end
+    end
+end
+function todevice(x::CuArray{T}) where T
+    dev = getdevice()
+    if dev < 0
+        if T == Cint
+            Array{Int}(Array(x))
+        else
+            Array(x)
+        end
+    else
+        x
+    end
+end
+function todevice(x::Var)
+    data = todevice(x.data)
+    grad = todevice(x.grad)
+    x = Var(data)
+    x.grad = grad
+    x
+end
+function todevice!(x::Var)
+    x.data = todevice(x.data)
+    x.grad = todevice(x.grad)
+    x
+end
 
 """
     isparam(x::Var)
@@ -93,7 +141,15 @@ function gradient!(top::Var)
     sorted
 end
 
-function configure!(xs::Vararg{Var})
+function tocpu!(x::Var)
+end
+
+function tocuda!(x::Var)
+end
+
+function configure2!(xs::Vararg{Var})
+    return
+
     if iscpu()
         f = tocpu
     elseif iscuda()
@@ -103,19 +159,4 @@ function configure!(xs::Vararg{Var})
         x.data = f(x.data)
         isnothing(x.grad) || (x.grad = f(x.grad))
     end
-end
-tocpu(x::Array) = x
-tocpu(x::CuArray) = Array(x)
-tocpu(x::CuArray{Cint}) = Array{Int}(Array(x))
-tocuda(x::CuArray) = x
-tocuda(x::Array{Int}) = CuArray(Array{Cint}(x))
-tocuda(x::Array) = CuArray(x)
-
-function create_batch(samples::Vector, batchsize::Int)
-    batches = []
-    for i = 1:batchsize:length(samples)
-        range = i:min(i+batchsize-1,length(samples))
-        push!(batches, samples[range])
-    end
-    batches
 end

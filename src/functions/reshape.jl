@@ -10,11 +10,8 @@ x = Var(rand(T,10,5))
 y = reshape(x, 5, 10)
 ```
 """
-function reshape(x::Var, dims::Vararg{Int})
-    configure!(x)
-    Var(reshape(x.data,dims), ∇reshape!, (x,))
-end
-reshape(x::Node, dims::Vararg{Int}) = Node(reshape, (x,dims))
+reshape(x::Var, dims::Vararg{Int}) = Var(reshape(x.data,dims), ∇reshape!, (x,))
+reshape(x::Node, dims) = Node(reshape, (x,dims))
 
 vec(x::Var) = reshape(x, length(x))
 
@@ -29,11 +26,10 @@ doc"""
 Remove the dimensions of `x` specified by dims.
 """
 function dropdims(x::Var, dims::Vararg{Int})
-    configure!(x)
     ydata = dropdims(x.data, dims=dims)
     Var(ydata, ∇dropdims!, (x,))
 end
-dropdims(x::Node, dims::Vararg{Int}) = Node(dropdims, (x,dims))
+dropdims(x::Node, dims) = Node(dropdims, (x,dims))
 
 function dropdims(x::Var)
     dims = ()

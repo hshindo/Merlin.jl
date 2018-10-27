@@ -1,14 +1,13 @@
 export lookup
 
 function lookup(w::Var, x::Var)
-    configure!(w)
     ydata = lookup(w.data, x.data)
     Var(ydata, ∇lookup!, (w,x))
 end
 lookup(w::Node, x) = Node(lookup, (w,x))
 lookup(w, x::Node) = Node(lookup, (w,x))
 
-function lookup(w::UniMatrix{T}, x::Array{Int}) where T
+function lookup(w::Matrix{T}, x::Array{Int}) where T
     s = Base.setindex(size(x), size(x,1)*size(w,1), 1)
     y = fill!(similar(w,s...), 0)
     n = size(w, 1)
@@ -47,7 +46,7 @@ function ∇lookup!(y::Var, w::Var, x::Var)
     ∇lookup!(y.grad, w.grad, x.data)
 end
 
-function ∇lookup!(gy::UniArray, gw::UniArray, x::Array{Int})
+function ∇lookup!(gy::Array, gw::Array, x::Array{Int})
     n = size(gw, 1)
     for i = 1:length(x)
         x[i] == 0 && continue
@@ -57,7 +56,6 @@ function ∇lookup!(gy::UniArray, gw::UniArray, x::Array{Int})
     end
 end
 
-#=
 @generated function ∇lookup!(gy::CuArray{T}, gw::CuArray{T}, x::CuArray{Cint}) where T
     Ct = cstring(T)
     k = Kernel("""
@@ -70,7 +68,6 @@ end
         if (x[j] > 0) {
             int idxW = (x[j]-1) * n + i;
             atomicAdd(&gw[idxW], gy[idxY]);
-            // gw[(x[j]-1) * n + i] += gy[idxY];
         }
     }""")
     quote
@@ -79,4 +76,3 @@ end
         $k(gdims, bdims, pointer(gy), length(gy), pointer(gw), pointer(x), n)
     end
 end
-=#

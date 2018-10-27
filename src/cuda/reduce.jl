@@ -1,4 +1,4 @@
-import Base: sum, findmax, findmin, maximum
+import Base: sum, findmax, findmin, maximum, argmax
 import LinearAlgebra: norm
 export average
 
@@ -8,6 +8,14 @@ function sum(x::CuArray; dims)
         x = CUDNN.reduce(x, d, CUDNN.CUDNN_REDUCE_TENSOR_ADD)[1]
     end
     x
+end
+function sum(x::CuArray)
+    y = CUDNN.reduce(vec(x), 1, CUDNN.CUDNN_REDUCE_TENSOR_ADD)[1]
+    Array(y)[1]
+end
+
+function argmax(x::CuArray, dims::Int)
+    findmax(x, dims=dims)[2]
 end
 
 function findmax(x::CuArray; dims::Int)

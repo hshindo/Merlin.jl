@@ -3,10 +3,7 @@ doc"""
 
 Hyperbolic tangent function.
 """
-function Base.tanh(x::Var)
-    configure!(x)
-    Var(tanh(x.data), ∇tanh!, (x,))
-end
+Base.tanh(x::Var) = Var(tanh(x.data), ∇tanh!, (x,))
 Base.tanh(x::Array) = tanh.(x)
 Base.tanh(x::CuArray) = CUDNN.tanh(x)
 Base.tanh(x::Node) = Node(tanh, (x,))

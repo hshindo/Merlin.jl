@@ -19,7 +19,6 @@ y = softmax_crossentropy(p, x)
 ```
 """
 function softmax_crossentropy(p::Var, q::Var)
-    configure!(p, q)
     logq = logsoftmax(q.data)
     ydata = softmax_crossentropy(p.data, logq)
     Var(ydata, ∇softmax_crossentropy!, (p,q,logq))

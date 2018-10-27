@@ -2,12 +2,13 @@ struct CUDAMalloc
 end
 
 function (::CUDAMalloc)(::Type{T}, size::Int) where T
-    ptr = memalloc(T, size)
-    finalizer(memfree, ptr)
-    ptr
+    @assert size >= 0
+    size == 0 && return CuPtr{T}()
+    ptr = Ptr{T}(memalloc(sizeof(T)*size))
+    cuptr = CuPtr(ptr)
+    finalizer(x -> memfree(x.ptr), cuptr)
+    cuptr
 end
-
-free(::CUDAMalloc, x::CuPtr) = memfree(x.ptr)
 
 function sss()
     ref = Ref{Ptr{Cvoid}}()

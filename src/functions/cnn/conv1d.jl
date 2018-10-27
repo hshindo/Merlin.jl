@@ -13,12 +13,12 @@ y = f(x)
 ```
 """
 mutable struct Conv1d
-    W::Var
-    b::Var
     ksize::Int
     padding::Int
     stride::Int
     dilation::Int
+    W::Var
+    b::Var
 end
 
 function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
@@ -26,59 +26,10 @@ function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
 
     W = init_W(T, ksize*inchannel, outchannel)
     b = init_b(T, outchannel)
-    Conv1d(param(W), param(b), ksize, padding, stride, dilation)
+    Conv1d(ksize, padding, stride, dilation, parameter(W), parameter(b))
 end
 
-function (f::Conv1d)(x::Var, dims::Vector{Int})
-    @assert ndims(x) == 2 && sum(dims) == size(x,2)
-    idx = conv1d_index(f, dims)
-    h = lookup(x, Var(idx))
-    y = linear(h, f.W, f.b)
-    y
+function (f::Conv1d)(x, dims)
+    h = window1d(x, dims, f.ksize, f.padding, f.stride, f.dilation)
+    linear(h, f.W, f.b)
 end
-(f::Conv1d)(x::Node, dims) = Node(f, (x,dims))
-
-function conv1d_index(f::Conv1d, dims::Vector{Int})
-    ksize, padding, stride, dilation = f.ksize, f.padding, f.stride, f.dilation
-    outdims = map(dims) do d
-        k = (ksize - 1) * dilation + 1
-        (d + 2padding - k) ÷ stride + 1
-    end
-    cumdim = 0
-    y = Array{Int}(undef, ksize, sum(outdims))
-    yi = 1
-    for n = 1:length(dims)
-        ndims = dims[n]
-        i = cumdim - padding + 1
-        for d = 1:outdims[n]
-            for j = i:dilation:i+(ksize-1)*dilation
-                y[yi] = cumdim < j <= cumdim+ndims ? j : 0
-                yi += 1
-            end
-            i += stride
-        end
-        cumdim += ndims
-    end
-    y
-end
-
-#=
-function conv1d_index(f::Conv1d, inlength::Int)
-    ksize, padding, stride, dilation = f.ksize, f.padding, f.stride, f.dilation
-    k = (ksize - 1) * dilation + 1
-    outlength = (inlength + 2padding - k) ÷ stride + 1
-
-    y = Array{Int}(ksize, outlength)
-    yi = 1
-    i = -padding + 1
-    for d = 1:outlength
-        j = i + (ksize-1)*dilation
-        for k = i:dilation:j
-            y[yi] = 0 < k <= inlength ? k : 0
-            yi += 1
-        end
-        i += stride
-    end
-    y
-end
-=#

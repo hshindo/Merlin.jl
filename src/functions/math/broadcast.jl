@@ -4,7 +4,6 @@ import Base.Broadcast: broadcasted
     .+(x1::Var, x2::Var)
 """
 function broadcasted(::typeof(+), x1::Var, x2::Var)
-    configure!(x1, x2)
     ydata = x1.data .+ x2.data
     Var(ydata, ∇broadcasted!, (+,x1,x2))
 end
@@ -30,7 +29,6 @@ end
     .-(x1::Var, x2::Var)
 """
 function broadcasted(::typeof(-), x1::Var, x2::Var)
-    configure!(x1, x2)
     ydata = x1.data .- x2.data
     Var(ydata, ∇broadcasted!, (-,x1,x2))
 end
@@ -56,7 +54,6 @@ end
     .*(x1::Var, x2::Var)
 """
 function broadcasted(::typeof(*), x1::Var, x2::Var)
-    configure!(x1, x2)
     ydata = x1.data .* x2.data
     Var(ydata, ∇broadcasted!, (*,x1,x2))
 end

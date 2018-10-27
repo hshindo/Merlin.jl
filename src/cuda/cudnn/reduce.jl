@@ -34,6 +34,8 @@ mutable struct ReduceTensorDesc
     end
 end
 
+const REDUCETENSOR_DESCS = Dict{}()
+
 Base.cconvert(::Type{Cptr}, desc::ReduceTensorDesc) = desc.ptr
 
 function reduce(A::CuArray{T}, dim, op) where T
@@ -44,7 +46,9 @@ function reduce(A::CuArray{T}, dim, op) where T
     end
 
     h = gethandle()
-    reducedesc = ReduceTensorDesc(T, op)
+    reducedesc = get!(REDUCETENSOR_DESCS, (T,op)) do
+        ReduceTensorDesc(T, op)
+    end
     adesc = TensorDesc(A, 4)
     cdims = Int[size(A)...]
     cdims[dim] = 1

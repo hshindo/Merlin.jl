@@ -50,6 +50,7 @@ macro unsafe_apicall(f, args...)
     end
 end
 
+const Cptr = Ptr{Cvoid}
 export cstring
 cstring(::Type{Int32}) = "int"
 cstring(::Type{Float32}) = "float"
@@ -57,12 +58,13 @@ cstring(::Type{Float32}) = "float"
 include("driver/device.jl")
 include("driver/context.jl")
 include("driver/stream.jl")
-include("driver/pointer.jl")
+include("driver/memory.jl")
 include("driver/module.jl")
 include("driver/function.jl")
 
 include("allocators/atomic_malloc.jl")
 include("allocators/cuda_malloc.jl")
+include("allocators/mempool_malloc.jl")
 include("allocators/malloc.jl")
 
 if AVAILABLE
@@ -73,6 +75,7 @@ if AVAILABLE
     using .NVML
 end
 
+include("pointer.jl")
 include("array.jl")
 include("subarray.jl")
 include("kernel.jl")

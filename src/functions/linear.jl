@@ -28,12 +28,11 @@ function Linear(::Type{T}, insize::Int, outsize::Int;
 
     W = init_W(T, insize, outsize)
     b = init_b(T, outsize)
-    Linear(param(W), param(b))
+    Linear(parameter(W), parameter(b))
 end
 (f::Linear)(x) = linear(x, f.W, f.b)
 
 function linear(x::Var, W::Var, b::Var)
-    configure!(x, W, b)
     T = eltype(x)
     if ndims(x) == 1
         ydata = gemv('T', W.data, x.data)
