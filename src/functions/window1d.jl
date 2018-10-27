@@ -1,6 +1,6 @@
 export window1d
 
-function window1d(x::Node, dims, ksize; padding, stride, dilation)
+function window1d(x::Node, dims, ksize, padding, stride, dilation)
     Node(window1d, (x,dims,ksize,padding,stride,dilation))
 end
 
