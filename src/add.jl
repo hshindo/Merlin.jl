@@ -1,8 +1,14 @@
 export addto!, broadcast_addto!
 
-function addto!(dest::UniArray{T}, doffs::Int, src::UniArray{T}, soffs::Int, n::Int) where T
+function addto!(dest::Array{T}, doffs::Int, src::Array{T}, soffs::Int, n::Int) where T
     @assert doffs > 0 && soffs > 0
     axpy!(n, T(1), pointer(src,soffs), 1, pointer(dest,doffs), 1)
+    dest
+end
+
+function addto!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int) where T
+    @assert doffs > 0 && soffs > 0
+    axpy!(n, T(1), cupointer(src,soffs), 1, cupointer(dest,doffs), 1)
     dest
 end
 

@@ -75,16 +75,17 @@ end
 @generated function softmax_crossentropy(p::CuVector{Cint}, logq::CuMatrix{T}) where T
     Ct = cstring(T)
     k = Kernel("""
-    __global__ void softmax_crossentropy($Ct *y, int *p, Array<$Ct,2> logq) {
+    __global__ void softmax_crossentropy($Ct *y, int *p, $Ct *logq, int size1, int size2) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx >= logq.dims[1]) return;
-        y[idx] = p[idx] > 0 ? -logq(p[idx]-1,idx) : 0;
+        if (idx >= size2) return;
+        int qi = (p[idx]-1) + size1 * idx;
+        y[idx] = p[idx] > 0 ? -logq[qi] : 0;
     }""")
     quote
         length(p) == size(logq,2) || throw("Length unmatch.")
         y = CuArray{T}(length(p))
         gdims, bdims = cudims(length(y))
-        $k(gdims, bdims, pointer(y), pointer(p), logq)
+        $k(gdims, bdims, pointer(y), pointer(p), pointer(logq), size(logq,1), size(logq,2))
         y
     end
 end
@@ -102,7 +103,7 @@ end
         size(p) == size(logq) || throw("Length unmatch.")
         y = similar(p)
         gdims, bdims = cudims(length(y))
-        $k(gdims, bdims, rawpointer(y), rawpointer(p), rawpointer(logq), length(y))
+        $k(gdims, bdims, pointer(y), pointer(p), pointer(logq), length(y))
         vec(sum(y,1))
     end
 end

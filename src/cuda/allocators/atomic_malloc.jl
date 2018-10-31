@@ -1,34 +1,38 @@
 mutable struct AtomicMalloc
     blocksize::Int
-    device::Int
-    ptrs::Vector{Ptr{Cvoid}}
-    index::Int
+    ptrs::Vector{Cptr}
+    blockid::Int
     offset::Int
 
     function AtomicMalloc(blocksize::Int=1024*1000*1000)
-        m = new(blocksize, getdevice(), Ptr{Cvoid}[], 0, 0)
+        m = new(blocksize, Cptr[], 0, 0)
         # finalizer(m, dispose)
         m
     end
 end
 
-function (m::AtomicMalloc)(bytesize::Int)
-    @assert bytesize <= m.blocksize
-    if m.index == 0 || bytesize + m.offset > m.blocksize
-        if m.index == length(m.ptrs)
-            ptr = memalloc(m.blocksize)
-            push!(m.ptrs, ptr)
+const ATOMIC_MALLOC = AtomicMalloc()
+
+function (m::AtomicMalloc)(::Type{T}, dims::Dims{N}) where {T,N}
+    bytesize = prod(dims) * sizeof(T)
+    @assert 0 < bytesize <= m.blocksize
+
+    if m.blockid == 0 || bytesize + m.offset > m.blocksize
+        if m.blockid == length(m.ptrs)
+            push!(m.ptrs, memalloc(m.blocksize))
         end
-        ptr = m.ptrs[m.index+1]
-        m.index += 1
+        m.blockid += 1
+        ptr = m.ptrs[m.blockid]
         m.offset = 0
+    else
+        ptr = m.ptrs[m.blockid]
     end
     m.offset += bytesize
-    MemBlock(ptr, bytesize)
+    CuArray(Ptr{T}(ptr), dims, getdevice())
 end
 
 function reset(m::AtomicMalloc)
-    m.index = 1
+    m.blockid = 1
     m.offset = 0
 end
 

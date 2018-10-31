@@ -1,24 +1,18 @@
-mutable struct MemPoolMalloc
-    size2ptrs::Vector{Vector{Cptr}}
+const MEMPOOL = [Cptr[] for i=1:30]
+
+struct MemPoolMalloc
 end
 
-function MemPoolMalloc()
-    size2ptrs = [Cptr[] for i=1:30]
-    MemPoolMalloc(size2ptrs)
-end
+function (::MemPoolMalloc)(::Type{T}, dims::Dims{N}) where {T,N}
+    bytesize = prod(dims) * sizeof(T)
+    @assert bytesize > 0
+    bytesize == 0 && return CuArray(Ptr{T}(C_NULL),dims,getdevice())
 
-const MEMPOOL = MemPoolMalloc()
-
-Base.getindex(m::MemPoolMalloc, i::Int) = m.size2ptrs[i]
-
-function (malloc::MemPoolMalloc)(::Type{T}, size::Int) where T
-    size == 0 && return CuPtr{T}()
-    bytesize = sizeof(T) * size
-    id = log2id(bytesize)
-    bytesize = 1 << id
-    ptrs = malloc[id]
+    c = log2ceil(bytesize) # 2^c >= bytesize
+    bytesize = 1 << c
+    ptrs = MEMPOOL[c]
     if isempty(ptrs)
-        cptr = memalloc(bytesize)
+        ptr = Ptr{T}(memalloc(bytesize))
         #status = @apicall_nocheck :cuMemAlloc (Ptr{UInt64},Csize_t) ref bytesize
         #if status != CUDA_SUCCESS
         #    gc()
@@ -32,13 +26,16 @@ function (malloc::MemPoolMalloc)(::Type{T}, size::Int) where T
         #    dptr = ref[]
         #end
     else
-        cptr = pop!(ptrs)
+        ptr = Ptr{T}(pop!(ptrs))
     end
-    cuptr = CuPtr(Ptr{T}(cptr), id)
-    finalizer(cuptr) do x
-        push!(MEMPOOL[x.size], Cptr(x.ptr))
+    arr = CuArray(ptr, dims, getdevice())
+    function release(x::CuArray{T}) where T
+        bytesize = prod(size(x)) * sizeof(T)
+        c = log2ceil(bytesize)
+        push!(MEMPOOL[c], Cptr(x.ptr))
     end
-    cuptr
+    finalizer(release, arr)
+    arr
 end
 
 function dispose(x::MemPoolMalloc)
@@ -50,12 +47,13 @@ function dispose(x::MemPoolMalloc)
     end
 end
 
-function log2id(bytesize::Int)
-    bufsize = bytesize - 1
-    id = 1
-    while bufsize > 1
-        bufsize >>= 1
-        id += 1
+function log2ceil(bytesize::Int)
+    @assert bytesize > 0
+    bytesize -= 1
+    x = 1
+    while bytesize > 1
+        bytesize >>= 1
+        x += 1
     end
-    id
+    x
 end

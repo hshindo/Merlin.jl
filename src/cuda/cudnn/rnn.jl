@@ -48,15 +48,16 @@ mutable struct RNNDesc
     end
 end
 
-const RNN_DESCS = Dict{Tuple,RNNDesc}()
-
 Base.cconvert(::Type{Cptr}, desc::RNNDesc) = desc.ptr
+
+const DICT_RNNDesc = Dict()
 
 function rnn(insize::Int, hsize::Int, nlayers::Int, droprate::Float64, direction::Cint, mode::Cint,
     x::CuArray{T}, batchdims::Vector{Int}, hx::CuArray{T}, cx::CuArray{T}, w::CuArray{T}, train::Bool) where T
 
+    h = gethandle()
     @assert insize == size(x,1)
-    rnndesc = get!(RNN_DESCS, (T,hsize,nlayers,droprate,direction,mode)) do
+    rnndesc = get!(DICT_RNNDesc, (h,T,hsize,nlayers,droprate,direction,mode)) do
         RNNDesc(T, hsize, nlayers, droprate, direction, mode)
     end
     seqlength = length(batchdims)
@@ -83,7 +84,6 @@ function rnn(insize::Int, hsize::Int, nlayers::Int, droprate::Float64, direction
         TensorDesc(T, 1, hsize*coef, d)
     end
 
-    h = gethandle()
     ref = Ref{Csize_t}()
     @cudnn(:cudnnGetRNNWorkspaceSize,
         (Cptr,Cptr,Cint,Ptr{Cptr},Ptr{Csize_t}),
@@ -188,6 +188,7 @@ function ∇rnn_weights!(dw::CuArray, work::Tuple)
     rnndesc,x,hx,cx,w,y,hy,cy,seqlength,xdesc,hxdesc,cxdesc,wdesc,ydesc,hydesc,cydesc,workspace,reserve_space = work
 
     # hx = C_NULL
+    h = gethandle()
     @cudnn(:cudnnRNNBackwardWeights,
         (Cptr,Cptr,Cint,
         Ptr{Cptr},Cptr,     # x
@@ -196,7 +197,7 @@ function ∇rnn_weights!(dw::CuArray, work::Tuple)
         Cptr,Csize_t,       # workspace
         Cptr,Cptr,          # dw
         Cptr,Csize_t),      # reserve_space
-        gethandle(), rnndesc, seqlength,
+        h, rnndesc, seqlength,
         xdesc, x,
         hxdesc, hx,
         ydesc, y,

@@ -1,9 +1,10 @@
 export CuArray, CuVector, CuMatrix, CuVecOrMat
-export curand, curandn, rawpointer, cuzeros, cuones
+export cupointer, curand, curandn, cuzeros, cuones
 
 mutable struct CuArray{T,N} <: AbstractArray{T,N}
-    ptr::CuPtr{T}
+    ptr::Ptr{T}
     dims::Dims{N}
+    dev::Int
 end
 
 const CuVector{T} = CuArray{T,1}
@@ -11,14 +12,13 @@ const CuMatrix{T} = CuArray{T,2}
 const CuVecOrMat{T} = Union{CuVector{T},CuMatrix{T}}
 
 function CuArray{T}(dims::Dims{N}) where {T,N}
-    ptr = MEMPOOL(T, prod(dims))
-    CuArray(ptr, dims)
+    CUDAMalloc()(T, dims)
 end
 CuArray{T}(dims::Int...) where T = CuArray{T}(dims)
 CuArray(x::Array{T,N}) where {T,N} = copyto!(CuArray{T}(size(x)), x)
 
 ### AbstractArray interface
-getdevice(x::CuArray) = x.ptr.dev
+getdevice(x::CuArray) = x.dev
 Base.size(x::CuArray) = x.dims
 Base.size(x::CuArray, i::Int) = i <= ndims(x) ? x.dims[i] : 1
 Base.getindex(x::CuArray, i::Int) = throw("getindex $i")
@@ -44,15 +44,16 @@ function Base.stride(x::CuArray, i::Int)
 end
 
 Base.cconvert(::Type{Ptr{T}}, x::CuArray) where T = Base.cconvert(Ptr{T}, pointer(x))
-function Base.pointer(x::CuArray, index::Int=1)
+function Base.pointer(x::CuArray{T}, index::Int=1) where T
     @assert index > 0
-    index == 1 ? x.ptr : CuPtr(pointer(x.ptr,index),0,x.ptr.dev)
+    x.ptr + sizeof(T)*(index-1)
 end
+cupointer(x::CuArray, index=1) = CuPtr(pointer(x,index))
 Base.Array(x::CuArray{T}) where T = copyto!(Array{T}(undef,size(x)), x)
-Base.unsafe_wrap(::Type{A}, ptr::CuPtr{T}, dims) where {A<:CuArray,T} = CuArray{T}(ptr, dims)
+Base.unsafe_wrap(::Type{A}, ptr::Ptr{T}, dims) where {A<:CuArray,T} = CuArray(ptr, dims)
 
 ##### reshape #####
-Base.reshape(x::CuArray{T}, dims::Dims{N}) where {T,N} = CuArray{T,N}(x.ptr, dims)
+Base.reshape(x::CuArray{T}, dims::Dims{N}) where {T,N} = CuArray(x.ptr, dims, x.dev)
 Base.reshape(x::CuArray{T}, dims::Int...) where T = reshape(x, dims)
 Base.vec(x::CuArray{T}) where T = ndims(x) == 1 ? x : reshape(x,length(x))
 function Base.dropdims(x::CuArray; dims)

@@ -57,9 +57,9 @@ for (fname,elty) in ((:cublasDgemmBatched,:Float64), (:cublasSgemmBatched,:Float
             lda = max(1, stride(As[1],2))
             ldb = max(1, stride(Bs[1],2))
             ldc = max(1, stride(Cs[1],2))
-            Aptrs = map(rawpointer, As)
-            Bptrs = map(rawpointer, Bs)
-            Cptrs = map(rawpointer, Cs)
+            Aptrs = map(pointer, As)
+            Bptrs = map(pointer, Bs)
+            Cptrs = map(pointer, Cs)
             $fname(handle(C), cublasop(tA), cublasop(tB), m, n, k, Ref(alpha), pointer(Aptrs),
                 lda, pointer(Bptrs), ldb, Ref(beta), pointer(Cptrs), ldc, length(As))
             Cs

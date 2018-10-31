@@ -39,13 +39,13 @@ end
     Ct = cstring(T)
     k = Kernel("""
     __global__ void window1d($Ct *y, $Ct *x, int *cumsizeY, int *cumsizeX,
-        int m, int n, int ksize, int padding, int stride) {
+        int batchsize, int m, int n, int ksize, int padding, int stride) {
 
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         int batchI = idx / m;
-        idx = idx - batchI * m;
+        if (batchI >= batchsize) return;
+        idx -= m * batchI;
         int sizeY = cumsizeY[batchI+1] - cumsizeY[batchI];
-        int sizeX = cumsizeX[batchI+1] - cumsizeX[batchI];
         if (idx >= sizeY) return;
 
         int nj = idx / n;
@@ -54,9 +54,9 @@ end
         int ki = nj - kj * ksize;
         int xj = cumsizeX[batchI] - padding + ki + kj*stride;
         int xi = ni + xj * n;
-        int yi = cumsizeY[batchI] + idx;
-        if (xj < cumsizeX[batchI] || xj >= cumsizeX[batchI+1]) y[yi] = 0;
-        else y[yi] = x[xi];
+        int yi = idx + cumsizeY[batchI];
+        if (xj >= cumsizeX[batchI] && xj < cumsizeX[batchI+1]) y[yi] = x[xi];
+        else y[yi] = 0;
     }""")
     quote
         ydims = Array{Int}(undef, length(dims))
@@ -76,16 +76,16 @@ end
         cumsize_y = CuArray(cumsize_y)
         cumsize_x = CuArray(cumsize_x)
 
-        m = maximum(dims) * size(y,1)
-        gdims, bdims = cudims(m*length(dims))
+        m = maximum(ydims) * size(y,1)
+        gdims, bdims = cudims(m*length(ydims))
         $k(gdims, bdims, pointer(y), pointer(x), pointer(cumsize_y), pointer(cumsize_x),
-            m, size(x,1), ksize, padding, stride)
+            length(dims), m, size(x,1), ksize, padding, stride)
         y
     end
 end
 
 function ∇window1d!(y::Var, x::Var, dims, args...)
-    ∇window1d!(y.grad, x.grad, dims, args...)
+    isnothing(x.grad) || ∇window1d!(y.grad, x.grad, dims, args...)
 end
 
 function ∇window1d!(gy::Matrix{T}, gx::Matrix{T}, dims::Vector{Int}, ksize::Int, padding::Int, stride::Int, dilation::Int) where T
@@ -115,13 +115,13 @@ end
     Ct = cstring(T)
     k = Kernel("""
     __global__ void window1d_grad($Ct *gy, $Ct *gx, int *cumsizeY, int *cumsizeX,
-        int m, int n, int ksize, int padding, int stride) {
+        int batchsize, int m, int n, int ksize, int padding, int stride) {
 
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         int batchI = idx / m;
-        idx = idx - batchI * m;
+        if (batchI >= batchsize) return;
+        idx -= m * batchI;
         int sizeY = cumsizeY[batchI+1] - cumsizeY[batchI];
-        int sizeX = cumsizeX[batchI+1] - cumsizeX[batchI];
         if (idx >= sizeY) return;
 
         int nj = idx / n;
@@ -130,7 +130,7 @@ end
         int ki = nj - kj * ksize;
         int xj = cumsizeX[batchI] - padding + ki + kj*stride;
         int xi = ni + xj * n;
-        int yi = cumsizeY[batchI] + idx;
+        int yi = idx + cumsizeY[batchI];
         if (xj >= cumsizeX[batchI] && xj < cumsizeX[batchI+1]) atomicAdd(&gx[xi], gy[yi]);
     }""")
     quote
@@ -140,7 +140,6 @@ end
             k = (ksize - 1) * dilation + 1
             ydims[i] = (d + 2padding - k) ÷ stride + 1
         end
-
         cumsize_y = Array{Cint}(undef, length(dims)+1)
         cumsize_x = similar(cumsize_y)
         cumsize_y[1] = cumsize_x[1] = 0
@@ -151,9 +150,9 @@ end
         cumsize_y = CuArray(cumsize_y)
         cumsize_x = CuArray(cumsize_x)
 
-        m = maximum(dims) * size(gy,1)
-        gdims, bdims = cudims(m*length(dims))
+        m = maximum(ydims) * size(gy,1)
+        gdims, bdims = cudims(m*length(ydims))
         $k(gdims, bdims, pointer(gy), pointer(gx), pointer(cumsize_y), pointer(cumsize_x),
-            m, size(gx,1), ksize, padding, stride)
+            length(dims), m, size(gx,1), ksize, padding, stride)
     end
 end

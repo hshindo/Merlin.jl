@@ -7,7 +7,7 @@ struct CuDeviceArray{T,N}
 end
 
 function CuDeviceArray(x::AbstractCuArray)
-    CuDeviceArray(rawpointer(x), map(Cint,size(x)), map(Cint,strides(x)))
+    CuDeviceArray(pointer(x), map(Cint,size(x)), map(Cint,strides(x)))
 end
 
 Base.length(x::CuDeviceArray) = Int(prod(x.dims))

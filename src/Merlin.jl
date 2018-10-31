@@ -3,6 +3,8 @@ module Merlin
 using Base.Threads
 @info "# CPU threads: $(nthreads())"
 
+const GDICT = []
+
 include("cuda/CUDA.jl")
 using .CUDA
 

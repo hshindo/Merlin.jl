@@ -13,6 +13,7 @@ mutable struct TensorDesc
         finalizer(desc) do x
             @cudnn :cudnnDestroyTensorDescriptor (Cptr,) x.ptr
         end
+        push!(ALLOCATED, desc)
 
         strides = Array{Int}(undef, N)
         strides[1] = 1
@@ -30,14 +31,13 @@ mutable struct TensorDesc
 end
 TensorDesc(::Type{T}, dims::Int...) where T = TensorDesc(T, dims)
 
-function TensorDesc(x::CuArray{T}, N::Int=ndims(x)) where T
+function TensorDesc(x::CuArray{T}, N::Int) where T
+    ndims(x) == 1 && return TensorDesc(reshape(x,length(x),1), N)
     @assert ndims(x) <= N && N > 1
-    dims = [size(x)...]
-    ndims(x) == 1 && push!(dims,1)
-    while length(dims) < N
-        pushfirst!(dims, 1)
+    dims = ntuple(N) do i
+        i <= N-ndims(x) ? 1 : size(x,i-N+ndims(x))
     end
-    TensorDesc(T, tuple(dims...))
+    TensorDesc(T, dims)
 end
 
 Base.cconvert(::Type{Cptr}, desc::TensorDesc) = desc.ptr

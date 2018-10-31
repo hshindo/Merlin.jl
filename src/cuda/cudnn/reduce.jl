@@ -34,9 +34,9 @@ mutable struct ReduceTensorDesc
     end
 end
 
-const REDUCETENSOR_DESCS = Dict{}()
-
 Base.cconvert(::Type{Cptr}, desc::ReduceTensorDesc) = desc.ptr
+
+const DICT_ReduceTensorDesc = Dict()
 
 function reduce(A::CuArray{T}, dim, op) where T
     if size(A,dim) == 1 # CUDNN_STATUS_BAD_PARAM
@@ -46,7 +46,7 @@ function reduce(A::CuArray{T}, dim, op) where T
     end
 
     h = gethandle()
-    reducedesc = get!(REDUCETENSOR_DESCS, (T,op)) do
+    reducedesc = get!(DICT_ReduceTensorDesc, (T,op)) do
         ReduceTensorDesc(T, op)
     end
     adesc = TensorDesc(A, 4)
@@ -59,7 +59,7 @@ function reduce(A::CuArray{T}, dim, op) where T
     @cudnn(:cudnnGetReductionIndicesSize,
         (Cptr,Cptr,Cptr,Cptr,Ptr{Csize_t}),
         h, reducedesc, adesc, cdesc, ref)
-    indices = CuArray{Cint}(Int(ref[])÷sizeof(Cint))
+    indices = ref[] == 0 ? C_NULL : CuArray{Cint}(Int(ref[])÷sizeof(Cint))
 
     ref = Ref{Csize_t}()
     @cudnn(:cudnnGetReductionWorkspaceSize,
@@ -72,6 +72,5 @@ function reduce(A::CuArray{T}, dim, op) where T
         Cptr,Cptr,Cptr,Cptr,Cptr,Cptr),
         h, reducedesc, indices, length(indices)*sizeof(Cint), workspace, length(workspace),
         T[1], adesc, A, T[0], cdesc, C)
-
     C, indices
 end

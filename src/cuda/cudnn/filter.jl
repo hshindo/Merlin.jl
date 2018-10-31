@@ -1,10 +1,11 @@
 mutable struct FilterDesc
     ptr::Cptr
 
-    function FilterDesc(::Type{T}, dims::NTuple{N,Int}) where {T,N}
+    function FilterDesc(::Type{T}, dims::Dims{N}) where {T,N}
         ref = Ref{Cptr}()
         @cudnn :cudnnCreateFilterDescriptor (Ptr{Cptr},) ref
         desc = new(ref[])
+        push!(ALLOCATED, desc)
         finalizer(desc) do x
             @cudnn :cudnnDestroyFilterDescriptor (Cptr,) x.ptr
         end
@@ -16,7 +17,6 @@ mutable struct FilterDesc
         desc
     end
 end
-
 FilterDesc(::Type{T}, dims::Int...) where T = FilterDesc(T, dims)
 FilterDesc(x::CuArray) = FilterDesc(eltype(x), size(x))
 
