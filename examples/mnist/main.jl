@@ -1,10 +1,6 @@
 using Merlin
 using Merlin.Datasets.MNIST
-using ProgressMeter
-# using JLD2, FileIO
 
-const BACKEND = CUDABackend()
-# const BACKEND = CPUBackend()
 const NEPOCHS = 50
 
 function main()

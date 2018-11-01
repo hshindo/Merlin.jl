@@ -19,12 +19,12 @@ const UniVector{T} = UniArray{T,1}
 const UniMatrix{T} = UniArray{T,2}
 
 include("add.jl")
-#include("devices.jl")
 include("var.jl")
 include("graph.jl")
 include("dataset.jl")
 include("check.jl")
 include("config.jl")
+include("device.jl")
 
 for name in [
     "activation/crelu",

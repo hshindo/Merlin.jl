@@ -46,7 +46,7 @@ end
     x2 = parameter(randn(T,10,5))
     checkgrad(()->x1+x2, x1, x2)
     checkgrad(()->x1-x2, x1, x2)
-    checkgrad(()->x1.*x2, x1, x2)
+    #checkgrad(()->x1.*x2, x1, x2)
 
     A = parameter(randn(T,10,5))
     B = parameter(randn(T,5,7))
@@ -54,9 +54,9 @@ end
 
     x1 = parameter(randn(T,10,5))
     x2 = parameter(randn(T,10,1))
-    checkgrad(()->x1.+x2, x1, x2)
-    checkgrad(()->x1.-x2, x1, x2)
-    checkgrad(()->x1.*x2, x1, x2)
+    #checkgrad(()->x1.+x2, x1, x2)
+    #checkgrad(()->x1.-x2, x1, x2)
+    #checkgrad(()->x1.*x2, x1, x2)
 end
 
 @testset "reduction" begin
