@@ -1,13 +1,16 @@
+const ALLOCATED = []
+
 struct CUDAMalloc
 end
 
-function (::CUDAMalloc)(::Type{T}, size::Int) where T
-    @assert size >= 0
-    size == 0 && return CuPtr{T}()
-    ptr = Ptr{T}(memalloc(sizeof(T)*size))
-    cuptr = CuPtr(ptr)
-    finalizer(x -> memfree(x.ptr), cuptr)
-    cuptr
+function (::CUDAMalloc)(::Type{T}, dims::Dims{N}) where {T,N}
+    bytesize = sizeof(T) * prod(dims)
+    @assert bytesize > 0
+    ptr = Ptr{T}(memalloc(bytesize))
+    arr = CuArray(ptr, dims, getdevice())
+    push!(ALLOCATED, arr)
+    finalizer(x -> memfree(x.ptr), arr)
+    arr
 end
 
 function sss()

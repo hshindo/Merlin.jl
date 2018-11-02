@@ -1,6 +1,5 @@
 export Var
 export parameter, zerograd!, isnothing, isparam, gradient!, topsort
-export todevice, todevice!
 
 """
     Var
@@ -51,44 +50,6 @@ isnothing(x) = x == nothing
 #getdevice(x::Var) = getdevice(x.data)
 #getdevice(x::Array) = -1
 #getdevice(x::CuArray) = CUDA.getdevice(x)
-
-todevice(x) = x
-function todevice(x::Array{T}) where T
-    dev = getdevice()
-    if dev < 0
-        x
-    else
-        if T == Int
-            CuArray(Array{Cint}(x))
-        else
-            CuArray(x)
-        end
-    end
-end
-function todevice(x::CuArray{T}) where T
-    dev = getdevice()
-    if dev < 0
-        if T == Cint
-            Array{Int}(Array(x))
-        else
-            Array(x)
-        end
-    else
-        x
-    end
-end
-function todevice(x::Var)
-    data = todevice(x.data)
-    grad = todevice(x.grad)
-    x = Var(data)
-    x.grad = grad
-    x
-end
-function todevice!(x::Var)
-    x.data = todevice(x.data)
-    x.grad = todevice(x.grad)
-    x
-end
 
 """
     isparam(x::Var)

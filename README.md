@@ -6,7 +6,8 @@
 
 It aims to provide a fast, flexible and compact deep learning library for machine learning.
 
-`Merlin` is tested against Julia `1.0` on Linux, OS X, and Windows (x64).
+`Merlin` is tested against Julia `1.0` on Linux, OS X, and Windows (x64).  
+It runs on CPU and CUDA GPU.
 
 [![Build Status](https://travis-ci.org/hshindo/Merlin.jl.svg?branch=master)](https://travis-ci.org/hshindo/Merlin.jl)
 
@@ -18,88 +19,18 @@ It aims to provide a fast, flexible and compact deep learning library for machin
 - Julia 1.0
 
 ## Installation
+The Pkg REPL-mode is entered from the Julia REPL using the key `]`.
 ```julia
-julia> Pkg.add("Merlin")
+(v1.0) pkg> add Merlin
 ```
 
 ## Quick Start
-Basically,
-1. Wrap your data with `Var` (Variable type).
-2. Apply functions to `Var`.  
-`Var` memorizes a history of function calls for auto-differentiation.
-3. Compute gradients if necessary.
-4. Update the parameters with an optimizer.
-
-Here is an example of three-layer network:
-
-<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/feedforward.png" width="120"></p>
-
-`Merlin` supports both static and dynamic evaluation of neural networks.
-
-### Dynamic Evaluation
-```julia
-using Merlin
-
-T = Float32
-x = param(rand(T,10,5)) # instanciate Var with zero gradients
-y = Linear(T,10,7)(x)
-y = relu(y)
-y = Linear(T,7,3)(y)
-
-params = gradient!(y)
-println(x.grad)
-
-opt = SGD(0.01)
-foreach(opt, params)
-```
-If you don't need gradients of `x`, use `x = Var(rand(T,10,5))` where `x.grad` is set to `nothing`.
-
-### Static Evalation
-For static evaluation, the process are as follows.
-1. Construct a `Graph`.
-2. Feed your data to the graph.
-
-When you apply `Node` to a function, it's lazily evaluated.
-```julia
-using Merlin
-
-T = Float32
-n = Node(name="x")
-n = Linear(T,10,7)(n)
-n = relu(n)
-n = Linear(T,7,3)(n)
-@assert typeof(n) == Node
-g = Graph(n)
-
-x = param(rand(T,10,10))
-y = g("x"=>x)
-
-params = gradient!(y)
-println(x.grad)
-
-opt = SGD(0.01)
-foreach(opt, params)
-```
-When the network structure can be represented as *static*, it is recommended to use this style.
-
-## Examples
 ### MNIST
 * See [MNIST](examples/mnist/)
 
-### LSTM
-<p align="center"><img src="https://github.com/hshindo/Merlin.jl/blob/master/docs/src/assets/lstm_batch.png" width="270"></p>
-
-This is an example of batched LSTM.
-```julia
-using Merlin
-
-T = Float32
-a = rand(T,20,3)
-b = rand(T,20,2)
-c = rand(T,20,5)
-x = Var(cat(2,a,b,c))
-lstm = LSTM(T, 20, 20) # input size: 20, output size: 20
-y = lstm(x, [3,2,5])
-```
-
 More examples can be found in [`examples`](examples/).
+
+### GPU Support
+The following are required:
+* [CUDA](https://developer.nvidia.com/cuda-toolkit) 9+
+* [cuDNN](https://developer.nvidia.com/cudnn)

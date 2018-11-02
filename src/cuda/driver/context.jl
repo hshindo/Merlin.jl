@@ -35,4 +35,8 @@ function setcontext(f::Function, ctx::CuContext)
     setcontext(oldctx)
 end
 
-synchronize() = @apicall :cuCtxSynchronize ()
+function synchronize()
+    @apicall :cuCtxSynchronize ()
+    empty!(ALLOCATED)
+    empty!(CUDNN.ALLOCATED)
+end

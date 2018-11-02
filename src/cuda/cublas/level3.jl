@@ -21,7 +21,7 @@ for (f,T) in (
                 Ptr{$T},Cint,
                 Ptr{$T},Ptr{$T},Cint),
                 gethandle(), cublasop(tA), cublasop(tB), m, n, k,
-                $T[alpha], A, stride(A,2), B, stride(B,2), $T[beta], C, stride(C,2))
+                Ref(alpha), A, stride(A,2), B, stride(B,2), Ref(beta), C, stride(C,2))
             C
         end
         function gemm(tA::Char, tB::Char, alpha::$T, A::CuVecOrMat{$T}, B::CuVecOrMat{$T})
@@ -33,7 +33,6 @@ for (f,T) in (
     end
 end
 
-#=
 for (fname,elty) in ((:cublasDgemmBatched,:Float64), (:cublasSgemmBatched,:Float32))
     @eval begin
         function gemm_batched!(tA::Char, tB::Char,
@@ -58,22 +57,21 @@ for (fname,elty) in ((:cublasDgemmBatched,:Float64), (:cublasSgemmBatched,:Float
             lda = max(1, stride(As[1],2))
             ldb = max(1, stride(Bs[1],2))
             ldc = max(1, stride(Cs[1],2))
-            Aptrs = map(a -> Ptr{$elty}(a.ptr), As)
-            Bptrs = map(a -> Ptr{$elty}(a.ptr), Bs)
-            Cptrs = map(a -> Ptr{$elty}(a.ptr), Cs)
-            $fname(handle(C), cublasop(tA), cublasop(tB), m, n, k, [alpha], pointer(Aptrs),
-                lda, pointer(Bptrs), ldb, [beta], pointer(Cptrs), ldc, length(As))
+            Aptrs = map(pointer, As)
+            Bptrs = map(pointer, Bs)
+            Cptrs = map(pointer, Cs)
+            $fname(handle(C), cublasop(tA), cublasop(tB), m, n, k, Ref(alpha), pointer(Aptrs),
+                lda, pointer(Bptrs), ldb, Ref(beta), pointer(Cptrs), ldc, length(As))
             Cs
         end
     end
 end
-function gemm_batched{T}(tA::Char, tB::Char,
-    alpha::T, A::Vector{CuVecOrMat{T}}, B::Vector{CuVecOrMat{T}})
+function gemm_batched(tA::Char, tB::Char,
+    alpha::T, A::Vector{CuVecOrMat{T}}, B::Vector{CuVecOrMat{T}}) where T
     C = CudaMatrix{T}[similar(B[1], (size(A[1], tA=='N' ? 1 : 2), size(B[1], tB=='N' ? 2 : 1))) for i in 1:length(A)]
     gemm_batched!(tA, tB, alpha, A, B, T(0), C)
 end
-function gemm_batched{T}(tA::Char, tB::Char,
-    A::Vector{CuVecOrMat{T}}, B::Vector{CuVecOrMat{T}})
+function gemm_batched(tA::Char, tB::Char,
+    A::Vector{CuVecOrMat{T}}, B::Vector{CuVecOrMat{T}}) where T
     gemm_batched(tA, tB, T(1), A, B)
 end
-=#

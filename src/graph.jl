@@ -43,6 +43,7 @@ end
 Base.getindex(g::Graph, i::Int) = g.nodes[i]
 Base.getindex(g::Graph, s::String) = g.dict[s]
 graphs(g::Graph) = (g,)
+
 function parameters(g::Graph)
     params = Var[]
     for n in g.nodes
@@ -67,16 +68,4 @@ function (g::Graph)(xs::NamedTuple)
         temps[i] = node.f(args...)
     end
     map(id -> temps[id], g.outputids)
-end
-
-function todevice(g::Graph)
-    dev = getdevice()
-    dev < 0 && return g
-    nodes = map(g.nodes) do n
-        args = map(n.args) do arg
-            isa(arg,Var) ? todevice(arg) : arg
-        end
-        Node(n.f, args, n.name)
-    end
-    Graph(nodes, g.inputids, g.outputids)
 end

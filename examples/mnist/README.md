@@ -1,7 +1,7 @@
 # MNIST
-This is an example of MNIST classification with neural networks.
+MNIST classification with neural networks.
 
 ## Run
 ```
-julia main.jl
+julia main.jl config.json
 ```

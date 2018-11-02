@@ -24,13 +24,13 @@ mutable struct DropoutDesc
     end
 end
 
-const DROPOUT_DESCS = Dict{Tuple,DropoutDesc}()
-
 Base.cconvert(::Type{Cptr}, desc::DropoutDesc) = desc.ptr
+
+const DICT_DropoutDesc = Dict()
 
 function dropout(x::CuArray{T,N}, droprate::Float64) where {T,N}
     h = gethandle()
-    dropdesc = get!(DROPOUT_DESCS, (h,droprate)) do
+    dropdesc = get!(DICT_DropoutDesc, (h,droprate)) do
         DropoutDesc(droprate)
     end
     xdesc = TensorDesc(x, 4)
@@ -43,7 +43,6 @@ function dropout(x::CuArray{T,N}, droprate::Float64) where {T,N}
     @cudnn(:cudnnDropoutForward,
         (Cptr,Cptr,Cptr,Cptr,Cptr,Cptr,Cptr,Csize_t),
         h, dropdesc, xdesc, x, xdesc, y, reserve_space, length(reserve_space))
-
     y, (dropdesc,xdesc,reserve_space)
 end
 

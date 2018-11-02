@@ -62,11 +62,6 @@ include("driver/memory.jl")
 include("driver/module.jl")
 include("driver/function.jl")
 
-include("allocators/atomic_malloc.jl")
-include("allocators/cuda_malloc.jl")
-include("allocators/mempool_malloc.jl")
-include("allocators/malloc.jl")
-
 if AVAILABLE
     const CONTEXTS = Array{CuContext}(undef, ndevices())
     # This must be loaded before kernel.jl and kernels.jl
@@ -84,6 +79,12 @@ include("broadcast.jl")
 include("cat.jl")
 include("reduce.jl")
 include("devicearray.jl")
+
+include("allocators/atomic_malloc.jl")
+include("allocators/cuda_malloc.jl")
+include("allocators/mempool_malloc.jl")
+
+const ALLOCATOR = Ref{Any}(CUDAMalloc())
 
 if AVAILABLE
     include("nccl/NCCL.jl")

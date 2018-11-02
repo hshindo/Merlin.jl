@@ -7,10 +7,11 @@ mutable struct DataIterator
     dataset
     batchsize
     shuffle
+	device::Int
 end
 
-function DataIterator(dataset; batchsize::Int, shuffle::Bool)
-    DataIterator(dataset, batchsize, shuffle)
+function DataIterator(dataset; batchsize::Int, shuffle::Bool, device::Int)
+    DataIterator(dataset, batchsize, shuffle, device)
 end
 
 Base.length(iter::DataIterator) = length(iter.dataset)
@@ -43,24 +44,26 @@ function eachbatch(f, dataset, batchsize::Int, shuffle::Bool)
     res
 end
 
-function fit!(lossfun, model, dataset, opt; batchsize, shuffle)
+function fit!(lossfun, model, dataset, opt; batchsize, shuffle, device=-1)
     settrain(true)
     params = collect(Iterators.flatten(parameters.(graphs(model))))
     res = eachbatch(dataset, batchsize, shuffle) do data
         y = lossfun((model,data))
-        loss = sum(y.data)
+		loss = sum(Array(y.data))
         gradient!(y)
         foreach(opt, params)
+		device >= 0 && CUDA.synchronize()
         loss
     end
-    res = Vector{typeof(res[1])}(res)
     loss = sum(res) / length(dataset)
     loss
 end
 
-function evaluate(f, model, dataset; batchsize::Int)
+function evaluate(f, model, dataset; batchsize, device=-1)
     settrain(false)
     eachbatch(dataset, batchsize, false) do data
-        f((model,data))
+        y = f((model,data))
+		device >= 0 && CUDA.synchronize()
+		y
     end
 end
