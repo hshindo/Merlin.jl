@@ -16,13 +16,17 @@ function ∇broadcasted!(y::Var, ::typeof(+), x1::Var, x2::Var)
 end
 
 function ∇broadcast_plus!(gy::UniArray{T}, gx::UniArray{T}) where T
-    dims = ()
-    for i = 1:ndims(gy)
-        if size(gx,i) == 1 && size(gy,i) > 1
-            dims = tuple(dims..., i)
+    if length(gy) == length(gx)
+        addto!(gx, gy)
+    else
+        dims = ()
+        for i = 1:ndims(gy)
+            if size(gx,i) == 1 && size(gy,i) > 1
+                dims = tuple(dims..., i)
+            end
         end
+        addto!(gx, sum(gy,dims=dims))
     end
-    addto!(gx, sum(gy,dims=dims))
 end
 
 """
@@ -41,13 +45,17 @@ function ∇broadcasted!(y::Var, ::typeof(-), x1::Var, x2::Var)
 end
 
 function ∇broadcast_minus!(gy::UniArray{T}, gx::UniArray{T}) where T
-    dims = ()
-    for i = 1:ndims(gy)
-        if size(gx,i) == 1 && size(gy,i) > 1
-            dims = tuple(dims..., i)
+    if length(gy) == length(gx)
+        axpy!(T(-1), gy, gx)
+    else
+        dims = ()
+        for i = 1:ndims(gy)
+            if size(gx,i) == 1 && size(gy,i) > 1
+                dims = tuple(dims..., i)
+            end
         end
+        axpy!(T(-1), sum(gy,dims=dims), gx)
     end
-    axpy!(T(-1), sum(gy,dims=dims), gx)
 end
 
 """
@@ -67,11 +75,15 @@ end
 
 function ∇dottimes!(gy::UniArray{T}, x2::UniArray{T}, gx1::UniArray{T}) where T
     g = gy .* x2
-    dims = ()
-    for i = 1:ndims(gy)
-        if size(gx1,i) == 1 && size(g,i) > 1
-            dims = tuple(dims..., i)
+    if length(gx1) == length(g)
+        addto!(gx1, g)
+    else
+        dims = ()
+        for i = 1:ndims(gy)
+            if size(gx1,i) == 1 && size(g,i) > 1
+                dims = tuple(dims..., i)
+            end
         end
+        addto!(gx1, sum(g,dims=dims))
     end
-    addto!(gx1, sum(g,dims=dims))
 end
