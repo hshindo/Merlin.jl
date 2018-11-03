@@ -1,19 +1,26 @@
+export CIFAR10
 module CIFAR10
 
-import ..Datasets.unpack
+using BinDeps
 
-function getdata(dir::String)
+function fetchdata(dir::String)
     mkpath(dir)
-    url = "https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz"
-    println("Downloading $url...")
-    path = download(url)
-    run(unpack(path,dir,".gz",".tar"))
+    path = joinpath(dir, "cifar-10-binary.tar.gz")
+    if !ispath(path)
+        url = "https://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz"
+        println("Downloading $url...")
+        download(url, path)
+    end
+    path = joinpath(dir, "cifar-10-batches-bin")
+    if !isdir(path)
+        run(BinDeps.unpack_cmd(path,dir,".gz",".tar"))
+    end
 end
 
-function readdata(data::Vector{UInt8})
+function format(data::Vector{UInt8})
     n = Int(length(data)/3073)
-    x = Matrix{Float64}(3072, n)
-    y = Vector{Int}(n)
+    x = Matrix{Float64}(undef, 3072, n)
+    y = Vector{Int}(undef, n)
     for i = 1:n
         k = (i-1) * 3073 + 1
         y[i] = Int(data[k])
@@ -23,20 +30,20 @@ function readdata(data::Vector{UInt8})
     x, y
 end
 
-function traindata(dir::String)
+function traindata(dir::String=".data/CIFAT10")
+    fetchdata(dir)
     files = [joinpath(dir,"cifar-10-batches-bin","data_batch_$i.bin") for i=1:5]
-    all(isfile, files) || getdata(dir)
     data = UInt8[]
     for file in files
         append!(data, open(read,file))
     end
-    readdata(data)
+    format(data)
 end
 
-function testdata(dir::String)
+function testdata(dir::String=".data/CIFAT10")
+    fetchdata(dir)
     file = joinpath(dir,"cifar-10-batches-bin","test_batch.bin")
-    isfile(file) || getdata(dir)
-    readdata(open(read,file))
+    format(open(read,file))
 end
 
 end

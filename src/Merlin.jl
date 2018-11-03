@@ -78,7 +78,7 @@ include("optimizers/adagrad.jl")
 include("optimizers/adam.jl")
 include("optimizers/sgd.jl")
 
-#include("datasets/Datasets.jl")
+include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")
 
 end

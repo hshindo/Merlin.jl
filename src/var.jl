@@ -47,10 +47,6 @@ Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
 isnothing(x) = x == nothing
 
-#getdevice(x::Var) = getdevice(x.data)
-#getdevice(x::Array) = -1
-#getdevice(x::CuArray) = CUDA.getdevice(x)
-
 """
     isparam(x::Var)
 
@@ -100,24 +96,4 @@ function gradient!(top::Var)
         y.f(y, y.args...)
     end
     sorted
-end
-
-function tocpu!(x::Var)
-end
-
-function tocuda!(x::Var)
-end
-
-function configure2!(xs::Vararg{Var})
-    return
-
-    if iscpu()
-        f = tocpu
-    elseif iscuda()
-        f = tocuda
-    end
-    for x in xs
-        x.data = f(x.data)
-        isnothing(x.grad) || (x.grad = f(x.grad))
-    end
 end

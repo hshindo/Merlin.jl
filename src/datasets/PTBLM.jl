@@ -1,31 +1,23 @@
+export PTBLM
 module PTBLM
 
-function traindata(dir::String)
-    xs = readdata(dir, "ptb.train.txt")
-    ys = makeys(xs)
-    xs, ys
+function traindata(dir::String=".data/PTBLM")
+    fetchdata(dir, "ptb.train.txt")
 end
 
-function testdata(dir::String)
-    xs = readdata(dir, "ptb.test.txt")
-    ys = makeys(xs)
-    xs, ys
+function testdata(dir::String=".data/PTBLM")
+    fetchdata(dir, "ptb.test.txt")
 end
 
-function readdata(dir::String, filename::String)
+function fetchdata(dir::String, filename::String)
     mkpath(dir)
-    url = "https://raw.githubusercontent.com/tomsercu/lstm/master/data"
     path = joinpath(dir, filename)
-    isfile(path) || download("$(url)/$(filename)", path)
-    lines = open(readlines, path)
-    map(l -> Vector{String}(split(chomp(l))), lines)
-end
-
-function makeys(xs::Vector{Vector{String}})
-    map(xs) do x
-        y = copy(x)
-        shift!(y)
-        push!(y, "<eos>")
+    if !isfile(path)
+        println("Downloading $path...")
+        download("https://raw.githubusercontent.com/tomsercu/lstm/master/data/$filename", path)
+    end
+    map(open(readlines,path)) do line
+        Vector{String}(split(chomp(line)))
     end
 end
 

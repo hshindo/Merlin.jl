@@ -1,33 +1,34 @@
+export MNIST
 module MNIST
 
-using GZip
+using CodecZlib
 
-function traindata(path::String)
-    x = gzread(path,"train-images-idx3-ubyte.gz")[17:end]
+function traindata(dir::String=".data/MNIST")
+    x = fetchdata(dir,"train-images-idx3-ubyte.gz")[17:end]
     x = reshape(x/255, 28*28, 60000)
     x = Matrix{Float32}(x)
-    y = gzread(path,"train-labels-idx1-ubyte.gz")[9:end]
+    y = fetchdata(dir,"train-labels-idx1-ubyte.gz")[9:end]
     y = Vector{Int}(y)
     x, y
 end
 
-function testdata(path::String)
-    data = gzread(path,"t10k-images-idx3-ubyte.gz")[17:end]
+function testdata(dir::String=".data/MNIST")
+    data = fetchdata(dir,"t10k-images-idx3-ubyte.gz")[17:end]
     x = reshape(data/255, 28*28, 10000)
     x = Matrix{Float32}(x)
-    data = gzread(path,"t10k-labels-idx1-ubyte.gz")[9:end]
+    data = fetchdata(dir,"t10k-labels-idx1-ubyte.gz")[9:end]
     y = Vector{Int}(data)
     x, y
 end
 
-function gzread(path::String, filename::String)
-    mkpath(path)
-    path = joinpath(path, filename)
+function fetchdata(dir::String, filename::String)
+    mkpath(dir)
+    path = joinpath(dir, filename)
     if !isfile(path)
-        println("Downloading $filename...")
+        println("Downloading $path...")
         download("http://yann.lecun.com/exdb/mnist/$filename", path)
     end
-    gzopen(read, path)
+    open(s -> read(GzipDecompressorStream(s)), path)
 end
 
 end

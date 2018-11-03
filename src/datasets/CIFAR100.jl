@@ -1,19 +1,26 @@
+export CIFAR100
 module CIFAR100
 
-import ..Datasets.unpack
+using BinDeps
 
-function getdata(dir::String)
+function fetchdata(dir::String)
     mkpath(dir)
-    url = "https://www.cs.toronto.edu/~kriz/cifar-100-binary.tar.gz"
-    println("Downloading $url...")
-    path = download(url)
-    run(unpack(path,dir,".gz",".tar"))
+    path = joinpath(dir, "cifar-100-binary.tar.gz")
+    if !ispath(path)
+        url = "https://www.cs.toronto.edu/~kriz/cifar-100-binary.tar.gz"
+        println("Downloading $url...")
+        download(url, path)
+    end
+    path = joinpath(dir, "cifar-100-binary")
+    if !isdir(path)
+        run(BinDeps.unpack_cmd(path,dir,".gz",".tar"))
+    end
 end
 
-function readdata(data::Vector{UInt8})
+function format(data::Vector{UInt8})
     n = Int(length(data)/3074)
-    x = Matrix{Float64}(3072, n)
-    y = Matrix{Int}(2, n)
+    x = Matrix{Float64}(undef, 3072, n)
+    y = Matrix{Int}(undef, 2, n)
     for i = 1:n
         k = (i-1) * 3074 + 1
         y[:,i] = data[k:k+1]
@@ -23,16 +30,16 @@ function readdata(data::Vector{UInt8})
     x, y
 end
 
-function traindata(dir::String)
-    file = joinpath(dir, "cifar-100-binary","train.bin")
-    isfile(file) || getdata(dir)
-    readdata(open(read,file))
+function traindata(dir::String=".data/CIFAR100")
+    fetchdata(dir)
+    filepath = joinpath(dir, "cifar-100-binary", "train.bin")
+    format(open(read,filepath))
 end
 
-function testdata(dir::String)
-    file = joinpath(dir, "cifar-100-binary","test.bin")
-    isfile(file) || getdata(dir)
-    readdata(open(read,file))
+function testdata(dir::String=".data/CIFAR100")
+    fetchdata(dir)
+    filepath = joinpath(dir, "cifar-100-binary", "test.bin")
+    format(open(read,filepath))
 end
 
 end

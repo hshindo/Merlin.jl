@@ -1,5 +1,5 @@
 export Graph, Node
-export graphs
+export graphs, parameters
 
 struct Node
     f
@@ -42,6 +42,7 @@ end
 
 Base.getindex(g::Graph, i::Int) = g.nodes[i]
 Base.getindex(g::Graph, s::String) = g.dict[s]
+
 graphs(g::Graph) = (g,)
 
 function parameters(g::Graph)
