@@ -75,6 +75,9 @@ end
         f = LSTM(T, 10, 5, nlayers, 0.0, true)
         checkgrad(()->f(x,[5,3,2]), x, f.weights...)
     end
+    x = parameter(randn(T,5,4,6))
+    f = LSTM(T, 5, 5, 1, 0.0, true)
+    checkgrad(()->f(x), x, f.weights...)
 end
 
 @testset "blas" begin
@@ -140,6 +143,9 @@ end
 
 @testset "softmax" begin
     x = parameter(rand(T,10,5))
+    checkgrad(()->softmax(x), x)
+    logsoftmax(x)
+    x = parameter(rand(T,10,5,3))
     checkgrad(()->softmax(x), x)
     logsoftmax(x)
 end

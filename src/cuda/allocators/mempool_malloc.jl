@@ -6,29 +6,28 @@ end
 function (::MemPoolMalloc)(::Type{T}, dims::Dims{N}) where {T,N}
     bytesize = prod(dims) * sizeof(T)
     @assert bytesize > 0
-    bytesize == 0 && return CuArray(Ptr{T}(C_NULL),dims,getdevice())
 
     c = log2ceil(bytesize) # 2^c >= bytesize
     bytesize = 1 << c
     ptrs = MEMPOOL[c]
     if isempty(ptrs)
-        ptr = Ptr{T}(memalloc(bytesize))
-        #status = @apicall_nocheck :cuMemAlloc (Ptr{UInt64},Csize_t) ref bytesize
-        #if status != CUDA_SUCCESS
-        #    gc()
-        #    if isempty(buffer)
-        #        dispose(mem)
-        #        dptr = memalloc(bytesize)
-        #    else
-        #        dptr = pop!(buffer)
-        #    end
-        #else
-        #    dptr = ref[]
-        #end
+        ref = Ref{Cptr}()
+        status = @unsafe_apicall :cuMemAlloc (Ptr{Cptr},Csize_t) ref bytesize
+        if status != CUDA_SUCCESS
+            GC.gc()
+            if isempty(ptrs)
+                throw("Out of Memory after GC.")
+            else
+                ptr = Ptr{T}(pop!(ptrs))
+            end
+        else
+            ptr = Ptr{T}(ref[])
+        end
     else
         ptr = Ptr{T}(pop!(ptrs))
     end
     arr = CuArray(ptr, dims, getdevice())
+    push!(ALLOCATED, arr)
     function release(x::CuArray{T}) where T
         bytesize = prod(size(x)) * sizeof(T)
         c = log2ceil(bytesize)
@@ -36,6 +35,20 @@ function (::MemPoolMalloc)(::Type{T}, dims::Dims{N}) where {T,N}
     end
     finalizer(release, arr)
     arr
+end
+
+function rrr()
+    ref = Ref{Ptr{Cvoid}}()
+    status = @unsafe_apicall :cuMemAlloc (Ptr{Ptr{Cvoid}},Csize_t) ref bytesize
+    if status != CUDA_SUCCESS
+        gc(false)
+        status = @unsafe_apicall :cuMemAlloc (Ptr{Ptr{Cvoid}},Csize_t) ref bytesize
+        if status != CUDA_SUCCESS
+            gc()
+            memalloc(bytesize)
+        end
+    end
+    ref[]
 end
 
 function dispose(x::MemPoolMalloc)

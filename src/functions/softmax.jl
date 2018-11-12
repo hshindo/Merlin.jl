@@ -1,5 +1,8 @@
 export softmax, logsoftmax
 
+matrix(x::UniArray) = reshape(x, size(x,1), prod(Base.tail(size(x))))
+matrix(x::UniMatrix) = x
+
 doc"""
     softmax(x, dim::Int)
 
@@ -9,7 +12,11 @@ Softmax function over the given dimension.
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
-softmax(x::Var) = Var(softmax(x.data), ∇softmax!, (x,))
+function softmax(x::Var)
+    ydata = softmax(matrix(x.data))
+    ydata = reshape(ydata, size(x))
+    Var(ydata, ∇softmax!, (x,))
+end
 softmax(x::CuArray) = CUDNN.softmax(x)
 softmax(x::Node) = Node(softmax, (x,))
 
@@ -36,7 +43,7 @@ end
 
 function ∇softmax!(y::Var, x::Var)
     isnothing(x.grad) && return
-    ∇softmax!(y.data, y.grad, x.grad)
+    ∇softmax!(matrix(y.data), matrix(y.grad), matrix(x.grad))
 end
 
 ∇softmax!(y::CuArray, gy::CuArray, gx::CuArray) = CUDNN.∇softmax!(y, gy, gx)
@@ -58,7 +65,11 @@ end
 
 Logarithm of softmax function.
 """
-logsoftmax(x::Var) = Var(logsoftmax(x.data), ∇logsoftmax!, (x,))
+function logsoftmax(x::Var)
+    ydata = logsoftmax(matrix(x.data))
+    ydata = reshape(ydata, size(x))
+    Var(ydata, ∇logsoftmax!, (x,))
+end
 logsoftmax(x::CuArray) = CUDNN.softmax(x, CUDNN.CUDNN_SOFTMAX_LOG)
 logsoftmax(x::Node) = Node(logsoftmax, (x,))
 
@@ -80,7 +91,7 @@ end
 
 function ∇logsoftmax!(y::Var, x::Var)
     isnothing(x.grad) && return
-    ∇logsoftmax!(y.data, y.grad, x.grad)
+    ∇logsoftmax!(matrix(y.data), matrix(y.grad), matrix(x.grad))
 end
 
 function ∇logsoftmax!(y::CuArray, gy::CuArray, gx::CuArray)

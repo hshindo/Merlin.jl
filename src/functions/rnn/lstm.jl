@@ -72,8 +72,13 @@ function (f::LSTM)(x, dims)
     p = (insize=f.insize,hsize=f.hsize,nlayers=f.nlayers,droprate=f.droprate,bidir=f.bidir)
     lstm(x, dims, p, f.weights...)
 end
+function (f::LSTM)(x)
+    p = (insize=f.insize,hsize=f.hsize,nlayers=f.nlayers,droprate=f.droprate,bidir=f.bidir)
+    lstm(x, p, f.weights...)
+end
 
-function lstm(x::Var, dims, p, weights::Var...)
+function lstm(x::Var, dims::Vector{Int}, p, weights::Var...)
+    @assert ndims(x) == 2
     @assert sum(dims) == size(x,2)
     @assert issorted(dims, rev=true)
     if isa(x.data, Array)
@@ -81,22 +86,25 @@ function lstm(x::Var, dims, p, weights::Var...)
     elseif isa(x.data, CuArray)
         lstm_cuda(x, dims, p, weights)
     else
-        throw("Invalid backend.")
+        throw("Invalid device.")
     end
+end
+function lstm(x::Var, p, weights...)
+    @assert ndims(x) == 3
+    mat = reshape(x, size(x,1), size(x,2)*size(x,3))
+    dims = [size(x,2) for _=1:size(x,3)]
+    y = lstm(mat, dims, p, weights...)
+    reshape(y, size(y,1), size(x,2), size(x,3))
 end
 lstm(x::Node, args...) = Node(lstm, (x,args...))
 
 function lstm_cpu(x::Var, dims, p, weights)
     h = x
-    #coef = p.bidir ? 2 : 1
     i = 0
     for l = 1:p.nlayers
-        #i = (l-1) * coef + 1
-        #p = lstm.params[i]
         h1 = lstm_tstep(h, dims, weights[i+1:i+5]..., false)
         i += 5
         if p.bidir
-            #p = lstm.params[i+1]
             h2 = lstm_tstep(h, dims, weights[i+1:i+5]..., true)
             h = concat(1, h1, h2)
             i += 5
@@ -172,18 +180,6 @@ function lstm_cuda(x::Var, dims, p, weights)
         W, U, b, h, c = weights[i:i+4]
         push!(Ws, b.data, fill!(similar(b.data),0)) # b
     end
-
-
-    #for (W,U,b,h,c) in lstm.params
-    #    push!(Ws, vec(W.data), vec(U.data))
-    #end
-    #for (W,U,b,h,c) in lstm.params
-    #    push!(Ws, b.data, fill!(similar(b.data),0))
-    #    for i = 1:length(dims)
-    #        push!(hs, h.data)
-    #        push!(cs, c.data)
-    #    end
-    #end
     W = cat(Ws..., dims=1)
     h = cat(hs..., dims=1)
     c = cat(cs..., dims=1)

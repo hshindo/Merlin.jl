@@ -54,6 +54,13 @@ function parameters(g::Graph)
     end
     params
 end
+function parameters(x)
+    params = Var[]
+    for g in graphs(x)
+        append!(params, parameters(g))
+    end
+    params
+end
 
 function (g::Graph)(xs::NamedTuple)
     temps = Array{Any}(undef, length(g.nodes))

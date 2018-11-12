@@ -13,7 +13,7 @@ where ``q = softmax(x)``
 * q: Var of Matrix{Float}
 
 ```julia
-p = Var(rand(0:10,5))
+p = Var(rand(0:10,1,5))
 x = Var(rand(Float32,10,5))
 y = softmax_crossentropy(p, x)
 ```

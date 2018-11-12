@@ -20,6 +20,7 @@ const CUDNN_PROPAGATE_NAN = Cint(1)
 # cudnnMathType_t
 const CUDNN_DEFAULT_MATH = Cint(0)
 const CUDNN_TENSOR_OP_MATH = Cint(1)
+const CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION = Cint(2)
 
 # cudnnDeterminism_t
 const CUDNN_NON_DETERMINISTIC = Cint(0)

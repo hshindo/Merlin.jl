@@ -21,7 +21,7 @@ const UniMatrix{T} = UniArray{T,2}
 include("add.jl")
 include("var.jl")
 include("graph.jl")
-include("dataset.jl")
+include("dataloader.jl")
 include("check.jl")
 include("config.jl")
 include("device.jl")

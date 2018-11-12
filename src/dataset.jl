@@ -1,36 +1,3 @@
-export DataIterator
-export fit!, evaluate
-using Random
-using ProgressMeter
-
-mutable struct DataIterator
-    dataset
-    batchsize
-    shuffle
-	device::Int
-end
-
-function DataIterator(dataset; batchsize::Int, shuffle::Bool, device::Int)
-    DataIterator(dataset, batchsize, shuffle, device)
-end
-
-Base.length(iter::DataIterator) = length(iter.dataset)
-
-function Base.iterate(iter::DataIterator)
-	perm = shuffle ? randperm(length(dataset)) : collect(1:length(dataset))
-    res = []
-    for i = 1:batchsize:length(dataset)
-        j = min(i+batchsize-1, length(dataset))
-        data = dataset[perm[i:j]]
-        push!(res, f(data))
-        update!(prog, j)
-    end
-    res
-end
-function Base.iterate(iter::DataIterator, state)
-	return i >= iter.length ? nothing : (el, (el + it.n, i + 1))
-end
-
 function eachbatch(f, dataset, batchsize::Int, shuffle::Bool)
     perm = shuffle ? randperm(length(dataset)) : collect(1:length(dataset))
     prog = Progress(length(dataset))

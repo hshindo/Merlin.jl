@@ -12,7 +12,7 @@ const CuMatrix{T} = CuArray{T,2}
 const CuVecOrMat{T} = Union{CuVector{T},CuMatrix{T}}
 
 function CuArray{T}(dims::Dims{N}) where {T,N}
-    CUDAMalloc()(T, dims)
+    MemPoolMalloc()(T, dims)
 end
 CuArray{T}(dims::Int...) where T = CuArray{T}(dims)
 CuArray(x::Array{T,N}) where {T,N} = copyto!(CuArray{T}(size(x)), x)
