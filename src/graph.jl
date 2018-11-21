@@ -1,5 +1,5 @@
 export Graph, Node
-export graphs, parameters
+export graphs
 
 struct Node
     f

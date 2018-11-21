@@ -1,3 +1,20 @@
+function Base.split(x::Var)
+    @assert isa(x.data,Tuple)
+    @assert isnothing(x.grad)
+    i = 0
+    ys = map(x.data) do d
+        i += 1
+        Var(d, ∇split!, (x,i))
+    end
+    x.grad = Array{Any}(undef, i)
+    ys
+end
+
+function ∇split!(y::Var, x::Var, i::Int)
+    isnothing(y.grad) && return
+    x.grad[i] = y.grad
+end
+
 doc"""
     split(x::Var, size::Vector)
     split(x::Var, dim::Int, size::Vector{Int})

@@ -1,5 +1,49 @@
 using Test
-export checkgrad
+export gradient!, topsort, checkgrad
+
+"""
+    topsort(tops::T...)
+
+Topological sort.
+"""
+function topsort(top::T) where T
+    sorted = T[]
+    dict = IdDict{T,T}()
+    function visit(x::T)
+        haskey(dict,x) && return
+        dict[x] = x
+        for arg in x.args
+            isa(arg,T) && visit(arg)
+        end
+        push!(sorted, x)
+    end
+    visit(top)
+    sorted
+end
+
+"""
+    gradient!(top::Var)
+
+Compute gradients.
+"""
+function gradient!(top::Var)
+    sorted = topsort(top)
+    if isnothing(top.grad)
+        top.grad = fill!(similar(top.data), 1)
+    end
+    for v in sorted
+        if !isempty(v.args) && isnothing(v.grad)
+            v.grad = fill!(similar(v.data), 0)
+        end
+    end
+    for i = length(sorted):-1:1
+        y = sorted[i]
+        isnothing(y.grad) && continue
+        isempty(y.args) && continue
+        y.f(y, y.args...)
+    end
+    sorted
+end
 
 #=
 macro checkgrad(f, params, atol=1e-3, cuda=true)

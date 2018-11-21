@@ -1,5 +1,5 @@
 export Var
-export parameter, zerograd!, isnothing, isparam, gradient!, topsort
+export parameter, parameters, zerograd!, isnothing, isparam
 
 """
     Var
@@ -54,46 +54,19 @@ Returns whether `x` is a parameter or not
 """
 isparam(x) = isa(x,Var) && !isnothing(x.grad) && isempty(x.args)
 
-"""
-    topsort(tops::T...)
-
-Topological sort.
-"""
-function topsort(top::T) where T
-    sorted = T[]
-    dict = IdDict{T,T}()
-    function visit(x::T)
-        haskey(dict,x) && return
-        dict[x] = x
-        for arg in x.args
-            isa(arg,T) && visit(arg)
-        end
-        push!(sorted, x)
-    end
-    visit(top)
-    sorted
-end
-
-"""
-    gradient!(top::Var)
-
-Compute gradients.
-"""
-function gradient!(top::Var)
-    sorted = topsort(top)
-    if isnothing(top.grad)
-        top.grad = fill!(similar(top.data), 1)
-    end
-    for v in sorted
-        if !isempty(v.args) && isnothing(v.grad)
-            v.grad = fill!(similar(v.data), 0)
+function parameters(xs...)
+    vars = Var[]
+    for x in xs
+        if isa(x, Var)
+            push!(vars, x)
+        elseif isa(x, Tuple)
+            append!(vars, x)
+        else
+            throw("Invalid parameter: $x")
         end
     end
-    for i = length(sorted):-1:1
-        y = sorted[i]
-        isnothing(y.grad) && continue
-        isempty(y.args) && continue
-        y.f(y, y.args...)
-    end
-    sorted
+    filter(isparam, vars)
 end
+#parameters(x::Var) = (x,)
+#parameters(x::Tuple{Vararg{Var,N}}) = x
+#parameters(x::Parametric) = parameters(x)

@@ -11,8 +11,8 @@ using .CUDA
 using Markdown
 import LinearAlgebra.BLAS: scal!, axpy!, gemv, gemv!, gemm, gemm!
 export gemv, gemm
-#export Parametric
-#abstract type Parametric end
+export Parametric
+abstract type Parametric end
 
 const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
 const UniVector{T} = UniArray{T,1}
@@ -22,7 +22,7 @@ include("add.jl")
 include("var.jl")
 include("graph.jl")
 include("dataloader.jl")
-include("check.jl")
+include("gradient.jl")
 include("config.jl")
 include("device.jl")
 
