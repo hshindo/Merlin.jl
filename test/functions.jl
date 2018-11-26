@@ -103,7 +103,7 @@ end
 
 @testset "dropout" begin
     x = parameter(randn(T,10,5))
-    dropout(x, 0.5)
+    dropout(x, 0.5, true)
 end
 
 @testset "getindex" begin
@@ -131,7 +131,7 @@ end
     checkgrad(()->pack(x,[2,5,3],0), x)
 end
 
-@testset "reshape" begin
+@testset "arrays" begin
     x = parameter(randn(T,10,1,5))
     checkgrad(()->reshape(x,5,10), x)
     checkgrad(()->vec(x), x)

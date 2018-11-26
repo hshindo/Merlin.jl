@@ -1,4 +1,6 @@
-function Base.split(x::Var)
+import Base.split
+
+function split(x::Var)
     @assert isa(x.data,Tuple)
     @assert isnothing(x.grad)
     i = 0
@@ -6,12 +8,11 @@ function Base.split(x::Var)
         i += 1
         Var(d, ∇split!, (x,i))
     end
-    x.grad = Array{Any}(undef, i)
+    x.grad = Array{Any}(nothing, i)
     ys
 end
 
 function ∇split!(y::Var, x::Var, i::Int)
-    isnothing(y.grad) && return
     x.grad[i] = y.grad
 end
 
@@ -27,7 +28,7 @@ ys1 = split(x, [(5,10),(5,10)])
 ys2 = split(x, 2, [2,3,5])
 ```
 """
-function Base.split(x::Array{T,N}, size::Tuple) where {T,N}
+function split(x::Array{T,N}, size::Tuple) where {T,N}
     offset = 0
     map(size) do s
         p = pointer(x, offset+1)
@@ -38,7 +39,7 @@ function Base.split(x::Array{T,N}, size::Tuple) where {T,N}
     end
 end
 
-function Base.split(x::Var, dim::Int, size::Vector{Int})
+function split(x::Var, dim::Int, size::Vector{Int})
     @assert sum(size) == Base.size(x,dim)
     if dim == ndims(x)
         offset = 0
@@ -54,7 +55,7 @@ function Base.split(x::Var, dim::Int, size::Vector{Int})
         throw("Not implemented yet.")
     end
 end
-Base.split(x::Node, args...) = Node(split, x, args...)
+split(x::Node, args...) = Node(split, x, args...)
 
 function addgrad!(y::Var, ::typeof(split), x::Var, dim::Int, offset::Int)
     isvoid(x.grad) && return

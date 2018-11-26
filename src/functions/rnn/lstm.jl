@@ -1,6 +1,6 @@
 export LSTM
 
-mutable struct LSTM <: Parametric
+mutable struct LSTM <: Functor
     insize::Int
     hsize::Int
     nlayers::Int
@@ -9,11 +9,7 @@ mutable struct LSTM <: Parametric
     Ws
     Us
     bs
-    hxs
-    cxs
 end
-
-parameters(f::LSTM) = parameters(f.Ws, f.Us, f.bs, f.hxs, f.cxs)
 
 doc"""
     LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64, bidir::Bool,
@@ -50,9 +46,9 @@ h = f(x)
 ```
 """
 function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64, bidir::Bool;
-    init_W=Normal(0,0.001), init_U=Orthogonal(), init_b=Fill(0), init_h=Fill(0), init_c=Fill(0)) where T
+    init_W=Normal(0,0.001), init_U=Orthogonal(), init_b=Fill(0)) where T
 
-    Ws, Us, bs, hxs, cxs = [], [], [], [], []
+    Ws, Us, bs = [], [], []
     coef = bidir ? 2 : 1
     for l = 1:nlayers
         for _ = 1:coef
@@ -66,30 +62,34 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
             push!(Ws, parameter(cat(ws...,dims=2)))
             push!(Us, parameter(cat(us...,dims=2)))
             push!(bs, parameter(init_b(T,4hsize)))
-            push!(hxs, parameter(init_h(T,hsize)))
-            push!(cxs, parameter(init_c(T,hsize)))
+            #push!(hxs, parameter(init_h(T,hsize)))
+            #push!(cxs, parameter(init_c(T,hsize)))
         end
     end
     Ws = tuple(Ws...)
     Us = tuple(Us...)
     bs = tuple(bs...)
-    hxs = tuple(hxs...)
-    cxs = tuple(cxs...)
-    LSTM(insize, hsize, nlayers, droprate, bidir, Ws, Us, bs, hxs, cxs)
+    LSTM(insize, hsize, nlayers, droprate, bidir, Ws, Us, bs)
 end
 
-function (f::LSTM)(x::Var, dims, hxs)
-    #p = (insize=f.insize,hsize=f.hsize,nlayers=f.nlayers,droprate=f.droprate,bidir=f.bidir)
-    #lstm(x, dims, p, f.weights...)
-
+function (f::LSTM)(x::Var, dims, training::Bool, hx=nothing, cx=nothing)
     @assert ndims(x) == 2
     @assert sum(dims) == size(x,2)
     @assert issorted(dims, rev=true)
-    isnothing(hxs) && (hxs = f.hxs)
+    if isnothing(hx)
+        hx = similar(f.Ws[1].data, length(f.Ws)*f.hsize*length(dims))
+        fill!(hx, 0)
+        hx = Var(hx)
+    end
+    if isnothing(cx)
+        cx = similar(hx.data)
+        fill!(cx, 0)
+        cx = Var(cx)
+    end
     if isa(x.data, Array)
-        lstm_cpu(f, x, dims, hxs)
+        lstm_cpu(f, x, dims, training, hx, cx)
     elseif isa(x.data, CuArray)
-        lstm_cuda(f, x, dims, hxs)
+        lstm_cuda(f, x, dims, training, hx, cx)
     else
         throw("Invalid device.")
     end
@@ -187,16 +187,14 @@ function lstm_onestep(xt::Var, WU::Var, b::Var, ht::Var, ct::Var)
     ht, ct
 end
 
-function lstm_cuda(f::LSTM, x::Var, dims, hxs::Tuple)
-    W, hx, cx = [], [], []
+function lstm_cuda(f::LSTM, x::Var, dims, training, hx::Var, cx::Var)
+    Wdata = []
     for i = 1:length(f.Ws)
-        push!(W, vec(f.Ws[i].data), vec(f.Us[i].data))
-        push!(hx, vec(hxs[i].data))
-        push!(cx, vec(f.cxs[i].data))
+        push!(Wdata, vec(f.Ws[i].data), vec(f.Us[i].data))
     end
     for i = 1:length(f.Ws)
         b = vec(f.bs[i].data)
-        push!(W, b, fill!(similar(b),0))
+        push!(Wdata, b, fill!(similar(b),0))
     end
 
     #=
@@ -213,50 +211,48 @@ function lstm_cuda(f::LSTM, x::Var, dims, hxs::Tuple)
         push!(Ws, b.data, fill!(similar(b.data),0)) # b
     end
     =#
-    W = cat(W..., dims=1)
-    hx = cat(hx..., dims=1)
-    cx = cat(cx..., dims=1)
+    Wdata = cat(Wdata..., dims=1)
 
     t_xdata, t_dims = transpose_batch(x.data, dims)
-    dir = p.bidir ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
+    dir = f.bidir ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
     mode = CUDNN.CUDNN_LSTM
-    t_ydata, hdata, work = CUDNN.rnn(f.insize, f.hsize, f.nlayers, f.droprate, dir, mode,
-        t_xdata, t_dims, hx, cx, WUb, istrain())
+    t_ydata, hydata, cydata, work = CUDNN.rnn(f.insize, f.hsize, f.nlayers, f.droprate,
+        dir, mode, t_xdata, t_dims, hx.data, cx.data, Wdata, training)
     ydata, _ = transpose_batch(t_ydata, t_dims)
-    yh = Var((ydata,hdata), ∇lstm_cuda!, (f,x,dims,W,hx,cx,work))
-    split(yh)
+    yhc = Var((ydata,hydata,cydata), ∇lstm_cuda!, (f,x,dims,hx,cx,Wdata,work))
+    split(yhc)
 end
 
-function ∇lstm_cuda!(yh::Var, f::LSTM, x::Var, dims, W, hx, cx, dW, work)
-    gy, ghy = yh.grad[1], yh.grad[2]
-    @assert !isnothing(x.grad)
+function ∇lstm_cuda!(yhc::Var, f::LSTM, x::Var, dims, hx, cx, Wdata, work)
+    gy, ghy, gcy = yhc.grad[1], yhc.grad[2], yhc.grad[3]
+    @assert !isnothing(gy)
     t_gy, t_dims = transpose_batch(gy, dims)
-    t_gx, ghx = CUDNN.∇rnn_data(t_gy, ghy, work) # this call is required for ∇rnn_weights!
+    t_gx, ghx, gcx = CUDNN.∇rnn_data(t_gy, ghy, gcy, work) # this call is required for ∇rnn_weights!
     gx, _ = transpose_batch(t_gx, t_dims)
-    addto!(x.grad, gx)
-    addto!()
+    isnothing(x.grad) || addto!(x.grad, gx)
+    isnothing(hx.grad) || addto!(hx.grad, ghx)
+    isnothing(cx.grad) || addto!(cx.grad, gcx)
 
-    gW = fill!(similar(W), 0)
-    CUDNN.∇rnn_weights!(gW, work)
+    gWdata = fill!(similar(Wdata), 0)
+    CUDNN.∇rnn_weights!(gWdata, work)
     Wi = 0
-    hi = 0
     for i = 1:length(f.Ws)
         W, U, b = f.Ws[i], f.Us[i], f.bs[i]
-        addto!(W.grad, 1, gW, Wi+1, length(W))
+        addto!(W.grad, 1, gWdata, Wi+1, length(W))
         Wi += length(W)
-        addto!(U.grad, 1, gW, Wi+1, length(U))
+        addto!(U.grad, 1, gWdata, Wi+1, length(U))
         Wi += length(U)
-        addto!(hxs[i].grad, ghx)
-        addto!(f.cxs[i].grad, gcx)
+        #addto!(hxs[i].grad, ghx)
+        #addto!(f.cxs[i].grad, gcx)
 
-        for _ = 1:length(dims)
-            addto!(h.grad, 1, gh, hi+1, length(h))
-            addto!(c.grad, 1, gc, hi+1, length(c))
-            hi += length(h)
-        end
+        #for _ = 1:length(dims)
+        #    addto!(h.grad, 1, gh, hi+1, length(h))
+        #    addto!(c.grad, 1, gc, hi+1, length(c))
+        #    hi += length(h)
+        #end
     end
 
-
+    #=
     Wi = 0
     hi = 0
     for i = 1:5:length(weights)
@@ -276,6 +272,7 @@ function ∇lstm_cuda!(yh::Var, f::LSTM, x::Var, dims, W, hx, cx, dW, work)
         addto!(b.grad, 1, gW, Wi+1, length(b))
         Wi += 2length(b)
     end
+    =#
 end
 
 @generated function transpose_batch(x::CuMatrix{T}, dims::Vector{Int}) where T

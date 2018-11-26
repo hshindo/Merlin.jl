@@ -50,7 +50,7 @@ end
 
         int ndidx[$N];
         gy.ndindex(ndidx, idx);
-        ndidx[dim-1] = maxidx[idx];
+        ndidx[dim-1] = maxidx[idx] - 1;
         gx(ndidx) += gy[idx];
     }
     """)

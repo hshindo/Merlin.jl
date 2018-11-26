@@ -15,13 +15,10 @@ function sum(x::CuArray; dims=())
     x
 end
 
-function argmax(x::CuArray, dims::Int)
-    findmax(x, dims=dims)[2]
-end
-
 function findmax(x::CuArray; dims::Int)
     dim = dims
     y, idx = CUDNN.reduce(x, dim, CUDNN.CUDNN_REDUCE_TENSOR_MAX)
+    addto!(idx, 1)
     idx = reshape(idx, Base.setindex(size(x),1,dim))
     y, idx
 end
@@ -39,6 +36,22 @@ function norm(x::CuArray, dim::Int, p::Int)
         CUDNN.reduce(x, dim, CUDNN.CUDNN_REDUCE_TENSOR_NORM2)[1]
     else
         throw("Not supported. Valid p: 1 or 2.")
+    end
+end
+
+@generated function addto!(dest::CuArray{T}, value) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void addto($Ct *dest, $Ct value, int length) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= length) return;
+        dest[idx] += value;
+    }
+    """)
+    quote
+        gdims, bdims = cudims(length(dest))
+        $k(gdims, bdims, pointer(dest), T(value), length(dest))
+        dest
     end
 end
 

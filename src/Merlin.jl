@@ -11,8 +11,8 @@ using .CUDA
 using Markdown
 import LinearAlgebra.BLAS: scal!, axpy!, gemv, gemv!, gemm, gemm!
 export gemv, gemm
-export Parametric
-abstract type Parametric end
+export Functor
+abstract type Functor end
 
 const UniArray{T,N} = Union{Array{T,N},CuArray{T,N}}
 const UniVector{T} = UniArray{T,1}
@@ -25,6 +25,7 @@ include("dataloader.jl")
 include("gradient.jl")
 include("config.jl")
 include("device.jl")
+include("fit.jl")
 
 for name in [
     "activation/crelu",
@@ -46,6 +47,7 @@ for name in [
     "math/arithmetic",
     "math/broadcast",
 
+    "reduction/argmax",
     "reduction/max",
     #"reduction/mean",
     #"reduction/sum",

@@ -54,6 +54,20 @@ Returns whether `x` is a parameter or not
 """
 isparam(x) = isa(x,Var) && !isnothing(x.grad) && isempty(x.args)
 
+parameters(x::Var) = isparam(x) ? (x,) : ()
+parameters(x::Tuple) = filter(isparam, [x...])
+function parameters(f::Functor)
+    T = typeof(f)
+    params = Var[]
+    for i = 1:length(fieldnames(T))
+        v = getfield(f, i)
+        append!(params, parameters(v))
+    end
+    params
+end
+parameters(x) = ()
+
+#=
 function parameters(xs...)
     vars = Var[]
     for x in xs
@@ -67,6 +81,7 @@ function parameters(xs...)
     end
     filter(isparam, vars)
 end
+=#
 #parameters(x::Var) = (x,)
 #parameters(x::Tuple{Vararg{Var,N}}) = x
 #parameters(x::Parametric) = parameters(x)

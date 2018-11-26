@@ -23,7 +23,6 @@ function Base.foreach(f, loader::DataLoader)
 		j = min(i+loader.batchsize-1, length(loader))
 		data = loader.data[perm[i:j]]
 		f(data)
-		loader.device >= 0 && CUDA.synchronize()
 		update!(prog, j)
 	end
 end

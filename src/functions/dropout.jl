@@ -5,9 +5,9 @@ doc"""
 
 Drops elements randomly with probability ``droprate`` and scales the other elements by factor ``1 / (1 - droprate)``.
 """
-function dropout(x::Var, droprate::Float64)
+function dropout(x::Var, droprate::Float64, training::Bool)
     droprate == 0.0 && return x
-    istrain() || return x
+    training || return x
     ydata, work = dropout(x.data, droprate)
     Var(ydata, ∇dropout!, (x,droprate,work))
 end

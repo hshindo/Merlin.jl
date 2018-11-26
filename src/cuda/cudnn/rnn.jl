@@ -83,7 +83,7 @@ function rnn(insize::Int, hsize::Int, nlayers::Int, droprate::Float64, direction
     hxdesc = TensorDesc(T, hsize, batchdims[1], nlayers*coef)
     cxdesc = TensorDesc(T, hsize, batchdims[1], nlayers*coef)
     hy = similar(hx)
-    cy = C_NULL
+    cy = similar(cx)
 
     # y: (1,Y,B,T) where Y = hiddenSize * (bidirectional ? 2 : 1)
     # ydesc: Array of T (1,Y,B) descriptors
@@ -122,7 +122,7 @@ function rnn(insize::Int, hsize::Int, nlayers::Int, droprate::Float64, direction
             workspace, length(workspace),
             reserve_space, length(reserve_space))
         work = rnndesc,x,hx,cx,w,y,seqlength,xdesc,hxdesc,cxdesc,wdesc,ydesc,reserve_space
-        y, hy, work
+        y, hy, cy, work
     else
         @cudnn(:cudnnRNNForwardInference,
             (Cptr,Cptr,Cint,
@@ -143,18 +143,29 @@ function rnn(insize::Int, hsize::Int, nlayers::Int, droprate::Float64, direction
             hxdesc, hy,
             cxdesc, cy,
             workspace, length(workspace))
-        y, hy, nothing
+        y, hy, cy, nothing
     end
 end
 
-function ∇rnn_data(dy::CuArray, dhy, work::Tuple)
+function ∇rnn_data(dy::CuArray, dhy, dcy, work::Tuple)
     rnndesc,x,hx,cx,w,y,seqlength,xdesc,hxdesc,cxdesc,wdesc,ydesc,reserve_space = work
     coef = rnndesc.direction == CUDNN_UNIDIRECTIONAL ? 1 : 2
+    if dhy == nothing
+        dhy = C_NULL
+        dhx = C_NULL
+    else
+        dhx = similar(dhy)
+    end
+    if dcy == nothing
+        dcy = C_NULL
+        dcx = C_NULL
+    else
+        dcx = similar(dcy)
+    end
 
     h = gethandle()
     dx = similar(x)
-    dhx = similar(hx)
-    dcx = dcy = C_NULL
+    dhx = dcx = dcy = C_NULL
     workspace = getworkspace(rnndesc, seqlength, xdesc)
     @cudnn(:cudnnRNNBackwardData,
         (Cptr,Cptr,Cint,
@@ -183,7 +194,7 @@ function ∇rnn_data(dy::CuArray, dhy, work::Tuple)
         cxdesc, dcx,
         workspace, length(workspace),
         reserve_space, length(reserve_space))
-    dx, dhx
+    dx, dhx, dcx
 end
 
 function ∇rnn_weights!(dw::CuArray, work::Tuple)

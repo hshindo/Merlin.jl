@@ -1,5 +1,7 @@
 export todevice, todevice!
 
+todevice(x, dev::Int) = x
+
 function todevice(x::Array{T}, dev::Int) where T
     if dev < 0
         x
@@ -37,6 +39,18 @@ function todevice!(x::Var, dev::Int)
     x.data = todevice(x.data, dev)
     isnothing(x.grad) || (x.grad = todevice(x.grad,dev))
     x
+end
+
+todevice(t::NTuple{N,Var}, dev::Int) where N = map(x -> todevice(x,dev), t)
+
+function todevice(f::Functor, dev::Int)
+    T = typeof(f)
+    args = []
+    for i = 1:length(fieldnames(T))
+        v = getfield(f, i)
+        push!(args, todevice(v,dev))
+    end
+    T(args...)
 end
 
 function todevice(g::Graph, dev::Int)

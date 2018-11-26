@@ -12,7 +12,7 @@ f = Conv1d(T, 5, 10, 3, padding=2)
 y = f(x)
 ```
 """
-mutable struct Conv1d
+mutable struct Conv1d <: Functor
     ksize::Int
     padding::Int
     stride::Int

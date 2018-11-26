@@ -1,7 +1,7 @@
 export Linear
 export linear
 
-struct Linear
+struct Linear <: Functor
     W::Var
     b::Var
 end
