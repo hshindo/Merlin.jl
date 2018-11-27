@@ -3,7 +3,7 @@ module NVRTC
 import Libdl
 
 if Sys.iswindows()
-    const libnvrtc = Libdl.find_library(["nvrtc64_92","nvrtc64_91","nvrtc64_90","nvrtc64_80","nvrtc64_75"])
+    const libnvrtc = Libdl.find_library(["nvrtc64_100_0","nvrtc64_92","nvrtc64_91","nvrtc64_90"])
 else
     const libnvrtc = Libdl.find_library("libnvrtc")
 end

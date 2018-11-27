@@ -16,7 +16,7 @@ function minimize!(f, dataset, opt; batchsize::Int, shuffle::Bool, device::Int)
 		loss += sum(Array(out.data))
         gradient!(out)
 		device >= 0 && CUDA.synchronize()
-		#opt.(params)
+		opt.(params)
 
 		update!(prog, j)
 	end
