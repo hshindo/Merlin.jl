@@ -26,15 +26,12 @@ function (::MemPoolMalloc)(::Type{T}, dims::Dims{N}) where {T,N}
     else
         ptr = Ptr{T}(pop!(ptrs))
     end
-    arr = CuArray(ptr, dims, getdevice())
-    push!(ALLOCATED, arr)
-    function release(x::CuArray{T}) where T
-        bytesize = prod(size(x)) * sizeof(T)
-        c = log2ceil(bytesize)
+    cuptr = CuPtr(ptr, getdevice(), c)
+    push!(ALLOCATED, cuptr)
+    finalizer(cuptr) do x
         push!(MEMPOOL[c], Cptr(x.ptr))
     end
-    finalizer(release, arr)
-    arr
+    cuptr
 end
 
 function rrr()

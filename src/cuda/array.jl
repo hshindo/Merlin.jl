@@ -2,9 +2,8 @@ export CuArray, CuVector, CuMatrix, CuVecOrMat
 export cupointer, curand, curandn, cuzeros, cuones
 
 mutable struct CuArray{T,N} <: AbstractArray{T,N}
-    ptr::Ptr{T}
+    ptr::CuPtr{T}
     dims::Dims{N}
-    dev::Int
 end
 
 const CuVector{T} = CuArray{T,1}
@@ -12,13 +11,14 @@ const CuMatrix{T} = CuArray{T,2}
 const CuVecOrMat{T} = Union{CuVector{T},CuMatrix{T}}
 
 function CuArray{T}(dims::Dims{N}) where {T,N}
-    MemPoolMalloc()(T, dims)
+    ptr = MemPoolMalloc()(T, dims)
+    CuArray(ptr, dims)
 end
 CuArray{T}(dims::Int...) where T = CuArray{T}(dims)
 CuArray(x::Array{T,N}) where {T,N} = copyto!(CuArray{T}(size(x)), x)
 
 ### AbstractArray interface
-getdevice(x::CuArray) = x.dev
+getdevice(x::CuArray) = x.ptr.dev
 Base.size(x::CuArray) = x.dims
 Base.size(x::CuArray, i::Int) = i <= ndims(x) ? x.dims[i] : 1
 Base.getindex(x::CuArray, i::Int) = throw("getindex $i")
@@ -43,17 +43,20 @@ function Base.stride(x::CuArray, i::Int)
     d
 end
 
-Base.cconvert(::Type{Ptr{T}}, x::CuArray) where T = Base.cconvert(Ptr{T}, pointer(x))
 function Base.pointer(x::CuArray{T}, index::Int=1) where T
     @assert index > 0
-    x.ptr + sizeof(T)*(index-1)
+    p = x.ptr.ptr + sizeof(T)*(index-1)
+    CuPtr(p, getdevice(x), -1)
 end
-cupointer(x::CuArray, index=1) = CuPtr(pointer(x,index))
+Base.cconvert(::Type{Ptr{T}}, x::CuArray) where T = Base.cconvert(Ptr{T}, pointer(x))
 Base.Array(x::CuArray{T}) where T = copyto!(Array{T}(undef,size(x)), x)
-Base.unsafe_wrap(::Type{A}, ptr::Ptr{T}, dims) where {A<:CuArray,T} = CuArray(ptr, dims)
+#Base.unsafe_wrap(::Type{A}, ptr::Ptr{T}, dims) where {A<:CuArray,T} = CuArray(ptr, dims)
 
 ##### reshape #####
-Base.reshape(x::CuArray{T}, dims::Dims{N}) where {T,N} = CuArray(x.ptr, dims, x.dev)
+function Base.reshape(x::CuArray{T}, dims::Dims{N}) where {T,N}
+    @assert prod(dims) == length(x)
+    CuArray(x.ptr, dims)
+end
 Base.reshape(x::CuArray{T}, dims::Int...) where T = reshape(x, dims)
 Base.vec(x::CuArray{T}) where T = ndims(x) == 1 ? x : reshape(x,length(x))
 function Base.dropdims(x::CuArray; dims)
@@ -117,21 +120,6 @@ function Base.fill!(x::CuArray{T}, value; stream=C_NULL) where T
         throw("Not supported.")
     end
     x
-end
-
-@generated function fill2!(x::CuArray{T}, value) where T
-    Ct = cstring(T)
-    k = Kernel("""
-    __global__ void fill($Ct *x, int n, $Ct value) {
-        int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx >= n) return;
-        x[idx] = value;
-    }""")
-    quote
-        gdims, bdims = cudims(length(x))
-        $k(gdims, bdims, pointer(x), length(x), T(value))
-        x
-    end
 end
 
 ##### IO #####
