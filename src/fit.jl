@@ -1,6 +1,6 @@
 export minimize!, evaluate
 
-function minimize!(f, dataset, opt; batchsize::Int, shuffle::Bool, device::Int)
+function minimize!(f, dataset, opt; batchsize::Int, shuffle::Bool, device)
     dataset = todevice(dataset, device)
     params = parameters(f)
     loss = 0.0
@@ -23,7 +23,7 @@ function minimize!(f, dataset, opt; batchsize::Int, shuffle::Bool, device::Int)
     loss
 end
 
-function evaluate(f, dataset; batchsize::Int, device::Int)
+function evaluate(f, dataset; batchsize::Int, device)
 	dataset = todevice(dataset, device)
     outs = []
 	n = length(dataset)

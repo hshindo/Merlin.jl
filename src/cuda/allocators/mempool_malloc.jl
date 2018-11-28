@@ -14,9 +14,16 @@ function (::MemPoolMalloc)(::Type{T}, dims::Dims{N}) where {T,N}
         ref = Ref{Cptr}()
         status = @unsafe_apicall :cuMemAlloc (Ptr{Cptr},Csize_t) ref bytesize
         if status != CUDA_SUCCESS
+            CUDA.synchronize()
             GC.gc()
             if isempty(ptrs)
-                throw("Out of Memory after GC.")
+                for cptrs in MEMPOOL
+                    memfree.(cptrs)
+                    empty!(cptrs)
+                end
+                status = @unsafe_apicall :cuMemAlloc (Ptr{Cptr},Csize_t) ref bytesize
+                status == CUDA_SUCCESS && throw("Out of Memory from Merlin.")
+                ptr = Ptr{T}(ref[])
             else
                 ptr = Ptr{T}(pop!(ptrs))
             end
