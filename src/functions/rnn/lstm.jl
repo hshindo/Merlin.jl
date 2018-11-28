@@ -77,7 +77,7 @@ function (f::LSTM)(x::Var, dims, training::Bool, hx=nothing, cx=nothing)
     @assert sum(dims) == size(x,2)
     @assert issorted(dims, rev=true)
     if isnothing(hx)
-        hx = similar(f.Ws[1].data, length(f.Ws)*f.hsize*length(dims))
+        hx = similar(f.Ws[1].data, length(f.Ws), f.hsize, length(dims))
         fill!(hx, 0)
         hx = Var(hx)
     end
@@ -119,24 +119,25 @@ end
 =#
 lstm(x::Node, args...) = Node(lstm, (x,args...))
 
-function lstm_cpu(x::Var, dims, p, Ws, Us, bs, hxs, cxs)
-    h = x
-    i = 0
-    for l = 1:p.nlayers
-        h1 = lstm_tstep(h, dims, weights[i+1:i+5]..., false)
-        i += 5
-        if p.bidir
-            h2 = lstm_tstep(h, dims, weights[i+1:i+5]..., true)
-            h = concat(1, h1, h2)
-            i += 5
+function lstm_cpu(f::LSTM, x::Var, dims, training::Bool, hx, cx)
+    y = x
+    i = 1
+    for l = 1:f.nlayers
+        W, U, b = f.Ws[i], f.Us[i], f.bs[i]
+        y1 = lstm_tstep(y, dims, W, U, b, hx[i,:,:], cx[i,:,:], false)
+        i += 1
+        if f.bidir
+            y2 = lstm_tstep(y, dims, W, U, b, hx[i,:,:], cx[i,:,:], true)
+            y = concat(1, y1, y2)
+            i += 1
         else
-            h = h1
+            y = y1
         end
     end
-    h
+    y, nothing, nothing
 end
 
-function lstm_tstep(x::Var, dims, W::Var, U::Var, b::Var, h::Var, c::Var, rev::Bool)
+function lstm_tstep(x::Var, dims, W::Var, U::Var, b::Var, hx::Var, cx::Var, rev::Bool)
     WU = concat(1, W, U)
     cumdims = Array{Int}(undef, length(dims)+1)
     cumdims[1] = 1
@@ -144,9 +145,8 @@ function lstm_tstep(x::Var, dims, W::Var, U::Var, b::Var, h::Var, c::Var, rev::B
         cumdims[i+1] = cumdims[i] + dims[i]
     end
 
-    hsize = length(h)
-    ht = concat(2, [h for i=1:length(dims)]...)
-    ct = concat(2, [c for i=1:length(dims)]...)
+    ht = hx
+    ct = cx
     hts = Array{Var}(undef, size(x,2))
     cts = Array{Var}(undef, size(x,2))
     for t = 1:dims[1]
@@ -173,7 +173,8 @@ function lstm_tstep(x::Var, dims, W::Var, U::Var, b::Var, h::Var, c::Var, rev::B
             cts[k] = ct[:,j:j]
         end
     end
-    concat(2, hts...)
+    y = concat(2, hts...)
+    y
 end
 
 function lstm_onestep(xt::Var, WU::Var, b::Var, ht::Var, ct::Var)
