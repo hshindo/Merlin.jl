@@ -139,3 +139,11 @@ function curandn(::Type{T}, dims::NTuple{N,Int}) where {T,N}
 end
 curandn(::Type{T}, dims::Int...) where T = curandn(T, dims)
 curandn(dims::Int...) = curandn(Float64, dims)
+
+function Base.repeat(x::CuArray{T,N}, counts::Int...) where {T,N}
+    @assert N <= length(counts)
+    if N < length(counts)
+        x = reshape(x, size(x)..., ntuple(_ -> 1, length(counts)-N)...)
+    end
+    repeat_kernel(x, counts)
+end

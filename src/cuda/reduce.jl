@@ -1,6 +1,6 @@
 import Base: sum, findmax, findmin, maximum, argmax
 import LinearAlgebra: norm
-export average
+import Statistics: mean
 
 function sum(x::CuArray; dims=())
     if isempty(dims)
@@ -27,7 +27,7 @@ function findmin(x::CuArray; dims::Int)
     CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_MIN)
 end
 
-average(x::CuArray; dims::Int) = CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_AVG)[1]
+mean(x::CuArray; dims::Int) = CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_AVG)[1]
 
 function norm(x::CuArray, dim::Int, p::Int)
     if p == 1

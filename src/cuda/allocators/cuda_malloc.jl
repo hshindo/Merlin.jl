@@ -1,5 +1,3 @@
-const ALLOCATED = []
-
 struct CUDAMalloc
 end
 

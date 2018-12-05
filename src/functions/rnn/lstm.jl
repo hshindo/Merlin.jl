@@ -9,6 +9,8 @@ mutable struct LSTM <: Functor
     Ws
     Us
     bs
+    hs
+    cs
 end
 
 doc"""
@@ -46,9 +48,9 @@ h = f(x)
 ```
 """
 function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float64, bidir::Bool;
-    init_W=Normal(0,0.001), init_U=Orthogonal(), init_b=Fill(0)) where T
+    init_W=Normal(0,0.001), init_U=Orthogonal(), init_b=Fill(0), init_h=Fill(0), init_c=Fill(0)) where T
 
-    Ws, Us, bs = [], [], []
+    Ws, Us, bs, hs, cs = [], [], [], [], []
     coef = bidir ? 2 : 1
     for l = 1:nlayers
         for _ = 1:coef
@@ -62,14 +64,16 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
             push!(Ws, parameter(cat(ws...,dims=2)))
             push!(Us, parameter(cat(us...,dims=2)))
             push!(bs, parameter(init_b(T,4hsize)))
-            #push!(hxs, parameter(init_h(T,hsize)))
-            #push!(cxs, parameter(init_c(T,hsize)))
+            push!(hs, parameter(init_h(T,hsize)))
+            push!(cs, parameter(init_c(T,hsize)))
         end
     end
     Ws = tuple(Ws...)
     Us = tuple(Us...)
     bs = tuple(bs...)
-    LSTM(insize, hsize, nlayers, droprate, bidir, Ws, Us, bs)
+    hs = tuple(hs...)
+    cs = tuple(cs...)
+    LSTM(insize, hsize, nlayers, droprate, bidir, Ws, Us, bs, hs, cs)
 end
 
 function (f::LSTM)(x::Var, dims, training::Bool, hx=nothing, cx=nothing)
@@ -77,14 +81,18 @@ function (f::LSTM)(x::Var, dims, training::Bool, hx=nothing, cx=nothing)
     @assert sum(dims) == size(x,2)
     @assert issorted(dims, rev=true)
     if isnothing(hx)
-        hx = similar(f.Ws[1].data, length(f.Ws), f.hsize, length(dims))
-        fill!(hx, 0)
-        hx = Var(hx)
+        hxs = map(h -> repeat(h,1,length(dims)), f.hs)
+        hx = concat(2, hxs...)
+        #hx = similar(f.Ws[1].data, length(f.Ws), f.hsize, length(dims))
+        #fill!(hx, 0)
+        #hx = Var(hx)
     end
     if isnothing(cx)
-        cx = similar(hx.data)
-        fill!(cx, 0)
-        cx = Var(cx)
+        cxs = map(c -> repeat(c,1,length(dims)), f.cs)
+        cx = concat(2, cxs...)
+        #cx = similar(hx.data)
+        #fill!(cx, 0)
+        #cx = Var(cx)
     end
     if isa(x.data, Array)
         lstm_cpu(f, x, dims, training, hx, cx)
@@ -197,7 +205,6 @@ function lstm_cuda(f::LSTM, x::Var, dims, training, hx::Var, cx::Var)
         b = vec(f.bs[i].data)
         push!(Wdata, b, fill!(similar(b),0))
     end
-
     #=
     for i = 1:5:length(weights)
         W, U, b, h, c = weights[i:i+4]

@@ -55,6 +55,8 @@ export cstring
 cstring(::Type{Int32}) = "int"
 cstring(::Type{Float32}) = "float"
 
+const ALLOCATED = []
+
 include("driver/device.jl")
 include("driver/context.jl")
 include("driver/stream.jl")
@@ -74,6 +76,7 @@ include("pointer.jl")
 include("array.jl")
 include("subarray.jl")
 include("kernel.jl")
+include("kernels.jl")
 include("arraymath.jl")
 include("broadcast.jl")
 include("cat.jl")

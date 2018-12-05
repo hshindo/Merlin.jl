@@ -23,7 +23,6 @@ include("var.jl")
 include("graph.jl")
 include("dataloader.jl")
 include("gradient.jl")
-include("config.jl")
 include("device.jl")
 include("fit.jl")
 
@@ -47,9 +46,9 @@ for name in [
     "math/arithmetic",
     "math/broadcast",
 
+    "reduction/average",
     "reduction/argmax",
     "reduction/max",
-    #"reduction/mean",
     #"reduction/sum",
 
     "rnn/lstm",
@@ -61,6 +60,7 @@ for name in [
     "linear",
     "lookup",
     "pack",
+    "repeat",
     "reshape",
     "softmax",
     "split",
@@ -78,6 +78,7 @@ include("initializers/xavier.jl")
 
 include("optimizers/adagrad.jl")
 include("optimizers/adam.jl")
+include("optimizers/asgd.jl")
 include("optimizers/sgd.jl")
 
 include("datasets/Datasets.jl")

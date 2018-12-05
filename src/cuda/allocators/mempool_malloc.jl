@@ -22,7 +22,7 @@ function (::MemPoolMalloc)(::Type{T}, dims::Dims{N}) where {T,N}
                     empty!(cptrs)
                 end
                 status = @unsafe_apicall :cuMemAlloc (Ptr{Cptr},Csize_t) ref bytesize
-                status == CUDA_SUCCESS && throw("Out of Memory from Merlin.")
+                status == CUDA_SUCCESS || throw("Out of Memory from Merlin.")
                 ptr = Ptr{T}(ref[])
             else
                 ptr = Ptr{T}(pop!(ptrs))

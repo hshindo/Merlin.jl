@@ -53,7 +53,7 @@ macro checkgrad(f, params, atol=1e-3, cuda=true)
 end
 =#
 
-function checkgrad(f, inputs::Var...; atol=1e-3, cuda=true)
+function checkgrad(f, inputs::Var...; atol=2e-3, cuda=true)
     params = tuple(filter(isparam, [inputs...])...)
     y = f()
     zerograd!.(params)

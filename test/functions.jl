@@ -54,9 +54,11 @@ end
 
     x1 = parameter(randn(T,10,5))
     x2 = parameter(randn(T,10,1))
+    x3 = parameter(randn(T,10,5))
     checkgrad(()->x1.+x2, x1, x2)
     checkgrad(()->x1.-x2, x1, x2)
     checkgrad(()->x1.*x2, x1, x2)
+    checkgrad(()->x1.*x3, x1, x3)
 end
 
 @testset "reduction" begin
@@ -66,6 +68,9 @@ end
             checkgrad(()->max(x,dim), x)
         end
         checkgrad(()->max(x,[2,5,3]), x)
+    end
+    @testset "average" begin
+        checkgrad(()->average(x,2), x) # dim=1 is not supported by CuDNN
     end
 end
 
@@ -131,7 +136,12 @@ end
     checkgrad(()->pack(x,[2,5,3],0), x)
 end
 
-@testset "arrays" begin
+@testset "repeat" begin
+    x = parameter(randn(T,10))
+    checkgrad(()->repeat(x,2,3), x)
+end
+
+@testset "reshape" begin
     x = parameter(randn(T,10,1,5))
     checkgrad(()->reshape(x,5,10), x)
     checkgrad(()->vec(x), x)

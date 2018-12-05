@@ -40,10 +40,6 @@ function broadcasted(::typeof(-), x1::CuArray{T}, x2::CuArray{T}) where T
     y
 end
 
-function broadcast_addto!(dest::CuArray{T}, src::CuArray{T}) where T
-    CUDNN.add!(1, src, 1, dest)
-end
-
 function broadcasted(::typeof(*), x1::CuArray{T}, x2::CuArray{T}) where T
     elemtimes(x1, x2)
 end

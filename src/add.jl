@@ -25,9 +25,19 @@ function addto!(dest::SubArray{T}, src::Array{T}) where T
     dest[:] = dest + src
     dest
 end
+function addto!(β, dest::Array, α, src::Array)
+    dest[:] = α*src + β*dest
+    dest
+end
+addto!(β, dest::CuArray, α, src::CuArray) = CUDNN.add!(α, src, β, dest)
 
-broadcast_addto!(dest::Array{T}, src::Array{T}) where T = dest .+= src
-broadcast_addto!(dest::CuArray, src::CuArray) = CUDA.broadcast_addto!(dest, src)
+function broadcast_addto!(β, dest::Array, α, src::Array)
+    dest[:] = α*src .+ β*dest
+    dest
+end
+broadcast_addto!(dest::Array, src::Array) = broadcast_addto!(1, dest, 1, src)
+broadcast_addto!(β, dest::CuArray, α, src::CuArray) = CUDNN.add!(α, src, β, dest)
+broadcast_addto!(dest::CuArray, src::CuArray) = broadcast_addto!(1, dest, 1, src)
 
 @generated function addto!(dest::CuArray{T}, src::CuSubArray{T,N}) where {T,N}
     Ct = cstring(T)
