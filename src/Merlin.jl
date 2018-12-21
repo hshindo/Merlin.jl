@@ -36,6 +36,8 @@ for name in [
     "activation/swish",
     "activation/tanh",
 
+    "attention/add_attention",
+
     "cnn/conv1d",
     # "cnn/conv2d",
 
@@ -45,6 +47,7 @@ for name in [
     "loss/softmax_crossentropy",
     "math/arithmetic",
     "math/broadcast",
+    "math/transpose",
 
     "reduction/average",
     "reduction/argmax",

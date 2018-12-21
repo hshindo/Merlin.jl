@@ -14,7 +14,7 @@ function (::MemPoolMalloc)(::Type{T}, dims::Dims{N}) where {T,N}
         ref = Ref{Cptr}()
         status = @unsafe_apicall :cuMemAlloc (Ptr{Cptr},Csize_t) ref bytesize
         if status != CUDA_SUCCESS
-            CUDA.synchronize()
+            # CUDA.synchronize()
             GC.gc()
             if isempty(ptrs)
                 for cptrs in MEMPOOL

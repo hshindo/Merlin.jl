@@ -27,12 +27,12 @@ for (f,T) in (
     end
 end
 
-function Base.transpose(x::CuMatrix{T}) where T
+function Base.permutedims(x::CuMatrix{T}) where T
     t = similar(x, size(x,2), size(x,1))
     geam!('T', 'N', T(1), x, T(0), t, t)
     t
 end
-Base.transpose(x::CuVector) = transpose(reshape(x,length(x),1))
+Base.permutedims(x::CuVector) = permutedims(reshape(x,length(x),1))
 
 for (f,T) in (
         (:(:cublasDgemmBatched),:Float64),

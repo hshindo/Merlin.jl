@@ -42,6 +42,7 @@ function todevice!(x::Var, dev::Int)
 end
 
 todevice(t::NTuple{N,Var}, dev::Int) where N = map(x -> todevice(x,dev), t)
+todevice(t::NTuple{N,Functor}, dev::Int) where N = map(x -> todevice(x,dev), t)
 
 function todevice(f::Functor, dev::Int)
     T = typeof(f)

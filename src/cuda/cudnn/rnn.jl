@@ -150,22 +150,13 @@ end
 function ∇rnn_data(dy::CuArray, dhy, dcy, work::Tuple)
     rnndesc,x,hx,cx,w,y,seqlength,xdesc,hxdesc,cxdesc,wdesc,ydesc,reserve_space = work
     coef = rnndesc.direction == CUDNN_UNIDIRECTIONAL ? 1 : 2
-    if dhy == nothing
-        dhy = C_NULL
-        dhx = C_NULL
-    else
-        dhx = similar(dhy)
-    end
-    if dcy == nothing
-        dcy = C_NULL
-        dcx = C_NULL
-    else
-        dcx = similar(dcy)
-    end
+    dhx = similar(hx)
+    dcx = similar(cx)
+    dhy == nothing && (dhy = C_NULL)
+    dcy == nothing && (dcy = C_NULL)
 
     h = gethandle()
     dx = similar(x)
-    dhx = dcx = dcy = C_NULL
     workspace = getworkspace(rnndesc, seqlength, xdesc)
     @cudnn(:cudnnRNNBackwardData,
         (Cptr,Cptr,Cint,

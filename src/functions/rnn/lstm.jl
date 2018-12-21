@@ -83,16 +83,18 @@ function (f::LSTM)(x::Var, dims, training::Bool, hx=nothing, cx=nothing)
     if isnothing(hx)
         hxs = map(h -> repeat(h,1,length(dims)), f.hs)
         hx = concat(2, hxs...)
+        # TODO: ndims == 3 or 2?
         #hx = similar(f.Ws[1].data, length(f.Ws), f.hsize, length(dims))
         #fill!(hx, 0)
         #hx = Var(hx)
+    else
+        @assert ndims(hx) == 2
     end
     if isnothing(cx)
         cxs = map(c -> repeat(c,1,length(dims)), f.cs)
         cx = concat(2, cxs...)
-        #cx = similar(hx.data)
-        #fill!(cx, 0)
-        #cx = Var(cx)
+    else
+        @assert ndims(cx) == 2
     end
     if isa(x.data, Array)
         lstm_cpu(f, x, dims, training, hx, cx)
@@ -196,7 +198,7 @@ function lstm_onestep(xt::Var, WU::Var, b::Var, ht::Var, ct::Var)
     ht, ct
 end
 
-function lstm_cuda(f::LSTM, x::Var, dims, training, hx::Var, cx::Var)
+function lstm_cuda(f::LSTM, x::Var, dims::Vector{Int}, training::Bool, hx::Var, cx::Var)
     Wdata = []
     for i = 1:length(f.Ws)
         push!(Wdata, vec(f.Ws[i].data), vec(f.Us[i].data))

@@ -92,10 +92,11 @@ const ALLOCATOR = Ref{Any}(CUDAMalloc())
 if AVAILABLE
     include("nccl/NCCL.jl")
     include("cublas/CUBLAS.jl")
+    include("curand/CURAND.jl")
     include("cudnn/CUDNN.jl")
 
-    using .CUBLAS, .CUDNN
-    export CUBLAS, CUDNN
+    using .CUBLAS, .CUDNN, .CURAND
+    export CUBLAS, CUDNN, CURAND
 end
 
 end

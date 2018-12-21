@@ -127,16 +127,10 @@ Base.show(io::IO, x::CuArray) = print(io, Array(x))
 Base.display(x::CuArray) = display(Array(x))
 
 #####
-function curand(::Type{T}, dims::Dims{N}) where {T,N}
-    # TODO: use curand library
-    CuArray(rand(T,dims))
-end
+curand(::Type{T}, dims::Dims{N}) where {T,N} = CURAND.curand(T, dims)
 curand(::Type{T}, dims::Int...) where T = curand(T, dims)
 curand(dims::Int...) = curand(Float64, dims)
-function curandn(::Type{T}, dims::NTuple{N,Int}) where {T,N}
-    # TODO: use curand library
-    CuArray(randn(T,dims))
-end
+curandn(::Type{T}, dims::Dims{N}) where {T,N} = CURAND.curandn(T, dims)
 curandn(::Type{T}, dims::Int...) where T = curandn(T, dims)
 curandn(dims::Int...) = curandn(Float64, dims)
 

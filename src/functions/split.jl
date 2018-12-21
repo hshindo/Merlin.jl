@@ -12,8 +12,30 @@ function split(x::Var)
     ys
 end
 
+function split(x::Var, dims::Vector{Int})
+    @assert isnothing(x.grad)
+    ys = Var[]
+    off = 0
+    front = Base.front(size(x))
+    for i = 1:length(dims)
+        d = dims[i]
+        ydata = x.data[off+1:off+d]
+        ydata = reshape(ydata, front..., d)
+        y = Var(ydata, ∇split!, (x,dims,i))
+        push!(ys, y)
+        off += d
+    end
+    x.grad = Array{Any}(nothing, length(dims))
+    ys
+end
+
 function ∇split!(y::Var, x::Var, i::Int)
     x.grad[i] = y.grad
+end
+
+function ∇split!(y::Var, x::Var, cumdims::Vector{Int}, i::Int)
+    isnothing(x.grad) && return
+    
 end
 
 doc"""

@@ -4,11 +4,11 @@ import Base.transpose
     transpose(x)
 """
 function transpose(x::Var)
-    y = transpose(x.data)
-    Var(y, (transpose,x))
+    y = permutedims(x.data)
+    Var(y, ∇transpose!, (x,))
 end
 
-function addgrad!(y::Var, ::typeof(transpose), x::Var)
-    isvoid(x.grad) && return
-    addto!(transpose(y.grad), x.grad)
+function ∇transpose!(y::Var, x::Var)
+    isnothing(x.grad) && return
+    addto!(x.grad, permutedims(y.grad))
 end

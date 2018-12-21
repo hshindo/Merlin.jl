@@ -39,7 +39,7 @@ end
     Ct = cstring(T)
     k = Kernel("""
     __global__ void window1d($Ct *y, $Ct *x, int *cumsizeY, int *cumsizeX,
-        int batchsize, int m, int n, int ksize, int padding, int stride) {
+        int batchsize, int m, int n, int ksize, int padding, int stride, int dilation) {
 
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         int batchI = idx / m;
@@ -79,7 +79,7 @@ end
         m = maximum(ydims) * size(y,1)
         gdims, bdims = cudims(m*length(ydims))
         $k(gdims, bdims, pointer(y), pointer(x), pointer(cumsize_y), pointer(cumsize_x),
-            length(dims), m, size(x,1), ksize, padding, stride)
+            length(dims), m, size(x,1), ksize, padding, stride, dilation)
         y
     end
 end

@@ -65,12 +65,13 @@ function reduce(A::CuArray{T}, dim, op) where T
     @cudnn(:cudnnGetReductionWorkspaceSize,
         (Cptr,Cptr,Cptr,Cptr,Ptr{Csize_t}),
         h, reducedesc, adesc, cdesc, ref)
-    workspace = CuArray{UInt8}(Int(ref[]))
+    workspace = ref[] == 0 ? C_NULL : CuArray{UInt8}(Int(ref[]))
+    workspace_length = ref[]
 
     @cudnn(:cudnnReduceTensor,
         (Cptr,Cptr,Cptr,Csize_t,Cptr,Csize_t,
         Cptr,Cptr,Cptr,Cptr,Cptr,Cptr),
-        h, reducedesc, indices, length(indices)*sizeof(Cint), workspace, length(workspace),
+        h, reducedesc, indices, length(indices)*sizeof(Cint), workspace, workspace_length,
         T[1], adesc, A, T[0], cdesc, C)
     C, indices
 end
