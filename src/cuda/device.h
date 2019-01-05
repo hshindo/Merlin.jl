@@ -50,4 +50,20 @@ public:
         }
         return data[rawidx];
     }
+    __device__ int rawindex(const int idx) {
+        if (N == 1) return idx*strides[0];
+
+        int cumdims[N];
+        cumdims[0] = 1;
+        for (int i = 1; i < N; i++) cumdims[i] = cumdims[i-1] * dims[i-1];
+
+        int temp = idx;
+        int rawidx = 0;
+        for (int i = N-1; i >= 0; i--) {
+            int a = temp / cumdims[i];
+            temp -= a * cumdims[i];
+            rawidx += a * strides[i];
+        }
+        return rawidx;
+    }
 };

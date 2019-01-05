@@ -18,7 +18,6 @@ function pack(x::Var, dims::Vector{Int}, padding)
     end
     Var(ydata, ∇pack!, (x,dims))
 end
-pack(x::Node, dims, padding) = Node(pack, (x,dims,padding))
 
 function ∇pack!(y::Var, x::Var, dims::Vector{Int})
     isnothing(x.grad) && return

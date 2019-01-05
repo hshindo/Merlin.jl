@@ -27,8 +27,8 @@ function create_generator(rngtype::Int)
     ref[]
 end
 
-function set_pseudo_random_generator_seed(gen::Cvoid, seed::Int)
-    @curand :curandSetPseudoRandomGeneratorSeed (Cvoid,Culonglong) gen seed
+function set_pseudo_random_generator_seed!(gen, seed::UInt64)
+    @curand :curandSetPseudoRandomGeneratorSeed (Ptr{Cvoid},Culonglong) gen seed
 end
 
 function curand(::Type{T}, dims::Dims{N}) where {T,N}
@@ -77,6 +77,7 @@ const RNG = Ref{Ptr{Cvoid}}()
 function __init__()
     @info "CURAND API $(version())"
     RNG[] = create_generator(CURAND_RNG_PSEUDO_MTGP32)
+    set_pseudo_random_generator_seed!(RNG[], rand(UInt64))
 end
 
 #=

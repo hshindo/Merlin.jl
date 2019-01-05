@@ -4,8 +4,6 @@ function lookup(w::Var, x::Var)
     ydata = lookup(w.data, x.data)
     Var(ydata, ∇lookup!, (w,x))
 end
-lookup(w::Node, x) = Node(lookup, (w,x))
-lookup(w, x::Node) = Node(lookup, (w,x))
 
 function lookup(w::Matrix{T}, x::Array{Int}) where T
     s = Base.setindex(size(x), size(x,1)*size(w,1), 1)

@@ -3,14 +3,28 @@ module Merlin
 using Base.Threads
 @info "# CPU threads: $(nthreads())"
 
-const GDICT = []
-
-include("cuda/CUDA.jl")
-using .CUDA
+using Libdl
+const CUDA_AVAILABLE = begin
+    if Sys.iswindows()
+        !isempty(Libdl.find_library("nvcuda"))
+    else
+        !isempty(Libdl.find_library("libcuda"))
+    end
+end
+if CUDA_AVAILABLE
+    include("cuda/CUDA.jl")
+    using .CUDA
+else
+    @info "CUDA not found."
+    mutable struct CuArray{T,N} end
+    mutable struct CuSubArray{T,N} end
+    const CuVector{T} = CuArray{T,1}
+    const CuMatrix{T} = CuArray{T,2}
+    const CuVecOrMat{T} = Union{CuVector{T},CuMatrix{T}}
+end
 
 using Markdown
 import LinearAlgebra.BLAS: scal!, axpy!, gemv, gemv!, gemm, gemm!
-export gemv, gemm
 export Functor
 abstract type Functor end
 
@@ -25,11 +39,13 @@ include("dataloader.jl")
 include("gradient.jl")
 include("device.jl")
 include("fit.jl")
+include("config.jl")
 
 for name in [
     "activation/crelu",
     "activation/elu",
     "activation/leaky_relu",
+    "activation/ptanh",
     "activation/relu",
     "activation/selu",
     "activation/sigmoid",
@@ -42,6 +58,7 @@ for name in [
     # "cnn/conv2d",
 
     "loss/crossentropy",
+    "loss/flip",
     "loss/l2",
     "loss/mse",
     "loss/softmax_crossentropy",
@@ -52,13 +69,15 @@ for name in [
     "reduction/average",
     "reduction/argmax",
     "reduction/max",
-    #"reduction/sum",
+    "reduction/sum",
+
+    "regularization/dropout",
+    "regularization/zoneout",
 
     "rnn/lstm",
 
     "blas",
     "concat",
-    "dropout",
     "getindex",
     "linear",
     "lookup",

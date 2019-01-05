@@ -1,12 +1,12 @@
 export todevice, todevice!
 
-todevice(x, dev::Int) = x
+todevice(x) = x
 
-function todevice(x::Array{T}, dev::Int) where T
+function todevice(x::Array{T}) where T
+    dev = getdevice()
     if dev < 0
         x
     else
-        CUDA.setdevice(dev)
         if T == Int
             CuArray(Array{Cint}(x))
         else
@@ -15,46 +15,48 @@ function todevice(x::Array{T}, dev::Int) where T
     end
 end
 
-function todevice(x::CuArray{T}, dev::Int) where T
+function todevice(x::CuArray{T}) where T
+    dev = getdevice()
     if dev < 0
         if T == Cint
             Array{Int}(Array(x))
         else
             Array(x)
         end
-    elseif CUDA.getdevice() != dev
+    elseif getdevice() != CUDA.getdevice(x)
         throw("Not implemented yet.")
     end
 end
 
-function todevice(x::Var, dev::Int)
-    data = todevice(x.data, dev)
-    grad = todevice(x.grad, dev)
+function todevice(x::Var)
+    data = todevice(x.data)
+    grad = todevice(x.grad)
     x = Var(data)
     x.grad = grad
     x
 end
 
-function todevice!(x::Var, dev::Int)
-    x.data = todevice(x.data, dev)
-    isnothing(x.grad) || (x.grad = todevice(x.grad,dev))
+function todevice!(x::Var)
+    x.data = todevice(x.data)
+    x.grad = todevice(x.grad)
     x
 end
 
-todevice(t::NTuple{N,Var}, dev::Int) where N = map(x -> todevice(x,dev), t)
-todevice(t::NTuple{N,Functor}, dev::Int) where N = map(x -> todevice(x,dev), t)
-
-function todevice(f::Functor, dev::Int)
+function todevice(f::Functor)
     T = typeof(f)
     args = []
     for i = 1:length(fieldnames(T))
         v = getfield(f, i)
-        push!(args, todevice(v,dev))
+        push!(args, todevice(v))
     end
     T(args...)
 end
 
-function todevice(g::Graph, dev::Int)
+todevice(t::NTuple{N,Var}) where N = map(todevice, t)
+todevice(t::NTuple{N,Functor}) where N = map(todevice, t)
+
+function todevice(g::Graph)
+    throw("Not implemented yet.")
     nodes = map(g.nodes) do n
         args = map(n.args) do arg
             isa(arg,Var) ? todevice(arg,dev) : arg

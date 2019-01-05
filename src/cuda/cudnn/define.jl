@@ -52,11 +52,6 @@ const CUDNN_LRN_CROSS_CHANNEL_DIM1 = Cint(0)
 # cudnnDivNormMode_t
 const CUDNN_DIVNORM_PRECOMPUTED_MEANS = Cint(0)
 
-# cudnnBatchNormMode_t
-const CUDNN_BATCHNORM_PER_ACTIVATION = Cint(0)
-const CUDNN_BATCHNORM_SPATIAL = Cint(1)
-const CUDNN_BATCHNORM_SPATIAL_PERSISTENT = Cint(2)
-
 # cudnnSamplerType_t
 const CUDNN_SAMPLER_BILINEAR = Cint(0)
 

@@ -6,15 +6,14 @@
         if (idx >= y.length()) return;
         int ndidxs[$N];
         y.ndindex(ndidxs, idx);
-        for (int i = 0; i < $N; i++) {
-            ndidxs[i] = ndidxs[i] % x.dims[i];
-        }
+        for (int i = 0; i < $N; i++) ndidxs[i] = ndidxs[i] % x.dims[i];
         y[idx] = x(ndidxs);
     }
     """)
     quote
         ysize = Array{Int}(undef, N)
         for i = 1:N
+            @assert counts[i] > 0
             ysize[i] = size(x,i) * counts[i]
         end
         y = similar(x, ysize...)

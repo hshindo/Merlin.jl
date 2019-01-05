@@ -9,8 +9,8 @@ if Sys.iswindows()
 else
     const libcuda = Libdl.find_library("libcuda")
 end
-const AVAILABLE = !isempty(libcuda)
-AVAILABLE || @warn "CUDA cannot be found."
+isempty(libcuda) && throw("CUDA cannot be found.")
+
 const API_VERSION = Ref{Int}()
 
 function checkstatus(status)
@@ -21,17 +21,13 @@ function checkstatus(status)
     end
 end
 
-if AVAILABLE
-    status = ccall((:cuInit,libcuda), Cint, (Cint,), 0)
-    checkstatus(status)
-
-    ref = Ref{Cint}()
-    status = ccall((:cuDriverGetVersion,libcuda), Cint, (Ptr{Cint},), ref)
-    checkstatus(status)
-
-    API_VERSION[] = Int(ref[])
-    @info "CUDA API $(API_VERSION[])"
-end
+status = ccall((:cuInit,libcuda), Cint, (Cint,), 0)
+checkstatus(status)
+ref = Ref{Cint}()
+status = ccall((:cuDriverGetVersion,libcuda), Cint, (Ptr{Cint},), ref)
+checkstatus(status)
+API_VERSION[] = Int(ref[])
+@info "CUDA API $(API_VERSION[])"
 
 include("define.jl")
 
@@ -64,13 +60,11 @@ include("driver/memory.jl")
 include("driver/module.jl")
 include("driver/function.jl")
 
-if AVAILABLE
-    const CONTEXTS = Array{CuContext}(undef, ndevices())
-    # This must be loaded before kernel.jl and kernels.jl
-    include("nvml/NVML.jl")
-    include("nvrtc/NVRTC.jl")
-    using .NVML
-end
+const CONTEXTS = Array{CuContext}(undef, ndevices())
+
+include("nvml/NVML.jl")
+include("nvrtc/NVRTC.jl")
+using .NVML
 
 include("pointer.jl")
 include("array.jl")
@@ -89,14 +83,12 @@ include("allocators/mempool_malloc.jl")
 
 const ALLOCATOR = Ref{Any}(CUDAMalloc())
 
-if AVAILABLE
-    include("nccl/NCCL.jl")
-    include("cublas/CUBLAS.jl")
-    include("curand/CURAND.jl")
-    include("cudnn/CUDNN.jl")
+include("nccl/NCCL.jl")
+include("cublas/CUBLAS.jl")
+include("curand/CURAND.jl")
+include("cudnn/CUDNN.jl")
 
-    using .CUBLAS, .CUDNN, .CURAND
-    export CUBLAS, CUDNN, CURAND
-end
+using .CUBLAS, .CUDNN, .CURAND
+export CUBLAS, CUDNN, CURAND
 
 end

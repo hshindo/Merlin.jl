@@ -6,13 +6,12 @@ function addto!(dest::Array{T}, doffs::Int, src::Array{T}, soffs::Int, n::Int) w
     dest
 end
 
-function addto!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int) where T
-    @assert doffs > 0 && soffs > 0
-    axpy!(n, T(1), pointer(src,soffs), 1, pointer(dest,doffs), 1)
-    dest
+function addto!(dest::Array{T}, src::Array{T}) where T
+    @assert length(dest) == length(src)
+    addto!(dest, 1, src, 1, length(dest))
 end
 
-function addto!(dest::UniArray{T}, src::UniArray{T}) where T
+function addto!(dest::CuArray{T}, src::CuArray{T}) where T
     @assert length(dest) == length(src)
     addto!(dest, 1, src, 1, length(dest))
 end
@@ -29,14 +28,46 @@ function addto!(β, dest::Array, α, src::Array)
     dest[:] = α*src + β*dest
     dest
 end
-addto!(β, dest::CuArray, α, src::CuArray) = CUDNN.add!(α, src, β, dest)
 
-function broadcast_addto!(β, dest::Array, α, src::Array)
+function broadcast_addto!(β, dest::Array{T}, α, src::Array{T}) where T
     dest[:] = α*src .+ β*dest
     dest
 end
 broadcast_addto!(dest::Array, src::Array) = broadcast_addto!(1, dest, 1, src)
-broadcast_addto!(β, dest::CuArray, α, src::CuArray) = CUDNN.add!(α, src, β, dest)
+
+function addto!(dest::CuArray{T}, doffs::Int, src::CuArray{T}, soffs::Int, n::Int) where T
+    @assert doffs > 0 && soffs > 0
+    axpy!(n, T(1), pointer(src,soffs), 1, pointer(dest,doffs), 1)
+    dest
+end
+addto!(β, dest::CuArray, α, src::CuArray) = CUDNN.add!(α, src, β, dest)
+
+@generated function broadcast_addto!(β, dest::CuArray{T,N}, α, src::CuArray{T}) where {T,N}
+    # CUDNN.add!(α, src, β, dest)
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void addto($Ct beta, Array<$Ct,$N> dest, $Ct alpha, Array<$Ct,$N> src) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= dest.length()) return;
+
+        int ndidxs[$N];
+        dest.ndindex(ndidxs, idx);
+        dest[idx] = beta * dest[idx] + alpha * src(ndidxs);
+    }
+    """)
+    quote
+        @assert length(dest) >= length(src)
+        @assert N >= ndims(src)
+        dims = size(src)
+        for _ = 1:N-ndims(src)
+            dims = (dims..., 1)
+        end
+        isempty(dims) || (src = reshape(src,dims))
+        gdims, bdims = cudims(length(dest))
+        $k(gdims, bdims, T(β), dest, T(α), src)
+        dest
+    end
+end
 broadcast_addto!(dest::CuArray, src::CuArray) = broadcast_addto!(1, dest, 1, src)
 
 @generated function addto!(dest::CuArray{T}, src::CuSubArray{T,N}) where {T,N}
@@ -63,7 +94,9 @@ end
     __global__ void addto(Array<$Ct,$N> dest, $Ct *src) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= dest.length()) return;
-        dest(idx) += src[idx];
+        int didx = dest.rawindex(idx);
+        $Ct d = dest[didx];
+        dest[didx] = d + src[idx];
     }
     """)
     quote

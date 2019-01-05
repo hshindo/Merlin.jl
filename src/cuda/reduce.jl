@@ -1,5 +1,5 @@
 import Base: sum, findmax, findmin, maximum, argmax
-import LinearAlgebra: norm
+import LinearAlgebra: norm, normalize
 import Statistics: mean
 
 function sum(x::CuArray; dims=())
@@ -37,6 +37,12 @@ function norm(x::CuArray, dim::Int, p::Int)
     else
         throw("Not supported. Valid p: 1 or 2.")
     end
+end
+
+function normalize(x::CuArray, dim::Int, p::Int)
+    throw("Not implemented yet.")
+    n = norm(x, dim, p)
+    x ./ n
 end
 
 @generated function addto!(dest::CuArray{T}, value) where T

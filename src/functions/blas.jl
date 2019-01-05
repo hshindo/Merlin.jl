@@ -1,4 +1,4 @@
-export gemm_batch
+export gemv, gemm, gemm_batch
 
 doc"""
     gemv(tA::Char, alpha, A::Var, x::Var)

@@ -63,3 +63,34 @@ end
         y
     end
 end
+
+function broadcasted(::typeof(/), x1::CuArray{T}, x2::CuArray{T}) where T
+    elemdivide(x1, x2)
+end
+
+@generated function elemdivide(x1::CuArray{T,N}, x2::CuArray{T,N}) where {T,N}
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void elemdivide($Ct *y, Array<$Ct,$N> x1, Array<$Ct,$N> x2) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= x1.length()) return;
+
+        if (x1.length() < x2.length()) {
+            int ndidxs[$N];
+            x1.ndindex(ndidxs, idx);
+            y[idx] = x1[idx] * x2(ndidxs);
+        } else {
+            int ndidxs[$N];
+            x1.ndindex(ndidxs, idx);
+            y[idx] = x1[idx] * x2(ndidxs);
+        }
+    }
+    """)
+    quote
+        throw("Not implemented yet.")
+        y = length(x1) < length(x2) ? similar(x2) : similar(x1)
+        gdims, bdims = cudims(length(y))
+        $k(gdims, bdims, pointer(y), x1, x2)
+        y
+    end
+end

@@ -7,7 +7,7 @@ const T = Float32
     for i = 1:length(x.data)
         abs(x.data[i]) < 0.1 && (x.data[i] += 1)
     end
-    for f in (relu,sigmoid,tanh)
+    for f in (ptanh,relu,sigmoid,tanh)
         checkgrad(()->f(x), x)
     end
 end
@@ -62,15 +62,30 @@ end
 end
 
 @testset "reduction" begin
-    x = parameter(randn(T,10,10)*T(10))
     @testset "max" begin
+        x = parameter(randn(T,10,10)*T(10))
         for dim = 1:2
             checkgrad(()->max(x,dim), x)
         end
         checkgrad(()->max(x,[2,5,3]), x)
     end
     @testset "average" begin
+        x = parameter(randn(T,10,10))
         checkgrad(()->average(x,2), x) # dim=1 is not supported by CuDNN
+        checkgrad(()->average(x,[2,3,5]), x)
+    end
+    @testset "sum" begin
+        x = parameter(randn(T,10,10))
+        checkgrad(()->sum(x,2,keepdims=true), x) # dim=1 is not supported by CuDNN
+        checkgrad(()->sum(x,[2,3,5],keepdims=false), x)
+    end
+end
+
+@testset "regularization" begin
+    @testset "dropout" begin
+        Merlin.settrain(true)
+        x = parameter(randn(T,10,5))
+        dropout(x, 0.5)
     end
 end
 
@@ -104,11 +119,6 @@ end
     for dim = 1:3
         checkgrad(()->concat(dim,x1,x2,x3), x1, x2, x3)
     end
-end
-
-@testset "dropout" begin
-    x = parameter(randn(T,10,5))
-    dropout(x, 0.5, true)
 end
 
 @testset "getindex" begin

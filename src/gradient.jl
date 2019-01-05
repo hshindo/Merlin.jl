@@ -78,8 +78,9 @@ function checkgrad(f, inputs::Var...; atol=2e-3, cuda=true)
         @test maximum(abs,gx1-gx2) <= atol
     end
 
-    if cuda && CUDA.AVAILABLE
-        foreach(x -> todevice!(x,0), inputs)
+    if cuda && CUDA_AVAILABLE
+        setdevice(0)
+        foreach(todevice!, inputs)
         d_y = f()
         zerograd!.(params)
         gradient!(d_y)
@@ -89,6 +90,7 @@ function checkgrad(f, inputs::Var...; atol=2e-3, cuda=true)
         for (gx,d_gx) in zip(gxs1,d_gxs)
             @test maximum(abs,gx-Array(d_gx)) <= atol
         end
-        foreach(x -> todevice!(x,-1), inputs)
+        setdevice(-1)
+        foreach(todevice!, inputs)
     end
 end

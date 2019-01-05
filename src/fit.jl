@@ -1,7 +1,8 @@
 export minimize!, evaluate
 
-function minimize!(f, dataset, opt; batchsize::Int, shuffle::Bool, device)
-    dataset = todevice(dataset, device)
+function minimize!(f, dataset, opt; batchsize::Int, shuffle::Bool)
+	settraining(true)
+    dataset = todevice(dataset)
     params = parameters(f)
     loss = 0.0
 	n = length(dataset)
@@ -11,18 +12,18 @@ function minimize!(f, dataset, opt; batchsize::Int, shuffle::Bool, device)
 		j = min(i+batchsize-1, n)
 		batch = dataset[perm[i:j]]
 		out = f(batch)
-		device >= 0 && CUDA.synchronize()
 		loss += sum(Array(out.data))
         gradient!(out)
 		opt.(params)
 		update!(prog, j)
-		device >= 0 && CUDA.synchronize()
+		getdevice() >= 0 && CUDA.synchronize()
 	end
     loss
 end
 
-function evaluate(f, dataset; batchsize::Int, device)
-	dataset = todevice(dataset, device)
+function evaluate(f, dataset; batchsize::Int)
+	settraining(false)
+	dataset = todevice(dataset)
     outs = []
 	n = length(dataset)
 	perm = collect(1:n)
@@ -31,7 +32,7 @@ function evaluate(f, dataset; batchsize::Int, device)
 		batch = dataset[perm[i:j]]
 		out = f(batch)
 		push!(outs, out)
-		device >= 0 && CUDA.synchronize()
+		getdevice() >= 0 && CUDA.synchronize()
 	end
 	outs
 end
