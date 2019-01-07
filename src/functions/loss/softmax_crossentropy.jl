@@ -79,7 +79,8 @@ end
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= size2) return;
         int qi = (p[idx]-1) + size1 * idx;
-        y[idx] = p[idx] > 0 ? -logq[qi] : 0;
+        $Ct v = max(logq[qi], $Ct(-1024));
+        y[idx] = p[idx] > 0 ? -v : 0;
     }""")
     quote
         length(p) == size(logq,2) || throw("Length unmatch.")

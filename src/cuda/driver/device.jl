@@ -8,16 +8,10 @@ function setdevice(dev::Int)
     #cap = capability(dev)
     #mem = round(Int, totalmem(dev) / (1024^2))
     #@info "device[$dev]: $(devicename(dev)), capability $(cap[1]).$(cap[2]), totalmem = $(mem) MB"
-    getdevice() == dev && return
-    isassigned(CONTEXTS,dev) || (CONTEXTS[dev+1] = CuContext(dev))
+    #getdevice() == dev && return
+    isassigned(CONTEXTS,dev+1) || (CONTEXTS[dev+1] = CuContext(dev))
     setcontext(CONTEXTS[dev+1])
     dev
-end
-function setdevice(f::Function, dev::Int)
-    _dev = getdevice()
-    dev == _dev || setdevice(dev)
-    f()
-    dev == _dev || setdevice(_dev)
 end
 
 function ndevices()

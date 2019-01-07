@@ -3,6 +3,13 @@ const CUDNN_TENSOR_NCHW = 0
 const CUDNN_TENSOR_NHWC = 1
 const CUDNN_TENSOR_NCHW_VECT_C = 2
 
+struct Cint4
+    a::Cint
+    b::Cint
+    c::Cint
+    d::Cint
+end
+
 mutable struct TensorDesc
     ptr::Cptr
 
@@ -13,7 +20,7 @@ mutable struct TensorDesc
         finalizer(desc) do x
             @cudnn :cudnnDestroyTensorDescriptor (Cptr,) x.ptr
         end
-        push!(ALLOCATED, desc)
+        push!(CUDA.ALLOCATED, desc)
 
         strides = Array{Int}(undef, N)
         strides[1] = 1
@@ -23,8 +30,9 @@ mutable struct TensorDesc
 
         csize = Cint[dims[i] for i=N:-1:1]
         cstrides = Cint[strides[i] for i=N:-1:1]
+        push!(CUDA.ALLOCATED, csize, cstrides)
         @cudnn(:cudnnSetTensorNdDescriptor,
-            (Cptr,Cint,Cint,Ptr{Cint},Ptr{Cint}),
+            (Cptr,Cint,Cint,Ptr{Cvoid},Ptr{Cvoid}),
             desc, datatype(T), N, csize, cstrides)
         desc
     end

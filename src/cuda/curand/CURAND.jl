@@ -1,6 +1,7 @@
 module CURAND
 
 using ..CUDA
+import ..CUDA: ndevices, getdevice
 import Libdl
 
 if Sys.iswindows()
@@ -32,7 +33,7 @@ function set_pseudo_random_generator_seed!(gen, seed::UInt64)
 end
 
 function curand(::Type{T}, dims::Dims{N}) where {T,N}
-    gen = RNG[]
+    gen = getrng()
     x = CuArray{T}(dims)
     ptr = pointer(x)
     num = length(x)
@@ -51,7 +52,7 @@ function curand(::Type{T}, dims::Dims{N}) where {T,N}
 end
 
 function curandn(::Type{T}, dims::Dims{N}, mean=0, stddev=1) where {T,N}
-    gen = RNG[]
+    gen = getrng()
     x = CuArray{T}(dims)
     ptr = pointer(x)
     n = length(x)
@@ -71,13 +72,22 @@ function version()
     ref[]
 end
 
-const RNG = Ref{Ptr{Cvoid}}()
+const RNGS = Array{Any}(undef, ndevices())
+# Ref{Ptr{Cvoid}}()
 # atexit(() -> @curand :curandDestroyGenerator (Ptr{Cvoid},) RNG[])
+
+function getrng()
+    dev = getdevice()
+    if !isassigned(RNGS,dev+1)
+        rng = create_generator(CURAND_RNG_PSEUDO_MTGP32)
+        set_pseudo_random_generator_seed!(rng, rand(UInt64))
+        RNGS[dev+1] = rng
+    end
+    RNGS[dev+1]
+end
 
 function __init__()
     @info "CURAND API $(version())"
-    RNG[] = create_generator(CURAND_RNG_PSEUDO_MTGP32)
-    set_pseudo_random_generator_seed!(RNG[], rand(UInt64))
 end
 
 #=

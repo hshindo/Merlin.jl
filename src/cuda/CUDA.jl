@@ -6,10 +6,13 @@ import LinearAlgebra.BLAS: scal!, axpy!, gemv, gemv!, gemm, gemm!
 
 if Sys.iswindows()
     const libcuda = Libdl.find_library("nvcuda")
+    const libcublas = Libdl.find_library(["cublas64_100","cublas64_92","cublas64_91","cublas64_90"])
 else
     const libcuda = Libdl.find_library("libcuda")
+    const libcublas = Libdl.find_library("libcublas")
 end
 isempty(libcuda) && throw("CUDA cannot be found.")
+isempty(libcublas) && error("CUBLAS cannot be found.")
 
 const API_VERSION = Ref{Int}()
 
@@ -21,13 +24,16 @@ function checkstatus(status)
     end
 end
 
-status = ccall((:cuInit,libcuda), Cint, (Cint,), 0)
-checkstatus(status)
-ref = Ref{Cint}()
-status = ccall((:cuDriverGetVersion,libcuda), Cint, (Ptr{Cint},), ref)
-checkstatus(status)
-API_VERSION[] = Int(ref[])
-@info "CUDA API $(API_VERSION[])"
+function init()
+    status = ccall((:cuInit,libcuda), Cuint, (Cuint,), 0)
+    checkstatus(status)
+    ref = Ref{Cint}()
+    status = ccall((:cuDriverGetVersion,libcuda), Cint, (Ptr{Cint},), ref)
+    checkstatus(status)
+    API_VERSION[] = Int(ref[])
+    @info "CUDA API $(API_VERSION[])"
+end
+init()
 
 include("define.jl")
 
@@ -59,8 +65,6 @@ include("driver/stream.jl")
 include("driver/memory.jl")
 include("driver/module.jl")
 include("driver/function.jl")
-
-const CONTEXTS = Array{CuContext}(undef, ndevices())
 
 include("nvml/NVML.jl")
 include("nvrtc/NVRTC.jl")

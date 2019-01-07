@@ -33,6 +33,8 @@ macro nvrtc(f, args...)
 end
 
 function compile(code::String; headers=[], include_names=[], options=[])
+    #options = ["-lineinfo", "-G"]
+
     ref = Ref{Ptr{Cvoid}}()
     headers = Ptr{UInt8}[pointer(h) for h in headers]
     include_names = Ptr{UInt8}[pointer(n) for n in include_names]

@@ -6,7 +6,7 @@ mutable struct Handle
         @cublas :cublasCreate (Ptr{Ptr{Cvoid}},) ref
         h = new(ref[])
         finalizer(h) do x
-            @cublas :cublasDestroy (Ptr{Cvoid},) x
+            @cublas :cublasDestroy (Ptr{Cvoid},) x.ptr
         end
         h
     end

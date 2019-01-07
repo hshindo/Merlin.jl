@@ -2,11 +2,13 @@ mutable struct CuContext
     ptr::Ptr{Cvoid}
 end
 
+const CONTEXTS = Array{CuContext}(undef, ndevices())
+
 function CuContext(dev::Int)
     ref = Ref{Ptr{Cvoid}}()
     @apicall :cuCtxCreate (Ptr{Ptr{Cvoid}},Cuint,Cint) ref 0 dev
     ctx = CuContext(ref[])
-    # finalizer(ctx, destroy)
+    #finalizer(ctx, destroy)
     ctx
 end
 
@@ -28,15 +30,8 @@ end
 function setcontext(ctx::CuContext)
     @apicall :cuCtxSetCurrent (Ptr{Cvoid},) ctx
 end
-function setcontext(f::Function, ctx::CuContext)
-    oldctx = getcontext()
-    setcontext(ctx)
-    f()
-    setcontext(oldctx)
-end
 
 function synchronize()
     @apicall :cuCtxSynchronize ()
     empty!(ALLOCATED)
-    empty!(CUDNN.ALLOCATED)
 end

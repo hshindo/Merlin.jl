@@ -54,7 +54,7 @@ end
 @generated function dropout_dim(x::CuArray{T}, droprate::Float64) where T
     Ct = cstring(T)
     k = Kernel("""
-    __global__ void dropout($Ct *y, $Ct *x, float *r, float droprate, int m, int n) {
+    __global__ void dropout_dim($Ct *y, $Ct *x, float *r, float droprate, int m, int n) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= n) return;
 
@@ -64,6 +64,7 @@ end
     }
     """)
     quote
+        @assert ndims(x) == 2
         y = similar(x)
         r = curand(Float32, size(x,2))
         gdims, bdims = cudims(length(y))
@@ -75,7 +76,7 @@ end
 @generated function ∇dropout_dim!(gy::CuArray{T}, gx::CuArray{T}, droprate, r) where T
     Ct = cstring(T)
     k = Kernel("""
-    __global__ void dropout($Ct *gy, $Ct *gx, float *r, float droprate, int m, int n) {
+    __global__ void dropout_dim_grad($Ct *gy, $Ct *gx, float *r, float droprate, int m, int n) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= n) return;
 

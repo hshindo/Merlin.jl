@@ -4,26 +4,20 @@ using ..CUDA
 import ..CUDA: ndevices, getdevice
 import Libdl
 
-if Sys.iswindows()
-    const libcublas = Libdl.find_library(["cublas64_100","cublas64_92","cublas64_91","cublas64_90"])
-else
-    const libcublas = Libdl.find_library("libcublas")
-end
-isempty(libcublas) && error("CUBLAS cannot be found.")
-
+const libcublas = CUDA.libcublas
 const API_VERSION = Ref{Int}()
 
 function __init__()
-    ref = Ref{Ptr{Cvoid}}()
-    ccall((:cublasCreate_v2,libcublas), Cint, (Ptr{Ptr{Cvoid}},), ref)
-    h = ref[]
+    #ref = Ref{Ptr{Cvoid}}()
+    #ccall((:cublasCreate_v2,libcublas), Cint, (Ptr{Ptr{Cvoid}},), ref)
+    #h = ref[]
 
-    ref = Ref{Cint}()
-    ccall((:cublasGetVersion_v2,libcublas), Cint, (Ptr{Cvoid},Ptr{Cint}), h, ref)
-    API_VERSION[] = Int(ref[])
+    #ref = Ref{Cint}()
+    #ccall((:cublasGetVersion_v2,libcublas), Cint, (Ptr{Cvoid},Ptr{Cint}), h, ref)
+    #API_VERSION[] = Int(ref[])
 
-    @info "CUBLAS API $(API_VERSION[])"
-    ccall((:cublasDestroy_v2,libcublas), Cint, (Ptr{Cvoid},), h)
+    #@info "CUBLAS API $(API_VERSION[])"
+    #ccall((:cublasDestroy_v2,libcublas), Cint, (Ptr{Cvoid},), h)
 end
 
 include("define.jl")

@@ -5,12 +5,13 @@ mutable struct FilterDesc
         ref = Ref{Cptr}()
         @cudnn :cudnnCreateFilterDescriptor (Ptr{Cptr},) ref
         desc = new(ref[])
-        push!(ALLOCATED, desc)
+        push!(CUDA.ALLOCATED, desc)
         finalizer(desc) do x
             @cudnn :cudnnDestroyFilterDescriptor (Cptr,) x.ptr
         end
 
         csize = Cint[reverse(dims)...]
+        push!(CUDA.ALLOCATED, csize)
         @cudnn(:cudnnSetFilterNdDescriptor,
             (Cptr,Cint,Cint,Cint,Ptr{Cint}),
             desc, datatype(T), CUDNN_TENSOR_NCHW, N, csize)

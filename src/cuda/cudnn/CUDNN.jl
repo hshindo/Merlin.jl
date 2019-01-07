@@ -35,8 +35,6 @@ function setstream(handle::Handle, stream)
     @cudnn :cudnnSetStream (Ptr{Cvoid},Ptr{Cvoid}) handle stream
 end
 
-const ALLOCATED = []
-
 include("activation.jl")
 include("add.jl")
 include("convolution.jl")
