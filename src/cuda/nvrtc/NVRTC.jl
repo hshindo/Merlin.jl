@@ -1,35 +1,23 @@
 module NVRTC
 
-import Libdl
-
-if Sys.iswindows()
-    const libnvrtc = Libdl.find_library(["nvrtc64_100_0","nvrtc64_92","nvrtc64_91","nvrtc64_90"])
-else
-    const libnvrtc = Libdl.find_library("libnvrtc")
-end
-isempty(libnvrtc) && error("NVRTC cannot found.")
-
-const API_VERSION = Ref{Int}()
-
-function __init__()
-    ref_major = Ref{Cint}()
-    ref_minor = Ref{Cint}()
-    ccall((:nvrtcVersion,libnvrtc), Cint, (Ptr{Cint},Ptr{Cint}), ref_major, ref_minor)
-    major = Int(ref_major[])
-    minor = Int(ref_minor[])
-    API_VERSION[] = 1000major + 10minor
-    @info "NVRTC API $(API_VERSION[])"
-end
+using ..CUDA
 
 macro nvrtc(f, args...)
     quote
-        result = ccall(($f,libnvrtc), Cint, $(map(esc,args)...))
+        result = ccall(($f,CUDA.libnvrtc), Cint, $(map(esc,args)...))
         if result != 0
             Base.show_backtrace(STDOUT, backtrace())
             p = ccall((:nvrtcGetErrorString,libnvrtc), Cstring, (Cint,), result)
             throw(unsafe_string(p))
         end
     end
+end
+
+function version()
+    ref_major = Ref{Cint}()
+    ref_minor = Ref{Cint}()
+    @nvrtc :nvrtcVersion (Ptr{Cint},Ptr{Cint}) ref_major ref_minor
+    1000 * Int(ref_major[]) + 10 * Int(ref_minor[])
 end
 
 function compile(code::String; headers=[], include_names=[], options=[])

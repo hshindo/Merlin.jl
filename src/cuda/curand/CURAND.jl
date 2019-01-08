@@ -1,21 +1,12 @@
 module CURAND
 
 using ..CUDA
-import ..CUDA: ndevices, getdevice
-import Libdl
-
-if Sys.iswindows()
-    const libcurand = Libdl.find_library(["curand64_100","curand64_92","curand64_91","curand64_90"])
-else
-    const libcurand = Libdl.find_library(["libcurand"])
-end
-isempty(libcurand) && error("CURAND library cannot be found.")
 
 include("define.jl")
 
 macro curand(f, args...)
     quote
-        status = ccall(($f,libcurand), Cint, $(map(esc,args)...))
+        status = ccall(($f,CUDA.libcurand), Cint, $(map(esc,args)...))
         if status != 0
             throw(ERROR_MESSAGES[status])
         end
@@ -72,22 +63,16 @@ function version()
     ref[]
 end
 
-const RNGS = Array{Any}(undef, ndevices())
-# Ref{Ptr{Cvoid}}()
+const RNGS = Dict{Int,Ptr{Cvoid}}()
 # atexit(() -> @curand :curandDestroyGenerator (Ptr{Cvoid},) RNG[])
 
 function getrng()
-    dev = getdevice()
-    if !isassigned(RNGS,dev+1)
+    dev = CUDA.getdevice()
+    get!(RNGS, dev) do
         rng = create_generator(CURAND_RNG_PSEUDO_MTGP32)
         set_pseudo_random_generator_seed!(rng, rand(UInt64))
-        RNGS[dev+1] = rng
+        rng
     end
-    RNGS[dev+1]
-end
-
-function __init__()
-    @info "CURAND API $(version())"
 end
 
 #=

@@ -1,35 +1,24 @@
 module CUBLAS
 
 using ..CUDA
-import ..CUDA: ndevices, getdevice
-import Libdl
-
-const libcublas = CUDA.libcublas
-const API_VERSION = Ref{Int}()
-
-function __init__()
-    #ref = Ref{Ptr{Cvoid}}()
-    #ccall((:cublasCreate_v2,libcublas), Cint, (Ptr{Ptr{Cvoid}},), ref)
-    #h = ref[]
-
-    #ref = Ref{Cint}()
-    #ccall((:cublasGetVersion_v2,libcublas), Cint, (Ptr{Cvoid},Ptr{Cint}), h, ref)
-    #API_VERSION[] = Int(ref[])
-
-    #@info "CUBLAS API $(API_VERSION[])"
-    #ccall((:cublasDestroy_v2,libcublas), Cint, (Ptr{Cvoid},), h)
-end
 
 include("define.jl")
 
 macro cublas(f, rettypes, args...)
     f = get(DEFINE, f.value, f.value)
     quote
-        status = ccall(($(QuoteNode(f)),libcublas), Cint, $(esc(rettypes)), $(map(esc,args)...))
+        status = ccall(($(QuoteNode(f)),CUDA.libcublas), Cint, $(esc(rettypes)), $(map(esc,args)...))
         if status != 0
             throw(ERROR_MESSAGE[status])
         end
     end
+end
+
+function version()
+    h = gethandle()
+    ref = Ref{Cint}()
+    @cublas :cublasGetVersion (Ptr{Cvoid},Ptr{Cint}) h ref
+    Int(ref[])
 end
 
 function cublasop(t::Char)
