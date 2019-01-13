@@ -1,4 +1,4 @@
-const MEMPOOL = [Cptr[] for i=1:30]
+const MEMPOOL = [Cptr[] for i=1:35]
 
 struct MemPoolMalloc
 end
@@ -8,7 +8,9 @@ function (::MemPoolMalloc)(::Type{T}, dims::Dims{N}) where {T,N}
     @assert bytesize > 0
 
     c = log2ceil(bytesize) # 2^c >= bytesize
-    bytesize = 1 << c
+    _bytesize = 1 << c
+    @assert _bytesize >= bytesize
+    bytesize = _bytesize
     ptrs = MEMPOOL[c]
     if isempty(ptrs)
         ref = Ref{Cptr}()
@@ -36,7 +38,7 @@ function (::MemPoolMalloc)(::Type{T}, dims::Dims{N}) where {T,N}
     cuptr = CuPtr(ptr, getdevice(), c)
     push!(ALLOCATED, cuptr)
     finalizer(cuptr) do x
-        push!(MEMPOOL[c], Cptr(x.ptr))
+        push!(MEMPOOL[x.size], Cptr(x.ptr))
     end
     cuptr
 end
@@ -66,10 +68,10 @@ end
 
 function log2ceil(bytesize::Int)
     @assert bytesize > 0
-    bytesize -= 1
+    k = 2
     x = 1
-    while bytesize > 1
-        bytesize >>= 1
+    while k < bytesize
+        k *= 2
         x += 1
     end
     x

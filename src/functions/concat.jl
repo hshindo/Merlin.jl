@@ -13,6 +13,7 @@ y = concat(2, x1, x2)
 ```
 """
 function concat(dim::Int, xs::Vararg{Var})
+    length(xs) == 1 && return xs[1]
     ydata = cat(map(x -> x.data, xs)..., dims=dim)
     Var(ydata, ∇concat!, (dim,xs...))
 end

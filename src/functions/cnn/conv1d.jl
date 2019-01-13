@@ -17,19 +17,30 @@ mutable struct Conv1d <: Functor
     padding::Int
     stride::Int
     dilation::Int
+    ngroups::Int
     W::Var
     b::Var
 end
 
 function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
-    padding=0, stride=1, dilation=1, init_W=Xavier(), init_b=Fill(0)) where T
+    padding=0, stride=1, dilation=1, ngroups=1, init_W=Xavier(), init_b=Fill(0)) where T
 
-    W = init_W(T, ksize*inchannel, outchannel)
+    n = inchannel ÷　ngroups
+    @assert ngroups * n == inchannel
+    W = init_W(T, ksize*n, outchannel)
     b = init_b(T, outchannel)
-    Conv1d(ksize, padding, stride, dilation, parameter(W), parameter(b))
+    Conv1d(ksize, padding, stride, dilation, ngroups, parameter(W), parameter(b))
 end
 
 function (f::Conv1d)(x, dims)
-    h = window1d(x, dims, f.ksize, f.padding, f.stride, f.dilation)
-    linear(h, f.W, f.b)
+    n = size(f.W,1) ÷ f.ksize
+    hs = Var[]
+    for i = 1:f.ngroups
+        g = x[(i-1)*n+1:i*n, :]
+        h = window1d(g, dims, f.ksize, f.padding, f.stride, f.dilation)
+        push!(hs, h)
+    end
+    h = concat(1, hs...)
+    W = concat(1, [f.W for i=1:f.ngroups]...)
+    linear(h, W, f.b)
 end

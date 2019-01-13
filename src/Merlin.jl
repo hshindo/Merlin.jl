@@ -101,6 +101,7 @@ include("initializers/xavier.jl")
 include("optimizers/adagrad.jl")
 include("optimizers/adam.jl")
 include("optimizers/asgd.jl")
+include("optimizers/nadam.jl")
 include("optimizers/sgd.jl")
 
 include("datasets/Datasets.jl")

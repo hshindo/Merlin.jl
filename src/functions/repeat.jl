@@ -4,6 +4,7 @@ function repeat(x::Var, counts::Int...)
     for i = 2:ndims(x)
         @assert size(x,i) == 1
     end
+    all(c -> c == 1, counts) && return x
     y = repeat(x.data, counts...)
     Var(y, ∇repeat!, (x,counts))
 end

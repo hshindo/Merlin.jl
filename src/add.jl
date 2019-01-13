@@ -70,6 +70,22 @@ addto!(β, dest::CuArray, α, src::CuArray) = CUDNN.add!(α, src, β, dest)
 end
 broadcast_addto!(dest::CuArray, src::CuArray) = broadcast_addto!(1, dest, 1, src)
 
+@generated function addto!(dest::CuArray{T}, value::T) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void addto($Ct *dest, $Ct value, int n) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= n) return;
+        dest[idx] += value;
+    }
+    """)
+    quote
+        gdims, bdims = cudims(length(dest))
+        $k(gdims, bdims, pointer(dest), value, length(dest))
+        dest
+    end
+end
+
 @generated function addto!(dest::CuArray{T}, src::CuSubArray{T,N}) where {T,N}
     Ct = cstring(T)
     k = Kernel("""

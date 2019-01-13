@@ -12,11 +12,14 @@ function minimize!(f, dataset, opt; batchsize::Int, shuffle::Bool)
 		j = min(i+batchsize-1, n)
 		batch = dataset[perm[i:j]]
 		out = f(batch)
-		loss += sum(Array(out.data))
+		a = Array(out.data)
+		@assert length(a) == 1
+		loss += a[1]
+		getdevice() >= 0 && CUDA.synchronize()
         gradient!(out)
 		opt.(params)
-		update!(prog, j)
 		getdevice() >= 0 && CUDA.synchronize()
+		update!(prog, j)
 	end
     loss
 end

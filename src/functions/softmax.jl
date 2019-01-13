@@ -70,8 +70,10 @@ function logsoftmax(x::Var)
     ydata = reshape(ydata, size(x))
     Var(ydata, ∇logsoftmax!, (x,))
 end
-logsoftmax(x::CuArray) = CUDNN.softmax(x, CUDNN.CUDNN_SOFTMAX_LOG)
-logsoftmax(x::Node) = Node(logsoftmax, (x,))
+
+function logsoftmax(x::CuArray{T}) where T
+    CUDNN.softmax(x, CUDNN.CUDNN_SOFTMAX_LOG)
+end
 
 function logsoftmax(x::Matrix{T}) where T
     y = similar(x)

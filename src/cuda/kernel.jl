@@ -36,7 +36,7 @@ function (k::Kernel)(griddims, blockdims, args...; sharedmem=0, stream=C_NULL)
 end
 
 function cudims(n::Int)
-    bx = 512
+    bx = 256
     gx = n <= bx ? 1 : ceil(Int, n/bx)
     (gx,1,1), (bx,1,1)
 end

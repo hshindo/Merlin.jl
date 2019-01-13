@@ -15,6 +15,19 @@ end
 =#
 
 for (f,T,Ct) in (
+    (:(:cublasDscal),:Float64,:Cdouble),
+    (:(:cublasSscal),:Float32,:Cfloat))
+    @eval begin
+        function scal!(n::Int, alpha::$T, X::Union{CuArray{$T},CuPtr{$T}}, incx::Int)
+            h = gethandle()
+            @cublas($f, (Ptr{Cvoid},Cint,Ptr{$Ct},Ptr{$Ct},Cint), h, n, T[alpha], X, incx)
+            X
+        end
+    end
+end
+scal!(a, X::CuArray{T}) where T = scal!(length(X), T(a), X, 1)
+
+for (f,T,Ct) in (
     (:(:cublasDaxpy),:Float64,:Cdouble),
     (:(:cublasSaxpy),:Float32,:Cfloat))
     @eval begin
