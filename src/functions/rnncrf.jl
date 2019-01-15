@@ -1,22 +1,29 @@
 export RNNCRF
 
 mutable struct RNNCRF <: Functor
+    beta::Var
+    cnn
     mu::Var
-    niters::Int
 end
 
-function RNNCRF(::Type{T}, insize::Int, niters::Int) where T
+function RNNCRF(::Type{T}, insize::Int, temp) where T
+    beta = Var(fill(T(-1/temp), insize))
+    cnn = Conv1d(T, 3, insize, insize, padding=1)
     mu = fill(T(1/insize), insize, insize)
-    mu = parameter(mu)
-    RNNCRF(mu, niters)
+    RNNCRF(cnn, parameter(mu))
 end
 
-function (f::RNNCRF)(x::Var)
-    q = softmax(x)
-    for i = 1:f.niters
-        q = f.μ * q
-        q += x
-        q = softmax(q)
+function (nn::RNNCRF)(u::Var, x::Var, dims, niters::Int)
+    
+
+    q = nn.beta .* u
+    q = softmax(q)
+    for i = 1:niters
+        # q = concat(1, q, f)
+        q = nn.cnn(q, dims)
+        q = nn.mu * q
+        q += u
+        i == niters || (q = softmax(q))
     end
     q
 end

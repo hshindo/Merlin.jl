@@ -41,6 +41,7 @@ function (f::Conv1d)(x, dims)
         push!(hs, h)
     end
     h = concat(1, hs...)
-    W = concat(1, [f.W for i=1:f.ngroups]...)
+    W = f.W
+    W = concat(1, [W for i=1:f.ngroups]...)
     linear(h, W, f.b)
 end

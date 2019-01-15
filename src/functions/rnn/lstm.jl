@@ -76,7 +76,7 @@ function LSTM(::Type{T}, insize::Int, hsize::Int, nlayers::Int, droprate::Float6
     LSTM(insize, hsize, nlayers, droprate, bidir, Ws, Us, bs, hs, cs)
 end
 
-function (f::LSTM)(x::Var, dims, training::Bool, hx=nothing, cx=nothing)
+function (f::LSTM)(x::Var, dims, hx=nothing, cx=nothing)
     @assert ndims(x) == 2
     @assert sum(dims) == size(x,2)
     @assert issorted(dims, rev=true)
@@ -97,9 +97,9 @@ function (f::LSTM)(x::Var, dims, training::Bool, hx=nothing, cx=nothing)
         @assert ndims(cx) == 2
     end
     if isa(x.data, Array)
-        lstm_cpu(f, x, dims, training, hx, cx)
+        lstm_cpu(f, x, dims, hx, cx)
     elseif isa(x.data, CuArray)
-        lstm_cuda(f, x, dims, training, hx, cx)
+        lstm_cuda(f, x, dims, hx, cx)
     else
         throw("Invalid device.")
     end
@@ -129,7 +129,7 @@ end
 =#
 lstm(x::Node, args...) = Node(lstm, (x,args...))
 
-function lstm_cpu(f::LSTM, x::Var, dims, training::Bool, hx, cx)
+function lstm_cpu(f::LSTM, x::Var, dims, hx, cx)
     y = x
     i = 1
     for l = 1:f.nlayers
@@ -198,7 +198,7 @@ function lstm_onestep(xt::Var, WU::Var, b::Var, ht::Var, ct::Var)
     ht, ct
 end
 
-function lstm_cuda(f::LSTM, x::Var, dims::Vector{Int}, training::Bool, hx::Var, cx::Var)
+function lstm_cuda(f::LSTM, x::Var, dims::Vector{Int}, hx::Var, cx::Var)
     Wdata = []
     for i = 1:length(f.Ws)
         push!(Wdata, vec(f.Ws[i].data), vec(f.Us[i].data))
@@ -227,7 +227,7 @@ function lstm_cuda(f::LSTM, x::Var, dims::Vector{Int}, training::Bool, hx::Var, 
     dir = f.bidir ? CUDNN.CUDNN_BIDIRECTIONAL : CUDNN.CUDNN_UNIDIRECTIONAL
     mode = CUDNN.CUDNN_LSTM
     t_ydata, hydata, cydata, work = CUDNN.rnn(f.insize, f.hsize, f.nlayers, f.droprate,
-        dir, mode, t_xdata, t_dims, hx.data, cx.data, Wdata, training)
+        dir, mode, t_xdata, t_dims, hx.data, cx.data, Wdata, istraining())
     ydata, _ = transpose_batch(t_ydata, t_dims)
     yhc = Var((ydata,hydata,cydata), ∇lstm_cuda!, (f,x,dims,hx,cx,Wdata,work))
     split(yhc)

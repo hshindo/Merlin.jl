@@ -15,6 +15,11 @@ function sum(x::Var, dim::Int; keepdims=true)
 end
 sum(x::Var, dims::Vector{Int}; keepdims=true) = sum(pack(x,dims,0), ndims(x), keepdims=keepdims)
 
+function sum(x::Var)
+    ydata = sum(x.data)
+    Var(ydata, ∇sum!, (x,1,size(ydata)))
+end
+
 function ∇sum!(y::Var, x::Var, dim::Int, s)
     isnothing(x.grad) && return
     gy = reshape(y.grad, s)

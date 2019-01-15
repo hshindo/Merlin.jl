@@ -41,7 +41,7 @@ function (opt::SGD)(x::Array{T,N}, gx::Array{T,N}) where {T,N}
         end
         axpy!(T(1), v, x)
     else
-        # axpy!(T(0.001), x, gx)
+        #axpy!(T(0.001), x, gx)
         # axpy!(T(0.0005), x, gx)
         axpy!(T(-opt.rate), gx, x)
     end

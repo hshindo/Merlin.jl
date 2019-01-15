@@ -72,6 +72,7 @@ for name in [
     "reduction/sum",
 
     "regularization/dropout",
+    "regularization/dropout_dim",
     "regularization/zoneout",
 
     "rnn/lstm",
@@ -84,6 +85,7 @@ for name in [
     "pack",
     "repeat",
     "reshape",
+    "rnncrf",
     "softmax",
     "split",
     "window1d"

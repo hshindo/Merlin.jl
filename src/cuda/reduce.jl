@@ -40,7 +40,6 @@ function norm(x::CuArray, dim::Int, p::Int)
 end
 
 function normalize(x::CuArray, dim::Int, p::Int)
-    throw("Not implemented yet.")
     n = norm(x, dim, p)
     x ./ n
 end

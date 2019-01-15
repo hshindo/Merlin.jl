@@ -36,8 +36,6 @@ end
 function *(A::Var, B::Var)
     Var(A.data * B.data, ∇times!, (A,B))
 end
-*(x1::Node, x2) = Node(*, (x1,x2))
-*(x1, x2::Node) = Node(*, (x1,x2))
 
 function ∇times!(C::Var, A::Var, B::Var)
     T = eltype(C)
