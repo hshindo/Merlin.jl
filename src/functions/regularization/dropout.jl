@@ -38,3 +38,62 @@ function ∇dropout!(gy::Array{T}, gx::Array{T}, droprate::Float64, work::Vector
 end
 
 ∇dropout!(gy::CuArray, gx::CuArray, droprate, dropdesc) = CUDNN.∇dropout!(gy, gx, dropdesc)
+
+export LockedDropout
+mutable struct LockedDropout
+    droprate::Float64
+    mask
+end
+
+function LockedDropout(droprate::Float64)
+    LockedDropout(droprate, nothing)
+end
+
+function (f::LockedDropout)(x::Var)
+    f.droprate == 0.0 && return x
+    istraining() || return x
+    if f.mask == nothing
+        f.mask = dropout_mask(x.data, f.droprate)
+    end
+    Var(f.mask) .* x
+end
+
+@generated function dropout_mask(x::CuArray{T}, droprate::Float64) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void dropout_dim($Ct *y, $Ct droprate, int n) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= n) return;
+        y[idx] = y[idx] <= droprate ? 0 : 1 / (1-droprate);
+    }
+    """)
+    quote
+        @assert 0.0 < droprate < 1.0
+        y = curand(T, size(x))
+        gdims, bdims = cudims(length(y))
+        $k(gdims, bdims, pointer(y), T(droprate), length(y))
+        y
+    end
+end
+
+export LockedDropoutDim
+mutable struct LockedDropoutDim
+    droprate::Float64
+    mask
+end
+
+function LockedDropoutDim(droprate::Float64)
+    LockedDropoutDim(droprate, nothing)
+end
+
+function (f::LockedDropoutDim)(x::Var, dim::Int)
+    f.droprate == 0.0 && return x
+    istraining() || return x
+    if f.mask == nothing
+        dims = ntuple(i -> i == dim ? size(x,i) : 1, ndims(x))
+        mask = similar(x.data, dims)
+        bernoulli!(mask, f.droprate)
+        f.mask = mask
+    end
+    x .* Var(f.mask)
+end

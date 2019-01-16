@@ -1,4 +1,4 @@
-export dropout_dim
+export dropout_dim, bernoulli!
 
 function dropout_dim(x::Var, dim::Int, droprate::Float64)
     droprate == 0.0 && return x
