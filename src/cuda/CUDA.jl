@@ -29,7 +29,7 @@ isempty(libcudnn) && error("CUDNN cannot be found.")
 # isempty(libnccl) && @warn "NCCL cannot be found."
 
 function versionall()
-
+    @info CUDNN.version()
 end
 
 const API_VERSION = Ref{Int}()

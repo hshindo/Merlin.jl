@@ -52,6 +52,11 @@ function pack(x::UniArray{T,N}, dims::Vector{Int}, padding) where {T,N}
     y
 end
 
+function unpack(x::Var, dims::Vector{Int})
+    ydata = unpack(x.data, dims)
+    Var(ydata, ∇unpack!, (x,dims))
+end
+
 function unpack(x::UniArray{T,N}, dims::Vector{Int}) where {T,N}
     @assert length(dims) == size(x,N)
     s = Base.setindex(Base.front(size(x)), sum(dims), N-1)
@@ -68,4 +73,18 @@ function unpack(x::UniArray{T,N}, dims::Vector{Int}) where {T,N}
         yi += n
     end
     y
+end
+
+function ∇unpack!(y::Var, x::Var, dims::Vector{Int})
+    isnothing(x.grad) && return
+    xst = stride(x.data, ndims(x))
+    yst = stride(y.data, ndims(y))
+    xi = 1
+    yi = 1
+    for d in dims
+        n = yst * d
+        addto!(x.grad, xi, y.grad, yi, n)
+        xi += xst
+        yi += n
+    end
 end

@@ -6,7 +6,7 @@ macro cudnn(f, args...)
     quote
         status = ccall(($f,CUDA.libcudnn), Cint, $(map(esc,args)...))
         if status != 0
-            p = ccall((:cudnnGetErrorString,libcudnn), Ptr{UInt8}, (Cint,), status)
+            p = ccall((:cudnnGetErrorString,CUDA.libcudnn), Ptr{UInt8}, (Cint,), status)
             throw(unsafe_string(p))
         end
     end
@@ -28,6 +28,7 @@ include("add.jl")
 include("convolution.jl")
 include("filter.jl")
 include("dropout.jl")
+include("pooling.jl")
 include("reduce.jl")
 include("rnn.jl")
 include("softmax.jl")

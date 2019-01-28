@@ -66,6 +66,9 @@ for name in [
     "math/broadcast",
     "math/transpose",
 
+    "pooling/avgpooling1d",
+    "pooling/maxpooling1d",
+
     "reduction/average",
     "reduction/argmax",
     "reduction/max",
