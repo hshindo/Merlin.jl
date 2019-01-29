@@ -83,16 +83,14 @@ function (f::LSTM)(x::Var, dims, hx=nothing, cx=nothing)
     if isnothing(hx)
         hxs = map(h -> repeat(h,1,length(dims)), f.hs)
         hx = concat(2, hxs...)
-        # TODO: ndims == 3 or 2?
-        #hx = similar(f.Ws[1].data, length(f.Ws), f.hsize, length(dims))
-        #fill!(hx, 0)
-        #hx = Var(hx)
+        hx = reshape(hx, length(f.hs), f.hsize, length(dims))
     else
         @assert ndims(hx) == 2
     end
     if isnothing(cx)
         cxs = map(c -> repeat(c,1,length(dims)), f.cs)
         cx = concat(2, cxs...)
+        cx = reshape(cx, length(f.cs), f.hsize, length(dims))
     else
         @assert ndims(cx) == 2
     end
@@ -127,7 +125,6 @@ function lstm(x::Var, p, weights...)
     reshape(y, size(y,1), size(x,2), size(x,3))
 end
 =#
-lstm(x::Node, args...) = Node(lstm, (x,args...))
 
 function lstm_cpu(f::LSTM, x::Var, dims, hx, cx)
     y = x

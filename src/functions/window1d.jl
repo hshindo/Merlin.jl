@@ -5,6 +5,32 @@ function window1d(x::Var, dims, ksize, padding, stride, dilation)
     Var(ydata, ∇window1d!, (x,dims,ksize,padding,stride,dilation))
 end
 
+function window1d(x::Matrix{T}, dims::Vector{Int}, ksize::Int, padding::Int, stride::Int, dilation::Int) where T
+    outdims = map(dims) do d
+        k = (ksize - 1) * dilation + 1
+        (d + 2padding - k) ÷ stride + 1
+    end
+    cumdim = 0
+    y = similar(x, ksize*size(x,1), sum(outdims))
+    fill!(y, 0)
+    yi = 1
+    for n = 1:length(dims)
+        ndims = dims[n]
+        i = cumdim - padding + 1
+        for d = 1:outdims[n]
+            for j = i:dilation:i+(ksize-1)*dilation
+                if cumdim < j <= cumdim+ndims
+                    copyto!(y, yi, x, (j-1)*size(x,1)+1, size(x,1))
+                end
+                yi += size(x, 1)
+            end
+            i += stride
+        end
+        cumdim += ndims
+    end
+    y
+end
+
 @generated function window1d(x::CuMatrix{T}, dims::Vector{Int}, ksize, padding, stride, dilation) where T
     Ct = cstring(T)
     k = Kernel("""
