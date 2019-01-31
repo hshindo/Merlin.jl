@@ -79,7 +79,11 @@ end
 function (f::LSTM)(x::Var, dims, hx=nothing, cx=nothing)
     @assert ndims(x) == 2
     @assert sum(dims) == size(x,2)
-    @assert issorted(dims, rev=true)
+    # @assert issorted(dims, rev=true)
+    perm = sortperm(dims, rev=true)
+    x = sort(x, dims, perm)
+    dims = dims[perm]
+
     if isnothing(hx)
         hxs = map(h -> repeat(h,1,length(dims)), f.hs)
         hx = concat(2, hxs...)
@@ -95,36 +99,15 @@ function (f::LSTM)(x::Var, dims, hx=nothing, cx=nothing)
         @assert ndims(cx) == 2
     end
     if isa(x.data, Array)
-        lstm_cpu(f, x, dims, hx, cx)
+        y,_,_ = lstm_cpu(f, x, dims, hx, cx)
     elseif isa(x.data, CuArray)
-        lstm_cuda(f, x, dims, hx, cx)
+        y,_,_ = lstm_cuda(f, x, dims, hx, cx)
     else
         throw("Invalid device.")
     end
+    y = sort(y, dims, sortperm(perm))
+    y
 end
-
-#=
-function lstm(x::Var, dims::Vector{Int}, p, Ws, Us, bs, hxs, cxs)
-    @assert ndims(x) == 2
-    @assert sum(dims) == size(x,2)
-    @assert issorted(dims, rev=true)
-    if isa(x.data, Array)
-        lstm_cpu(x, dims, p, Ws, Us, bs, hxs, cxs)
-    elseif isa(x.data, CuArray)
-        lstm_cuda(x, dims, p, Ws, Us, bs, hxs, cxs)
-    else
-        throw("Invalid device.")
-    end
-end
-
-function lstm(x::Var, p, weights...)
-    @assert ndims(x) == 3
-    mat = reshape(x, size(x,1), size(x,2)*size(x,3))
-    dims = [size(x,2) for _=1:size(x,3)]
-    y = lstm(mat, dims, p, weights...)
-    reshape(y, size(y,1), size(x,2), size(x,3))
-end
-=#
 
 function lstm_cpu(f::LSTM, x::Var, dims, hx, cx)
     y = x

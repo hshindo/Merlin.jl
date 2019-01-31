@@ -90,6 +90,7 @@ for name in [
     "reshape",
     "rnncrf",
     "softmax",
+    "sort",
     "split",
     "window1d"
     ]

@@ -83,7 +83,7 @@ end
 
 @testset "regularization" begin
     @testset "dropout" begin
-        Merlin.settrain(true)
+        Merlin.settraining(true)
         x = parameter(randn(T,10,5))
         dropout(x, 0.5)
     end
@@ -165,6 +165,13 @@ end
     x = parameter(rand(T,10,5,3))
     checkgrad(()->softmax(x), x)
     logsoftmax(x)
+end
+
+@testset "sort" begin
+    x = parameter(randn(T,5,10))
+    dims = [2,5,3]
+    perm = sortperm(dims, rev=true)
+    checkgrad(()->sort(x,dims,perm), x)
 end
 
 @testset "window1d" begin
