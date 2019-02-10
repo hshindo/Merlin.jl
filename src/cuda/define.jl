@@ -1,6 +1,6 @@
 const DEFINE = Dict{Symbol,Symbol}()
 
-if API_VERSION[] >= 3020
+if API_VERSION >= 3020
     DEFINE[:cuDeviceTotalMem]           = :cuDeviceTotalMem_v2
     DEFINE[:cuCtxCreate]                = :cuCtxCreate_v2
     DEFINE[:cuModuleGetGlobal]          = :cuModuleGetGlobal_v2
@@ -43,26 +43,26 @@ if API_VERSION[] >= 3020
     DEFINE[:cuTexRefGetAddress]         = :cuTexRefGetAddress_v2
     DEFINE[:cuGraphicsResourceGetMappedPointer] = :cuGraphicsResourceGetMappedPointer_v2
 end
-if API_VERSION[] >= 4000
+if API_VERSION >= 4000
     DEFINE[:cuCtxDestroy]               = :cuCtxDestroy_v2
     DEFINE[:cuCtxPopCurrent]            = :cuCtxPopCurrent_v2
     DEFINE[:cuCtxPushCurrent]           = :cuCtxPushCurrent_v2
     DEFINE[:cuStreamDestroy]            = :cuStreamDestroy_v2
     DEFINE[:cuEventDestroy]             = :cuEventDestroy_v2
 end
-if API_VERSION[] >= 4010
+if API_VERSION >= 4010
     DEFINE[:cuTexRefSetAddress2D]       = :cuTexRefSetAddress2D_v3
 end
-if API_VERSION[] >= 6050
+if API_VERSION >= 6050
     DEFINE[:cuLinkCreate]              = :cuLinkCreate_v2
     DEFINE[:cuLinkAddData]             = :cuLinkAddData_v2
     DEFINE[:cuLinkAddFile]             = :cuLinkAddFile_v2
 end
-if API_VERSION[] >= 6050
+if API_VERSION >= 6050
     DEFINE[:cuMemHostRegister]         = :cuMemHostRegister_v2
     DEFINE[:cuGraphicsResourceSetMapFlags] = :cuGraphicsResourceSetMapFlags_v2
 end
-if 3020 <= API_VERSION[] < 4010
+if 3020 <= API_VERSION < 4010
     DEFINE[:cuTexRefSetAddress2D]      = :cuTexRefSetAddress2D_v2
 end
 

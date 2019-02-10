@@ -10,13 +10,6 @@ function setdevice(dev::Int)
     #@info "device[$dev]: $(devicename(dev)), capability $(cap[1]).$(cap[2]), totalmem = $(mem) MB"
     #getdevice() == dev && return
 
-    #if !isassigned(CONTEXTS,dev+1)
-    #    CONTEXTS[dev+1] = CuContext(dev)
-    #end
-    #else
-    #    setcontext(CONTEXTS[dev+1])
-    #end
-    #println(CONTEXTS)
     ctx = get!(CONTEXTS,dev) do
         CuContext(dev)
     end

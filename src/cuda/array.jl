@@ -44,9 +44,9 @@ function Base.stride(x::CuArray, i::Int)
 end
 
 cuzeros(::Type{T}, dims::Dims) where T = fill!(CuArray{T}(dims), 0)
-Base.zero(x::CuArray{T}) where T = cuzeros(T, size(x))
 cuones(::Type{T}, dims::Dims) where T = fill!(CuArray{T}(dims), 1)
-Base.one(x::CuArray{T}) where T = cuones(T, size(x))
+Base.zero(x::CuArray{T}, dims::Dims=size(x)) where T = cuzeros(T, dims)
+Base.one(x::CuArray{T}, dims::Dims=size(x)) where T = cuones(T, dims)
 
 function Base.pointer(x::CuArray{T}, index::Int=1) where T
     @assert index > 0

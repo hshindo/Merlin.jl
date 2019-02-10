@@ -45,6 +45,10 @@ Base.size(x::Var, i::Int) = size(x.data, i)
 Base.length(x::Var) = length(x.data)
 Base.ndims(x::Var) = ndims(x.data)
 Base.eltype(x::Var) = eltype(x.data)
+Base.zero(x::Var, dims::Dims=size(x)) = Var(zero(x.data,dims))
+Base.one(x::Var, dims::Dims=size(x)) = Var(one(x.data,dims))
+Base.zero(x, dims::Int...) = zero(x, dims)
+Base.one(x, dims::Int...) = one(x, dims)
 isnothing(x) = x == nothing
 
 """

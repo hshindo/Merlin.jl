@@ -1,16 +1,16 @@
 mutable struct CuContext
     ptr::Ptr{Cvoid}
+
+    function CuContext(dev::Int)
+        ref = Ref{Ptr{Cvoid}}()
+        @apicall :cuCtxCreate (Ptr{Ptr{Cvoid}},Cuint,Cint) ref 0 dev
+        ctx = new(ref[])
+        finalizer(destroy, ctx)
+        ctx
+    end
 end
 
 const CONTEXTS = Dict{Int,CuContext}()
-
-function CuContext(dev::Int)
-    ref = Ref{Ptr{Cvoid}}()
-    @apicall :cuCtxCreate (Ptr{Ptr{Cvoid}},Cuint,Cint) ref 0 dev
-    ctx = CuContext(ref[])
-    finalizer(destroy, ctx)
-    ctx
-end
 
 Base.:(==)(a::CuContext, b::CuContext) = a.ptr == b.ptr
 Base.hash(ctx::CuContext, h::UInt) = hash(ctx.ptr, h)
@@ -22,9 +22,10 @@ function destroy(ctx::CuContext)
 end
 
 function getcontext()
-    ref = Ref{Ptr{Cvoid}}()
-    @apicall :cuCtxGetCurrent (Ptr{Ptr{Cvoid}},) ref
-    CuContext(ref[])
+    CONTEXTS[getdevice()]
+    #ref = Ref{Ptr{Cvoid}}()
+    #@apicall :cuCtxGetCurrent (Ptr{Ptr{Cvoid}},) ref
+    #CuContext(ref[])
 end
 
 function setcontext(ctx::CuContext)

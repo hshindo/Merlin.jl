@@ -32,8 +32,6 @@ function versionall()
     @info CUDNN.version()
 end
 
-const API_VERSION = Ref{Int}()
-
 function checkstatus(status)
     if status != 0
         ref = Ref{Cstring}()
@@ -42,15 +40,14 @@ function checkstatus(status)
     end
 end
 
-function __init__()
-    status = ccall((:cuInit,libcuda), Cuint, (Cuint,), 0)
-    checkstatus(status)
+function version()
     ref = Ref{Cint}()
-    status = ccall((:cuDriverGetVersion,libcuda), Cint, (Ptr{Cint},), ref)
-    checkstatus(status)
-    API_VERSION[] = Int(ref[])
-    @info "CUDA API $(API_VERSION[])"
+    checkstatus(ccall((:cuDriverGetVersion,libcuda), Cint, (Ptr{Cint},), ref))
+    Int(ref[])
 end
+
+const API_VERSION = version()
+@info "CUDA API $API_VERSION"
 
 include("define.jl")
 
@@ -67,6 +64,11 @@ macro unsafe_apicall(f, args...)
     quote
         ccall(($(QuoteNode(f)),libcuda), Cint, $(map(esc,args)...))
     end
+end
+
+function __init__()
+    @apicall :cuInit (Cuint,) 0
+    # checkstatus(ccall((:cuInit,libcuda), Cuint, (Cuint,), 0))
 end
 
 const Cptr = Ptr{Cvoid}

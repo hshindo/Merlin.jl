@@ -1,9 +1,10 @@
 module Merlin
 
 using Base.Threads
-@info "# CPU threads: $(nthreads())"
+# @info "# CPU threads: $(nthreads())"
 
 using Libdl
+
 const CUDA_AVAILABLE = begin
     if Sys.iswindows()
         !isempty(Libdl.find_library("nvcuda"))
@@ -11,6 +12,7 @@ const CUDA_AVAILABLE = begin
         !isempty(Libdl.find_library("libcuda"))
     end
 end
+
 if CUDA_AVAILABLE
     include("cuda/CUDA.jl")
     using .CUDA
