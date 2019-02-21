@@ -1,6 +1,6 @@
 export window1d
 
-function window1d(x::Var, dims, ksize, padding, stride, dilation)
+function window1d(x::Var, dims, ksize; padding=0, stride=1, dilation=1)
     ydata = window1d(x.data, dims, ksize, padding, stride, dilation)
     Var(ydata, ∇window1d!, (x,dims,ksize,padding,stride,dilation))
 end
@@ -60,8 +60,10 @@ end
             d = dims[i]
             k = (ksize - 1) * dilation + 1
             ydims[i] = (d + 2padding - k) ÷ stride + 1
+            ydims[i] < 0 && (ydims[i] = 0)
         end
         y = similar(x, ksize*size(x,1), sum(ydims))
+        @assert length(y) > 0
         cumsize_y = Array{Cint}(undef, length(dims)+1)
         cumsize_x = similar(cumsize_y)
         cumsize_y[1] = cumsize_x[1] = 0
@@ -135,6 +137,7 @@ end
             d = dims[i]
             k = (ksize - 1) * dilation + 1
             ydims[i] = (d + 2padding - k) ÷ stride + 1
+            ydims[i] < 0 && (ydims[i] = 0)
         end
         cumsize_y = Array{Cint}(undef, length(dims)+1)
         cumsize_x = similar(cumsize_y)

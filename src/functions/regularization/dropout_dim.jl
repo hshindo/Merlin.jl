@@ -16,7 +16,8 @@ end
     __global__ void dropout_dim($Ct *x, $Ct *r, $Ct droprate, int n) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= n) return;
-        x[idx] = r[idx] < droprate ? 0 : 1 / (1-droprate);
+        // x[idx] = r[idx] < droprate ? 0 : 1 / (1-droprate);
+        x[idx] = r[idx] < droprate ? 0 : 1;
     }
     """)
     quote

@@ -32,16 +32,19 @@ function Conv1d(::Type{T}, ksize::Int, inchannel::Int, outchannel::Int;
     Conv1d(ksize, padding, stride, dilation, ngroups, parameter(W), parameter(b))
 end
 
-function (f::Conv1d)(x, dims)
+function (f::Conv1d)(x::Var, dims)
     n = size(f.W,1) ÷ f.ksize
-    hs = Var[]
-    for i = 1:f.ngroups
-        g = x[(i-1)*n+1:i*n, :]
-        h = window1d(g, dims, f.ksize, f.padding, f.stride, f.dilation)
-        push!(hs, h)
+    if f.ngroups == 1
+        h = window1d(x, dims, f.ksize, padding=f.padding, stride=f.stride, dilation=f.dilation)
+    else
+        hs = Var[]
+        for i = 1:f.ngroups
+            g = x[(i-1)*n+1:i*n, :]
+            h = window1d(g, dims, f.ksize, padding=f.padding, stride=f.stride, dilation=f.dilation)
+            push!(hs, h)
+        end
+        h = concat(1, hs...)
     end
-    h = concat(1, hs...)
-    W = f.W
-    W = concat(1, [W for i=1:f.ngroups]...)
+    W = concat(1, [f.W for i=1:f.ngroups]...)
     linear(h, W, f.b)
 end

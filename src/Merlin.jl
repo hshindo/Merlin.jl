@@ -57,6 +57,7 @@ for name in [
     "attention/add_attention",
 
     "cnn/conv1d",
+    "cnn/window1d_old",
     # "cnn/conv2d",
 
     "loss/crossentropy",
@@ -93,8 +94,7 @@ for name in [
     "rnncrf",
     "softmax",
     "sort",
-    "split",
-    "window1d"
+    "split"
     ]
     include("functions/$name.jl")
 end

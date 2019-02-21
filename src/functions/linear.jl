@@ -45,7 +45,6 @@ function linear(x::Var, W::Var, b=nothing)
     end
     Var(ydata, ∇linear!, (x,W,b))
 end
-linear(x::Node, W, b) = Node(linear, (x,W,b))
 
 function ∇linear!(y::Var, x::Var, W::Var, b)
     T = eltype(x)

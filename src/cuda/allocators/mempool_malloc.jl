@@ -5,6 +5,7 @@ end
 
 function (::MemPoolMalloc)(::Type{T}, dims::Dims{N}) where {T,N}
     bytesize = prod(dims) * sizeof(T)
+    bytesize == 0 && return CuPtr(Ptr{T}(0),getdevice(),dims)
     @assert bytesize > 0
 
     c = log2ceil(bytesize) # 2^c >= bytesize

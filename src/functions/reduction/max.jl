@@ -16,13 +16,13 @@ function max(x::Var, dim::Int; keepdims=true)
     keepdims || (ydata = dropdims(ydata,dims=dim))
     Var(ydata, ∇max!, (x,dim,idx,s))
 end
+
 function max(x::Var, dims::Vector{Int})
     hdata = pack(x.data, dims, floatmin(eltype(x)))
     ydata, idx = findmax(hdata, dims=ndims(x))
     ydata = dropdims(ydata, dims=ndims(x))
     Var(ydata, ∇max!, (x,dims,idx))
 end
-max(x::Node, dims) = Node(max, (x,dims))
 
 function ∇max!(y::Var, x::Var, dim::Int, idx, s)
     isnothing(x.grad) && return

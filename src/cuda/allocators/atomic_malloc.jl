@@ -15,7 +15,7 @@ const ATOMIC_MALLOC = AtomicMalloc()
 
 function (m::AtomicMalloc)(::Type{T}, dims::Dims{N}) where {T,N}
     bytesize = prod(dims) * sizeof(T)
-    @assert 0 < bytesize <= m.blocksize
+    @assert 0 <= bytesize <= m.blocksize
 
     if m.blockid == 0 || bytesize + m.offset > m.blocksize
         if m.blockid == length(m.ptrs)
