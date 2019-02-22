@@ -16,8 +16,8 @@ end
     __global__ void dropout_dim($Ct *x, $Ct *r, $Ct droprate, int n) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= n) return;
-        // x[idx] = r[idx] < droprate ? 0 : 1 / (1-droprate);
-        x[idx] = r[idx] < droprate ? 0 : 1;
+        x[idx] = r[idx] < droprate ? 0 : 1 / (1-droprate);
+        //x[idx] = r[idx] < droprate ? 0 : 1;
     }
     """)
     quote
@@ -25,6 +25,25 @@ end
         gdims, bdims = cudims(length(x))
         $k(gdims, bdims, pointer(x), pointer(r), T(droprate), length(x))
         x
+    end
+end
+
+export worddrop
+@generated function worddrop(x::CuArray{T}, droprate::Float64, value::T) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void dropout_dim($Ct *y, $Ct *x, $Ct *r, $Ct droprate, int n) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= n) return;
+        y[idx] = r[idx] < droprate ? value : x[idx];
+    }
+    """)
+    quote
+        y = similar(x)
+        r = curand(T, length(x))
+        gdims, bdims = cudims(length(x))
+        $k(gdims, bdims, pointer(x), pointer(r), T(droprate), length(x))
+        y
     end
 end
 
