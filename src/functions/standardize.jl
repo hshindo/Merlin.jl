@@ -1,7 +1,7 @@
 export Standardize
 export standardize
 
-struct Standardize
+mutable struct Standardize <: Functor
     scale::Var
     bias::Var
     runmean

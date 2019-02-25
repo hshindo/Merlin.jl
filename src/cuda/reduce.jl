@@ -1,5 +1,5 @@
 import Base: sum, findmax, findmin, maximum, argmax
-import LinearAlgebra: norm, normalize
+import LinearAlgebra.norm
 import Statistics: mean
 
 function sum(x::CuArray; dims=())
@@ -29,19 +29,14 @@ end
 
 mean(x::CuArray; dims::Int) = CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_AVG)[1]
 
-function norm(x::CuArray, dim::Int, p::Int)
+function norm(x::CuArray, p::Int; dims::Int)
     if p == 1
-        CUDNN.reduce(x, dim, CUDNN.CUDNN_REDUCE_TENSOR_NORM1)[1]
+        CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_NORM1)[1]
     elseif p == 2
-        CUDNN.reduce(x, dim, CUDNN.CUDNN_REDUCE_TENSOR_NORM2)[1]
+        CUDNN.reduce(x, dims, CUDNN.CUDNN_REDUCE_TENSOR_NORM2)[1]
     else
-        throw("Not supported. Valid p: 1 or 2.")
+        throw("Not supported. p must be 1 or 2.")
     end
-end
-
-function normalize(x::CuArray, dim::Int, p::Int)
-    n = norm(x, dim, p)
-    x ./ n
 end
 
 @generated function addto!(dest::CuArray{T}, value) where T

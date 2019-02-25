@@ -16,8 +16,8 @@ end
     __global__ void dropout_dim($Ct *x, $Ct *r, $Ct droprate, int n) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= n) return;
-        x[idx] = r[idx] < droprate ? 0 : 1 / (1-droprate);
-        //x[idx] = r[idx] < droprate ? 0 : 1;
+        //x[idx] = r[idx] < droprate ? 0 : 1 / (1-droprate);
+        x[idx] = r[idx] < droprate ? 0 : 1;
     }
     """)
     quote
@@ -28,63 +28,58 @@ end
     end
 end
 
-export worddrop
-@generated function worddrop(x::CuArray{T}, droprate::Float64, value::T) where T
-    Ct = cstring(T)
-    k = Kernel("""
-    __global__ void dropout_dim($Ct *y, $Ct *x, $Ct *r, $Ct droprate, int n) {
-        int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx >= n) return;
-        y[idx] = r[idx] < droprate ? value : x[idx];
-    }
-    """)
-    quote
-        y = similar(x)
-        r = curand(T, length(x))
-        gdims, bdims = cudims(length(x))
-        $k(gdims, bdims, pointer(x), pointer(r), T(droprate), length(x))
-        y
-    end
+export replace1d
+function replace1d(x::Var, p::Float64, v::Var)
+    p == 0.0 && return x
+    istraining() || return x
+    y, r = replace1d(x.data, p, v.data)
+    Var(y, ∇replace1d!, (x,p,v,r))
 end
 
-#=
-@generated function dropout_dim(x::CuArray{T}, droprate::Float64) where T
+@generated function replace1d(x::CuMatrix{T}, p::Float64, v::CuVector{T}) where T
     Ct = cstring(T)
     k = Kernel("""
-    __global__ void dropout_dim($Ct *y, $Ct *x, float *r, float droprate, int m, int n) {
+    __global__ void replace1d($Ct *y, $Ct *x, $Ct *r, $Ct p, $Ct *v, int dim1, int dim2) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx >= n) return;
+        if (idx >= dim1*dim2) return;
 
-        int j = idx / m;
-        float scale = 1 / (1-droprate);
-        y[idx] = r[j] < droprate ? 0 : scale * x[idx];
+        int j = idx / dim1;
+        int i = idx - j * dim1;
+        y[idx] = r[j] < p ? v[i] : x[idx];
     }
     """)
     quote
-        @assert ndims(x) == 2
+        @assert length(v) == size(x,1)
         y = similar(x)
-        r = curand(Float32, size(x,2))
-        gdims, bdims = cudims(length(y))
-        $k(gdims, bdims, pointer(y), pointer(x), pointer(r), Float32(droprate), size(x,1), length(x))
+        r = curand(T, size(x,2))
+        gdims, bdims = cudims(length(x))
+        $k(gdims, bdims, pointer(y), pointer(x), pointer(r), T(p), pointer(v),
+            Cint(size(x,1)), Cint(size(x,2)))
         y, r
     end
 end
 
-@generated function ∇dropout_dim!(gy::CuArray{T}, gx::CuArray{T}, droprate, r) where T
+function ∇replace1d!(y::Var, x::Var, p, v::Var, r)
+    isnothing(x.grad) || ∇replace1d!(y.grad,x.grad,p,v.grad,r)
+end
+
+@generated function ∇replace1d!(gy::CuMatrix{T}, gx::CuMatrix{T}, p::Float64, gv::CuVector{T}, r::CuVector{T}) where T
     Ct = cstring(T)
     k = Kernel("""
-    __global__ void dropout_dim_grad($Ct *gy, $Ct *gx, float *r, float droprate, int m, int n) {
+    __global__ void replace1d_grad($Ct *gy, $Ct *gx, $Ct *r, $Ct p, $Ct *gv, int dim1, int dim2) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx >= n) return;
+        if (idx >= dim1*dim2) return;
 
-        int j = idx / m;
-        float scale = 1 / (1-droprate);
-        gx[idx] += r[j] < droprate ? 0 : scale * gy[idx];
+        int j = idx / dim1;
+        int i = idx - j * dim1;
+        if (r[j] < p) atomicAdd(&gv[i], gy[idx]);
+        else gx[idx] += gy[idx];
     }
     """)
     quote
-        gdims, bdims = cudims(length(gy))
-        $k(gdims, bdims, pointer(gy), pointer(gx), pointer(r), Float32(droprate), size(gx,1), length(gx))
+        @assert length(gv) == size(gx,1)
+        gdims, bdims = cudims(length(gx))
+        $k(gdims, bdims, pointer(gy), pointer(gx), pointer(r), T(p), pointer(gv),
+            Cint(size(gx,1)), Cint(size(gx,2)))
     end
 end
-=#

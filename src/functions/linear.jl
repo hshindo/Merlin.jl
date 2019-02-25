@@ -30,6 +30,7 @@ function Linear(::Type{T}, insize::Int, outsize::Int;
     b = init_b(T, outsize)
     Linear(parameter(W), parameter(b))
 end
+
 (f::Linear)(x) = linear(x, f.W, f.b)
 
 function linear(x::Var, W::Var, b=nothing)

@@ -75,10 +75,13 @@ for name in [
     "reduction/average",
     "reduction/argmax",
     "reduction/max",
+    "reduction/statistics",
     "reduction/sum",
 
     "regularization/dropout",
     "regularization/dropout_dim",
+    "regularization/normalize",
+    "regularization/weightnorm",
     "regularization/zoneout",
 
     "rnn/lstm",

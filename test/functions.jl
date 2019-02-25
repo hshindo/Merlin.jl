@@ -87,6 +87,11 @@ end
         x = parameter(randn(T,10,5))
         dropout(x, 0.5)
     end
+
+    @testset "normaize" begin
+        x = parameter(randn(T,10,5))
+        checkgrad(()->normalize(x,2,dims=1), x)
+    end
 end
 
 @testset "rnn" begin
@@ -176,8 +181,7 @@ end
 
 @testset "window1d" begin
     x = parameter(randn(T,10,10))
-    ksize, padding, stride, dilation = 5, 2, 1, 1
-    checkgrad(()->window1d(x,[3,7],ksize,padding,stride,dilation), x)
+    checkgrad(()->window1d(x,[3,7],5,padding=2,stride=1,dilation=1), x)
 end
 
 end
