@@ -71,8 +71,13 @@ end
     end
     @testset "average" begin
         x = parameter(randn(T,10,10))
-        checkgrad(()->average(x,2), x) # dim=1 is not supported by CuDNN
+        checkgrad(()->average(x,dims=2), x) # dim=1 is not supported by CuDNN
         checkgrad(()->average(x,[2,3,5]), x)
+    end
+    @testset "statistics" begin
+        x = parameter(randn(T,10,10))
+        m = average(x, dims=1)
+        # checkgrad(()->stdm(x,m.data,dims=1), x)
     end
     @testset "sum" begin
         x = parameter(randn(T,10,10))

@@ -22,7 +22,7 @@ function softmax_crossentropy(p::Var, q::Var)
     logq = logsoftmax(q.data)
     ydata = softmax_crossentropy(p.data, logq)
     y = Var(ydata, ∇softmax_crossentropy!, (p,q,logq))
-    average(y, 1)
+    average(y, dims=1)
 end
 softmax_crossentropy(p::Node, q::Node) = Node(softmax_crossentropy, (p,q))
 

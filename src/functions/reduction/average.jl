@@ -20,11 +20,11 @@ doc"""
 
 Computes the average over the given dimension.
 """
-function average(x::Var, dim::Int; keepdims=true)
-    ydata = mean(x.data, dims=dim)
+function average(x::Var; dims::Int, keepdims=true)
+    ydata = mean(x.data, dims=dims)
     s = size(ydata)
-    keepdims || (ydata = dropdims(ydata,dims=dim))
-    Var(ydata, ∇average!, (x,dim,s))
+    keepdims || (ydata = dropdims(ydata,dims=dims))
+    Var(ydata, ∇average!, (x,dims,s))
 end
 
 function average(x::Var, dims::Vector{Int})
@@ -36,10 +36,10 @@ function average(x::Var, dims::Vector{Int})
     h .* coef
 end
 
-function ∇average!(y::Var, x::Var, dim::Int, s)
+function ∇average!(y::Var, x::Var, dims::Int, s)
     isnothing(x.grad) && return
     gy = reshape(y.grad, s)
-    broadcast_addto!(1, x.grad, 1/size(x,dim), gy)
+    broadcast_addto!(1, x.grad, 1/size(x,dims), gy)
 end
 
 #=

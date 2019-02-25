@@ -6,10 +6,10 @@ function stdm(x::Var, m; dims::Int)
     Var(y, ∇stdm!, (x,m))
 end
 
-function stdm(x::Matrix, m::Array; dims::Int)
+function stdm(x::Matrix{T}, m::Array{T}; dims::Int) where T
     x = x .- m
     y = sum(x.*x, dims=dims) / size(x,1)
-    sqrt.(y .+ 1e-9)
+    sqrt.(y .+ T(1e-9))
 end
 
 @generated function stdm(x::CuMatrix{T}, m::CuArray{T}; dims::Int) where T
