@@ -25,6 +25,7 @@ end
 
 include("activation.jl")
 include("add.jl")
+include("batchnorm.jl")
 include("convolution.jl")
 include("filter.jl")
 include("dropout.jl")

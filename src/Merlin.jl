@@ -78,6 +78,7 @@ for name in [
     "reduction/statistics",
     "reduction/sum",
 
+    "regularization/batchnorm",
     "regularization/dropout",
     "regularization/dropout_dim",
     "regularization/normalize",
