@@ -62,6 +62,7 @@ for name in [
 
     "loss/crossentropy",
     "loss/flip",
+    "loss/focalloss",
     "loss/l2",
     "loss/mse",
     "loss/softmax_crossentropy",

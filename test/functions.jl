@@ -20,9 +20,9 @@ end
 
 @testset "loss" begin
     @testset "focalloss" begin
-        p = parameter(softmax(rand(10,5)))
+        p = parameter(softmax(rand(T,10,5)))
         idx = Var(rand(1:10,5))
-        checkgrad(()->focalloss(idx,p,2), p)
+        checkgrad(()->focalloss(idx,p,2), idx, p)
     end
 
     @testset "softmax_crossentropy" begin

@@ -88,6 +88,10 @@ function checkgrad(f, inputs::Var...; atol=2e-3, cuda=true)
 
         @test maximum(abs,y.data-Array(d_y.data)) <= atol
         for (gx,d_gx) in zip(gxs1,d_gxs)
+            if maximum(abs,gx-Array(d_gx)) > atol
+                println(gx)
+                println(Array(d_gx))
+            end
             @test maximum(abs,gx-Array(d_gx)) <= atol
         end
         setdevice(-1)
