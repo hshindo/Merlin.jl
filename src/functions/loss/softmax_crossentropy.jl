@@ -24,7 +24,6 @@ function softmax_crossentropy(p::Var, q::Var)
     y = Var(ydata, ∇softmax_crossentropy!, (p,q,logq))
     average(y, dims=1)
 end
-softmax_crossentropy(p::Node, q::Node) = Node(softmax_crossentropy, (p,q))
 
 function softmax_crossentropy(p::Vector{Int}, logq::Matrix{T}) where T
     length(p) == size(logq,2) || throw("Length unmatch.")
