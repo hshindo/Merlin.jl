@@ -1,9 +1,13 @@
 import Base.argmax
 
-function argmax(x::Array, dim::Int)
-    map(x -> x[1], argmax(x,dims=1))
+function argmax(x::Var; dims::Int)
+    _argmax(x.data, dims=dims)
 end
 
-function argmax(x::CuArray, dim::Int)
-    findmax(x, dims=dim)[2]
+function _argmax(x::Array; dims::Int)
+    map(x -> x[1], argmax(x,dims=dims))
+end
+
+function _argmax(x::CuArray; dims::Int)
+    findmax(x, dims=dims)[2]
 end

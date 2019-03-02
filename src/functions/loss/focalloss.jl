@@ -3,9 +3,10 @@ export focalloss
 """
 Focal Loss for Dense Object Detection, ICCV 2017
 """
-function focalloss(idx::Var, p::Var, gamma)
-    y = focalloss(idx.data, p.data, gamma)
-    Var(y, ∇focalloss!, (idx,p,gamma))
+function focalloss(idx::Var, p::Var, gamma=1.0)
+    ydata = focalloss(idx.data, p.data, gamma)
+    y = Var(ydata, ∇focalloss!, (idx,p,gamma))
+    average(y, dims=1)
 end
 
 function focalloss(idx::Vector{Int}, p::Matrix{T}, gamma) where T
@@ -71,7 +72,7 @@ end
         gp[i] += gy[idx] * g;
     }""")
     quote
-        length(v) == size(p,2) || throw("Length unmatch.")
+        length(v) == size(p,2) == length(gy) || throw("Length unmatch.")
         gdims, bdims = cudims(length(gy))
         $k(gdims, bdims, pointer(gy), pointer(v), pointer(p), pointer(gp), T(gamma), size(p,1), size(p,2))
     end
