@@ -3,44 +3,35 @@ using Random
 using ProgressMeter
 
 mutable struct DataLoader
-    data
+	batchfun
+    data::Vector
     batchsize::Int
     shuffle::Bool
 	device::Int
 end
 
-function DataLoader(data; batchsize, shuffle=false, device)
-	data = todevice(data, device)
-    DataLoader(data, batchsize, shuffle, device)
+function DataLoader(batchfun, data::Vector; batchsize, shuffle, device)
+    DataLoader(batchfun, data, batchsize, shuffle, device)
 end
 
-Base.length(loader::DataLoader) = length(loader.data)
-
-function Base.foreach(f, loader::DataLoader)
-	perm = loader.shuffle ? randperm(length(loader)) : collect(1:length(loader))
-	prog = Progress(length(loader))
-	for i = 1:loader.batchsize:length(loader)
-		j = min(i+loader.batchsize-1, length(loader))
-		data = loader.data[perm[i:j]]
-		f(data)
-		update!(prog, j)
-	end
+function Base.length(dl::DataLoader)
+	n = length(dl.data) / dl.batchsize
+	ceil(Int, n)
 end
 
-function Base.iterate(loader::DataLoader)
-	perm = loader.shuffle ? randperm(length(loader)) : collect(1:length(loader))
-	prog = Progress(length(loader))
-	iterate(loader, (perm,prog,1))
+function Base.iterate(dl::DataLoader)
+	perm = dl.shuffle ? randperm(length(dl)) : collect(1:length(dl))
+	iterate(dl, (perm,1))
 end
 
-function Base.iterate(loader::DataLoader, state)
-	perm, prog, i = state
-	if i > length(loader)
+function Base.iterate(dl::DataLoader, state)
+	perm, i = state
+	if i > length(dl)
 		nothing
 	else
-		j = min(i+loader.batchsize-1, length(loader))
-		update!(prog, j)
-		data = loader.data[perm[i:j]]
-		data, (perm,prog,j+1)
+		j = min(i+dl.batchsize-1, length(dl))
+		data = dl.data[perm[i:j]]
+		data = dl.batchfun(data)
+		data, (perm,j+1)
 	end
 end
