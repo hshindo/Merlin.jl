@@ -94,6 +94,7 @@ for name in [
     "linear",
     "lookup",
     "pack",
+    "pairwise",
     "repeat",
     "reshape",
     "rnncrf",

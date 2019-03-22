@@ -60,5 +60,5 @@ function evaluate(f, dataset; batchsize::Int)
 		getdevice() >= 0 && CUDA.synchronize()
 		update!(prog, j)
 	end
-	outs
+	map(identity, outs)
 end

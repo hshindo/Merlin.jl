@@ -10,9 +10,9 @@ Note that the error is not scaled by 1/2.
 function mse(x1::Var, x2::Var; reduction=:mean)
     @assert reduction == :mean
     size(x1) == size(x2) || throw("Size unmatch.")
-    y = mse(x1.data, x2.data)
-    y = average(y, dims=1, keepdims=false)
-    Var(y, ∇mse!, (mse,x1,x2))
+    ydata = mse(x1.data, x2.data)
+    y = Var(ydata, ∇mse!, (x1,x2))
+    average(y, dims=1, keepdims=false)
 end
 
 mse(x1::Matrix, x2::Matrix) = abs2.(x1-x2)
@@ -23,7 +23,6 @@ mse(x1::Matrix, x2::Matrix) = abs2.(x1-x2)
     __global__ void mse($Ct *y, $Ct *x1, $Ct *x2, int n) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= n) return;
-
         $Ct d = x1[idx] - x2[idx];
         y[idx] = d * d;
     }""")
@@ -35,36 +34,29 @@ mse(x1::Matrix, x2::Matrix) = abs2.(x1-x2)
     end
 end
 
-function ∇mse!(y::Var, x1::Var, x2::Var)
-    T = eltype(y)
-    gx1 = isnothing(x1.grad) ? Array{T}(0,0) : x1.grad
-    gx2 = isnothing(x2.grad) ? Array{T}(0,0) : x2.grad
-    ∇mse!(y.grad, x1.data, gx1, x2.data, gx2)
-end
+∇mse!(y::Var, x1::Var, x2::Var) = ∇mse!(y.grad, x1.data, x1.grad, x2.data, x2.grad)
 
-function ∇mse!(gy::Vector{T}, x1::CuMatrix{T}, gx1::CuMatrix{T}, x2::CuMatrix{T}, gx2::CuMatrix{T}) where T
+@generated function ∇mse!(gy::CuMatrix{T}, x1::CuMatrix{T}, gx1, x2::CuMatrix{T}, gx2) where T
     Ct = cstring(T)
     k = Kernel("""
     __global__ void mse_grad($Ct *gy, $Ct *x1, $Ct *gx1, $Ct *x2, $Ct *gx2, int n) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= n) return;
 
-        $Ct g = 2 * gy[idx] * (x1[idx]-x2[idx]);
-        if () gx1[idx] += g;
-        if () gx2[idx] -= g;
+        $Ct g = 2 * gy[idx] * (x1[idx] - x2[idx]);
+        if (gx1 != NULL) gx1[idx] += g;
+        if (gx2 != NULL) gx2[idx] -= g;
     }""")
     quote
         gdims, bdims = cudims(length(gy))
-        $k(gdims, bdims, pointer(gy), pointer(x1), pointer(gx1), pointer(x2), pointer(gx2), Cint(length(gy)))
+        gx1 = isnothing(gx1) ? C_NULL : pointer(gx1)
+        gx2 = isnothing(gx2) ? C_NULL : pointer(gx2)
+        $k(gdims, bdims, pointer(gy), pointer(x1), gx1, pointer(x2), gx2, Cint(length(gy)))
     end
 end
 
-function ∇mse!(gy::Vector{T}, x1::Matrix{T}, gx1::Matrix{T}, x2::Matrix{T}, gx2::Matrix{T}) where T
-    for j = 1:size(x1,2)
-        for i = 1:size(x1,1)
-            g = gy[j] * (x1[i,j]-x2[i,j]) * 2 / size(x1,1)
-            isempty(gx1) || (gx1[i,j] += g)
-            isempty(gx2) || (gx2[i,j] -= g)
-        end
-    end
+function ∇mse!(gy::Matrix{T}, x1::Matrix{T}, gx1, x2::Matrix{T}, gx2) where T
+    g = gy .* (x1 - x2)
+    isnothing(gx1) || axpy!(T(2), g, gx1)
+    isnothing(gx2) || axpy!(T(-2), g, gx2)
 end

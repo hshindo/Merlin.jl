@@ -39,7 +39,7 @@ end
     @testset "mse" begin
         x1 = parameter(rand(T,10,5))
         x2 = parameter(rand(T,10,5))
-        #@test_grad mse(x1,x2) x1 x2
+        checkgrad(()->mse(x1,x2), x1, x2)
     end
 end
 

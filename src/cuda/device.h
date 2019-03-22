@@ -14,6 +14,10 @@ public:
         int idx = idx0*strides[0] + idx1*strides[1];
         return data[idx];
     }
+    __device__ T &operator()(int idx0, int idx1, int idx2) {
+        int idx = idx0*strides[0] + idx1*strides[1] + idx2*strides[2];
+        return data[idx];
+    }
     __device__ T &operator()(const int ndidxs[N]) {
         int idx = 0;
         for (int i = 0; i < N; i++) {

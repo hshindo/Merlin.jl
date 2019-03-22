@@ -1,14 +1,48 @@
 export pairwise
 
-function pairwise(x1::Var, x2::Var)
-    @assert length(x1.batchdims) == length(x2.batchdims)
-    @assert ndims(x1) == ndims(x2) == 2
-    y = pairwise(x1.data, x1.batchdims, x2.data, x2.batchdims)
-    batchdims = [x1.batchdims[i]*x2.batchdims[i] for i=1:length(x1.batchdims)]
-    Var(y, batchdims, pairwise, (x1,x2))
+"""
+    pairwise(x1::Var, x2::Var)
+"""
+function pairwise(x::Var, dims::Vector{Int})
+    indexes = Int[]
+    off = 0
+    for k = 1:length(dims)
+        for j = 1:dims[k]
+            for i = 1:dims[k]
+                i == j && continue
+                push!(indexes, off+i, off+j)
+            end
+        end
+        off += dims[k]
+    end
+    indexes = reshape(indexes, 2, length(indexes)÷2)
+    indexes = todevice(indexes)
+    lookup(x, Var(indexes))
 end
 
-function pairwise{T}(x1::Matrix{T}, batchdims1::Vector{Int}, x2::Matrix{T}, batchdims2::Vector{Int})
+@generated function pairwise(x1::CuArray{T,3}, x2::CuArray{T,3}) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void pairwise(Array<$Ct,4> y, Array<$Ct,3> x1, Array<$Ct,3> x2) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= y.length()) return;
+
+        int ndidxs[4];
+        y.ndindex(ndidxs, idx);
+        int m = x1.dims[0];
+        if (ndidxs[0] < m) y[idx] = x1(ndidxs[0], ndidxs[1], ndidxs[3]);
+        else y[idx] = x2(ndidxs[0]-m, ndidxs[2], ndidxs[3]);
+    }""")
+    quote
+        @assert size(x1,3) == size(x2,3)
+        y = similar(x1, size(x1,1)+size(x2,1), size(x1,2), size(x2,2), size(x1,3))
+        gdims, bdims = cudims(length(y))
+        $k(gdims, bdims, y, x1, x2)
+        y
+    end
+end
+
+function pairwise(x1::Matrix{T}, batchdims1::Vector{Int}, x2::Matrix{T}, batchdims2::Vector{Int}) where T
     cumdim1 = 0
     cumdim2 = 0
     m1 = size(x1, 1)
@@ -37,14 +71,13 @@ function pairwise{T}(x1::Matrix{T}, batchdims1::Vector{Int}, x2::Matrix{T}, batc
     y
 end
 
-function addgrad!(y::Var, ::typeof(pairwise), x1::Var, x2::Var)
-    T = eltype(y.data)
-    gx1 = isvoid(x1.grad) ? Array{T}(0,0) : x1.grad
-    gx2 = isvoid(x2.grad) ? Array{T}(0,0) : x2.grad
-    ∇pairwise!(y.grad, gx1, x1.batchdims, gx2, x2.batchdims)
+function ∇pairwise!(y::Var, x1::Var, x2::Var)
+    gx1 = isnothing(x1.grad) ? similar(x1.data) : x1.grad
+    gx2 = isnothing(x2.grad) ? similar(x2.data) : x2.grad
+    ∇pairwise!(y.grad, gx1, gx2)
 end
 
-function ∇pairwise!{T}(gy::Matrix{T}, gx1::Matrix{T}, batchdims1::Vector{Int}, gx2::Matrix{T}, batchdims2::Vector{Int})
+function ∇pairwise!(gy::Matrix{T}, gx1::Matrix{T}, batchdims1::Vector{Int}, gx2::Matrix{T}, batchdims2::Vector{Int}) where T
     cumdim1 = 0
     cumdim2 = 0
     m1 = size(gx1, 1)

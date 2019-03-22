@@ -19,20 +19,6 @@ function pack(x::Var, dims::Vector{Int}, padding)
     Var(ydata, ∇pack!, (x,dims))
 end
 
-function ∇pack!(y::Var, x::Var, dims::Vector{Int})
-    isnothing(x.grad) && return
-    xst = stride(x.data, ndims(x))
-    yst = stride(y.data, ndims(y))
-    xi = 1
-    yi = 1
-    for d in dims
-        n = xst * d
-        addto!(x.grad, xi, y.grad, yi, n)
-        xi += n
-        yi += yst
-    end
-end
-
 function pack(x::UniArray{T,N}, dims::Vector{Int}, padding) where {T,N}
     @assert sum(dims) == size(x,N)
     s = Base.setindex(size(x), maximum(dims), N)
@@ -50,6 +36,42 @@ function pack(x::UniArray{T,N}, dims::Vector{Int}, padding) where {T,N}
         yi += yst
     end
     y
+end
+
+@generated function pack(x::CuArray{T,N}, dims) where {T,N}
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void pack(Array<$Ct,4> y, Array<$Ct,3> x) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= y.length()) return;
+
+        int ndidxs[4];
+        y.ndindex(ndidxs, idx);
+        int m = x1.dims[0];
+        if (ndidxs[0] < m) y[idx] = x1(ndidxs[0], ndidxs[1], ndidxs[3]);
+        else y[idx] = x2(ndidxs[0]-m, ndidxs[2], ndidxs[3]);
+    }""")
+    quote
+        throw("Not implemented yet.")
+        y = similar(x1, size(x1,1)+size(x2,1), size(x1,2), size(x2,2), size(x1,3))
+        gdims, bdims = cudims(length(y))
+        $k(gdims, bdims, y, x1, x2)
+        y
+    end
+end
+
+function ∇pack!(y::Var, x::Var, dims::Vector{Int})
+    isnothing(x.grad) && return
+    xst = stride(x.data, ndims(x))
+    yst = stride(y.data, ndims(y))
+    xi = 1
+    yi = 1
+    for d in dims
+        n = xst * d
+        addto!(x.grad, xi, y.grad, yi, n)
+        xi += n
+        yi += yst
+    end
 end
 
 function unpack(x::Var, dims::Vector{Int})
