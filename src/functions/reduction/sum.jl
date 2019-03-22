@@ -13,7 +13,7 @@ function sum(x::Var, dim::Int; keepdims=true)
     end
     Var(ydata, ∇sum!, (x,dim,s))
 end
-sum(x::Var, dims::Vector{Int}; keepdims=true) = sum(pack(x,dims,0), ndims(x), keepdims=keepdims)
+sum(x::Var, dims::Vector{Int}) = sum(pack(x,dims,0), ndims(x), keepdims=false)
 
 function sum(x::Var)
     ydata = sum(x.data)
