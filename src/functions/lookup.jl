@@ -65,7 +65,7 @@ end
         int i = idxY - n * j;
         if (x[j] > 0) {
             int idxW = (x[j]-1) * n + i;
-            // atomicAdd(&gw[idxW], gy[idxY]);
+            atomicAdd(&gw[idxW], gy[idxY]);
         }
     }""")
     quote
