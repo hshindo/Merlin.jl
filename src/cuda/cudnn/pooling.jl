@@ -1,7 +1,13 @@
+# cudnnPoolingMode_t
+const CUDNN_POOLING_MAX = 0
+const CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING = 1
+const CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING = 2
+const CUDNN_POOLING_MAX_DETERMINISTIC = 3
+
 mutable struct PoolingDesc
     ptr::Cptr
 
-    function PoolingDesc(mode, window, padding, stride)
+    function PoolingDesc(mode::Int, window::NTuple, padding::NTuple, stride::NTuple)
         ref = Ref{Cptr}()
         @cudnn :cudnnCreatePoolingDescriptor (Ptr{Cptr},) ref
         desc = new(ref[])

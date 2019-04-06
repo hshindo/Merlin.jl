@@ -36,6 +36,12 @@ function average(x::Var, dims::Vector{Int})
     h .* coef
 end
 
+function average(x::Var, dims::Vector{Int}, d_dims::Var)
+    h = pack(x, dims, 0)
+    h = sum(h, ndims(x), keepdims=false)
+    h .* d_dims
+end
+
 function ∇average!(y::Var, x::Var, dims::Int, s)
     isnothing(x.grad) && return
     gy = reshape(y.grad, s)

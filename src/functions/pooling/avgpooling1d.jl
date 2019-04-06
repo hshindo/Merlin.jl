@@ -1,6 +1,6 @@
 export avgpooling1d
 
-function avgpooling1d(x::Var, dims, ksize; padding=0, stride=1)
+function avgpooling1d(x::Var, dims::Vector{Int}; ksize::Int, padding=0, stride=1)
     x = pack(x, dims, 0)
     ydata, work = avgpooling1d(x.data, ksize, padding, stride)
     y = Var(ydata, ∇avgpooling1d!, (x,work))
