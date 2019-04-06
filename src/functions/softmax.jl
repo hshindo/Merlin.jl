@@ -12,13 +12,27 @@ Softmax function over the given dimension.
 f(x) = \exp(x) \over \sum \exp(x)
 ```
 """
-function softmax(x::Var)
-    ydata = softmax(matrix(x.data))
-    ydata = reshape(ydata, size(x))
-    Var(ydata, ∇softmax!, (x,))
+function softmax(x::Var; dim::Int)
+    ydata = softmax(x.data, dim)
+    Var(ydata, ∇softmax!, (x,dim))
 end
-softmax(x::CuArray) = CUDNN.softmax(x)
-softmax(x::Node) = Node(softmax, (x,))
+
+function softmax(x::Var, dims::Vector{Int})
+    @assert ndims(x) == 2
+    h = pack(x, dims, typemin(eltype(x)))
+    h = softmax(h, dim=ndims(x))
+    unpack(h, dims)
+end
+
+function softmax(x::Matrix, dim::Int)
+    if dim == 1
+        softmax(x)
+    elseif dim == 2
+        tx = Array(transpose(x))
+        ty = softmax(tx)
+        Array(transpose(ty))
+    end
+end
 
 function softmax(x::Matrix{T}) where T
     y = similar(x)
@@ -41,12 +55,23 @@ function softmax(x::Matrix{T}) where T
     y
 end
 
-function ∇softmax!(y::Var, x::Var)
-    isnothing(x.grad) && return
-    ∇softmax!(matrix(y.data), matrix(y.grad), matrix(x.grad))
+function softmax(x::CuArray, dim::Int)
+    if dim == ndims(x)-1
+        mode = CUDNN.CUDNN_SOFTMAX_MODE_CHANNEL
+    elseif dim == ndims(x)
+        mode = CUDNN.CUDNN_SOFTMAX_MODE_INSTANCE
+    end
+    CUDNN.softmax(x, mode=mode)
 end
 
-∇softmax!(y::CuArray, gy::CuArray, gx::CuArray) = CUDNN.∇softmax!(y, gy, gx)
+function ∇softmax!(y::Var, x::Var, dim::Int)
+    isnothing(x.grad) && return
+    ∇softmax!(y.data, y.grad, x.grad)
+end
+
+function ∇softmax!(y::CuArray, gy::CuArray, gx::CuArray)
+    CUDNN.∇softmax!(y, gy, gx)
+end
 
 function ∇softmax!(y::Matrix{T}, gy::Matrix{T}, gx::Matrix{T}) where T
     @inbounds for j = 1:size(y,2)

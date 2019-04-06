@@ -7,9 +7,8 @@ const CUDNN_SOFTMAX_LOG = Cint(2)
 const CUDNN_SOFTMAX_MODE_INSTANCE = Cint(0)
 const CUDNN_SOFTMAX_MODE_CHANNEL = Cint(1)
 
-function softmax(x::CuArray{T}, algo=CUDNN_SOFTMAX_ACCURATE) where T
+function softmax(x::CuArray{T}; algo=CUDNN_SOFTMAX_ACCURATE, mode=CUDNN_SOFTMAX_MODE_CHANNEL) where T
     h = gethandle()
-    mode = CUDNN_SOFTMAX_MODE_CHANNEL
     xdesc = TensorDesc(x, 4)
     y = similar(x)
     @cudnn(:cudnnSoftmaxForward,
