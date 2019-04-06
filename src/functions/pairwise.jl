@@ -9,7 +9,7 @@ function pairwise(x::Var, dims::Vector{Int})
     for k = 1:length(dims)
         for j = 1:dims[k]
             for i = 1:dims[k]
-                i == j && continue
+                # i == j && continue
                 push!(indexes, off+i, off+j)
             end
         end
