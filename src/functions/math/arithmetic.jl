@@ -1,4 +1,4 @@
-import Base: +, -, *
+import Base: +, -, *, exp, log
 
 """
     +(x1::Var, x2::Var)
@@ -43,18 +43,14 @@ function ∇times!(C::Var, A::Var, B::Var)
     isnothing(B.grad) || gemm!('T', 'N', T(1), A.data, C.grad, T(1), B.grad)
 end
 
-#=
 """
     exp(x)
 """
-function exp(x::Var)
-    configure!(x)
-    Var(exp(x.data), (exp,x))
-end
+exp(x::Var) = Var(exp(x.data), ∇exp!, (x,))
 exp(x::Array) = exp.(x)
 
-function addgrad!(y::Var, ::typeof(exp), x::Var)
-    isvoid(x.grad) && return
+function ∇exp!(y::Var, x::Var)
+    isnothing(x.grad) && return
     ∇exp!(y.data, y.grad, x.grad)
 end
 
@@ -64,6 +60,38 @@ function ∇exp!(y::Array{T}, gy::Array{T}, gx::Array{T}) where T
     end
 end
 
+@generated function exp(x::CuArray{T}) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void exp($Ct *y, $Ct *x, int n) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= n) return;
+        y[idx] = exp(x[idx]);
+    }
+    """)
+    quote
+        y = similar(x)
+        gdims, bdims = cudims(length(x))
+        $k(gdims, bdims, pointer(y), pointer(x), Cint(length(x)))
+        y
+    end
+end
+
+@generated function ∇exp!(y::CuArray{T}, gy::CuArray{T}, gx::CuArray{T}) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void exp_grad($Ct *y, $Ct *gy, $Ct *gx, int n) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= n) return;
+        gx[idx] += gy[idx] * y[idx];
+    }""")
+    quote
+        gdims, bdims = cudims(length(y))
+        $k(gdims, bdims, pointer(y), pointer(gy), pointer(gx), Cint(length(y)))
+    end
+end
+
+#=
 """
     log(x)
 """
@@ -81,19 +109,6 @@ end
 function ∇log!(gy::Array{T}, x::Array{T}, gx::Array{T}) where T
     @inbounds for i = 1:length(gx)
         gx[i] += gy[i] / x[i]
-    end
-end
-
-@generated function ∇exp!(y::CuArray{T}, gy::CuArray{T}, gx::CuArray{T}) where T
-    f = CuFunction("""
-    __global__ void f($T *y, $T *gy, $T *gx, int length) {
-        int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx < length) {
-            gx[idx] += gy[idx] * y[idx];
-        }
-    }""")
-    quote
-        $f(y.ptr, gy.ptr, gx.ptr, length(y), dx=length(y))
     end
 end
 

@@ -97,7 +97,7 @@ function logsoftmax(x::Var)
 end
 
 function logsoftmax(x::CuArray{T}) where T
-    CUDNN.softmax(x, CUDNN.CUDNN_SOFTMAX_LOG)
+    CUDNN.softmax(x, algo=CUDNN.CUDNN_SOFTMAX_LOG)
 end
 
 function logsoftmax(x::Matrix{T}) where T

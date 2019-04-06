@@ -87,3 +87,20 @@ end
         y
     end
 end
+
+@generated function Base.exp(x::CuArray{T}) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void exp($Ct *y, $Ct *x, int n) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= n) return;
+        y[idx] = exp(x[idx]);
+    }
+    """)
+    quote
+        y = similar(x)
+        gdims, bdims = cudims(length(x))
+        $k(gdims, bdims, pointer(y), pointer(x), Cint(length(x)))
+        y
+    end
+end

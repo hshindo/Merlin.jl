@@ -44,8 +44,8 @@ end
 end
 
 @testset "math" begin
-    x = parameter(rand(T,10,5) .+ T(1))
-    #@test_function exp x
+    x = parameter(rand(T,10,5))
+    checkgrad(()->exp(x), x)
     #@test_function log x
 
     x1 = parameter(randn(T,10,5))
@@ -88,7 +88,7 @@ end
     @testset "sum" begin
         x = parameter(randn(T,10,10))
         checkgrad(()->sum(x,2,keepdims=true), x) # dim=1 is not supported by CuDNN
-        checkgrad(()->sum(x,[2,3,5],keepdims=false), x)
+        checkgrad(()->sum(x,[2,3,5]), x)
     end
 end
 
@@ -176,10 +176,10 @@ end
 
 @testset "softmax" begin
     x = parameter(rand(T,10,5))
-    checkgrad(()->softmax(x), x)
+    checkgrad(()->softmax(x,dim=1), x)
     logsoftmax(x)
     x = parameter(rand(T,10,5,3))
-    checkgrad(()->softmax(x), x)
+    #checkgrad(()->softmax(x,dim=1), x)
     logsoftmax(x)
 end
 
