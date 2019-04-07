@@ -1,4 +1,4 @@
-import Base: +, -, *, /
+import Base: +, -, *, /, exp
 import Base.Broadcast: broadcasted
 
 function +(x1::CuArray{T,N}, x2::CuArray{T,N}) where {T,N}
@@ -88,7 +88,7 @@ end
     end
 end
 
-@generated function Base.exp(x::CuArray{T}) where T
+@generated function exp(x::CuArray{T}) where T
     Ct = cstring(T)
     k = Kernel("""
     __global__ void exp($Ct *y, $Ct *x, int n) {

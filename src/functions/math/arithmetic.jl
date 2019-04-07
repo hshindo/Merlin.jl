@@ -60,23 +60,6 @@ function ∇exp!(y::Array{T}, gy::Array{T}, gx::Array{T}) where T
     end
 end
 
-@generated function exp(x::CuArray{T}) where T
-    Ct = cstring(T)
-    k = Kernel("""
-    __global__ void exp($Ct *y, $Ct *x, int n) {
-        int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        if (idx >= n) return;
-        y[idx] = exp(x[idx]);
-    }
-    """)
-    quote
-        y = similar(x)
-        gdims, bdims = cudims(length(x))
-        $k(gdims, bdims, pointer(y), pointer(x), Cint(length(x)))
-        y
-    end
-end
-
 @generated function ∇exp!(y::CuArray{T}, gy::CuArray{T}, gx::CuArray{T}) where T
     Ct = cstring(T)
     k = Kernel("""

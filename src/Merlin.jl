@@ -118,6 +118,8 @@ include("optimizers/asgd.jl")
 include("optimizers/nadam.jl")
 include("optimizers/sgd.jl")
 
+include("transformers/standardizer.jl")
+
 include("datasets/Datasets.jl")
 #include("caffe/Caffe.jl")
 
