@@ -33,11 +33,30 @@ function broadcasted(::typeof(+), x1::CuArray{T}, x2::CuArray{T}) where T
     y
 end
 
+broadcasted(::typeof(+), x::CuArray{T}, v) where T = elemadd(x, T(v))
+
 function broadcasted(::typeof(-), x1::CuArray{T}, x2::CuArray{T}) where T
     x1, x2 = length(x1) >= length(x2) ? (x1,x2) : (x2,x1)
     y = copy(x1)
     CUDNN.add!(-1, x2, 1, y)
     y
+end
+
+@generated function elemadd(x::CuArray{T}, v::T) where T
+    Ct = cstring(T)
+    k = Kernel("""
+    __global__ void elemadd($Ct *y, $Ct *x, $Ct v, int n) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx >= n) return;
+        y[idx] = x[idx] + v;
+    }
+    """)
+    quote
+        y = similar(x)
+        gdims, bdims = cudims(length(y))
+        $k(gdims, bdims, pointer(y), pointer(x), v, Cint(length(x)))
+        y
+    end
 end
 
 function broadcasted(::typeof(*), x1::CuArray{T}, x2::CuArray{T}) where T
