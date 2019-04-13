@@ -1,21 +1,30 @@
 export Standardizer
-import Statistics: mean, std
+export inverse
+using Statistics
 
 struct Standardizer
-    meanx
-    stdx
-    y
+    mean
+    std
 end
 
 function Standardizer(x::Matrix)
     meanx = mean(x, dims=2)
     stdx = std(x, mean=meanx, corrected=false, dims=2)
-    y = (x .- meanx) ./ stdx
-    Standardizer(meanx, stdx, y)
+    Standardizer(meanx, stdx)
+end
+function Standardizer(x::Vector)
+    meanx = mean(x)
+    stdx = std(x, corrected=false)
+    Standardizer(meanx, stdx)
 end
 
-function (s::Standardizer)(y::Matrix)
-    @assert size(y,1) == size(s.y, 1)
-    x = y .* s.stdx .+ s.meanx
-    x
+function (s::Standardizer)(x::Array)
+    (x .- s.mean) ./ s.std
+end
+
+function inverse(s::Standardizer, y::Array)
+    if ndims(y) == 2
+        @assert size(y,1) == size(s.mean,1)
+    end
+    y .* s.std .+ s.mean
 end
