@@ -23,11 +23,8 @@ function minimize!(f, dataloader, opt)
 end
 =#
 
-batch(xs...) = throw("Batch function not implemented.")
-
 function minimize!(f, dataset, opt; batchsize::Int, shuffle::Bool)
 	settraining(true)
-    # dataset = todevice(dataset)
     params = parameters(f)
     loss = 0.0
 	n = length(dataset)
@@ -35,8 +32,7 @@ function minimize!(f, dataset, opt; batchsize::Int, shuffle::Bool)
 	prog = Progress(n)
 	for i = 1:batchsize:n
 		j = min(i+batchsize-1, n)
-		x = batch(dataset, perm[i:j])
-		out = f(x)
+		out = f(dataset, perm[i:j])
 		loss += sum(Array(out.data))
 		getdevice() >= 0 && CUDA.synchronize()
         gradient!(out)
@@ -56,8 +52,7 @@ function evaluate(f, dataset; batchsize::Int)
 	prog = Progress(n)
 	for i = 1:batchsize:n
 		j = min(i+batchsize-1, n)
-		x = batch(dataset, perm[i:j])
-		out = f(x)
+		out = f(dataset, perm[i:j])
 		push!(outs, out)
 		getdevice() >= 0 && CUDA.synchronize()
 		update!(prog, j)
