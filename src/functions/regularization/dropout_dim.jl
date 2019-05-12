@@ -1,29 +1,29 @@
 export dropout_dim, bernoulli!
 
-function dropout_dim(x::Var, dim::Int, droprate::Float64)
+function dropout_dim(x::Var, dim::Int, droprate::Float64, scaling::Bool)
     droprate == 0.0 && return x
     istraining() || return x
 
     dims = ntuple(i -> i == dim ? size(x,i) : 1, ndims(x))
     mask = similar(x.data, dims)
-    bernoulli!(mask, droprate)
+    bernoulli!(mask, droprate, scaling)
     x .* Var(mask)
 end
 
-@generated function bernoulli!(x::CuArray{T}, droprate::Float64) where T
+@generated function bernoulli!(x::CuArray{T}, droprate::Float64, scaling::Bool) where T
     Ct = cstring(T)
     k = Kernel("""
-    __global__ void dropout_dim($Ct *x, $Ct *r, $Ct droprate, int n) {
+    __global__ void dropout_dim($Ct *x, $Ct *r, $Ct droprate, int scaling, int n) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= n) return;
-        // x[idx] = r[idx] < droprate ? 0 : 1 / (1-droprate);
-        x[idx] = r[idx] < droprate ? 0 : 1;
+        if (scaling == 1) x[idx] = r[idx] < droprate ? 0 : 1 / (1-droprate);
+        else x[idx] = r[idx] < droprate ? 0 : 1;
     }
     """)
     quote
         r = curand(T, length(x))
         gdims, bdims = cudims(length(x))
-        $k(gdims, bdims, pointer(x), pointer(r), T(droprate), length(x))
+        $k(gdims, bdims, pointer(x), pointer(r), T(droprate), Cint(scaling), length(x))
         x
     end
 end
