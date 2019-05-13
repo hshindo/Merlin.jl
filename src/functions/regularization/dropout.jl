@@ -79,11 +79,12 @@ end
 export LockedDropoutDim
 mutable struct LockedDropoutDim
     droprate::Float64
+    scaling::Bool
     mask
 end
 
-function LockedDropoutDim(droprate::Float64)
-    LockedDropoutDim(droprate, nothing)
+function LockedDropoutDim(droprate::Float64, scaling::Bool)
+    LockedDropoutDim(droprate, scaling, nothing)
 end
 
 function (f::LockedDropoutDim)(x::Var, dim::Int)
@@ -92,7 +93,7 @@ function (f::LockedDropoutDim)(x::Var, dim::Int)
     if f.mask == nothing
         dims = ntuple(i -> i == dim ? size(x,i) : 1, ndims(x))
         mask = similar(x.data, dims)
-        bernoulli!(mask, f.droprate)
+        bernoulli!(mask, f.droprate, f.scaling)
         f.mask = mask
     end
     x .* Var(f.mask)
