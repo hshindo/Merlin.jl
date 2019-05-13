@@ -47,7 +47,7 @@ end
 LockedDropout() = LockedDropout(nothing)
 
 function (f::LockedDropout)(x::Var, droprate::Float64)
-    f.droprate == 0.0 && return x
+    droprate == 0.0 && return x
     istraining() || return x
     if f.mask == nothing
         f.mask = dropout_mask(x.data, droprate)
