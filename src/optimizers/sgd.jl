@@ -14,11 +14,12 @@ mutable struct SGD
     rate::Float64
     momentum::Float64
     nesterov::Bool
+    weight_decay::Float64
     states::IdDict
 end
 
-function SGD(rate=0.0; momentum=0.0, nesterov=false)
-    SGD(rate, momentum, nesterov, IdDict())
+function SGD(rate=0.0; momentum=0.0, nesterov=false, weight_decay=0.0)
+    SGD(rate, momentum, nesterov, weight_decay, IdDict())
 end
 
 (opt::SGD)(x::Var) = opt(x.data, x.grad)
@@ -41,8 +42,9 @@ function (opt::SGD)(x::Array{T,N}, gx::Array{T,N}) where {T,N}
         end
         axpy!(T(1), v, x)
     else
-        #axpy!(T(0.001), x, gx)
-        # axpy!(T(0.0005), x, gx)
+        if opt.weight_decay > 0.0
+            axpy!(T(opt.weight_decay), x, gx)
+        end
         axpy!(T(-opt.rate), gx, x)
     end
     fill!(gx, T(0))
@@ -67,6 +69,9 @@ function (opt::SGD)(x::CuArray{T,N}, gx::CuArray{T,N}) where {T,N}
         end
         axpy!(T(1), v, x)
     else
+        if opt.weight_decay > 0.0
+            axpy!(T(opt.weight_decay), x, gx)
+        end
         axpy!(T(-opt.rate), gx, x)
     end
     fill!(gx, T(0))
