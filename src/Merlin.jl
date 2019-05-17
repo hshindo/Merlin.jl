@@ -89,6 +89,7 @@ for name in [
     "rnn/lstm",
 
     "blas",
+    "clip",
     "concat",
     "getindex",
     "linear",
