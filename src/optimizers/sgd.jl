@@ -46,7 +46,7 @@ function (opt::SGD)(x::Array{T,N}, gx::Array{T,N}) where {T,N}
         if opt.weight_decay > 0.0
             axpy!(T(opt.weight_decay), x, gx)
         end
-        opt.clip > 0.0 && clipvalue!(gx)
+        opt.clip > 0.0 && clipvalue!(gx,opt.clip)
         axpy!(T(-opt.rate), gx, x)
     end
     fill!(gx, T(0))
@@ -74,7 +74,7 @@ function (opt::SGD)(x::CuArray{T,N}, gx::CuArray{T,N}) where {T,N}
         if opt.weight_decay > 0.0
             axpy!(T(opt.weight_decay), x, gx)
         end
-        opt.clip > 0.0 && clipvalue!(gx)
+        opt.clip > 0.0 && clipvalue!(gx,opt.clip)
         axpy!(T(-opt.rate), gx, x)
     end
     fill!(gx, T(0))
