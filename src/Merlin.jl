@@ -119,6 +119,7 @@ include("optimizers/asgd.jl")
 include("optimizers/nadam.jl")
 include("optimizers/sgd.jl")
 
+include("transformers/identity.jl")
 include("transformers/standardizer.jl")
 
 include("datasets/Datasets.jl")
