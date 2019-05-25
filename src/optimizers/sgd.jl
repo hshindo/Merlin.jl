@@ -26,6 +26,7 @@ end
 (opt::SGD)(x::Var) = opt(x.data, x.grad)
 
 function (opt::SGD)(x::Array{T,N}, gx::Array{T,N}) where {T,N}
+    opt.clip > 0.0 && clipvalue!(gx,T(opt.clip))
     if opt.momentum > 0.0
         if haskey(opt.states, x)
             v = opt.states[x]
@@ -35,7 +36,7 @@ function (opt::SGD)(x::Array{T,N}, gx::Array{T,N}) where {T,N}
         end
         m = T(opt.momentum)
         rate = T(opt.rate)
-        v .= m .* v - rate * gx
+        v .= m * v - rate * gx
         if opt.nesterov
             v = copy(v)
             BLAS.scal!(length(v), m, v, 1)
@@ -46,15 +47,14 @@ function (opt::SGD)(x::Array{T,N}, gx::Array{T,N}) where {T,N}
         if opt.weight_decay > 0.0
             axpy!(T(opt.weight_decay), x, gx)
         end
-        opt.clip > 0.0 && clipvalue!(gx,T(opt.clip))
         axpy!(T(-opt.rate), gx, x)
     end
     fill!(gx, T(0))
 end
 
 function (opt::SGD)(x::CuArray{T,N}, gx::CuArray{T,N}) where {T,N}
+    opt.clip > 0.0 && clipvalue!(gx,T(opt.clip))
     if opt.momentum > 0.0
-        throw("Not implemented yet.")
         if haskey(opt.states, x)
             v = opt.states[x]
         else
@@ -63,8 +63,10 @@ function (opt::SGD)(x::CuArray{T,N}, gx::CuArray{T,N}) where {T,N}
         end
         m = T(opt.momentum)
         rate = T(opt.rate)
-        v .= m .* v - rate * gx
+        axpy!(T(m-1), v, v)
+        axpy!(-rate, gx, v)
         if opt.nesterov
+            throw("Not implemented yet.")
             v = copy(v)
             scal!(length(v), m, v, 1)
             axpy!(-rate, gx, v)
@@ -74,7 +76,6 @@ function (opt::SGD)(x::CuArray{T,N}, gx::CuArray{T,N}) where {T,N}
         if opt.weight_decay > 0.0
             axpy!(T(opt.weight_decay), x, gx)
         end
-        opt.clip > 0.0 && clipvalue!(gx,T(opt.clip))
         axpy!(T(-opt.rate), gx, x)
     end
     fill!(gx, T(0))
