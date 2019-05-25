@@ -31,7 +31,7 @@ function (opt::SGD)(x::Array{T,N}, gx::Array{T,N}) where {T,N}
         if haskey(opt.states, x)
             v = opt.states[x]
         else
-            v = zeros(x)
+            v = zero(x)
             opt.states[x] = v
         end
         m = T(opt.momentum)
@@ -58,7 +58,7 @@ function (opt::SGD)(x::CuArray{T,N}, gx::CuArray{T,N}) where {T,N}
         if haskey(opt.states, x)
             v = opt.states[x]
         else
-            v = zeros(x)
+            v = zero(x)
             opt.states[x] = v
         end
         m = T(opt.momentum)
