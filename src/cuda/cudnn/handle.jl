@@ -16,6 +16,7 @@ Base.cconvert(::Type{Ptr{Cvoid}}, h::Handle) = h.ptr
 Base.isequal(x::Handle, y::Handle) = isequal(x.ptr, y.ptr)
 
 const HANDLES = Dict{Int,Handle}()
+Handle() # initialize
 
 function gethandle()
     dev = CUDA.getdevice()
